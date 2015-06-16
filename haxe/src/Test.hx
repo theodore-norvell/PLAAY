@@ -14,5 +14,7 @@ class Test {
         pEl.appendChild(text);
         //And we can add it to the document by doing:
         document.body.appendChild(pEl);
+        var p = new Main();
+        p.canvas();
     }
 }
