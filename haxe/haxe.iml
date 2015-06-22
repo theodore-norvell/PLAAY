@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <module type="HAXE_MODULE" version="4">
   <component name="HaxeModuleSettingsStorage">
+    <option name="arguments" value="-lib jQueryExtern" />
     <option name="haxeTarget" value="JavaScript" />
     <option name="mainClass" value="Test" />
     <option name="outputFileName" value="test.js" />
