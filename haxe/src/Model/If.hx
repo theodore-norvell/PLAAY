@@ -1,30 +1,38 @@
-package Model;
+package model;
 
 class If extends Expression{
-    public function new()
+
+    var logic:Array<Expression>; // will have an array of n logic expressions
+    var expression:Array<Expression>; // will have an array of up to n
+    var functionName:Array<Expression>; // an array of if/else, will include else if's later
+
+    public function new(functionName:Array<Expression>, logic:Array<Expression>, expression:Array<Expression>)
     {
+        super();
+
+        this.logic = new Array<Expression>();
+        this.logic = logic;
+        this.expression = new Array<Expression>();
+        this.expression = expression;
+        this.functionName = new Array<Expression>();
+        this.functionName = functionName;
     }
 
-    public function If(functionName:Array<String>,logic:Array<Expression>,expression:Array<Expression>):Expression
+    public function If():Expression
     {
-        if(functionName[0]=="If" || functionName[0]=="Else If")
-        {
-            if(logic[0])
+            if(logic[0]) // if logic inside if statement evaluates to "true"
             {
-                return expression[0];
+                return expression[0]; // return expression inside if statement
             }
             else
             {
-                if(functionName.length>1)
+                if(functionName[1].length>1)
                 {
-                    If(functionName.slice(1),logic.slice(1),expression.slice(1));
+                    return expression[1];
                 }
+
+                return
             }
-        }
-        else
-        {
-            return expression[0];
-        }
     }
 
 }

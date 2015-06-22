@@ -1,5 +1,5 @@
-package Model;
-abstract Expression {
+package model;
+class Expression {
     public function new() {
     }
 
