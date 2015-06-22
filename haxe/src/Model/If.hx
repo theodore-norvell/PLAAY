@@ -1,8 +1,9 @@
-package Model;
+package model;
 
 class If extends Expression{
     public function new()
     {
+        //Pass expressions and store here TODO
     }
 
     public function If(functionName:Array<String>,logic:Array<Expression>,expression:Array<Expression>):Expression
