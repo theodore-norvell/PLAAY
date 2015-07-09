@@ -1,0 +1,16 @@
+/* CSS Document */
+
+
+
+* { font-family: "Lucide Bright" "Palatino Linotype", "Book Antiqua", Palatino, serif ;
+}
+
+.kbd {font: "Lucida Console", Monaco, monospace; }
+
+.centre { text-align:center; }
+
+pre { font-size:inherit ; font: "Lucida Console", Monaco, monospace; }
+
+.sub { vertical-align:sub ; }
+
+.blue {font: "Lucida Console", Monaco, monospace; color: blue ; }
