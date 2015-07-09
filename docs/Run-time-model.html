@@ -49,22 +49,24 @@
 <pre class="blue">    f := lambda( a ) { a + 1 }
     f(3)</pre>
 <p>and execute it with the stack that is <em>s</em> and say the top object of <em>s</em> is <em>t</em>. I'll assume that <span class="blue">f</span> is in fact a field of <em>t</em>; that is, one of the <span class="kbd">FieldC</span> objects in <em>t</em>'s sequence has its <span class="kbd">.name</span> equal to &quot;f&quot;. I'll call that <span class="blue">FieldC</span> object <em>f</em>. [I'll use blue font for text that is meant to represent plaay code. Some day I should come back and replace the blue parts with actual plaay code.]</p>
-<p>Now would be a good time to stop and draw a picture of <em>s</em>, <em>t</em>, and <em>f</em>. </p>
+<p>Now would be a good time to stop and draw a picture of <em>s</em>, <em>t</em>, and <em>f</em>. <img src="drawings/evaluation0.png" width="754" height="462" alt="s t and f" /></p>
 <p>The first command needs to evaluate the lambda expression. Lambda expressions evaluate to <span class="kbd">ClosureC</span> objects. Let's call the new closure object <em>c</em>. Its <span class="kbd">.function</span> field points to the abstract syntax tree representation of the lambda expression (i.e. to a model object that was produced during editing). <em>c</em>'s <span class="kbd">.context</span> field will point to <em>s</em>. For assignment to happen we need to find <span class="blue">f</span>'s representation. This is done by the following algorithm.</p>
 <pre>    function lookUp( varName : String, stack :  ) : FieldC or null
         if stack == null then null
         else if stack.top has a field whose name is varName then that field
         else lookUp( varName, stack.next )</pre>
 <p>Running this function with arguments &quot;f&quot; and s finds <em>f</em>. Once <em>c</em> is constructed, the <span class="kbd">.value</span> field of the <span class="kbd">FieldC</span> object <em>f</em> is set to point to <em>c</em>.</p>
-<p>It's a good time to update that picture to include <em>c</em>.</p>
+<p>It's a good time to update that picture to include <em>c</em>.<img src="drawings/evaluation1.png" width="1098" height="573" alt="adding c" /></p>
 <p>Now consider the second line. The variable <span class="blue">f</span> is evaluated by running <span class="kbd">lookUp(&quot;f&quot;, </span><em>s</em><span class="kbd">)</span>, which results again in <em>f</em> and then the .value field is taken. So the value of the <span class="kbd">f</span> is a closure represented by <em>c</em>. Next the string 3 is evaluated, this results in a <span class="kbd">StringC</span> object, call it <em>3</em>. Now the closure is applied to its argument. To do this we first construct an activation record. The fields of the record are correspond to the parameters of the function. So we have a new ObjectC object (call it <em>r</em>) with one field (all it <em>a</em>). Of course <em>a</em><span class="kbd">.name</span> is &quot;a&quot; and <em>a</em><span class="kbd">.value</span> is <em>3</em>. And we construct a new StackC object (call it <em>s</em>1). <em>s</em>1<span class="kbd">.top</span> is <em>r</em> and <em>s</em>1<span class="kbd">.next</span> is <em>s</em>.</p>
 <p>Its a good time to update the picture.</p>
-<p>Now to complete the evaluation of the expression <span class="blue">f(3)</span> we evaluate the expression <span class="blue"> a + 1 </span>using <em>s</em>1 as the stack. So now when &quot;a&quot; is looked up the a field is found and its value is <em>3</em>. After the addition the result is a <span class="kbd">StringValueC</span> object representing a 4.</p>
+<p><img src="drawings/evaluation2.png" width="1090" height="640" alt="adding s1, r, and a" /></p>
+<p>Now to complete the evaluation of the expression <span class="blue">f(3)</span>, we evaluate the expression <span class="blue"> a + 1 </span>using <em>s</em>1 as the stack. So now, when &quot;a&quot; is looked up, the <em>a</em> field is found and its value is <em>3</em>. After the addition the result is a <span class="kbd">StringValueC</span> object representing a 4.</p>
 <p>For this example the recursive case of lookUp hasn't been used and so the .next field has not been used. Let's change the example a bit. To </p>
 <pre class="blue">    b := 5
     f := lambda( a ) { a + b }
     f(3)</pre>
 <p>We'll assume that <em>t</em> has another FieldC <em>b</em>, representing <span class="blue">b</span>. This time what happens when  <span class="blue"> a + b </span>is evaluated using <em>s</em>1 as the stack? When b is looked up the call to <span class="kbd">lookUp(&quot;b&quot;, </span><em>s</em>1<span class="kbd">)</span> recurses to <span class="kbd">lookUp(&quot;b&quot;, </span><em>s</em><span class="kbd">)</span> which results in <em>b</em>. The result then represents 8. </p>
+<p>The following figure shows the stack when a+b is evaluated.<img src="drawings/evaluation3.png" width="1105" height="632" alt="adding field b to the activation record" /></p>
 <p>Now add a couple of lines so we have</p>
 <pre class="blue">    b := 5
     f := lambda( a : Num ) { a + b }
