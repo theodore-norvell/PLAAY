@@ -37,7 +37,7 @@
    Exp --&gt; null</pre>
 <h3>Variables</h3>
 <pre>   Exp --&gt; Var
-   Var --&gt; <strong>thisVar</strong>[Id] | <strong>local</strong>Var[Id] | <strong>worldVar</strong>[Id]</pre>
+   Var --&gt; <strong>var</strong>[Id]</pre>
 <h3>Dot</h3>
 <pre>   Exp --&gt; dot[Id]( Exp) 
 </pre>
@@ -62,10 +62,10 @@
 [Changed Type to ClassType.]</pre>
 <h3>Method literals</h3>
 <pre>   Exp --&gt; Method
-   Method --&gt; <strong>method</strong>(Params<sub></sub>, OptType, Seq)
+   Method --&gt; <strong>lambda</strong>(Params<sub></sub>, OptType, Seq)
    Params --&gt; params(VarDecl* )
 </pre>
-<p>  The value of a method literal is a closure. Free Variables of the Seq are treated as follows. this[Id] refer to the fields of the current object at the time of the method literals evaluation. When the scope of the method is a class --i.e. when method literal is evaluated as part of object construction-- the current object is considered to be the one that is being contructed. Local variables may include the parameters, but may also include local variables of any containing scopes.</p>
+<p>  The value of a method literal is a closure. (See <a href="Run-time-model.html">Run-time-model</a> for more information on closures.)</p>
 <h3>Control constructs</h3>
 <pre>   Seq --&gt; seq( SeqMember, SeqMember, ... ) 
    SeqMember --&gt; Exp | VarDecl
@@ -90,6 +90,7 @@ OptExp --&gt; noExp | Exp</pre>
 <p>Place holder expressions are used where expressions are required by the content model, but where there is no obvious candidate for a default value.</p>
 <pre>   Exp --&gt; expPlaceHolder</pre>
 <h1>Static Checking</h1>
+<p>[NOTE 2015 July 9: This needs revision!]</p>
 <h2>Overview</h2>
 <h3>Pass 0  </h3>
 <p>The aim of the first pass of static checking is to determine the types for all fields and methods using  type inference rules that don't depend on any information that can't be determined directly from the syntax or from pass 0 checking that has already happened earlier in the same class. For example if we have</p>
@@ -142,7 +143,7 @@ OptExp --&gt; noExp | Exp</pre>
 <p>To avoid circularity, we require that the types involved in method type atoms don't involve the type atom itself. For example there is no type atom x such that</p>
 <p class="centre">x = method( {x} )</p>
 <p>The typing rules of the language should ensure that such type atoms never need to be created.</p>
-<p>Variables come in three kinds. <em>K</em>={this, local, world}. Variable come in two constnesses C = {con, var}.</p>
+<p>Variable come in two constnesses C = {con, var}.</p>
 <h2>Pass 0 algorithm</h2>
 <p>Pass 0 computes a mapping from AST nodes to types. At the end of pass 0, each varDecl and conDecl node within a class should be mapped to some element of <em>Type</em>.</p>
 <p>To keep track of the types of identifiers, we use a symbol table <em>st</em>, which is represents a map from<em> I</em>&times;{this, local, world} to <em>C&times;Type</em>. Operations on symbol table include</p>

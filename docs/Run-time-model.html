@@ -29,7 +29,7 @@
         con fields : Sequence&lt;FieldC&gt;
 
     class ClosureC extends ValueA
-        con function : FunctionC
+        con function : LambdaC
         con context : StackC
 
     class NullC extends ValueC
@@ -39,17 +39,18 @@
     class FieldC
         con name : String
         var value : ValueA
+        con isConstant : boolean
 
     class StackC
         con top : ObjectC
         con next : StackC or null</pre>
-<p>[I'm using pseudo code, here,  using the Java convention that pointers are implicit. E.g. two <span class="kbd">ClosureC</span> objects could share the same <span class="kbd">FunctionC</span> object, since the function field contains a pointer to an object of class <span class="kbd">FunctionC</span>, not an actual <span class="kbd">FunctionC</span> object. The other convention I'm using is that con marks field whose values never change after construction (final fields in Java terms) while var marks field whose values may need to change during run time. I'll use T or null to indicate pointers that either point to an object of class T or are null. Generally T alone means the pointer can not be null.]</p>
+<p>[I'm using pseudo code, here,  using the Java convention that pointers are implicit. E.g. two <span class="kbd">ClosureC</span> objects could share the same <span class="kbd">LambdaC</span> object, since the function field contains a pointer to an object of class <span class="kbd">LambdaC</span>, not an actual <span class="kbd">LambdaC</span> object. The other convention I'm using is that con marks field whose values never change after construction (final fields in Java terms) while var marks field whose values may need to change during run time. I'll use T or null to indicate pointers that either point to an object of class T or are null. Generally T alone means the pointer can not be null.]</p>
 <h3>Quick introduction to closures</h3>
 <p>The first three classes should be fairly self explanatory. The need for the context field in the representation of closures needs a bit of explanation. When a function is executed, we need a place to look for variables that are referred to during execution. This place is called the stack. Nonempty stacks are represented by <span class="kbd">StackC</span> objects. For example, suppose we have some Plaay code equivalent to </p>
 <pre class="blue">    f := lambda( a ) { a + 1 }
     f(3)</pre>
 <p>and execute it with the stack that is <em>s</em> and say the top object of <em>s</em> is <em>t</em>. I'll assume that <span class="blue">f</span> is in fact a field of <em>t</em>; that is, one of the <span class="kbd">FieldC</span> objects in <em>t</em>'s sequence has its <span class="kbd">.name</span> equal to &quot;f&quot;. I'll call that <span class="blue">FieldC</span> object <em>f</em>. [I'll use blue font for text that is meant to represent plaay code. Some day I should come back and replace the blue parts with actual plaay code.]</p>
-<p>Now would be a good time to stop and draw a picture of <em>s</em>, <em>t</em>, and <em>f</em>. <img src="drawings/evaluation0.png" width="754" height="462" alt="s t and f" /></p>
+<p>Now would be a good time to stop and draw a picture of <em>s</em>, <em>t</em>, and <em>f</em>. <img src="drawings/evaluation0.png" width="1021" height="377" alt="s t and f" /></p>
 <p>The first command needs to evaluate the lambda expression. Lambda expressions evaluate to <span class="kbd">ClosureC</span> objects. Let's call the new closure object <em>c</em>. Its <span class="kbd">.function</span> field points to the abstract syntax tree representation of the lambda expression (i.e. to a model object that was produced during editing). <em>c</em>'s <span class="kbd">.context</span> field will point to <em>s</em>. For assignment to happen we need to find <span class="blue">f</span>'s representation. This is done by the following algorithm.</p>
 <pre>    function lookUp( varName : String, stack :  ) : FieldC or null
         if stack == null then null
@@ -57,6 +58,7 @@
         else lookUp( varName, stack.next )</pre>
 <p>Running this function with arguments &quot;f&quot; and s finds <em>f</em>. Once <em>c</em> is constructed, the <span class="kbd">.value</span> field of the <span class="kbd">FieldC</span> object <em>f</em> is set to point to <em>c</em>.</p>
 <p>It's a good time to update that picture to include <em>c</em>.<img src="drawings/evaluation1.png" width="1098" height="573" alt="adding c" /></p>
+<p>[There is a small error in this diagram and the next few. Function bodies are always sequences, so the body pointer should point to a sequence with one child, which is the node labelled by &quot;+&quot;. Also there should be another node between the lambda node (that function points to) and its parameter.]</p>
 <p>Now consider the second line. The variable <span class="blue">f</span> is evaluated by running <span class="kbd">lookUp(&quot;f&quot;, </span><em>s</em><span class="kbd">)</span>, which results again in <em>f</em> and then the .value field is taken. So the value of the <span class="kbd">f</span> is a closure represented by <em>c</em>. Next the string 3 is evaluated, this results in a <span class="kbd">StringC</span> object, call it <em>3</em>. Now the closure is applied to its argument. To do this we first construct an activation record. The fields of the record are correspond to the parameters of the function. So we have a new ObjectC object (call it <em>r</em>) with one field (all it <em>a</em>). Of course <em>a</em><span class="kbd">.name</span> is &quot;a&quot; and <em>a</em><span class="kbd">.value</span> is <em>3</em>. And we construct a new StackC object (call it <em>s</em>1). <em>s</em>1<span class="kbd">.top</span> is <em>r</em> and <em>s</em>1<span class="kbd">.next</span> is <em>s</em>.</p>
 <p>Its a good time to update the picture.</p>
 <p><img src="drawings/evaluation2.png" width="1090" height="640" alt="adding s1, r, and a" /></p>
@@ -108,40 +110,7 @@ would be implemented by
         con value : TVar&lt;ValueA&gt;</pre>
 <h2>Evaluation</h2>
 <h3>Program Representation</h3>
-<p>The program is represented at run time by the same abstract syntax tree as is build during editing. There is no difference. See <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract Syntax and Static Checking</a>. For this document, I'll assume that ASTs are represented by nodes of type AST. For example</p>
-<pre>    abstract class ASTA
-
-    class SeqC extends ASTA
-        var exprs : Sequence&lt;ExpA&gt;
-
-    abstract class ExpA extends ASTA
-        var children : Sequence&lt;ASTC&gt;
-
-    class PlusC extends ExpC
-        invariant children.length = 2
-        invariant children[0] isA ExpA
-        invariant children[1] isA ExpA
-        method left return children[0] asA ExpA
-        method right return children[1] asA ExpA
-
-    class IfC extends ExpC
-        invariant children.length = 3
-        invariant children[0] isA ExpA
-        invariant children[1] isA SeqC
-        invariant children[2] isA SeqC
-        method guard returns children[0] asA ExpA
-        method thenPart returns children[1] asA SeqA
-        method elsePart returns children[2] asA SeqA
-        
-
-    class LambdaC extends ExpC
-        invariant children.length = 0
-        var parameters : Sequence&lt;ParameterC&gt;
-        var body : SeqC</pre>
-<h2></h2>
-<p>Note the  fields are vars rather than cons because they need to be changed during editing. They won't be changed during execution, so they don't need to be represented by transactional variables. </p>
-<p>Aside: That said the editor will also need an undo mechanism, so they might be represented by transactional variables after all, but ones that are based on a separate undo/redo manager.</p>
-<p>Another aside: Also it is very tempting to allow editing during execution. This is actually easy to accommodate as long as we are careful not to change any code that is in the middle of being evaluated. More on that later.</p>
+<p>See the <a href="Static-model.html">Static-model</a> document.</p>
 <h3>How not to do it.</h3>
 <p>The evaluation process described above could be implemented using the interpreter pattern. We aren't going to use it, but it may be worth taking a quick look at it.</p>
 <p>The interpreter pattern works by giving each node of the abstract syntax tree an <span class="kbd">eval</span> method that takes a stack as an argument. For example for AST nodes representing variables we have</p>
@@ -197,12 +166,12 @@ would be implemented by
     x</pre>
 <p>there will be one evaluation representing the sequence and then one evaluation representing the evaluation of the body of the closure.</p>
 <p>Let's start with a simpler example that only uses one example. Then we'll come back to the one above.</p>
-<p>Suppose we want to evaluate an expression <span class="blue">a+b</span> in a stack <em>s</em> that has <span class="blue">a</span> and <span class="blue">b</span> as fields. We make an evaluation that has a pointer to the AST node for <span class="blue">a+b</span>, this is called the root of the evaluation. The evaluation also has to keep track of which parts of the tree have been evaluated and which have not and for those that have been evaluated, what value they evaluated to. This part of the evaluation is called its map. The map maps ASTC nodes to ValueC objects. An evaluation also has a stack of pending nodes and optionally a selected node.</p>
+<p>Suppose we want to evaluate an expression <span class="blue">a+b</span> in a stack <em>s</em> that has <span class="blue">a</span> and <span class="blue">b</span> as fields. We make an evaluation that has a pointer to the AST node for <span class="blue">a+b</span>, this is called the root of the evaluation. The evaluation also has to keep track of which parts of the tree have been evaluated and which have not and for those that have been evaluated, what value they evaluated to. This part of the evaluation is called its map. The map maps ASTA nodes to ValueC objects. An evaluation also has a stack of pending nodes and optionally a selected node.</p>
 <pre>    class EvaluationC
-        con root : ASTC
+        con root : ASTA
         con stack : StackC
-        con map : MutableMap&lt;ASTC, ValueC&gt;
-        con pending : Stack&lt;ASTC&gt;
+        con map : MutableMap&lt;ASTA, ValueC&gt;
+        con pending : Stack&lt;ASTA&gt;
         var ready : boolean
 </pre>
 <p>The evaluate <span class="blue">a+b</span> we start by making an evaluation that has the to the Plus node as its root. It has <em>s</em> as its stack. Its map is empty. Its pending stack contains only the root and ready is false. Ready means that the top node on the pending stack is ready to be stepped (evaluated).</p>
@@ -275,7 +244,7 @@ And the user sees.
                 if evalStack.notEmpty
                     evalStack.top.setResult( value )
             else
-                evalStack.top().advance()</pre>
+                evalStack.top().advance( this )</pre>
 <p>An evaluation is done when its root has been evaluated </p>
 <pre>    class EvaluationC
         ...
@@ -287,17 +256,18 @@ And the user sees.
 The advance method for an evaluation either does a selection or a step
 <pre>    class EvaluationC
         ...
-        method advance()
+        method advance( vms : VMSC )
             pre not isDone()
             // and therefor pending is not empty()
             if ready then
-                pending.top.step(this)
+                pending.top.step( vms )
             else 
-                pending.top.select(this)</pre>
+                pending.top.select( vms )</pre>
  <p>The rest of the work is done in the step and select methods for the AST nodes. </p>
- <p>Selection: Many nodes use the left-to-right selection strategy. The Plus node would be an example. The left-to-right strategy is this. Note that select messages are only ever sent to the top pending node. </p>
+ <p><strong>Selection:</strong> Many nodes use the left-to-right selection strategy. The Plus node would be an example. The left-to-right strategy is this. Note that select messages are only ever sent to the top pending node. </p>
  <pre>
- method select( eval : Evaluation )
+ method select( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this
     if all this node's children are in the domain of eval.map then 
         // Select this node.
@@ -305,10 +275,11 @@ The advance method for an evaluation either does a selection or a step
     else let i be the number of the first child not in the domain of eval.map
         eval.pending.push( children[i] )
         node.children[i].select( eval )</pre>
-<p>  [I wrote this as if it were a method of the node, but since many node classes will share the same select method, and using inheritance can get gnarly, I'd recommend using the strategy pattern for selection, as was done in the TM.]</p>
+<p>  [This is the most common selection strategy, so this could be the default. Exceptions to the normal strategies can be overrides.]</p>
 <p>For &quot;if&quot; nodes selection is like this</p>
 <pre>
- method select( eval : Evaluation )
+ method select( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this
     if the guard is in the domain of eval.map then 
         if the guard is mapped to a value representing &quot;true&quot; then
@@ -325,17 +296,20 @@ The advance method for an evaluation either does a selection or a step
                  elsePart.select( eval )
         else error!!
         </pre>
-<p>For nodes representing variables selection is simple</p>
+<p>For nodes representing variables, selection is simple</p>
 <pre>
- method select( eval : Evaluation )
+ method select( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this
     
     look up the variable in the stack and highlight it.
     eval.ready := true
 </pre>
-<p>Stepping is also depends on the node type. For plus nodes</p>
+<p>[Note on the <span class="kbd">pending</span> stack: Because the only nodes pushed on to pending are either the <span class="kbd">root</span> (when the stack is empty) or a child of the top of <span class="kbd">pending</span>, it follows that if the value of pending is [nd0, nd1, ..., nd<em>n</em>] (with the top on the right), then nd0 is the <span class="kbd">root</span>, nd1 is a child of nd0, nd2 is a child of nd1, and so on. So the whole stack can be represented with one pointer &quot;<span class="kbd">top</span>&quot;. &quot;<span class="kbd">top</span>&quot; is null if pending is empty. <span class="kbd">push(nd)</span> can be implemented by <span class="kbd">top := nd</span> and <span class="kbd">pop</span> by <span class="kbd">top := </span>parent of <span class="kbd">top</span> or null if <span class="kbd">top</span> is the <span class="kbd">root</span>.]</p>
+<p><strong>Stepping: </strong>Stepping also depends on the node type. For plus nodes</p>
 <pre>
- method step( eval : Evaluation )
+ method step( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this and eval.ready
     get the values mapped by the two children
     if both represent numbers,
@@ -347,7 +321,8 @@ The advance method for an evaluation either does a selection or a step
         error!</pre>
 <p>For if nodes</p>
 <pre>
- method step( eval : Evaluation )
+ method step( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this and eval.ready
     var v
     if the guard maps to true
@@ -360,7 +335,8 @@ The advance method for an evaluation either does a selection or a step
 </pre>
 <p>For variable nodes</p>
 <pre>
- method step( eval : Evaluation )
+ method step( vms : VMSC )
+    con eval := vms.evalStack.top() 
     pre eval.pending is not empty and eval.pending.top() = this and eval.ready
     var f := lookUp( name, eval.stack )
     remove highlight from f
@@ -368,6 +344,75 @@ The advance method for an evaluation either does a selection or a step
     eval.pending.pop()
     eval.ready := false</pre>
 <p>&nbsp;</p>
-<p>[Yet to be done: Explain how calling a closure pushes an an evaluation on to the evaluation stack and how returning from a call pops an evaluation from the evaluation stack.]</p>
+<p>So why do we need a stack of evaluations. The idea is that each level of the stack represents the evaluation of one function. So let's look at how a function call can be evaluated. </p>
+<p>The select method for <span class="kbd">LambdaC</span> nodes just sets ready to true. The step method for <span class="kbd">LambdaC</span> nodes just creates a new <span class="kbd">ClosureC</span> (using the stack field of the top evaluation for the context, and maps the <span class="kbd">LambdaC</span> node to the closure. So lambdas are simple.</p>
+<p>For application of a function (i.e. closure) to a list of arguments, we use nodes of class <span class="kbd">ApplyC</span>. The select method for <span class="kbd">ApplyC</span> nodes uses the usual left-to-right strategy The step method looks like this:</p>
+<pre>
+ method step( vms : VMSC )
+    con eval := vms.evalStack.top() 
+    pre eval.pending is not empty and eval.pending.top() = this and eval.ready
+    pre all children of this node are mapped.
+    con c := eval.get( this.function )
+    if not c isA ClosureC then  error!
+    con c1 := c asA ClosureC
+    con f : LambdaC := c1.function
+    con argList := [eval.get( this.args(0) ), eval.get( this.args(1) ),.. ]
+    if the length of arglist not= the length of f.params then error!
+    if any argument has a value not compatible with the corresponding parameter type
+         then error!
+    var params := f.params.children
+    con arFields := [ new FieldC( params[0].name, argList[0] ),
+                    new FieldC( params[1].name, argList[1] ),
+                    .. ]
+    con activationRecord := new ObjectC( arFields ) 
+    con stack := new StackC( activationRecord, cl.context )
+
+    con newEval := an EvaluationC with
+           newEval.root := f.body
+           newEval.stack = stack
+           newEval.map = an empty map
+           newEval.pending = a stack containing only f.body
+           newEval.ready = false
+    vms.evalStack.push( newEval )
+</pre>
+<p>Note that unlike every other step method, this one does not pop the pending stack.</p>
+<p>So the step takes care of entering the function being called. What about function return? Here is <span class="kbd">advance</span> for <span class="kbd">VMSC</span> again.</p>
+<pre class="kbd">    class VMSC
+        ...
+        method canAdvance()
+            return evalStack.notEmpty()
+        method advance() 
+            pre canAdvance()
+            if evalStack.top().isDone() 
+                con value := evalStack.top() 
+                evalStack.pop()
+                if evalStack.notEmpty
+                    evalStack.top.setResult( value )
+            else
+                evalStack.top().advance( this )</pre>
+<p>Once the function has executed as far as it can, its root node (i.e. the function body) will be mapped to its return value. The next call to <span class="kbd">vms.advance</span> records this return value, pops the evaluation, and sends the return value to the next evaluation down the stack (i.e. the new top) using the <span class="kbd">setResult</span> method. So what we need to do is implement that method.</p>
+<pre>    class EvaluationC
+        ...
+        method setResult( value : ValueC ) {
+            pre: The pending stack is not empty and its top node is an ApplyC
+            con node : ApplyC  := this.pending.top
+            con lambda : = this.map.get(node.function) 
+            if lambda has a result type and the type of value is not compatible 
+                then error!
+            this.map.set( node, value )
+            this.pending.pop() 
+            this.ready := false
+</pre>
+<h3>  Allowing editing during execution</h3>
+<p>It would be nice if during execution one could edit the program, for example to fix mistakes or fill in missing parts. In order not to mess up any partially complete evaluations, it is important not to change some AST.  For example if we deleted a node that is on a pending stack, that would cause problems the next time we send a step or select message that node. </p>
+<p>One way to accomplish this is to make a copy of the relevant part of the program tree each time an new evaluation is made. (For example in the step method of ApplyC.). Then the original can be edited to one's heart's content, although evaluations currently on the stack will not be affected by the changes. </p>
+<p>pro: No restriction on editing.</p>
+<p>con: Edits do not affect curent evaluations and so the user may see &quot;old code&quot; when they return to execution mode.</p>
+<p>precedent: This was done in the Sharp APL editor. It was also done in the 1985 implementation of Prograph.</p>
+<p>Another solution is to consider &quot;locked&quot; any node such that changing it could mess up a current evaluation. I think it is sufficient to say that a node is locked iff it is in the pending stack of some evaluation on the evaluation stack. Each node is provided with a counter. The counter is incremented when the node is pushed on to the pending stack and decremented on pop. The node is locked if the counter isA locked node can not have any of children changed nor any of its other attributes changed.</p>
+<p>pro: There is only one current copy of each function body.</p>
+<p>con: There are restrictions on what can be edited.</p>
+<p>con: Complicates the program editor.</p>
+<p>con: Complicates undo/redo in the editor. Suppse I make an edit to node x. Later it becomes locked. And then I try to undo my edit. This undo must be prevented somehow.</p>
 </body>
 </html>

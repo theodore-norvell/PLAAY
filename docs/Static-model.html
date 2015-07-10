@@ -1,0 +1,81 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Untitled Document</title>
+<link href="playStyle.css" rel="stylesheet" type="text/css" />
+</head>
+
+<body>
+<h1>Program Representation</h1>
+<p>During editing and exectution we need a way to represent Plaay programs. This document provides some ideas on how to do this.</p>
+<p>The program is represented at run time by the same abstract syntax trees during execution and during editing. There is no difference.</p>
+<p> More detail on what sorts of nodes are needed and what information they need to carry is in the <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract Syntax and Static Checking</a> document. More information about how the AST is used during execution is in the <a href="Run-time-model.html">Run-time-model</a> document.</p>
+<p>For this document, I'll assume that ASTs are represented by nodes of type AST. For example</p>
+<pre>    abstract class ASTA
+
+    class SeqC extends ASTA
+        var exprs : Sequence&lt;ExpA&gt;
+
+    abstract class ExpA extends ASTA
+        var children : Sequence&lt;ASTA&gt;
+
+    class PlusC extends ExpA
+        invariant children.length = 2
+        invariant children[0] isA ExpA
+        invariant children[1] isA ExpA
+        method left return children[0] asA ExpA
+        method right return children[1] asA ExpA
+
+    class IfC extends ExpA
+        invariant children.length = 3
+        invariant children[0] isA ExpA
+        invariant children[1] isA SeqC
+        invariant children[2] isA SeqC
+        method guard returns children[0] asA ExpA
+        method thenPart return children[1] asA SeqA
+        method elsePart return children[2] asA SeqA
+        
+
+    class LambdaC extends ExpA
+        invariant children.length = 3
+        invariant children[0] is a ParamlistC
+        invariant children[1] is an OptTypeC
+        invariant children[2] is a SeqC
+        method params return children[1].children 
+        method body return chidren[2]
+
+    class ParamlistC extends ASTA
+        invariant all children are VarDeclC
+
+    class ApplyC extends ExpA
+        invariant children.length &gt; 0
+        method function return chilren[0]
+        method args return chilren[1,..]
+</pre>
+<p> Members of the children array are never null. Holes in the program are represented by <span class="kbd">PlaceHolderExpC</span> nodes</p>
+<pre>    class PlaceHolderExpC extends ExpC</pre>
+<p>In the view PlaceHolderC nodes are represented by dropzones.</p>
+<h3>Validity</h3>
+<p>In Plaay there are some trees you can create and some trees you can't. Consider a model:</p>
+<pre>    if( placeHolder, Seq() , Seq() )</pre>
+<p>In the editor there will be a drop zone representing the placeholder node. If we try to drop a  &quot;type&quot; such as Num on the dropzone, there should be no change to the model. (And it would be nice to give the user feedback even before the drop, by changing the cursor to a &quot;you can't drop that here&quot; shape. But this might not be possible on all browsers.) We say that a model</p>
+<pre>    if( Num(), Seq(), Seq() )</pre>
+<p>is not valid (or invalid). This is very similar to the XML concept of validity. For example in XHTML, a document</p>
+<pre> &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+ &lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML Basic 1.1//EN&quot;     &quot;http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd&quot;&gt;
+ &lt;html&gt; &lt;head&gt; &lt;title&gt; Hello &lt;/title&gt; &lt;/head&gt;
+        &lt;body&gt; &lt;p&gt; Hello &lt;/p&gt; &lt;/body&gt;
+ &lt;/html&gt;</pre>
+<p>is considered well-formed and valid. But a document</p>
+<pre> &lt;?xml version=&quot;1.0&quot; encoding=&quot;utf-8&quot;?&gt;
+ &lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML Basic 1.1//EN&quot;     &quot;http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd&quot;&gt;
+ &lt;html&gt;&lt;p&gt; &lt;body&gt; Hello&lt;/body&gt; &lt;/p&gt;&lt;/html&gt;</pre>
+<p></p>
+<p>Is not valid for a couple of reasons: html elements must have head and a body as children (in that order) and nothing else; also a body element can not appear as a child of a p element.</p>
+<p>So this is what the invariants above are all about. It is important to not allow the invariants to be violated. They make sure that the AST in the computer follows the abstract grammar in <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract-Syntax-and-Static-Checking</a>. And is therefore valid input to checking or execution.</p>
+<p>Another way to put it is that this is Plaay's equivalent of syntax checking. The parser of a standard compiler will (generally) not build a tree if the program has syntax errors. Plaay's editor will not build a tree that has validity errors.</p>
+<p>Conversely it is important that the editor allows the user to build any tree that is valid.</p>
+<p>&nbsp;</p>
+</body>
+</html>
