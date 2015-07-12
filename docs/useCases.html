@@ -1,0 +1,92 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Untitled Document</title>
+</head>
+
+<body>
+<h1>Glossary</h1>
+<ul>
+  <li>add class button. A button.</li>
+  <li>class list. A GUI list that is a list of the names of all the classes. </li>
+  <li>program panel. An area of the screen (a higraph view component) that shows the portion of the program higraph.</li>
+  <li>selection. The selection is a set of zero, one, or more views.
+    <ul>
+      <li>The selection is defined by a pointer (called the <em>parent</em>) to a single node view and two integers -- called <em>anchor</em> and <em>focus</em>. The <em>parent</em> pointer may be null -- in which case the selection consists of  0 views, or it may be nonnull, in which case the seletion consists of all views &quot;between&quot; the anchor and the focus as follows: Suppose the parent points to <em>p</em> and <em>p</em> has <em>n</em> child views (including drop-zones and node-views) and the sequence of children views of the node view (including drop-zones) are [<em>f</em>(0), <em>f</em>(1), ..., <em>f</em>(n-1)]. Then, when <em>anchor</em> ≤ <em>focus</em>, the selection is {<em>f</em>(<em>i</em>) | <em>anchor</em> ≤ <em>i</em> ≤ <em>focus</em>}, and, when <em>focus</em> ≤ <em>anchor</em>, the selection is {<em>f</em>(<em>i</em>) | <em>focus</em> ≤ <em>i</em> ≤ <em>anchor</em>}. </li>
+      <li>Example. Suppose the user creates an if node. If-node views have three child views. 0 for the guard, 1, for the then part and, 2 for the else part. The parent pointer will point to the if node's view and the anchor and focus will be 0. The selection consists of the view for the guard.</li>
+      <li>Example. Suppose a seq node has children [<em>dz</em>0, <em>nv</em>0, <em>dz</em>1, <em>nv</em>1, <em>dz</em>2]. Suppose the user clicks on drop zone <em>dz</em>1. This sets the <em>focus</em> and <em>anchor</em> to 2 and the <em>parent</em> pointer points at the seq node's view. The selection consists only of drop zone <em>dz</em>1. If the user then presses shift-down on the keyboard twice, this will increase the focus by 2 to 4 and the selection will be {<em>dz</em>1, <em>nv</em>1, <em>dz</em>2}.</li>
+    </ul>
+  </li>
+</ul>
+<h1>Use cases for the editor</h1>
+<h2>Creating a class</h2>
+<ol>
+  <li>User clicks on <em>add class button</em>.</li>
+  <li>System
+    <ol>
+      <li>creates a new class with a default name such as &quot;NewClass&quot;,</li>
+      <li>adds the class to the <em>class list</em>,</li>
+      <li>loads the subgraph associated with the class into the <em>program panel</em>,</li>
+      <li>selects the name in the class list so that the user can replace it with a better name.</li>
+    </ol>
+  </li>
+  <li>User types the name of the class</li>
+  <li>As the user types, the system changes the name to the name typed.</li>
+</ol>
+<h2>Adding a template.</h2>
+<p>Drag and drop method</p>
+<ol>
+  <li>User presses down on a template.</li>
+  <li>System changes the mouse pointer to indicate a drag operation.</li>
+  <li>User drags the mouse</li>
+  <li>As the user drags: If the mouse is dragged over a drop zone and if the content model of allows the template to be inserted at this point, then the drop zone is highlighted and the mouse pointer changes to indicate that a drop is allowed. If the mouse is dragged over a node and, if the content model allows the node to be replaced with the template, then the node and all its descendents will turn grey and the mouse cursor will show that drop is possible</li>
+  <li>Alternatives:
+    <ol>
+      <li>User releases the mouse on a drop zone such that the node can be inserted at that point in the parent.
+        <ol>
+          <li>System creates a new node from the template and is inserted under the parent.</li>
+        </ol>
+      </li>
+      <li>User releases the mouse on a node such that the node can be replaced by the template.
+        <ol>
+          <li>System creates a new node from the template which replaces the node on which it was dropped.</li>
+        </ol>
+      </li>
+    </ol>
+  </li>
+</ol>
+<p>Keyboard/click method (insertion case)</p>
+<ol>
+  <li>User selects a drop zone (see Selecting)</li>
+  <li>System highlights the drop zone.</li>
+  <li>System subtly greys out all templates that can not be inserted at that drop zone.</li>
+  <li>User presses the keyboard shortcut for the template or clicks on the template.</li>
+  <li>System creates a new node from the template and that node is inserted at the position between the nodes (whose views are) on either side of the selected drop zone.</li>
+</ol>
+<p>Alternative: At step 4, if the user picks a template whose tag can not be inserted at the indicated point, no node is created.</p>
+<p>Keyboard/click method (replace case)</p>
+<ol>
+  <li>User selects a node view(see Selecting)</li>
+  <li>System highlights the node view and the views of all its clidren</li>
+  <li>System subtly greys out all templates that can not replace the selected node.</li>
+  <li>User presses the keyboard shortcut for the template or clicks on the template.</li>
+  <li>System creates a new node from the template and that node replaces the selected node.</li>
+  <li></li>
+</ol>
+<p>Alternative: At step 4, if the user picks a template whose tag can not replace the selected node, no node is created</p>
+<p>Keyboard/click method (general case)</p>
+<ol>
+  <li>User selects a nonempty set of views under a parent node view pv. If p is the node for which pv is the view, the selection splits p's children into three (possibly empty) segments [n(0),..,n(x-1)], [n(x),...,n(y-1)], [n(y),..,n(z-1)]. Call [n(x),...,n(y-1)] the selected nodes; these are the nodes whose views are selected.</li>
+  <li>System highlights the selected node views and all their descendents.</li>
+  <li>System subtly highlights templates that can replace the selected nodes.</li>
+  <li>User presses the keyboard shortcut for the template or clicks on the template.</li>
+  <li>System creates a new node from the template and that node replaces the selected nodes.</li>
+</ol>
+<p>Alternative: At step 4, if the user picks a template whose tag can not replace the selected node, no node is created</p>
+<ol>
+</ol>
+<p>&nbsp;</p>
+<p>&nbsp;</p>
+</body>
+</html>

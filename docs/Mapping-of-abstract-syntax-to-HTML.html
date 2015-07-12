@@ -1,0 +1,135 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+<title>Untitled Document</title>
+<link href="plaay.css" type="text/css" rel="stylesheet" />
+</head>  
+
+<body>
+<h1>Expressions</h1>
+<h2>String literal expressions</h2>
+<p>Abstract syntax tree: stringLiteral[v] where v is a sequence of characters.</p>
+<p>Visual appearance:  A black box with the string v in white monospaced characters and a light-blue border.</p>
+<p>The width of the box should be limited to some number of pixels (say 200) with the contents wrapping around.</p>
+<p>HTML: &lt;div class=&quot;stringLiteral&quot;&gt;v&lt;/div&gt;</p>
+<p>Example:</p>
+<div class="example">
+   <div class="stringLiteral">abc</div>
+</div>
+<h2>Null literal</h2>
+<p>Abstract syntax: null</p>
+<p>Visual appearance: A light blue box with a light blue border. Inside the box is a thick white minus sign icon.</p>
+<p>HTML: &lt;div class=&quot;nullLiteral&quot;&gt;-&lt;/div&gt;</p>
+<p>Example:</p>
+<div class="example">
+<div class="nullLiteral">-</div>
+</div>
+<h2>This</h2>
+<p>Absrtact syntax: this</p>
+<p>Visual appearance: To be decided.</p>
+<h2>Variable lookup</h2>
+<p>Abstract syntax: var[v], where v is a sequence of characters.</p>
+<p>Visual representation: A thin-orange-bordered, black-background box containing v in orange letters in roman font.</p>
+<p>HTML: &lt;div class=&quot;variableLookup&quot;&gt;abc&lt;/div&gt; </p>
+<p>EXAMPLE:</p>
+<div class="example">
+	<div class="dropZone"></div>
+	<div class="variableLookup">abc</div>
+	<div class="dropZone"></div>
+	<div class="variableLookup">fred</div>
+	<div class="dropZone"></div>
+	<div class="variableLookup">x</div>
+	<div class="dropZone"></div>
+</div>
+<h2>Selection</h2>
+<p>Abstract syntax: dot[v]( Exp0 ), where v is a sequence of characters.</p>
+<p>Visual appearence: A black background box with thin orange border. The expression Exp0 is on the left and the character sequence v is on the right in orange letters.</p>
+<p>HTML: &lt;div class=&quot;selection&quot;&gt;Exp0  a b c&lt;/div&gt;</p><br>
+<p>EXAMPLE:</p>
+<div class="example">
+   <div class="selection H"><div class="variableLookup">fred</div>abc</div>
+</div>
+
+<h2>Calls</h2>
+<p>Abstract Syntax: call( Exp<sub>0</sub>, Exp<sub>1</sub>, Exp<sub>2</sub>, ..., Exp<sub>n</sub> ), with n greater or equal to 0.</p>
+<p>Visual appearance: A black box with a thin light purple border. Inside are the n+1 expression aligned horizontally. Between the first and second (or after the first if there there is no second) is a white open parenthesis. After the final expression (and the open parenthesis) is a which closing parenthesis.</p>
+<p>Before and after each expression except the first is a dropzone. Thus the layout is roughly like this</p>
+<blockquote>
+  <p>Exp0 ( DZ Exp<sub>1</sub> DZ Exp<sub>2</sub> DZ )</p>
+</blockquote>
+<p>or this</p>
+<blockquote>
+  <p>Exp0 ( DZ )</p>
+</blockquote>
+HTML:<br>&lt;div class=&quot;calls&quot;&gt;&lt;/div&gt;<br>
+&lt;div class=&quot;variableLookup&quot;&gt;fred&lt;/div&gt;<br>
+&lt;p&gt;(&lt;/p&gt;<br>
+&lt;div class=&quot;dropZone H&quot;&gt;&lt;/div&gt;<br>
+&lt;div class=&quot;variableLookup&quot;&gt;fred&lt;/div&gt;<br>
+&lt;div class=&quot;dropZone H&quot;&gt;&lt;/div&gt;<br>
+&lt;div class=&quot;variableLookup&quot;&gt;fred&lt;/div&gt;<br>
+&lt;div class=&quot;dropZone H&quot;&gt;&lt;/div&gt;<br>
+&lt;p&gt;)&lt;/p&gt;<br>
+&lt;/div&gt;<br>
+&lt;/div&gt;<br>
+<p>EXAMPLE:</p>
+
+<div class="example">
+	<div class="calls H">
+	<div class="variableLookup">abc</div>
+	<p>(</p>
+	<div class="dropZone H"></div>
+	<div class="variableLookup">fred</div>
+	<div class="dropZone H"></div>
+	<div class="variableLookup">x</div>
+	<div class="dropZone H"></div>
+	<p>)</p>
+ </div>
+</div>
+
+<h2>New object</h2>
+<p>Abstract syntax: new( ClassType, Exp<sub>1</sub>, Exp<sub>2</sub>, ..., Exp<sub>n</sub> ), with n greater or equal to 0.</p>
+<p>Visual appearance: Similar to a call, except the left border is thick and contains a white asterisk symbol. So the layout is somthing like this</p>
+<blockquote>
+  <p>* ClassType ( DZ Exp<sub>1</sub> DZ Exp<sub>2</sub> DZ )</p>
+</blockquote>
+<p>or this</p>
+<blockquote>
+  <p>* ClassType ( DZ )</p>
+</blockquote>
+<h2>Method literals</h2>
+<p>Abstract syntax: method(Params, OptType Seq)</p>
+<p>Visual appearence: A black background box with a light blue border, thick on the left side. The left side has an embedded white lower case lambda icon. (λ). The box is divided horizontally by a dashed bluse line (as thick as the top and bottom borders). Above the line are the parameter declaration list, Params, within white parentheses, followed by the optional type. Below the line is the sequence, Seq.</p>
+<h3>Parameters</h3>
+<p>Abstract syntax: params( ParDecl<sub>1</sub>, ParDecl<sub>2</sub>, ..., ParDecl<sub>n</sub>), where n is greater or equal to 0.</p>
+<p>Visual representation: The parameters is a horizontal sequence of parameter declarations, surrounded by white parentheses and separated by drop zones. E.g.,</p>
+<blockquote>
+  <p>( DZ ParDecl<sub>1</sub> DZ ParDecl<sub>2</sub> DZ )</p>
+</blockquote>
+<h3>Parameter declarations</h3>
+<p>Abstract syntax: parDecl( Pattern, OptType )</p>
+<p>Visual representation: If the optional type is present, the representation is an orange-bordered, black-backgrouned box containing the pattern, a white colon, and the type. If the type is absent, then there is no colon and a place-holder where the type can be dropped.</p>
+<h3>Patterns</h3>
+<p>Several forms of patterns will exist, but for now we stick with one kind of pattern, which is a variable introduction</p>
+<p>Abstract Syntax: varIntro[v], where v is a sequence of characters.</p>
+<p>Visual representation: A solid orange box with the characters v in black type.</p>
+<h3>OptType</h3>
+<p>An optional type is either of two choices, noType or a Type. When it is noType, the visual representation is simply a placeholder. When the optional type is a Type the represesentation is a white colon followed by the visual representation of the Type.</p>
+<p>Types are discussed elsewhere.</p>
+<h2>Assignment</h2>
+<p>Abstract Syntax: Assign( Pat, Exp )</p>
+<p>Visual representation: An thin orange-bordered, black-backgrounded box containing horizontally: the pattern, a bold white := and the expression.</p>
+<h2>If-then-else</h2>
+<p>Abstract syntax: <strong>if(</strong> Exp, <strong></strong>Seq,<strong></strong> Seq)<strong></strong></p>
+<p>Visual representation: A purple-bordered, black-backgrounded box with a white question mark icon in the left border near the top. Vertically within the box are the expression, Exp, a dashed purple line, the first sequence, a solid dashed line, and the second sequence.</p>
+<h2>While loops</h2>
+<p>Abstract Syntax: <strong>while(</strong> Exp, Seq ).</p>
+<p>Visual representation: Much like the if-then-else except without the solid line or the second sequence. The icond is the bliss symbol for rotation, a circular arrow.</p>
+<h2>Sequences</h2>
+<p>Abstract syntax:  seq( SeqMember, SeqMember, ... ) , with 0 or more sequence members</p>
+<p>Visual repreesentation: The sequence members are stacked vertically with drop zones before and after each one.</p>
+<p>Each sequence member is either an expression or a variable declaration.</p>
+<p>&nbsp;</p>
+</body>
+</html>

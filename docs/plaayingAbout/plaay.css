@@ -1,0 +1,125 @@
+@charset "UTF-8";
+/* CSS Document */
+/* Star trek orange: rgb(244, 140, 0) */
+/* Star trek mauve: rgb(190, 133, 197) */
+/* Star trek dark orange: rgb(182, 78, 78) */
+
+body {
+	color:rgb(244, 140, 0) ;
+	background-color:black ;
+}
+
+div {
+	/*border: thin dashed lightgrey ;*/
+	padding-left: 5px ;
+	padding-right: 2px ;
+	padding-top: 2px ;
+	padding-bottom: 2px ;
+}
+
+.H {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: row ;
+	flex-direction: row ;
+	-webkit-flex-wrap: nowrap ;
+	flex-wrap: nowrap ;
+	-webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-align-items: flex-start;
+	align-items: flex-start ;
+}
+
+.V {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+
+	-webkit-flex-direction: column ;
+	flex-direction: column ;
+	-webkit-flex-wrap: nowrap ;
+	flex-wrap: nowrap ;
+	-webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-align-items: flex-start;
+	align-items: flex-start ;
+}
+
+div.ifBox {
+	border-top: medium solid rgb(190, 133, 197) ;
+	border-bottom: medium solid rgb(190, 133, 197) ;
+	border-left: 10px solid rgb(190, 133, 197) ;
+	border-right: thin solid rgb(190, 133, 197) ;
+	border-radius: 10px ;
+	padding-left: 0px ;
+}
+
+div.guardBox {
+	border-top: none ;
+	border-bottom: medium dashed rgb(190, 133, 197) ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+}
+
+div.guard:before { content: "?" ; 
+	display: inline ;
+    vertical-align: top ;
+	color: rgb(190, 133, 197)
+}
+
+div.thenBox {
+	border-top: none ;
+	border-bottom: medium solid rgb(190, 133, 197) ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+}
+
+div.elseBox {
+	border-top: none ;
+	border-bottom: none ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+}
+
+div.seqBox {
+	/*border: thin solid lightgrey ;*/
+	border-radius: 5px ; 
+}
+
+div.dropZone {
+	margin: 2px 0px 2px 0px ;
+	min-height: 1ex ;
+	min-width: 5ex ;
+	background-color: slategrey;
+	border-radius: 5px ;
+}
+
+
+div.placeHolder {
+	margin: 2px 0px 2px 0px ;
+	min-height: 2px ;
+	width: auto ;
+	background-color: rgb(182, 78, 78);
+	border-radius: 5px ;
+	min-width: 5ex ;
+}
+
+div.hCont, div.var {
+	border: thin solid rgb(190, 133, 197) ;
+	border-radius: 5px ;
+}
+
+div.selected {
+	border: thick solid rgb(255,0,0) ;
+	padding: 2px ;
+	margin: 2px ;
+}
