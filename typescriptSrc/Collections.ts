@@ -21,6 +21,8 @@ module Collections {
         
         choose<B>( f: (a:A) => B, g : () => B ) : B { 
             return f( this._val ) ; }
+    
+        toString() : string { return "Some(" + this._val.toString() + ")" ; }
     }
 
     export class None<A> implements Option<A> {
@@ -34,6 +36,8 @@ module Collections {
         
         choose<B>( f: (a:A) => B, g : () => B ) : B { 
             return g() ; }
+    
+        toString() : string { return "None" ; }
     }
 
 }

@@ -66,7 +66,7 @@ module pnode {
             const firstPart = this._children.slice(0,start) ;
             const lastPart = this._children.slice(end, this._children.length ) ;
             const allChildren = firstPart.concat( newChildren, lastPart ) ;
-            return PNode.tryMake( this._label, allChildren ) ;
+            return tryMake( this._label, allChildren ) ;
         }
     
         /** Would tryModify succeed?
@@ -91,7 +91,7 @@ module pnode {
     
         public tryModifyLabel( newLabel : Label )
         : Option<PNode> {  
-            return PNode.tryMake( newLabel, this._children ) ;
+            return tryMake( newLabel, this._children ) ;
         }
     
         public canModifyLabel( newLabel : Label )
@@ -114,25 +114,33 @@ module pnode {
     
         abstract isTypeNode() : boolean ;
     
-        static tryMake( label : Label, children : Array<PNode> ) : Option<PNode> {
-            if( label.isValid( children ) ) {
-                const cls = label.getClass() ;
-                return new Some( new cls( label, children ) ) ; }
-            else {
-                return new None<PNode>() ; } }
-    
-        static canMake( label : Label, children : Array<PNode> ) : boolean {
-            return label.isValid( children ) }
-    
-        static make( label : Label, children : Array<PNode> ) : PNode {
-            const cls = label.getClass() ;
-            return new cls( label, children ) ;
+        toString() : string {
+            var strs = this._children.map( function( p : PNode ) { return p.toString() ; } ) ;
+            var args = strs.reduce( function( a : string, p : string ) {
+                return a + " " + p.toString() ; }, "" ) ;
+            return this._label.toString() + "(" + args + ")" ;
         }
     }
 
+    
+    export function tryMake( label : Label, children : Array<PNode> ) : Option<PNode> {
+        if( label.isValid( children ) ) {
+            const cls = label.getClass() ;
+            return new Some( new cls( label, children ) ) ; }
+        else {
+            return new None<PNode>() ; } }
+
+    export function canMake( label : Label, children : Array<PNode> ) : boolean {
+        return label.isValid( children ) }
+
+    export function make( label : Label, children : Array<PNode> ) : PNode {
+        const cls = label.getClass() ;
+        return new cls( label, children ) ;
+    }
 
 
     export class ExprSeqNode extends PNode {
+        seqNodeTag : any // Unique field to defeat duck typing
         constructor( label : Label, children : Array<PNode> ) {
             super(label, children ) ; } 
         isExprNode() : boolean { return false ; }
@@ -145,6 +153,8 @@ module pnode {
             return children.every(function(c : PNode) { return c.isExprNode() } ) ; }
         
         getClass() : PNodeClass { return ExprSeqNode ; }
+        
+        toString() : string { return "seq"  ; }
     
         /*private*/ constructor() {} 
     
@@ -152,37 +162,32 @@ module pnode {
         public static theExprSeqLabel = new ExprSeqLabel() ;
     }
 
-    export abstract class ExprNode extends PNode {
+    export class ExprNode extends PNode {
+        exprNodeTag : any // Unique field to defeat duck typing
+        constructor( label : Label, children : Array<PNode> ) {
+            super(label, children ) ; } 
         isExprNode() : boolean { return true ; }
         isExprSeqNode() : boolean { return false ; }
         isTypeNode() : boolean { return false ; }
     }
 
-    export class IfNode extends ExprNode {
-        constructor( label : Label, children : Array<PNode> ) {
-            super(label, children ) ; } 
-    }
-
     export class IfLabel implements Label {
         
-        isValid( children : Array<PNode> ) { 
+        isValid(  children : Array<PNode> ) : boolean { 
             if( children.length != 3 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprSeqNode() ) return false ;
             if( ! children[2].isExprSeqNode() ) return false ;
             return true ; }
         
-        getClass() : PNodeClass { return IfNode ; }
+        getClass() : PNodeClass { return ExprNode ; }
+    
+        toString() : string { return "if" ; }
     
         /*private*/ constructor() {} 
     
         // Singleton
         public static theIfLabel = new IfLabel() ;
-    }
-
-    export class StringConstNode extends ExprNode {
-        constructor( label : Label, children : Array<PNode> ) {
-            super(label, children ) ; } 
     }
 
     export class StringConstLabel implements Label {
@@ -195,16 +200,18 @@ module pnode {
         isValid( children : Array<PNode> ) {
             return children.length == 0 ; }
         
-        getClass() : PNodeClass { return StringConstNode ; }
+        getClass() : PNodeClass { return ExprNode ; }
+        
+        toString() : string { return "string[" + this._val + "]"  ; }
     }
     
-    export function mkIf( guard : ExprNode, thn : ExprSeqNode, els : ExprSeqNode ) : IfNode {
-        return PNode.make( IfLabel.theIfLabel, [guard, thn, els] ) ; }
+    export function mkIf( guard : ExprNode, thn : ExprSeqNode, els : ExprSeqNode ) : ExprNode {
+        return <ExprNode> make( IfLabel.theIfLabel, [guard, thn, els] ) ; }
         
     export function mkExprSeq( exprs : Array<ExprNode> ) : ExprSeqNode {
-        return PNode.make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
+        return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
     
-    export function mkStringConst( val : String ) : StringConstNode{
-        return PNode.make( new StringConstLabel(val),[] ) ; }
+    export function mkStringConst( val : String ) : ExprNode{
+        return <ExprNode> make( new StringConstLabel(val),[] ) ; }
         
 }
