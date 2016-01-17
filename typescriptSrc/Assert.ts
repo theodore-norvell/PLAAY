@@ -1,4 +1,4 @@
-module Assert {
+module assert {
     export function check( b : Boolean, message : string ) {
         if( !b ) {
             if( message===undefined ) message = "Assertion failed" ;

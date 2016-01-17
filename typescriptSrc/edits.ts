@@ -1,10 +1,10 @@
-/// <reference path="Collections.ts" />
+/// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 
 
 module edits {
-    import Option = Collections.Option;
-    import Some = Collections.Some;
+    import Option = collections.Option;
+    import Some = collections.Some;
 
 
     /** An Edit is essentially just a partial function from A to A. */

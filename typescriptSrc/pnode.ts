@@ -1,11 +1,11 @@
-/// <reference path="Assert.ts" />
-/// <reference path="Collections.ts" />
+/// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
 
 
 module pnode {
-    import Option = Collections.Option;
-    import Some = Collections.Some;
-    import None = Collections.None;
+    import Option = collections.Option;
+    import Some = collections.Some;
+    import None = collections.None;
 
     export interface Label {
         isValid : ( children : Array<PNode> ) => boolean ;
@@ -30,7 +30,7 @@ module pnode {
         */
         /*protected*/ constructor( label : Label, children : Array<PNode> ) {
             //Precondition  would not need to be checked if the constructor were private.
-            Assert.check( label.isValid( children ),
+            assert.check( label.isValid( children ),
                           "Attempted to make an invalid program node" ) ;
             this._label = label ;
             this._children = children.slice() ; }    
@@ -88,7 +88,7 @@ module pnode {
             return opt.choose(
                         function( p ) { return p ; },
                         function() {
-                            Assert.check(false, "Precondition violation on PNode.modify" ) ;
+                            assert.check(false, "Precondition violation on PNode.modify" ) ;
                             return null ; } )
         }
     
@@ -107,7 +107,7 @@ module pnode {
             return opt.choose(
                         function( p ) { return p ; },
                         function() {
-                            Assert.check(false, "Precondition violation on PNode.modifyLabel" ) ;
+                            assert.check(false, "Precondition violation on PNode.modifyLabel" ) ;
                             return null ; } )
         }
     

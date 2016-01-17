@@ -1,6 +1,6 @@
-/// <reference path="Assert.ts" />
+/// <reference path="assert.ts" />
 
-module Collections {
+module collections {
     export interface Collection<A> {
         isEmpty : () => boolean ;
     }

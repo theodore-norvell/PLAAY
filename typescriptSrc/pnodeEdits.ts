@@ -1,15 +1,15 @@
-/// <reference path="Collections.ts" />
+/// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="edits.ts" />
 
 
 
 module pnodeEdits {
-    import Option = Collections.Option;
-    import None = Collections.None;
-    import Some = Collections.Some;
-    import List = Collections.List;
-    import Cons = Collections.Cons;
+    import Option = collections.Option;
+    import None = collections.None;
+    import Some = collections.Some;
+    import List = collections.List;
+    import Cons = collections.Cons;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
@@ -65,8 +65,8 @@ module pnodeEdits {
                     const path0 = <Cons<number>> path ; // nonempty list must be Cons.
                     const k = path0.first() ;
                     const len = node.count() ;
-                    Assert.check( 0 <= k, "Bad Path. k < 0 in applyEdit" ) ;
-                    Assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
+                    assert.check( 0 <= k, "Bad Path. k < 0 in applyEdit" ) ;
+                    assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
                     const opt = loop( node.child(k), path0.rest(), start, end ) ;
                     return opt.choose(
                         function( newChild : PNode ) : Option<PNode> { return
