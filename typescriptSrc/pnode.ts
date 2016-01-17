@@ -1,11 +1,11 @@
 /// <reference path="Assert.ts" />
 /// <reference path="Collections.ts" />
 
-import Option = Collections.Option;
-import Some = Collections.Some;
-import None = Collections.None;
 
 module pnode {
+    import Option = Collections.Option;
+    import Some = Collections.Some;
+    import None = Collections.None;
 
     export interface Label {
         isValid : ( children : Array<PNode> ) => boolean ;
@@ -55,6 +55,9 @@ module pnode {
         * where c is this.children().
         * I.e. the segment c[ start,.. end] is replaced by newChildren.
         * The method succeeds iff the node required to be constructed would be valid.
+        * Node that start and end can be number value including negative.
+        * Negative numbers k are treated as length + k, where length
+        * is the number of children.  
         * @param newChildren An array of children to be added
         * @param start The first child to omit. Default 0.
         * @param end The first child after start to not omit. Default this.children().length.
@@ -73,7 +76,7 @@ module pnode {
         */
         public canModify( newChildren : Array<PNode>, start : number, end : number )
         : boolean {  
-            return this.tryModify( newChildren, start, end ).isNonempty() ;
+            return ! this.tryModify( newChildren, start, end ).isEmpty() ;
         }
     
         /** Return a copy of the node in which the children are replaced.
@@ -96,7 +99,7 @@ module pnode {
     
         public canModifyLabel( newLabel : Label )
         : boolean {  
-            return this.tryModifyLabel( newLabel ).isNonempty() ;
+            return ! this.tryModifyLabel( newLabel ).isEmpty() ;
         }
     
         public modifyLabel( newLabel : Label ) : PNode {  
@@ -141,6 +144,7 @@ module pnode {
 
     export class ExprSeqNode extends PNode {
         seqNodeTag : any // Unique field to defeat duck typing
+                        // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
         constructor( label : Label, children : Array<PNode> ) {
             super(label, children ) ; } 
         isExprNode() : boolean { return false ; }
@@ -163,7 +167,8 @@ module pnode {
     }
 
     export class ExprNode extends PNode {
-        exprNodeTag : any // Unique field to defeat duck typing
+        exprNodeTag : any // Unique field to defeat duck typing.
+                          // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
         constructor( label : Label, children : Array<PNode> ) {
             super(label, children ) ; } 
         isExprNode() : boolean { return true ; }
