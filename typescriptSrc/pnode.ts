@@ -1,6 +1,8 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 
+import collections = require( './collections' ) ;
+import assert = require( './assert' ) ;
 
 module pnode {
     import Option = collections.Option;
@@ -69,6 +71,9 @@ module pnode {
             const firstPart = this._children.slice(0,start) ;
             const lastPart = this._children.slice(end, this._children.length ) ;
             const allChildren = firstPart.concat( newChildren, lastPart ) ;
+            //console.log("tryModify: start is " +start+ " end is " +end ) ; 
+            //console.log("          firstPart is " +firstPart+ " lastPart is " +lastPart );
+            //console.log("          newChildren is " +newChildren+ " allChildren is " +allChildren );
             return tryMake( this._label, allChildren ) ;
         }
     
@@ -86,8 +91,8 @@ module pnode {
         : PNode {  
             var opt = this.tryModify( newChildren, start, end ) ;
             return opt.choose(
-                        function( p ) { return p ; },
-                        function() {
+                        ( p ) => { return p ; },
+                        () => {
                             assert.check(false, "Precondition violation on PNode.modify" ) ;
                             return null ; } )
         }
@@ -105,8 +110,8 @@ module pnode {
         public modifyLabel( newLabel : Label ) : PNode {  
             var opt = this.tryModifyLabel( newLabel ) ;
             return opt.choose(
-                        function( p ) { return p ; },
-                        function() {
+                        ( p ) => { return p ; },
+                        () => {
                             assert.check(false, "Precondition violation on PNode.modifyLabel" ) ;
                             return null ; } )
         }
@@ -118,9 +123,10 @@ module pnode {
         abstract isTypeNode() : boolean ;
     
         toString() : string {
-            var strs = this._children.map( function( p : PNode ) { return p.toString() ; } ) ;
-            var args = strs.reduce( function( a : string, p : string ) {
+            var strs = this._children.map( ( p : PNode ) => { return p.toString() ; } ) ;
+            var args = strs.reduce( ( a : string, p : string ) => {
                 return a + " " + p.toString() ; }, "" ) ;
+                
             return this._label.toString() + "(" + args + ")" ;
         }
     }
@@ -128,6 +134,7 @@ module pnode {
     
     export function tryMake( label : Label, children : Array<PNode> ) : Option<PNode> {
         if( label.isValid( children ) ) {
+            //console.log("tryMake: label is " +label+ " children.length is " +children.length ) ; 
             const cls = label.getClass() ;
             return new Some( new cls( label, children ) ) ; }
         else {
@@ -154,7 +161,7 @@ module pnode {
 
     export class ExprSeqLabel implements Label {
         isValid( children : Array<PNode> ) {
-            return children.every(function(c : PNode) { return c.isExprNode() } ) ; }
+            return children.every( (c : PNode) => { return c.isExprNode() } ) ; }
         
         getClass() : PNodeClass { return ExprSeqNode ; }
         
@@ -220,3 +227,5 @@ module pnode {
         return <ExprNode> make( new StringConstLabel(val),[] ) ; }
         
 }
+
+export = pnode ;

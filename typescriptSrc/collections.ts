@@ -1,5 +1,3 @@
-/// <reference path="assert.ts" />
-
 module collections {
     export interface Collection<A> {
         isEmpty : () => boolean ;
@@ -56,15 +54,15 @@ module collections {
         
         rest() : List<A> { return this._tail ; }
         
-        fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  { return 
-            f( this._head, this._tail.fold( f, g ) ) ; }
+        fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
+            return f( this._head, this._tail.fold( f, g ) ) ; }
     
-        toString() : string { return
-            "(" +
-            this.fold( 
-                function( h : A, x : string ) : string { return
-                    h.toString() + " " + x ; },
-                function() : string { return ")" ; } ) ; }
+        toString() : string {
+            return "(" +
+                this.fold( 
+                    ( h : A, x : string ) : string => {
+                        return h.toString() + " " + x ; },
+                    () : string => { return " )" ; } ) ; }
     }
     
     export class Nil<A> implements List<A> {
@@ -72,11 +70,19 @@ module collections {
     
         isEmpty() : boolean { return true ; }
         
-        fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  { return 
-            g() ; }
+        fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
+            return  g() ; }
     
         toString() : string { return "Nil" ; }
     }
     
-
+    export function list<A>( ...args : Array<A> ) : List<A> {
+        var acc = new Nil<A>() ;
+        var i = args.length ;
+        while( i > 0 ) {  i -= 1 ; acc = new Cons( args[i], acc ) ; }
+        return acc ;
+    }
+    
 }
+
+export = collections ;

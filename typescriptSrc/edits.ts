@@ -1,6 +1,8 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 
+import collections = require( './collections' ) ;
+import assert = require( './assert' ) ;
 
 module edits {
     import Option = collections.Option;
@@ -24,7 +26,9 @@ module edits {
         // applyEdit will be successful.
         canApply(a : A) : boolean {
             return this.applyEdit( a ).choose(
-                function( a : A ) { return true ; },
-                function() { return false ; } ) ; }
+                ( a : A ) => { return true ; },
+                () => { return false ; } ) ; }
     }
 }
+
+export = edits ;

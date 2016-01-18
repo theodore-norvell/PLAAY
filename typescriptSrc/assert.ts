@@ -4,3 +4,5 @@ module assert {
             if( message===undefined ) message = "Assertion failed" ;
             throw new Error( message ) ; } }
 }
+
+export = assert ;

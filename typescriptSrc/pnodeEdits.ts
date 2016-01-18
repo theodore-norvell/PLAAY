@@ -1,8 +1,12 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="edits.ts" />
 
-
+import collections = require( './collections' ) ;
+import assert = require( './assert' ) ;
+import pnode = require( './pnode' ) ;
+import edits = require( './edits' ) ;
 
 module pnodeEdits {
     import Option = collections.Option;
@@ -46,6 +50,11 @@ module pnodeEdits {
         _path : List<number> ;
         _anchor : number ;
         _focus : number ;
+        
+        toString() : string { return "Selection( " + "_root:" + this._root.toString() +
+                            " _path:" + this._path.toString() +
+                            " _anchor: " + this._anchor +
+                            " _focus: " + this._focus + ")"  ;}
     }
     
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
@@ -56,10 +65,15 @@ module pnodeEdits {
             this._newNodes = newNodes ; }
         
         applyEdit( selection : Selection ) : Option<Selection> {
-            function loop( node : PNode, path : List<number>,
-                           start : number, end : number ) : Option<PNode> 
+            // The following function dives down the tree following the path
+            // until it reaches the node to be changed.
+            // As it climbs back out of the recursion it generates new
+            // nodes along the path it followed.
+            const loop = ( node : PNode, path : List<number>,
+                           start : number, end : number ) : Option<PNode> =>
             {
                 if( path.isEmpty() ) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
                     return node.tryModify( this._newNodes, start, end ) ; }
                 else {
                     const path0 = <Cons<number>> path ; // nonempty list must be Cons.
@@ -69,27 +83,32 @@ module pnodeEdits {
                     assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
                     const opt = loop( node.child(k), path0.rest(), start, end ) ;
                     return opt.choose(
-                        function( newChild : PNode ) : Option<PNode> { return
-                            node.tryModify( [newChild], k, k+1 ) ; },
-                        function() { return new None<PNode>() ; } ) ; }
+                        ( newChild : PNode ) : Option<PNode> => {
+                            return node.tryModify( [newChild], k, k+1 ) ; },
+                        () => { return new None<PNode>() ; } ) ; }
             }
                     
+            // Determine the start and end
             var start : number ;
             var end : number ;
             if( selection._anchor <= selection._focus ) {
                 start = selection._anchor ; end = selection._focus ; }
             else {
                 start = selection._focus ; end = selection._anchor ; }
+            // Loop down to find and modify the selections target node.
             const opt = loop( selection._root, selection._path, start, end ) ;
+            // If successful, build a new Selection object.
             return opt.choose(
-                function( newRoot : PNode ) : Option<Selection> {
-                    const f = start + this._newNodes.length() 
-                    const newSelection = new Selection( selection._root,
+                ( newRoot : PNode ) : Option<Selection> => {
+                    const f = start + this._newNodes.length 
+                    const newSelection = new Selection( newRoot,
                                                         selection._path,
                                                         f, f) ;
                     return new Some( newSelection ) ; },
-                function() : Option<Selection> { return new None<Selection> () ; } ) ;
+                () : Option<Selection>  => { return new None<Selection> () ; } ) ;
         }
     }
 
 }
+
+export = pnodeEdits ;
