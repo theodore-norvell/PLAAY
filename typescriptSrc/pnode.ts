@@ -91,7 +91,7 @@ module pnode {
         : PNode {  
             var opt = this.tryModify( newChildren, start, end ) ;
             return opt.choose(
-                        ( p ) => { return p ; },
+                        p => p,
                         () => {
                             assert.check(false, "Precondition violation on PNode.modify" ) ;
                             return null ; } )
@@ -110,7 +110,7 @@ module pnode {
         public modifyLabel( newLabel : Label ) : PNode {  
             var opt = this.tryModifyLabel( newLabel ) ;
             return opt.choose(
-                        ( p ) => { return p ; },
+                        p => p,
                         () => {
                             assert.check(false, "Precondition violation on PNode.modifyLabel" ) ;
                             return null ; } )
@@ -123,9 +123,9 @@ module pnode {
         abstract isTypeNode() : boolean ;
     
         toString() : string {
-            var strs = this._children.map( ( p : PNode ) => { return p.toString() ; } ) ;
-            var args = strs.reduce( ( a : string, p : string ) => {
-                return a + " " + p.toString() ; }, "" ) ;
+            var strs = this._children.map( ( p : PNode ) => p.toString() ) ;
+            var args = strs.reduce( ( a : string, p : string ) => a + " " + p.toString(),
+                                    "" ) ;
                 
             return this._label.toString() + "(" + args + ")" ;
         }
@@ -161,7 +161,7 @@ module pnode {
 
     export class ExprSeqLabel implements Label {
         isValid( children : Array<PNode> ) {
-            return children.every( (c : PNode) => { return c.isExprNode() } ) ; }
+            return children.every( (c : PNode) => c.isExprNode() ) ; }
         
         getClass() : PNodeClass { return ExprSeqNode ; }
         

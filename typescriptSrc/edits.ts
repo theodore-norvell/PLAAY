@@ -26,8 +26,8 @@ module edits {
         // applyEdit will be successful.
         canApply(a : A) : boolean {
             return this.applyEdit( a ).choose(
-                ( a : A ) => { return true ; },
-                () => { return false ; } ) ; }
+                a => true,
+                () => false ) ; }
     }
 }
 
