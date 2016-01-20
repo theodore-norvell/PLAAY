@@ -5,10 +5,8 @@ import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
 
 module mkHTML {
-    import Option = collections.Option;
-    import Some = collections.Some;
-    import None = collections.None;
-    
+    import list = collections.list;
+    import List = collections.List;
     
     export function onLoad() : void {
         const div = document.createElement( "div" ) ;
@@ -19,6 +17,14 @@ module mkHTML {
         div.appendChild( text ) ;
         var body = document.getElementById( "body" ) ;
         body.appendChild( div ) ;
+        
+        
+        const l : List<string> = list( "This", "is", "more", "text" ) ;
+        l.map( ( str : string ) => {
+                       const p = document.createElement( "p" ) ;
+                       const t = document.createTextNode( str ) ;
+                       p.appendChild( t ) ;
+                       body.appendChild( p ) ; } ) ;
     }
 }
 

@@ -1,10 +1,8 @@
 <html>
     <head>
-        <script>
-            var module = {} ; 
-        </script>
-        <script src="mkHTML.js"></script>
+        <script>var module = {} ; module.exports = {} ; var exports = module.exports ;</script>
+        <script src="out.js"></script>
     </head>
-    <body id="body" onload="mkHTML.onLoad()" >
+    <body id="body" onload="module.exports.onLoad()" >
     </body>
 <html>
