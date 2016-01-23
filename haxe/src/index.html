@@ -3,9 +3,6 @@
 <head>
     <title>Haxe JS</title>
     <link rel="stylesheet" type="text/css" href="style.css">
-    <style>
-        #div1 {width:350px;height:100px;padding:10px;border:1px solid #aaaaaa;}
-    </style>
     <script>
         function allowDrop(ev) {
             ev.preventDefault();
@@ -23,13 +20,16 @@
     </script>
 </head>
 <body>
+<div id="sidebar">
+    <img id="drag1" src="if block.png" draggable="true" ondragstart="drag(event)" width="114" height="90">
+</div>
+<div id="trash"></div>
 
-<div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
-<br>
-<img id="drag1" src="if block.png" draggable="true" ondragstart="drag(event)" width="114" height="90">
-
+<div class="container">
+    <div id="div1" ondrop="drop(event)" ondragover="allowDrop(event)"></div>
+    <br>
+</div>
 <div id="haxe:trace"></div>
 <script type="text/javascript" src="release/test.js"></script>
-<canvas id="myCanvas" width="200" height="100"></canvas>
 </body>
 </html>

@@ -1,0 +1,220 @@
+@charset "UTF-8";
+/* CSS Document */
+/* Star trek orange: rgb(244, 140, 0) */
+/* Star trek mauve: rgb(190, 133, 197) */
+/* Star trek dark orange: rgb(182, 78, 78) */
+
+body {
+	color: rgb(244, 140, 0);
+	background-color: black;
+}
+
+.example {
+	
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: flex-start;
+	align-items: flex-start;
+	
+	
+	background-color: black;
+	
+	
+}
+
+div {
+	/*border: thin dashed lightgrey ;*/
+	padding-left: 5px;
+	padding-right: 2px;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.H {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: row;
+	flex-direction: row;
+	-webkit-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: flex-start;
+	align-items: flex-start;
+}
+
+.V {
+	display: -webkit-box;
+	display: -moz-box;
+	display: -ms-flexbox;
+	display: -webkit-flex;
+	display: flex;
+	-webkit-flex-direction: column;
+	flex-direction: column;
+	-webkit-flex-wrap: nowrap;
+	flex-wrap: nowrap;
+	-webkit-justify-content: flex-start;
+	justify-content: flex-start;
+	-webkit-align-items: flex-start;
+	align-items: flex-start;
+}
+
+div.ifBox {
+	border-top: medium solid;
+	border-bottom: medium solid;
+	border-left: 10px solid;
+	border-right: thin solid;
+	border width: 20px 15px 20px 30px;
+	-webkit-border-image: url("Plaay1.png") 20 15 20 30 stretch;
+	-moz-border-image: url("Plaay1.png") 20 15 20 30 stretch;
+	border-image: url("Plaay1.png") 20 15 20 30 stretch;
+}
+
+div.guardBox {
+	border-top: none;
+	border-bottom: none;
+	border-left: none;
+	border-right: none;
+	padding-left: 10px;
+}
+
+div.dashedLine {
+	border-top: none;
+	border-bottom: thick dashed rgb(190, 133, 197);
+	border-left: none;
+	border-right: none;
+	-webkit-align-self: stretch;
+	align-self: stretch;
+}
+
+div.solidLine {
+	border-top: none;
+	border-bottom: thick solid rgb(190, 133, 197);
+	border-left: none;
+	border-right: none;
+	-webkit-align-self: stretch;
+	align-self: stretch;
+}
+
+div.thenBox {
+	border-top: none;
+	border-bottom: none;
+	border-left: none;
+	border-right: none;
+	padding-left: 10px;
+}
+
+div.elseBox {
+	border-top: none;
+	border-bottom: none;
+	border-left: none;
+	border-right: none;
+	padding-left: 10px;
+}
+
+div.seqBox {
+	/*border: thin solid lightgrey ;*/
+	border-radius: 5px;
+}
+
+div.dropZone {
+	margin: 2px 0px 2px 0px;
+	min-height: 5px;
+	min-width: 5ex;
+	border-radius: 5px;
+	-webkit-align-self: stretch;
+	align-self: stretch;
+}
+
+/* This is temporary */
+div.dropZone:hover {
+	background-color: slategrey;
+}
+
+div.placeHolder {
+	margin: 2px 0px 2px 13px;
+	min-height: 2px;
+	width: auto;
+	background-color: rgb(182, 78, 78);
+	border-radius: 5px;
+	min-width: 5ex;
+}
+
+div.hCont, div.var {
+	border: thin solid rgb(190, 133, 197);
+	border-radius: 5px;
+}
+
+div.selected {
+	border: thick solid rgb(255,0,0);
+	padding: 2px;
+	margin: 2px;
+}
+
+
+div.stringLiteral{
+	border:medium solid rgb(135,206,250);
+	background-color:rgb(0,0,0);
+	text-align:center;
+	width:100px;
+	font-family:"Lucida Console", monospace;
+	color: rgb(255,255,255);
+}
+
+div.nullLiteral {
+	border:medium solid rgb(135,206,250);
+	background-color:rgb(0,0,0);
+	font-size:50px;
+	font-family:"Lucida Console", Monospace;
+	font-weight:bold; 
+	width:100px;
+	text-align:center;
+	color:rgb(255,255,255);
+	height:30px;
+	vertical-align:middle;
+	
+}	
+
+div.variableLookup{
+	border:thin solid rgb(182,78,78);
+	background-color:rgb(0,0,0);
+	font-family:"Times New Roman",Times,serif;
+    color:rgb(182,78,78);
+    text-align:center;
+    
+}
+
+div.selection{
+	border:thin solid rgb(182,78,78);
+	background-color:rgb(0,0,0);
+    color: rgb(182,78,78);
+    font-family:"Times New Roman",Times,serif;
+}
+div.calls{
+	border:thin solid rgb(190,133,197);
+	background-color:rgb(0,0,0);
+    width:100px;
+    color:rgb(255,255,255);
+    text-align:center;
+    font-family:"Times New Roman",Times,serif;
+    font-weight:bold;
+    font-size:25px;	
+}
+body{
+	background-color:rgb(255,255,255);
+	color:rgb(0,0,0);
+}
+
+
