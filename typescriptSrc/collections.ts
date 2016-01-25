@@ -48,7 +48,12 @@ module collections {
     /** Lisp-like lists */
     export interface List<A> extends Collection<A> {
         fold : <B> ( f: (a:A, b:B) => B, g : () => B ) => B 
+        
         map : <B> (f : (a:A) => B ) => List<B> ;
+        
+        first() : A 
+        
+        rest() : List<A> 
     }
         
     export class Cons<A> implements List<A>, NonEmptyCollection<A> {
@@ -88,6 +93,10 @@ module collections {
         
         map<B>( f : (a:A) => B ) : List<B> {
             return new Nil<B>( ) ; }
+        
+        first() : A { throw Error("first(Nil)") ; }
+        
+        rest() : List<A> { throw Error("rest(Nil)") ; }
     
         toString() : string { return "NIL" ; }
     }

@@ -75,10 +75,10 @@ console.log( "Add an if expression as a new child to the root at position 0" ) ;
 console.log( "editResult0 is " + editResult0.toString() ) ;
 
 var sel0a = (<collections.Some<pnodeEdits.Selection>> editResult0).first() ;
-//console.log( sel0a.toString() ) ;
+console.log( sel0a.toString() ) ;
 
 // Select the guard of the if expression
-var sel1 = new pnodeEdits.Selection( sel0a._root, collections.list(0), 0, 1 ) ;
+var sel1 = new pnodeEdits.Selection( sel0a.root(), collections.list(0), 0, 1 ) ;
 console.log( "Select the guard of the if expression." ) ;
 console.log( "sel1 is " + sel1.toString() ) ;
 
@@ -90,3 +90,45 @@ var edit1 = new pnodeEdits.InsertChildrenEdit( [ c ] ) ;
 var editResult1 = edit1.applyEdit( sel1 ) ;
 console.log( "Replace the selection with node c." ) ;
 console.log( "editResult1 is " + editResult1.toString() ) ;
+
+// Make a bad selection:  Path is too long.
+try {
+    var badSel0 = new pnodeEdits.Selection( ite0, collections.list(0,0), 0, 0 ) ;
+    console.log( badSel0.toString() ) ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }
+     
+// Make a bad selection:  Path is item is too big.
+try {
+    var badSel1 = new pnodeEdits.Selection( ite0, collections.list(1,2), 0, 0 ) ;
+    console.log( badSel1.toString() )  ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }
+     
+// Make a bad selection:  Anchor too small.
+try {
+    var badSel1 = new pnodeEdits.Selection( ite0, collections.list(1,1), -1, 0 ) ;
+    console.log( badSel1.toString() )  ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }
+     
+// Make a bad selection:  Anchor too big.
+try {
+    var badSel1 = new pnodeEdits.Selection( ite0, collections.list(1), 3, 0 ) ;
+    console.log( badSel1.toString() )  ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }
+     
+// Make a bad selection:  Focus too small.
+try {
+    var badSel1 = new pnodeEdits.Selection( ite0, collections.list(1,1), 0, -1 ) ;
+    console.log( badSel1.toString() )  ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }
+     
+// Make a bad selection:  Focus too big.
+try {
+    var badSel1 = new pnodeEdits.Selection( ite0, collections.list(1), 0, 3 ) ;
+    console.log( badSel1.toString() )  ; }
+catch( e  ) {
+     console.log( "Failed as expected" ) ; }

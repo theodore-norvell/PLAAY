@@ -36,26 +36,58 @@ module pnodeEdits {
     * where anchor <= k < focus.
     * </ul>
     * Invariant:
-    *   [...]
+    *   - The path must identify a node under the root.
+    *       I.e. the path can be empty or its first item must be
+    *       the index of a child of the root and the rest of the path must
+    *       identify a node under that child.
+    *   - The focus and anchor must both be integers greater or equal to 0 and
+    *     less or equal to the number of children of the node identified by the path.
     */
     export class Selection {
         constructor( root : PNode, path : List<number>,
                     anchor : number, focus : number ) {
-            // Should check invariant here.
+            assert.check( checkSelection( root, path, anchor, focus ), 
+                         "Attempt to make a bad selection" ) ;
             this._root = root;
             this._path = path;
             this._anchor = anchor ;
             this._focus = focus ; }
-        _root : PNode ;
-        _path : List<number> ;
-        _anchor : number ;
-        _focus : number ;
+        private _root : PNode ;
+        private _path : List<number> ;
+        private _anchor : number ;
+        private _focus : number ;
+        
+        root() : PNode { return this._root ; }
+        
+        path() : List<number> { return this._path ; }
+        
+        anchor() : number { return this._anchor ; }
+        
+        focus() : number { return this._focus ; }
         
         toString() : string { return "Selection( " + "_root:" + this._root.toString() +
                             " _path:" + this._path.toString() +
                             " _anchor: " + this._anchor +
                             " _focus: " + this._focus + ")"  ;}
     }
+    
+    function isInteger( n : number ) {
+        return isFinite(n) && Math.floor(n) === n ; }
+    
+    /** Checks the invariant of Selection.  See the documentation of Selection. */
+    function checkSelection( tree : PNode, path : List<number>,
+                    anchor : number, focus : number ) { 
+        if( path.isEmpty() ) {
+            var start, end ;
+            if( anchor < focus ) { start = anchor ; end = focus ; }
+            else { start = focus ; end = anchor ; }
+            return isInteger(start) && isInteger(end)
+                && 0 <= start && end <= tree.count() ; }
+        else {
+            var head = path.first() ;
+            return isInteger( head )
+                && 0 <= head && head < tree.count()
+                && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
     
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
@@ -91,18 +123,18 @@ module pnodeEdits {
             // Determine the start and end
             var start : number ;
             var end : number ;
-            if( selection._anchor <= selection._focus ) {
-                start = selection._anchor ; end = selection._focus ; }
+            if( selection.anchor() <= selection.focus() ) {
+                start = selection.anchor() ; end = selection.focus() ; }
             else {
-                start = selection._focus ; end = selection._anchor ; }
+                start = selection.focus() ; end = selection.anchor() ; }
             // Loop down to find and modify the selections target node.
-            const opt = loop( selection._root, selection._path, start, end ) ;
+            const opt = loop( selection.root(), selection.path(), start, end ) ;
             // If successful, build a new Selection object.
             return opt.choose(
                 ( newRoot : PNode ) : Option<Selection> => {
                     const f = start + this._newNodes.length 
                     const newSelection = new Selection( newRoot,
-                                                        selection._path,
+                                                        selection.path(),
                                                         f, f) ;
                     return new Some( newSelection ) ; },
                 () : Option<Selection>  => { return new None<Selection> () ; } ) ;
