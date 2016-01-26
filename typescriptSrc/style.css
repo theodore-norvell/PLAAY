@@ -17,6 +17,24 @@ div {
     padding-bottom: 2px ;
 }
 
+div.undo
+{
+    width:40px;
+    bottom:4px; left: 0px;
+    height:40px;
+    background-color: darkred;
+    position:absolute;
+}
+
+div.redo
+{
+    width:40px;
+    bottom:4px; left: 50px;
+    height:40px;
+    background-color: darkred;
+    position:absolute;
+}
+
 div.sidebar
 {
     position:absolute;
@@ -24,6 +42,7 @@ div.sidebar
     width:150px;
     height:calc(80% - 8px);
     background-color:grey;
+    overflow:auto;
 }
 
 div.container
@@ -77,14 +96,120 @@ div.container
 }
 
 div.ifBox {
-    height: 150px;
-    width: 150px;
+    height: 100px;
+    width: 100px;
     float: left;
     border: 2px solid;
-    background-color: #CCC;
+    background-color:black;
     margin-right: 5px;
     border-radius: 10px;
     box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.varBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color: black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.whileBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color: black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    text-align:center;
+    color:purple;
+}
+
+div.forBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.thisBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.trueBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.falseBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.nullBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
+}
+
+div.assignmentBox {
+    height: 100px;
+    width: 100px;
+    float: left;
+    border: 2px solid;
+    background-color:black;
+    margin-right: 5px;
+    border-radius: 10px;
+    box-shadow: 0px 0px 3px;
+    color:purple;
+    text-align:center;
 }
 
 div.guardBox {
