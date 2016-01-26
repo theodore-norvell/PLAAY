@@ -46,17 +46,24 @@ module collections {
     }
     
     /** Lisp-like lists */
-    export interface List<A> extends Collection<A> {
-        fold : <B> ( f: (a:A, b:B) => B, g : () => B ) => B 
+    export abstract class List<A> implements Collection<A> {
+        public fold : <B> ( f: (a:A, b:B) => B, g : () => B ) => B 
         
-        map : <B> (f : (a:A) => B ) => List<B> ;
+        public map : <B> (f : (a:A) => B ) => List<B> ;
         
-        first() : A 
+        public isEmpty : () => boolean ;
         
-        rest() : List<A> 
+        public first : () => A ;
+        
+        public rest : () => List<A> ;
+        
+        public static cons<A>( head : A, rest : List<A> ) {
+            return new Cons<A>( head, rest ) ; }
+            
+        public static nil<A>() { return new Nil<A>() ; }
     }
         
-    export class Cons<A> implements List<A>, NonEmptyCollection<A> {
+    class Cons<A> implements List<A>, NonEmptyCollection<A> {
         _head : A ;
         _tail : List<A> ;
         
@@ -83,7 +90,7 @@ module collections {
                     () : string => ")" ) ; }
     }
     
-    export class Nil<A> implements List<A> {
+    class Nil<A> implements List<A> {
         constructor( ) { }
     
         isEmpty() : boolean { return true ; }

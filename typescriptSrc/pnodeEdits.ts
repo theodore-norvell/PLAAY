@@ -13,7 +13,6 @@ module pnodeEdits {
     import None = collections.None;
     import Some = collections.Some;
     import List = collections.List;
-    import Cons = collections.Cons;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
@@ -108,12 +107,11 @@ module pnodeEdits {
                     //console.log("this._newNodes is " + this._newNodes ) ;
                     return node.tryModify( this._newNodes, start, end ) ; }
                 else {
-                    const path0 = <Cons<number>> path ; // nonempty list must be Cons.
-                    const k = path0.first() ;
+                    const k = path.first() ;
                     const len = node.count() ;
                     assert.check( 0 <= k, "Bad Path. k < 0 in applyEdit" ) ;
                     assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
-                    const opt = loop( node.child(k), path0.rest(), start, end ) ;
+                    const opt = loop( node.child(k), path.rest(), start, end ) ;
                     return opt.choose(
                         ( newChild : PNode ) : Option<PNode> => {
                             return node.tryModify( [newChild], k, k+1 ) ; },
