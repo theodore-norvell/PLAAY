@@ -35,6 +35,15 @@ div.redo
     position:absolute;
 }
 
+div.play
+{
+    width:100px;
+    height:40px;
+    background-color:green;
+    position:absolute;
+    bottom:50px; left: 0px;
+}
+
 div.sidebar
 {
     position:absolute;

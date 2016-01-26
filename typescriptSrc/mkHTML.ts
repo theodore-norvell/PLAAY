@@ -19,13 +19,47 @@ module mkHTML {
         undoblock.setAttribute("id", "undo");
         undoblock.setAttribute("class","undo");
         undoblock.setAttribute("onclick", "undo()");
+        undoblock.textContent = "Undo";
         document.getElementById("body").appendChild(undoblock);
+        var undo = document.getElementById("undo");
+        undo.onclick = function undo()
+        {
+            if(undostack.length != 0)
+            {
+                redostack.push(currentSelection);
+                currentSelection = undostack.pop();
+                generateHTML(currentSelection);
+            }
+        };
 
         const redoblock = document.createElement("div");
         redoblock.setAttribute("id", "redo");
         redoblock.setAttribute("class","redo");
         redoblock.setAttribute("onclick", "redo()");
+        redoblock.textContent = "Redo";
         document.getElementById("body").appendChild(redoblock);
+        var redo = document.getElementById("redo");
+        redo.onclick = function redo()
+        {
+            if(redostack.length != 0)
+            {
+                undostack.push(currentSelection);
+                currentSelection = redostack.pop();
+                generateHTML(currentSelection);
+            }
+        }
+
+        const playbutton = document.createElement("div");
+        playbutton.setAttribute("id", "play");
+        playbutton.setAttribute("class", "play");
+        playbutton.setAttribute("onclick", "play()");
+        playbutton.textContent = "Play";
+        document.getElementById("body").appendChild(playbutton);
+        var play = document.getElementById("play");
+        play.onclick = function play()
+        {
+            window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
+        };
 
         //creates side bar
         const sidebar = document.createElement("div");
@@ -146,26 +180,6 @@ module mkHTML {
             children.removeChild(children.firstChild);
         }
 
-    }
-
-    export function undo()
-    {
-        if(undostack.length != 0)
-        {
-            redostack.push(currentSelection);
-            currentSelection = undostack.pop();
-            generateHTML(currentSelection);
-        }
-    }
-
-    export function redo()
-    {
-        if(redostack.length != 0)
-        {
-            undostack.push(currentSelection);
-            currentSelection = redostack.pop();
-            generateHTML(currentSelection);
-        }
     }
 }
 
