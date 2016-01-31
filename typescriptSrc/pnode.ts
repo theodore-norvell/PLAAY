@@ -232,7 +232,7 @@ module pnode {
     }
 
     //Arithmetic Labels
-    export class AssignLabel implements Label {
+    export class AssignLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -244,13 +244,15 @@ module pnode {
 
         toString() : string { return "assign" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theAssignLabel = new AssignLabel() ;
     }
 
-    export class AddLabel implements Label {
+    export class AddLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -262,13 +264,15 @@ module pnode {
 
         toString() : string { return "add" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theAddLabel = new AddLabel() ;
     }
 
-    export class SubtractLabel implements Label {
+    export class SubtractLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -280,13 +284,15 @@ module pnode {
 
         toString() : string { return "sub" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theSubtractLabel = new SubtractLabel() ;
     }
 
-    export class MultiplyLabel implements Label {
+    export class MultiplyLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -298,13 +304,15 @@ module pnode {
 
         toString() : string { return "mul" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theMultiplyLabel = new MultiplyLabel() ;
     }
 
-    export class DivideLabel implements Label {
+    export class DivideLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -316,7 +324,9 @@ module pnode {
 
         toString() : string { return "div" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theDivideLabel = new DivideLabel() ;
@@ -324,7 +334,7 @@ module pnode {
 
     //Placeholder Labels
 
-    export class ExprPHLabel implements Label {
+    export class ExprPHLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
@@ -336,28 +346,12 @@ module pnode {
 
         toString() : string { return "expPH" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theExprPHLabel = new ExprPHLabel() ;
-    }
-
-    export class ExprSeqPHLabel implements Label {
-
-        isValid( children : Array<PNode> ) : boolean {
-            if( children.length != 0) return false ;
-            //if( ! children[0].isExprNode()) return false ;
-            //if( ! children[1].isExprNode()) return false ;
-            return true }
-
-        getClass() : PNodeClass { return ExprSeqNode ; }
-
-        toString() : string { return "seqPH" ; }
-
-        /*private*/ constructor() {}
-
-        // Singleton
-        public static theExprSeqPHLabel = new ExprSeqPHLabel() ;
     }
 
     export class TypePHLabel implements Label {
@@ -380,7 +374,7 @@ module pnode {
 
     //Conditional Logic Labels
 
-    export class LessLabel implements Label {
+    export class LessLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -391,13 +385,15 @@ module pnode {
 
         toString() : string { return "less than" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theLessLabel = new LessLabel() ;
     }
 
-    export class GreaterLabel implements Label {
+    export class GreaterLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -408,13 +404,15 @@ module pnode {
 
         toString() : string { return "greater than" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theGreaterLabel = new GreaterLabel() ;
     }
 
-    export class LessEqLabel implements Label {
+    export class LessEqLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -425,13 +423,15 @@ module pnode {
 
         toString() : string { return "less than or equal to" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theLessEqLabel = new LessEqLabel() ;
     }
 
-    export class GreaterEqLabel implements Label {
+    export class GreaterEqLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -442,13 +442,15 @@ module pnode {
 
         toString() : string { return "greater than or equal to" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theGreaterEqLabel = new GreaterEqLabel() ;
     }
 
-    export class EqualLabel implements Label {
+    export class EqualLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -459,7 +461,9 @@ module pnode {
 
         toString() : string { return "equal" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theEqualLabel = new EqualLabel() ;
@@ -468,7 +472,7 @@ module pnode {
 
     //Loops and If Labels
 
-    export class IfLabel implements Label {
+    export class IfLabel extends ExprLabel {
 
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 3 ) return false ;
@@ -481,13 +485,15 @@ module pnode {
 
         toString() : string { return "if" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theIfLabel = new IfLabel() ;
     }
 
-    export class ForLabel implements Label {
+    export class ForLabel extends ExprLabel {
 
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 3 ) return false ;
@@ -500,13 +506,15 @@ module pnode {
 
         toString() : string { return "for" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theForLabel = new ForLabel() ;
     }
 
-    export class WhileLabel implements Label {
+    export class WhileLabel extends ExprLabel {
 
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
@@ -518,7 +526,9 @@ module pnode {
 
         toString() : string { return "while" ; }
 
-        /*private*/ constructor() {}
+        /*private*/ constructor() {
+            super();
+        }
 
         // Singleton
         public static theWhileLabel = new WhileLabel() ;
@@ -594,9 +604,6 @@ module pnode {
     //Placeholder Make
     export function mkExprPH() : ExprNode{
         return <ExprNode> make ( ExprPHLabel.theExprPHLabel, [] );}
-
-    export function mkExprSeqPH() : ExprSeqNode{
-        return <ExprSeqNode> make ( ExprSeqPHLabel.theExprSeqPHLabel, [] );}
 
     export function mkTypePH() : TypeNode{
         return <TypeNode> make ( TypePHLabel.theTypePHLabel, [] );}
