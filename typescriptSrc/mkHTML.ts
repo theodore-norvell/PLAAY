@@ -88,8 +88,8 @@ module mkHTML {
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
         whileblock.setAttribute("class", "whileBox V palette");
-        whileblock.setAttribute("draggable", "true");
-        whileblock.setAttribute("ondragstart", "drag(event)");
+        //whileblock.setAttribute("draggable", "true");
+        //whileblock.setAttribute("ondragstart", "drag(event)");
         whileblock.textContent = "While";
         document.getElementById("sidebar").appendChild(whileblock);
 
@@ -175,7 +175,7 @@ module mkHTML {
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
             drop: function (event, ui) {
-                console.log($(this).attr("id"));
+                console.log(ui.draggable.attr("id"));
                 createHTML(ui.draggable.attr("id"), this);
                 //$(ui.draggable).clone().appendTo($(this));
             }
@@ -203,7 +203,14 @@ module mkHTML {
         }
         else if ('while' === e)
         {
-
+            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
+                '<div class="whileBox V workplace">' +
+                '<div class="guardBox H workplace">' +
+                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
+                '<div class="thenBox H workplace">' +
+                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
+                '</div>' +
+                '<div id="dropZone" class="dropZone H droppable"></div>');
         }
         else if ('var' === e)
         {
