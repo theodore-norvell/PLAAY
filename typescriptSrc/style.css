@@ -258,10 +258,11 @@ div.seqBox {
 
 div.dropZone {
     margin: 2px 0px 2px 0px ;
-    min-height: 1ex ;
-    min-width: 5ex ;
+    min-height: 5ex ;
+    min-width: 10ex ;
     background-color: slategrey;
     border-radius: 5px ;
+    clear: left;
 }
 
 
@@ -283,4 +284,15 @@ div.selected {
     border: thick solid rgb(255,0,0) ;
     padding: 2px ;
     margin: 2px ;
+}
+
+.workplace {
+    min-height: 100px;
+    min-width: 100px;
+    height: 80% !important;
+    width: 80% !important;
+}
+
+.hover {
+    background-color: rgb(122,122,0) !important;
 }

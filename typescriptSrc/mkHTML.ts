@@ -1,5 +1,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="jquery.d.ts" />
+/// <reference path="jqueryui.d.ts" />
 
 import collections = require( './collections' );
 import assert = require( './assert' );
@@ -66,20 +68,26 @@ module mkHTML {
         sidebar.setAttribute("id","sidebar");
         sidebar.setAttribute("class","sidebar");
         document.getElementById("body").appendChild(sidebar);
-
+        //var $sidebar = $('#sidebar');
+        //$sidebar.bind('scroll', function() {
+        //    if($sidebar.scrollLeft() !== 0){      //May need to prevent scrolling the palette
+        //        $sidebar.scrollLeft(0);
+        //    }
+        //});
         //create elements
         //can't move div's yet so we will use images as a placeholder
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
-        ifblock.setAttribute("class","ifBox V");
-        ifblock.setAttribute("draggable","true");
-        ifblock.setAttribute("ondragstart","drag(event)");
+        ifblock.setAttribute("class","ifBox V palette");
+        //ifblock.setAttribute("draggable","true");
+        //ifblock.setAttribute("ondragstart","drag(event)");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
 
+
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
-        whileblock.setAttribute("class", "whileBox V");
+        whileblock.setAttribute("class", "whileBox V palette");
         whileblock.setAttribute("draggable", "true");
         whileblock.setAttribute("ondragstart", "drag(event)");
         whileblock.textContent = "While";
@@ -87,7 +95,7 @@ module mkHTML {
 
         const varblock = document.createElement("div");
         varblock.setAttribute("id", "var");
-        varblock.setAttribute("class", "varBox V");
+        varblock.setAttribute("class", "varBox V palette");
         varblock.setAttribute("draggable", "true");
         varblock.setAttribute("ondragstart", "drag(event)");
         varblock.textContent = "Var";
@@ -95,7 +103,7 @@ module mkHTML {
 
         const forblock = document.createElement("div");
         forblock.setAttribute("id", "for");
-        forblock.setAttribute("class", "forBox V");
+        forblock.setAttribute("class", "forBox V palette");
         forblock.setAttribute("draggable", "true");
         forblock.setAttribute("ondragstart", "drag(event)");
         forblock.textContent = "For";
@@ -103,7 +111,7 @@ module mkHTML {
 
         const thisblock = document.createElement("div");
         thisblock.setAttribute("id", "this");
-        thisblock.setAttribute("class", "thisBox V");
+        thisblock.setAttribute("class", "thisBox V palette");
         thisblock.setAttribute("draggable", "true");
         thisblock.setAttribute("ondragstart", "drag(event)");
         thisblock.textContent = "This";
@@ -111,7 +119,7 @@ module mkHTML {
 
         const trueblock = document.createElement("div");
         trueblock.setAttribute("id", "true");
-        trueblock.setAttribute("class", "trueBox V");
+        trueblock.setAttribute("class", "trueBox V palette");
         trueblock.setAttribute("draggable", "true");
         trueblock.setAttribute("ondragstart", "drag(event)");
         trueblock.textContent = "True";
@@ -119,7 +127,7 @@ module mkHTML {
 
         const falseblock = document.createElement("div");
         falseblock.setAttribute("id", "false");
-        falseblock.setAttribute("class", "falseBox V");
+        falseblock.setAttribute("class", "falseBox V palette");
         falseblock.setAttribute("draggable", "true");
         falseblock.setAttribute("ondragstart", "drag(event)");
         falseblock.textContent = "False";
@@ -127,7 +135,7 @@ module mkHTML {
 
         const nullblock = document.createElement("div");
         nullblock.setAttribute("id", "null");
-        nullblock.setAttribute("class", "nullBox V");
+        nullblock.setAttribute("class", "nullBox V palette");
         nullblock.setAttribute("draggable", "true");
         nullblock.setAttribute("ondragstart", "drag(event)");
         nullblock.textContent = "Null";
@@ -135,7 +143,7 @@ module mkHTML {
 
         const assignmentblock = document.createElement("div");
         assignmentblock.setAttribute("id", "assignment");
-        assignmentblock.setAttribute("class", "assignmentBox V");
+        assignmentblock.setAttribute("class", "assignmentBox V palette");
         assignmentblock.setAttribute("draggable", "true");
         assignmentblock.setAttribute("ondragstart", "drag(event)");
         assignmentblock.textContent = "Assignment";
@@ -145,31 +153,71 @@ module mkHTML {
         const container = document.createElement("div");
         container.setAttribute("id","container");
         container.setAttribute("class", "container");
-        container.setAttribute("ondrop", "drop(event)");
-        container.setAttribute("ondragover","allowDrop(event)");
+        //container.setAttribute("ondrop", "drop(event)");
+        //container.setAttribute("ondragover","allowDrop(event)");
         document.getElementById("body").appendChild(container);
 
-        //creates empty dropzone
+        //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
         const div = document.createElement("div") ;
-        div.setAttribute("class", "dropZone H") ;
-        div.setAttribute("ondrop", "drop(event)");
-        div.setAttribute("ondragover","allowDrop(event)");
+        div.setAttribute("id", "dropZone");
+        div.setAttribute("class", "dropZone H droppable") ;
+        //div.setAttribute("ondrop", "drop(event)");
+        //div.setAttribute("ondragover","allowDrop(event)");
         div["childCount"] = 0 ;
         document.getElementById("container").appendChild( div ) ;
+
+        $( ".palette" ).draggable({
+            helper:"clone",
+            appendTo:"body"
+        });
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            drop: function (event, ui) {
+                console.log($(this).attr("id"));
+                createHTML(ui.draggable.attr("id"), this);
+                //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+        //$(".droppable" ).hover(function(e) {
+        //    $(this).addClass("hover");
+        //}, function (e) {
+        //    $(this).removeClass("hover");
+        //});
+
     }
 
-    export function allowDrop(ev) {
-        ev.preventDefault();
-    }
+    export function createHTML(e, self) {
+        if ('if' === e)
+        {
+            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
+                '<div class="ifBox V workplace">' +
+                '<div class="guardBox H workplace">' +
+                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
+                '<div class="thenBox H workplace">' +
+                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
+                '<div class="elseBox H workplace">' +
+                '<div id="dropZone" class="dropZone H droppable"></div></div></div>' +
+                '<div id="dropZone" class="dropZone H droppable"></div>');
+        }
+        else if ('while' === e)
+        {
 
-    export function drag(ev) {
-        ev.dataTransfer.setData("text", ev.target.id);
-    }
+        }
+        else if ('var' === e)
+        {
 
-    export function drop(ev) {
-        ev.preventDefault();
-        var data = ev.dataTransfer.getData("text");
-        ev.target.appendChild(document.getElementById(data));
+        }
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            drop: function (event, ui) {
+                console.log($(this).attr("id"));
+                createHTML(ui.draggable.attr("id"), this);
+                //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
     }
 
     export function generateHTML(select:Selection)
