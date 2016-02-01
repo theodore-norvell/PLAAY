@@ -1,15 +1,26 @@
 import pnode = require( './pnode' ) ;
 import assert = require( './assert' )
+import pnodeEdits = require ('./pnodeEdits');
+import collections = require( './collections' ) ;
 
 module treeManager {
 
-    export class treeManager {
-        private root:pnode.ExprSeqNode;
+    import Selection = pnodeEdits.Selection;
+    import list = collections.list;
 
-        private loadTree():pnode.ExprSeqNode {
+    export class treeManager {
+        private root:pnode.PNode;
+
+        private loadTree():pnode.PNode {
             if (this.root == null) {
                 this.createRoot();
             }
+
+            var placeholder = pnode.mkExprPH();
+
+            var sel = new pnodeEdits.Selection( this.root, collections.list(0), 0, 1 );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ placeholder ] );
+            var editResult = edit.applyEdit( sel );
 
             return this.root;
         }
@@ -17,35 +28,41 @@ module treeManager {
         private createRoot() {
 
             var testroot = pnode.tryMake(pnode.ExprSeqLabel.theExprSeqLabel, []);
-            // not sure how option works but will keep this
             this.root = testroot.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
         }
 
 
 // if this is going to be used for creating a node after dropping, need to also pass in the selection - JH
-        private createNode(label:String) {
+        private createNode(label:String, selection:Selection) {
 
-            // must be better way to do this? Seems to easy to break - JH
             if (label.match("If")) {
-                var a:pnode.ExprNode = pnode.mkStringConst("a");
-                console.log(a.toString());
 
-                var b:pnode.ExprNode = pnode.mkStringConst("b");
-                console.log(b.toString());
+                var guard = pnode.mkExprPH();
+                var thn = pnode.mkExprSeq( [] );
+                var els = pnode.mkExprSeq( []);
 
-                var c:pnode.ExprNode = pnode.mkStringConst("c");
-                console.log(c.toString());
+                var opt = pnode.tryMake(pnode.IfLabel.theIfLabel, [guard, thn, els]);
 
-                pnode.tryMake(pnode.IfLabel.theIfLabel, [a, b, c]);
+                var ifnode = opt.choose(
+                    p => p,
+                    () => {
+                        assert.check(false, "Precondition violation on PNode.modify");
+                        return null;
+                    });
+
+                var edit = new pnodeEdits.InsertChildrenEdit( [ ifnode ] );
+                var editResult = edit.applyEdit( selection );
+
+                return editResult;
 
             }
         }
-
     }
 }
 
