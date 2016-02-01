@@ -44,7 +44,7 @@
     class StackC
         con top : ObjectC
         con next : StackC or null</pre>
-<p>[I'm using pseudo code, here,  using the Java convention that pointers are implicit. E.g. two <span class="kbd">ClosureC</span> objects could share the same <span class="kbd">LambdaC</span> object, since the function field contains a pointer to an object of class <span class="kbd">LambdaC</span>, not an actual <span class="kbd">LambdaC</span> object.  Contrary to Java, I'll assume that in general pointers are not null. Where null is allowed, I'll write &quot;or null&quot;. The other convention I'm using is that con marks field whose values never change after construction (final fields in Java terms) while var marks field whose values may need to change during run time.]</p>
+<p>[I'm using pseudo code, here,  using the Java convention that pointers are implicit. E.g. two <span class="kbd">ClosureC</span> objects could share the same <span class="kbd">LambdaC</span> object, since the function field contains a pointer to an object of class <span class="kbd">LambdaC</span>, not an actual <span class="kbd">LambdaC</span> object.  Contrary to Java, I'll assume that in general pointers are not null. Where null is allowed, I'll write &quot;or null&quot;. Another other convention I'm using is that con marks field whose values never change after construction (final fields in Java terms) while var marks field whose values may need to change during run time. I've omitted constructors here.]</p>
 <h3>Quick introduction to closures</h3>
 <p>The first three classes should be fairly self explanatory. The fourth,</p>
 <pre>
@@ -137,14 +137,16 @@ would be implemented by
         con z := the sum of the numbers represented by x and y
         con str := z turned into a string
         return new </span>StringC( str )</pre>
-<p>For sequences we have</p>
+<p>For sequences (ignoring that sequences can contain variable declarations) we have</p>
 <pre class="kbd">    method eval( s : StackC ) : ValueA
-        return new ClosureC( this, s )</pre>
-<p></p>
+        var val := new DoneC
+        for each e in exprs
+            val := e.eval( s ) 
+        return val</pre>
 <p>For a lambda expression we would have </p>
 <pre class="kbd">    method eval( s : StackC ) : ValueA
         return new ClosureC( this, s )</pre>
-<p>For a node representing the application of a function to arguments, we would have  </p>
+<p>For a nodes representing the application of a function to arguments, we would have  </p>
 <pre><span class="kbd">    method eval( s : StackC ) : ValueA
         con c := this.function.eval( s )
         if c is not a ClosureC then throw an exception
@@ -175,18 +177,18 @@ would be implemented by
     var x := f(3)
     x</pre>
 <p>there will be one evaluation representing the sequence and then one evaluation representing the evaluation of the body of the closure.</p>
-<p>Let's start with a simpler example that only uses one example. Then we'll come back to the one above.</p>
-<p>Suppose we want to evaluate an expression <span class="blue">a+b</span> in a stack <em>s</em> that has <span class="blue">a</span> and <span class="blue">b</span> as fields. We make an evaluation that has a pointer to the AST node for <span class="blue">a+b</span>, this is called the root of the evaluation. The evaluation also has to keep track of which parts of the tree have been evaluated and which have not and for those that have been evaluated, what value they evaluated to. This part of the evaluation is called its map. The map maps ASTA nodes to ValueA objects. An evaluation also has a stack of pending nodes and optionally a selected node.</p>
+<p>Let's start with a simpler example that only uses one evaluation. Then we'll come back to the example above.</p>
+<p>Suppose we want to evaluate an expression <span class="blue">a+b</span> in a stack <em>s</em> that has <span class="blue">a</span> and <span class="blue">b</span> as fields. We make an evaluation that has a pointer to the AST node for <span class="blue">a+b</span>, this is called the root of the evaluation. The evaluation also has to keep track of which parts of the tree have been evaluated and which have not and, for those that have been evaluated, what value they evaluated to. This part of the evaluation is called its map. The map maps paths to ValueA objects. (A path is a list of numbers represents the location of a node in the tree -- e.g Nil represents the root (0) represents the roots first chile, (0,2) represents the third child of the first child of the root, etc.) An evaluation also has a stack of pending nodes (represented by paths) and optionally a selected node.</p>
 <pre>    class EvaluationC
         con root : ASTA
         con stack : StackC
-        con map : MutableMap&lt;ASTA, ValueA&gt;
-        con pending : Stack&lt;ASTA&gt;
+        con map : MutableMap&lt;Path, ValueA&gt;
+        con pending : Stack&lt;Path&gt;
         var ready : boolean
 </pre>
 <p>The evaluate <span class="blue">a+b</span> we start by making an evaluation that has the Plus node as its root. It has <em>s</em> as its stack. Its map is empty. Its pending stack contains only the root and ready is false. Ready means that the top node on the pending stack is ready to be stepped (evaluated). Here is the state of the evaluation initially</p>
 <p>.<img src="drawings/plaay-eval-0.png" width="709" height="200" alt="0" /></p>
-<p>In single stem mode, the user will see the the expression being evaluated turn into a value bit by bit. That is they will see the following succession of states of evaluation</p>
+<p>In single step mode, the user will see the the expression being evaluated turn into a value bit by bit. That is they will see the following succession of states of evaluation</p>
 <pre>    a + b  (and the a node is highlighted and the a field on the stack is highlighted)
 
     42 + b (and the b node is highlighted and the b field on the stack is highlighted)
@@ -194,17 +196,16 @@ would be implemented by
     42 + 23 (and the + node is highlighted)
 
     65   (and no node is highlighted)</pre>
-<p>Here is what is happening in terms of the evaluation:</p>
-<p>&nbsp; </p>
+<p>Here is what is happening in terms of the evaluation: </p>
 <p>  * A select message is sent to the top pending node (the root).The root decides to evaluate its left child first (left-to-right selection strategy). So it pushes its left child onto the pending stack and forwards the select message to the a node. The a node selects itself by setting ready to true.
-  It also highlights looks up the a field on the stack.
+  It also  looks up the a field on the stack and high-lights it.
   The state is  </p>
 <p><img src="drawings/plaay-eval-1.png" width="708" height="200" alt="1" /></p>
 <p> The user sees:  a + b  (and the a node is highlighted and the a field on the stack is highlighted)</p>
 <p> * Since ready is true, a step message is sent to the a node (it being the
   top of the pending stack. The step method of the a node looks up the a
   field on the stack (again) turns off the highlighting of that field
-  and maps itself to the value of that field. It also pops itself off
+  and maps itself to the value of that field. It also pops its path off
   pending and sets ready to false. The state is</p>
 <p><img src="drawings/plaay-eval-2.png" width="719" height="202" alt="2" /></p>
 <p> * Since ready is false, a select message is sent to the top pending node (the root).
@@ -227,8 +228,8 @@ would be implemented by
   42 + 23 (and the + node is highlighted)  </p>
 <p><img src="drawings/plaay-eval-5.png" width="719" height="241" alt="5" /></p>
 <p> * Since ready is true, a step message is sent to the top pending node.
-  This is the root. It looks at the values of its children (using the map)
-  adds them and maps itself to the resulting value.
+  This is the root. It looks at the values of its children (using the map),
+  adds them, and maps itself to the resulting value.
   
   And the user sees.
   
@@ -417,15 +418,9 @@ The advance method for an evaluation either does a selection or a step
             this.ready := false
 </pre>
 <h3>  Allowing editing during execution</h3>
-<p>It would be nice if during execution one could edit the program, for example to fix mistakes or fill in missing parts. In order not to mess up any partially complete evaluations, it is important not to change some AST.  For example if we deleted a node that is on a pending stack, that would cause problems the next time we send a step or select message that node. </p>
-<p>One way to accomplish this is to make a copy of the relevant part of the program tree each time an new evaluation is made. (For example in the step method of ApplyC.). Then the original can be edited to one's heart's content, although evaluations currently on the stack will not be affected by the changes. </p>
+<p>It would be nice if during execution one could edit the program, for example to fix mistakes or fill in missing parts. In order not to mess up any partially complete evaluations, it is important not to change some AST.  For example if we deleted a node that is on a pending stack, that would cause problems the next time we send a step or select message that node. Luckly by using an immutable data structure to represent program nodes, this just can't happen. </p>
 <p>pro: No restriction on editing.</p>
 <p>con: Edits do not affect current evaluations and so the user may see &quot;old code&quot; when they return to execution mode.</p>
 <p>precedent: This was done in the Sharp APL editor. It was also done in the 1985 implementation of Prograph.</p>
-<p>Another solution is to consider &quot;locked&quot; any node such that changing it could mess up a current evaluation. I think it is sufficient to say that a node is locked iff it is in the pending stack of some evaluation on the evaluation stack. Each node is provided with a counter. The counter is incremented when the node is pushed on to the pending stack and decremented on pop. The node is locked if the counter isA locked node can not have any of children changed nor any of its other attributes changed.</p>
-<p>pro: There is only one current copy of each function body.</p>
-<p>con: There are restrictions on what can be edited.</p>
-<p>con: Complicates the program editor.</p>
-<p>con: Complicates undo/redo in the editor. Suppose I make an edit to node x. Later it becomes locked. And then I try to undo my edit. This undo must be prevented somehow.</p>
 </body>
 </html>
