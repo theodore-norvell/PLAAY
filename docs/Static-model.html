@@ -8,21 +8,13 @@
 
 <body>
 <h1>Program Representation</h1>
-<p>Revision history</p>
-<ul>
-  <li>2016 Feb 1 --added note at beginning.</li>
-  <li>2015 July -- initial version.</li>
-</ul>
-<p>[Note Feb 1: This document is currently out of date. It needs to be updated to reflect the PNodes and labels currently implemented.]</p>
-<p>During editing and execution we need a way to represent Plaay programs. This document provides some ideas on how to do this.</p>
+<p>During editing and exectution we need a way to represent Plaay programs. This document provides some ideas on how to do this.</p>
 <p>The program is represented at run time by the same abstract syntax trees during execution and during editing. There is no difference.</p>
 <p> More detail on what sorts of nodes are needed and what information they need to carry is in the <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract Syntax and Static Checking</a> document. More information about how the AST is used during execution is in the <a href="Run-time-model.html">Run-time-model</a> document.</p>
 <p>For this document, I'll assume that ASTs are represented by nodes of type AST. For example</p>
 <pre>    abstract class ASTA
 
     class SeqC extends ASTA
-        // I'm ignoring, for now, that sequences may contain
-        // variable declarations.
         var exprs : Sequence&lt;ExpA&gt;
 
     abstract class ExpA extends ASTA
