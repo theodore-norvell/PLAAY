@@ -39,7 +39,7 @@ module treeManager {
 
 
 // if this is going to be used for creating a node after dropping, need to also pass in the selection - JH
-        private createNode(label:String, selection:Selection) {
+        private createNode(label:String, selection:Selection) : Selection{
 
             if (label.match("If")) {
 
@@ -59,8 +59,12 @@ module treeManager {
                 var edit = new pnodeEdits.InsertChildrenEdit( [ ifnode ] );
                 var editResult = edit.applyEdit( selection );
 
-                return editResult;
-
+                return editResult.choose(
+                    p => p,
+                    () => {
+                        assert.check(false, "Precondition violation on PNode.modify");
+                        return null;
+                    });
             }
         }
     }
