@@ -8,54 +8,64 @@
 
 <body>
 <h1>Program Representation</h1>
-<p>During editing and exectution we need a way to represent Plaay programs. This document provides some ideas on how to do this.</p>
+<p>Revision History</p>
+<ul>
+  <li>2015 Feb 2 -- updated to better reflect current implementation.</li>
+  <li>2016 Feb 1 -- added note at beginning.</li>
+  <li>2015 July -- initial version.</li>
+</ul>
+<p>During editing and execution we need a way to represent Plaay programs. This document provides some ideas on how to do this.</p>
 <p>The program is represented at run time by the same abstract syntax trees during execution and during editing. There is no difference.</p>
 <p> More detail on what sorts of nodes are needed and what information they need to carry is in the <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract Syntax and Static Checking</a> document. More information about how the AST is used during execution is in the <a href="Run-time-model.html">Run-time-model</a> document.</p>
-<p>For this document, I'll assume that ASTs are represented by nodes of type AST. For example</p>
-<pre>    abstract class ASTA
+<p>ASTs are represented using immutable data. Once a node is created it can never by changed. This simplifies editing considerably and makes undo-redo during editing trivial.</p>
+<p>ASTs are represented by an abstrac class PNode</p>
+<pre>    abstract class PNode
+        con _label : Label
+        con _children : Array&lt;PNode&gt;</pre>
+<p>See the code for details on contructors and methods. Here I'll just concentrate on the structure.</p>
+<p>Most of the information that differentiates one PNode from another is contained in its label. Each some of the label types include</p>
+<pre>
+    interface Label
+        method isValid( children : Array&lt;PNode&gt; ) : Boolean
 
-    class SeqC extends ASTA
-        var exprs : Sequence&lt;ExpA&gt;
+    class ExprSeqLabel implements Label
+        //valid iff all children are VarDecl or expressions
 
-    abstract class ExpA extends ASTA
-        var children : Sequence&lt;ASTA&gt;
+    abstract class ExprLabel implements Label
 
-    class PlusC extends ExpA
-        invariant children.length = 2
-        invariant children[0] isA ExpA
-        invariant children[1] isA ExpA
-        method left return children[0] asA ExpA
-        method right return children[1] asA ExpA
+    class IfLabel extends Exprlabel
+        //valid iff 3 children
+        //    first is an expression
+        //   second and third are expression sequences
 
-    class IfC extends ExpA
-        invariant children.length = 3
-        invariant children[0] isA ExpA
-        invariant children[1] isA SeqC
-        invariant children[2] isA SeqC
-        method guard returns children[0] asA ExpA
-        method thenPart return children[1] asA SeqA
-        method elsePart return children[2] asA SeqA
-        
+    class LambdaLabel extends Exprlabel
+        //valid iff 3 children
+        //    first is a parameter list
+        //    second is an optional type
+        //    third is an expression sequences
 
-    class LambdaC extends ExpA
-        invariant children.length = 3
-        invariant children[0] is a ParamlistC
-        invariant children[1] is an OptTypeC
-        invariant children[2] is a SeqC
-        method params return children[1].children 
-        method body return chidren[2]
+    class ParamlistLabel implements Label
+        //valid iff all children are VarDecl
 
-    class ParamlistC extends ASTA
-        invariant all children are VarDeclC
-
-    class ApplyC extends ExpA
-        invariant children.length &gt; 0
-        method function return children[0]
-        method args return chilren[1,..]
+    class CallClosureLabel extends ExprLabel
+        //valid iff &gt; 1 children
+        //    all children are expression nodes
 </pre>
-<p> Members of the children array are never null. Holes in the program are represented by <span class="kbd">PlaceHolderExpC</span> nodes</p>
-<pre>    class PlaceHolderExpC extends ExpC</pre>
-<p>In the view PlaceHolderC nodes are represented by dropzones.</p>
+<p>(The &quot;valid iff&quot; constraints listed above indicate how the &quot;isValid&quot; method is implemented in each case. Validity is discussed below.)</p>
+<p>Members of the children array are never null. Holes in the program where expressions are expected are represented by nodes labeled wtih <span class="kbd">PlaceHolderExpLabel</span></p>
+<pre>    class PlaceHolderExpLabel extends ExprLabel
+</pre>
+<p>Subclasses of PNode. PNode is a concrete class. Actual nodes are created from one of a selection of subclasses of PNode</p>
+<pre>    class ExprNode extends PNode
+        invariant label is an ExprLabel
+
+    class LambdaNode extends ExprNode
+        invariant label is a LambdaLabel
+
+    class TypeNode extends TypeNode
+        invariant label is a TypeLabel
+</pre>
+<p>ExprNode nodes are labeled by expression labels (instanceof ExprLabel etc.).</p>
 <h3>Validity</h3>
 <p>In Plaay there are some trees you can create and some trees you can't. Consider a model:</p>
 <pre>    if( placeHolder, Seq() , Seq() )</pre>
@@ -72,10 +82,28 @@
  &lt;!DOCTYPE html PUBLIC &quot;-//W3C//DTD XHTML Basic 1.1//EN&quot;     &quot;http://www.w3.org/TR/xhtml-basic/xhtml-basic11.dtd&quot;&gt;
  &lt;html&gt;&lt;p&gt; &lt;body&gt; Hello&lt;/body&gt; &lt;/p&gt;&lt;/html&gt;</pre>
 <p></p>
-<p>Is not valid for a couple of reasons: html elements must have head and a body as children (in that order) and nothing else; also a body element can not appear as a child of a p element.</p>
-<p>So this is what the invariants above are all about. It is important to not allow the invariants to be violated. They make sure that the AST in the computer follows the abstract grammar in <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract-Syntax-and-Static-Checking</a>. And is therefore valid input to checking or execution.</p>
-<p>Another way to put it is that this is Plaay's equivalent of syntax checking. The parser of a standard compiler will (generally) not build a tree if the program has syntax errors. Plaay's editor will not build a tree that has validity errors.</p>
-<p>Conversely it is important that the editor allows the user to build any tree that is valid.</p>
-<p>&nbsp;</p>
+<p>is not valid for a couple of reasons: html elements must have head and a body as children (in that order) and nothing else; also a body element can not appear as a child of a p element.</p>
+<p>In the case of PNodes, all PNodes must be valid according to the abstract syntax of PLAAY. This constraint is reflected in the following invariant for PNodes</p>
+<pre>    abstract class PNode
+        con _label : Label
+        con _children : Array&lt;PNode&gt;
+        invariant _label.isValid( _children )
+</pre>
+<p>The mechanism that enforces this invariant is that when a constructor for a PNode is called, it checks the list of children against the .isValid method of the label before constructing the tree. If the result would not be valid, the constructor throws an error. However, the programmer should not count on this behaviour, they should always check the validity first or use a method returns an optional PNode. The pnode module exports three relevant functions</p>
+<pre> function canMake( label : Label, children : Array&lt;PNode&gt; ) : boolean
+
+ function make( label : Label, children : Array&lt;PNode&gt; ) : PNode
+ 
+ function tryMake( label : Label, children : Array&lt;PNode&gt; ) : Option&lt;PNode&gt; </pre>
+<p> The first can be used indicates whether a valid node can be made with a given label and child list. The second makes a node and must not be called unless the programmer can prove that canMake would return yes. The third returns a None object if the resulting node would not be valid and returns a Some object containing the new node.</p>
+<p>Conversely, it is important that the editor allows the user to build any tree that is valid.</p>
+<h3>Node sharing</h3>
+<p>Note that there is no link from a PNode to its parent. In fact a PNode might have no parent or it might have none. So the same node could potentially wind up in a tree in more than one way. For example, it would be a bad idea to keep a pointer from a view object to the PNode that it represents, since different view objects might end up mapping to the same PNode. Also it would be a bad idea to create a map (finite function) from PNodes to the view objects that represent them, since one PNode might need to map to multiple view objects.</p>
+<p>(A similar situation comes up in Unix file system where one file can be contained in multiple directories.)</p>
+<h3>Paths</h3>
+<p>Because of node sharing it is often a good idea to identify nodes by their paths. A path is a list of natural numbers. Given a tree, the empty path refers to the root; path (0) refers to the first child of the root; path (1) refers to the second child, and so forth. Path (0,0) identifies the first child of the first child of the root; path (0,1) identifies the second child of the first child of the root; etc.</p>
+<h3>Selections</h3>
+<p>In editing it is useful to refer to represent a selection of nodes or a position in a tree. For example, pressing the delete key might mean to delete all selected nodes. For another example, pressing cntl-v might paste a sequence of nodes into the tree a the selected position or overwriting the selected nodes.</p>
+<p>A selection or position in a tree can be indicated by a path that indicates a node p in the tree together with two natural numbers, the focus f and anchor a. The nodes selected are those children of p bracketed by the focus and anchor, i.e those whose child number c is such that either f _&lt; c &lt; a or a _&lt; c &lt; f. When a=f, the selection indicates a position f under node p.</p>
 </body>
 </html>
