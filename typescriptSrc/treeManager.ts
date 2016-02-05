@@ -191,7 +191,7 @@ module treeManager {
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ assignnode ] );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ addnode ] );
             var editResult = edit.applyEdit( selection );
             return editResult.choose(
                 p => p,
