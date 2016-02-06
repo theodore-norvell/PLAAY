@@ -5,11 +5,14 @@ import collections = require( './collections' ) ;
 
 module treeManager {
 
+    import ExprSeq = pnode.ExprSeqNode;
+    import ExprNode = pnode.ExprNode;
+    import ExprSeqLabel = pnode.ExprSeqLabel;
     import Selection = pnodeEdits.Selection;
     import list = collections.list;
     import PNode = pnode.PNode;
 
-    export class treeManager {
+    export class TreeManager {
 
         // make root a selection - JH
         //optiontype, maybetype
@@ -23,9 +26,10 @@ module treeManager {
             return this.root;
         }
 
-        private createRoot() {
+        createRoot() {
 
-            var testroot = pnode.tryMake(pnode.ExprSeqLabel.theExprSeqLabel, []);
+            var testroot = pnode.tryMake(ExprSeqLabel.theExprSeqLabel, []);
+            // not sure how option works but will keep this
             this.root = testroot.choose(
                 p => p,
                 () => {
