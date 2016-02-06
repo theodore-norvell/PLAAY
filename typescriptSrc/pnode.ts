@@ -613,7 +613,7 @@ module pnode {
     export function mkIf( guard : ExprNode, thn : ExprSeqNode, els : ExprSeqNode ) : ExprNode {
         return <ExprNode> make( IfLabel.theIfLabel, [guard, thn, els] ) ; }
 
-    export function mkFor( init : ExprNode, cond : ExprSeqNode, seq : ExprSeqNode ) : ExprNode {
+    export function mkFor( init : ExprNode, cond : ExprNode, seq : ExprSeqNode ) : ExprNode {
         return <ExprNode> make( ForLabel.theForLabel, [init, cond, seq] ) ; }
 
     export function mkWhile( cond : ExprNode, seq : ExprSeqNode ) : ExprNode {
