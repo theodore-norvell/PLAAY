@@ -77,7 +77,6 @@ module treeManager {
 
             else {
                 //throw error stating label not recognized
-
             }
         }
 
