@@ -1,18 +1,29 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="pnodeEdits.ts" />
+/// <reference path="treeManager.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
 import collections = require( './collections' );
 import assert = require( './assert' );
+import pnode = require('./pnode');
+import pnodeEdits = require( './pnodeEdits');
+import treeManager = require('./treeManager');
 
 module mkHTML {
     import list = collections.list;
     import List = collections.List;
+    import Selection = pnodeEdits.Selection;
+    import TreeManager = treeManager.TreeManager;
 
     var undostack = [];
     var redostack = [];
-    var currentSelection;
+    var root = pnode.mkExprSeq([]);
+    var path = list;
+    var tree = new TreeManager();
+    var select = new Selection(root, path(0), 0 , 0);
+    var currentSelection = select;
 
     export function onLoad() : void
     {
@@ -68,19 +79,10 @@ module mkHTML {
         sidebar.setAttribute("id","sidebar");
         sidebar.setAttribute("class","sidebar");
         document.getElementById("body").appendChild(sidebar);
-        //var $sidebar = $('#sidebar');
-        //$sidebar.bind('scroll', function() {
-        //    if($sidebar.scrollLeft() !== 0){      //May need to prevent scrolling the palette
-        //        $sidebar.scrollLeft(0);
-        //    }
-        //});
-        //create elements
-        //can't move div's yet so we will use images as a placeholder
+
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
         ifblock.setAttribute("class","ifBox V palette");
-        //ifblock.setAttribute("draggable","true");
-        //ifblock.setAttribute("ondragstart","drag(event)");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
 
@@ -88,64 +90,48 @@ module mkHTML {
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
         whileblock.setAttribute("class", "whileBox V palette");
-        //whileblock.setAttribute("draggable", "true");
-        //whileblock.setAttribute("ondragstart", "drag(event)");
         whileblock.textContent = "While";
         document.getElementById("sidebar").appendChild(whileblock);
 
         const varblock = document.createElement("div");
         varblock.setAttribute("id", "var");
         varblock.setAttribute("class", "varBox V palette");
-        varblock.setAttribute("draggable", "true");
-        varblock.setAttribute("ondragstart", "drag(event)");
         varblock.textContent = "Var";
         document.getElementById("sidebar").appendChild(varblock);
 
         const forblock = document.createElement("div");
         forblock.setAttribute("id", "for");
         forblock.setAttribute("class", "forBox V palette");
-        forblock.setAttribute("draggable", "true");
-        forblock.setAttribute("ondragstart", "drag(event)");
         forblock.textContent = "For";
         document.getElementById("sidebar").appendChild(forblock);
 
         const thisblock = document.createElement("div");
         thisblock.setAttribute("id", "this");
         thisblock.setAttribute("class", "thisBox V palette");
-        thisblock.setAttribute("draggable", "true");
-        thisblock.setAttribute("ondragstart", "drag(event)");
         thisblock.textContent = "This";
         document.getElementById("sidebar").appendChild(thisblock);
 
         const trueblock = document.createElement("div");
         trueblock.setAttribute("id", "true");
         trueblock.setAttribute("class", "trueBox V palette");
-        trueblock.setAttribute("draggable", "true");
-        trueblock.setAttribute("ondragstart", "drag(event)");
         trueblock.textContent = "True";
         document.getElementById("sidebar").appendChild(trueblock);
 
         const falseblock = document.createElement("div");
         falseblock.setAttribute("id", "false");
         falseblock.setAttribute("class", "falseBox V palette");
-        falseblock.setAttribute("draggable", "true");
-        falseblock.setAttribute("ondragstart", "drag(event)");
         falseblock.textContent = "False";
         document.getElementById("sidebar").appendChild(falseblock);
 
         const nullblock = document.createElement("div");
         nullblock.setAttribute("id", "null");
         nullblock.setAttribute("class", "nullBox V palette");
-        nullblock.setAttribute("draggable", "true");
-        nullblock.setAttribute("ondragstart", "drag(event)");
         nullblock.textContent = "Null";
         document.getElementById("sidebar").appendChild(nullblock);
 
         const assignmentblock = document.createElement("div");
         assignmentblock.setAttribute("id", "assignment");
         assignmentblock.setAttribute("class", "assignmentBox V palette");
-        assignmentblock.setAttribute("draggable", "true");
-        assignmentblock.setAttribute("ondragstart", "drag(event)");
         assignmentblock.textContent = "Assignment";
         document.getElementById("sidebar").appendChild(assignmentblock);
 
@@ -153,21 +139,17 @@ module mkHTML {
         const container = document.createElement("div");
         container.setAttribute("id","container");
         container.setAttribute("class", "container");
-        //container.setAttribute("ondrop", "drop(event)");
-        //container.setAttribute("ondragover","allowDrop(event)");
         document.getElementById("body").appendChild(container);
 
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
         const div = document.createElement("div") ;
         div.setAttribute("id", "dropZone");
         div.setAttribute("class", "dropZone H droppable") ;
-        //div.setAttribute("ondrop", "drop(event)");
-        //div.setAttribute("ondragover","allowDrop(event)");
         div["childCount"] = 0 ;
         document.getElementById("container").appendChild( div ) ;
 
         $( ".palette" ).draggable({
-            helper:"clone",
+            helper:"clone" ,
             appendTo:"body"
         });
 
@@ -177,6 +159,7 @@ module mkHTML {
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 createHTML(ui.draggable.attr("id"), this);
+                tree.createNode("id");
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -235,7 +218,21 @@ module mkHTML {
             children.removeChild(children.firstChild);
         }
 
+        //select.root().
+
     }
+
+    //public void visitNode(Node node) {
+    //if(node.left != null) {
+    //    visitNode(node.left);
+    //}
+    //if(node.right != null) {
+    //    visitNode(node.right);
+    //}
+    //if(node.left == null && node.right == null) {
+        //OMG! leaf!
+    //}
+    //}
 }
 
 export = mkHTML ;

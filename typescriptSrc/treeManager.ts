@@ -3,10 +3,15 @@ import assert = require( './assert' )
 
 module treeManager {
 
-    export class treeManager {
-        private root:pnode.ExprSeqNode;
+    import ExprSeq = pnode.ExprSeqNode;
+    import ExprNode = pnode.ExprNode;
+    import ExprSeqLabel = pnode.ExprSeqLabel;
 
-        private loadTree():pnode.ExprSeqNode {
+    export class TreeManager {
+
+        private root:ExprSeq;
+
+        loadTree():ExprSeq {
             if (this.root == null) {
                 this.createRoot();
             }
@@ -14,9 +19,9 @@ module treeManager {
             return this.root;
         }
 
-        private createRoot() {
+        createRoot() {
 
-            var testroot = pnode.tryMake(pnode.ExprSeqLabel.theExprSeqLabel, []);
+            var testroot = pnode.tryMake(ExprSeqLabel.theExprSeqLabel, []);
             // not sure how option works but will keep this
             this.root = testroot.choose(
                 p => p,
@@ -28,24 +33,24 @@ module treeManager {
 
 
 // if this is going to be used for creating a node after dropping, need to also pass in the selection - JH
-        private createNode(label:String) {
+        createNode(label:String) {
 
             // must be better way to do this? Seems to easy to break - JH
             if (label.match("If")) {
-                var a:pnode.ExprNode = pnode.mkStringConst("a");
+                var a:ExprNode = pnode.mkStringConst("a");
                 console.log(a.toString());
 
-                var b:pnode.ExprNode = pnode.mkStringConst("b");
+                var b:ExprNode = pnode.mkStringConst("b");
                 console.log(b.toString());
 
-                var c:pnode.ExprNode = pnode.mkStringConst("c");
+                var c:ExprNode = pnode.mkStringConst("c");
                 console.log(c.toString());
 
                 pnode.tryMake(pnode.IfLabel.theIfLabel, [a, b, c]);
-
             }
         }
 
     }
 }
 
+export = treeManager;
