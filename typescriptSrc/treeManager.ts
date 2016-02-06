@@ -7,29 +7,19 @@ module treeManager {
 
     import Selection = pnodeEdits.Selection;
     import list = collections.list;
+    import PNode = pnode.PNode;
 
     export class treeManager {
 
         // make root a selection - JH
         //optiontype, maybetype
-        private root:pnode.PNode;
+        private root:PNode;
 
-        private loadTree():pnode.PNode {
-            if (this.root == null) {
-                this.createRoot();
-            }
+        constructor() {
+            this.createRoot();
+        }
 
-            var placeholder = pnode.mkExprPH();
-            var sel = new pnodeEdits.Selection( this.root, collections.list(0), 0, 1 );
-            var edit = new pnodeEdits.InsertChildrenEdit( [ placeholder ] );
-            var editResult = edit.applyEdit( sel );
-            this.root = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                }).root();
-
+        private getSelection():PNode {
             return this.root;
         }
 
@@ -43,9 +33,22 @@ module treeManager {
                     return null;
                 });
 
+            var placeholder = pnode.mkExprPH();
+            var sel = new Selection( this.root, collections.list(0), 0, 1 );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ placeholder ] );
+            var editResult = edit.applyEdit( sel );
+            this.root = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                }).root();
+
+            return this.root;
+
         }
 
-        public createNode(label:String, selection:Selection) : Selection {
+        createNode(label:String, selection:Selection) : Selection {
 
             if (label.match("If")) {
                 return this.makeIfNode(selection);
@@ -55,6 +58,9 @@ module treeManager {
             }
             else if (label.match("While")) {
                 return this.makeWhileNode(selection);
+            }
+            else if (label.match("Assign")) {
+                return this.makeAssignNode(selection);
             }
             else if (label.match("Add")) {
                 return this.makeAddNode(selection);
@@ -93,12 +99,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ fornode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeWhileNode(selection:Selection) : Selection {
@@ -117,12 +126,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ whilenode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeIfNode(selection: Selection) : Selection {
@@ -143,13 +155,15 @@ module treeManager {
             var edit = new pnodeEdits.InsertChildrenEdit( [ ifnode ] );
             var editResult = edit.applyEdit( selection );
 
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
+            this.root = sel.root();
+            return sel;
         }
 
         //Arithmetic Nodes
@@ -169,12 +183,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ assignnode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeAddNode(selection:Selection) : Selection {
@@ -193,12 +210,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ addnode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeSubNode(selection:Selection) : Selection {
@@ -217,12 +237,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ subnode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeMultNode(selection:Selection) : Selection {
@@ -241,12 +264,15 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ multnode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
 
         private makeDivNode(selection:Selection) : Selection {
@@ -265,12 +291,17 @@ module treeManager {
 
             var edit = new pnodeEdits.InsertChildrenEdit( [ divnode ] );
             var editResult = edit.applyEdit( selection );
-            return editResult.choose(
+            var sel = editResult.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
+
+            this.root = sel.root();
+            return sel;
         }
     }
 }
+
+export = treeManager;
