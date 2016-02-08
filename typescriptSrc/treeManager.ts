@@ -18,11 +18,12 @@ module treeManager {
         //optiontype, maybetype
         private root:PNode;
 
+        /*
         constructor() {
             this.createRoot();
-        }
+        }*/
 
-        private getSelection():PNode {
+        public getRoot():PNode {
             return this.root;
         }
 

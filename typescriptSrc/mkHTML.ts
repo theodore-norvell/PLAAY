@@ -1,5 +1,6 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="jquery.d.ts" />
@@ -14,16 +15,20 @@ import treeManager = require('./treeManager');
 module mkHTML {
     import list = collections.list;
     import List = collections.List;
-    import Selection = pnodeEdits.Selection;
+    import PNode = pnode.PNode;
     import TreeManager = treeManager.TreeManager;
+    import Selection = pnodeEdits.Selection;
 
     var undostack = [];
     var redostack = [];
+    var ifnumber = 0;
+    var currentSelection;
+
     var root = pnode.mkExprSeq([]);
-    var path = list;
+    var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
-    var select = new Selection(root, path(0), 0 , 0);
-    var currentSelection = select;
+    var select = new pnodeEdits.Selection(root,path(),0,0);
+    currentSelection = select;
 
     export function onLoad() : void
     {
@@ -159,7 +164,9 @@ module mkHTML {
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 createHTML(ui.draggable.attr("id"), this);
-                tree.createNode("id");
+                undostack.push(currentSelection);
+                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                generateHTML(currentSelection);
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -217,22 +224,62 @@ module mkHTML {
         while (children.firstChild) {
             children.removeChild(children.firstChild);
         }
-
-        //select.root().
-
+        traverseTree(select.root());
     }
 
-    //public void visitNode(Node node) {
-    //if(node.left != null) {
-    //    visitNode(node.left);
-    //}
-    //if(node.right != null) {
-    //    visitNode(node.right);
-    //}
-    //if(node.left == null && node.right == null) {
-        //OMG! leaf!
-    //}
-    //}
+    function traverseTree(root:PNode)
+    {
+        buildHTML(root);
+        if(root.count() != 0)
+        {
+            for(var i = 0; i < root.count(); i++)
+            {
+                traverseTree(root.child(i));
+            }
+        }
+    }
+
+    function buildHTML(node:PNode)
+    {
+        var label = node.label().toString();
+
+        if(label.match('if'))
+        {
+            var ifbox = document.createElement("div");
+            var guardbox = document.createElement("div");
+            var thenbox = document.createElement("div");
+            var elsebox = document.createElement("div");
+            var dropzone = document.createElement("div");
+
+            dropzone.setAttribute("id", "dropZone");
+            dropzone.setAttribute("class", "dropZone H droppable");
+            document.getElementById("container").appendChild(dropzone);
+
+            ifbox.setAttribute("class", "ifBox V workplace");
+            ifbox.setAttribute("id", "ifbox");
+            document.getElementById("container").appendChild(ifbox);
+            guardbox.setAttribute("class", "guardBox H workplace");
+            guardbox.setAttribute("id", "guardbox");
+            document.getElementById("ifbox").appendChild(guardbox);
+            document.getElementById("guardbox").appendChild(dropzone);
+            thenbox.setAttribute("class", "thenBox H workplace");
+            thenbox.setAttribute("id", "thenbox");
+            document.getElementById("ifbox").appendChild(thenbox);
+            document.getElementById("thenbox").appendChild(dropzone);
+            elsebox.setAttribute("class", "elseBox H workplace");
+            elsebox.setAttribute("id", "elsebox");
+            document.getElementById("ifbox").appendChild(elsebox);
+            document.getElementById("elsebox").appendChild(dropzone);
+            document.getElementById("container").appendChild(dropzone);
+        }
+        else if(label.match("ExprSeq"))
+        {
+            var dropzone = document.createElement("div");
+            dropzone.setAttribute("id", "dropZone");
+            dropzone.setAttribute("class", "dropZone H droppable");
+            document.getElementById("container").appendChild(dropzone);
+        }
+    }
 }
 
 export = mkHTML ;
