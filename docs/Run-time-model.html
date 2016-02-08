@@ -60,7 +60,7 @@
         con function : LambdaNode
         con context : Stack
 </pre>
-<p>needs more explanation. The <span class="kbd">.funtion</span> field represents the code of the function (including parameters). See <a href="Static-model.html">Static-model</a> for the definition of its type, <span class="kbd">LambdaNode</span>. The need for the <span class="kbd">.context</span> field in the representation of closures needs a bit of explanation. When a function is executed, we need a place to look for variables that are referred to during execution. This place is called the stack. Nonempty stacks are represented by <span class="kbd">Stack</span> objects. For example, suppose we have some Plaay code equivalent to </p>
+<p>needs more explanation. The <span class="kbd">.function</span> field represents the code of the function (including parameters). See <a href="Static-model.html">Static-model</a> for the definition of its type, <span class="kbd">LambdaNode</span>. The need for the <span class="kbd">.context</span> field in the representation of closures needs a bit of explanation. When a function is executed, we need a place to look for variables that are referred to during execution. This place is called the stack. Nonempty stacks are represented by <span class="kbd">Stack</span> objects. For example, suppose we have some Plaay code equivalent to </p>
 <pre class="blue">    b := 5
     f := lambda( a ) { a + b }
     f(3)</pre>
@@ -70,7 +70,7 @@
 <p>Now suppose the two assignment expressions are executed. </p>
 <pre class="blue">    b := 5
     f := lambda( a ) { a + b }</pre>
-<p>Before the second assigment happens, we need to evaluate the lambda expression. Lambda expressions evaluate to <span class="kbd">ClosureV</span> objects. Let's call the new closure object <em>c</em>. Its <span class="kbd">.function</span> field points to the abstract syntax tree representation of the lambda expression (i.e. to a model object that was produced during editing). <em>c</em>'s <span class="kbd">.context</span> field will point to <em>s</em>.</p>
+<p>Before the second assignment happens, we need to evaluate the lambda expression. Lambda expressions evaluate to <span class="kbd">ClosureV</span> objects. Let's call the new closure object <em>c</em>. Its <span class="kbd">.function</span> field points to the abstract syntax tree representation of the lambda expression (i.e. to a model object that was produced during editing). <em>c</em>'s <span class="kbd">.context</span> field will point to <em>s</em>.</p>
 <p>For the <span class="blue">f := </span><em>c</em>  assignment to happen, we need to find <span class="blue">f</span>'s representation. This is done by the following algorithm.</p>
 <pre>    function lookUp( varName : String, stack : Stack ) : Field or null
         if stack == null then null
@@ -159,7 +159,7 @@ would be implemented by
 <p>For a lambda expression we would have </p>
 <pre class="kbd">    method eval( s : Stack ) : Value
         return new ClosureV( this, s )</pre>
-<p>For a nodes representing the application of a function to arguments (i.e. nodes labeled by CallClosureLabel), we would have  </p>
+<p>For a nodes representing the application of a function to arguments (i.e. nodes labelled by CallClosureLabel), we would have  </p>
 <pre><span class="kbd">    method eval( s : Stack ) : Value
         con c := this.function.eval( s )
         if c is not a ClosureV then throw an exception
@@ -341,7 +341,7 @@ The advance method for an evaluation either does a selection or a step
     
     look up the variable in the stack and highlight it.
     eval.ready := true</pre>
-<p>Sequence nodes simply select each child in turn and then once all the children have been mapped, the sequence itself is selected. If there are variable declarations in the sequence things might get a bit more interesing.</p>
+<p>Sequence nodes simply select each child in turn and then once all the children have been mapped, the sequence itself is selected. If there are variable declarations in the sequence things might get a bit more interesting.</p>
 <h4>Stepping</h4>
 <p>Stepping also depends on the node type. For plus nodes</p>
 <pre>
@@ -399,7 +399,7 @@ The advance method for an evaluation either does a selection or a step
 <p>So why do we need a stack of evaluations. The idea is that each level of the stack represents the evaluation of one function. So let's look at how a function call can be evaluated. </p>
 <p>The select method for <span class="kbd">LambdaNode</span> nodes just sets ready to true. The step method for <span class="kbd">LambdaNode</span> nodes just creates a new <span class="kbd">ClosureV</span> (using the stack field of the top evaluation for the context, and maps the <span class="kbd">LambdaNode</span> node to the closure. So lambdas are simple.</p>
 <p>For application of a function (i.e. closure) to a list of arguments, we use nodes labelled with <span class="kbd">CallClosureLabel</span>. The select method for <span class="kbd">CallClosureLabel</span> nodes uses the usual left-to-right strategy.</p>
-<p>Before looking at the algorithm for step, let's look at what it needs to acheive. Suppose we are about to step the application in this sequence</p>
+<p>Before looking at the algorithm for step, let's look at what it needs to achieve. Suppose we are about to step the application in this sequence</p>
 <pre>    f := lambda( a : Num ) { a + b }
     b := 5
     f(3)</pre>
@@ -475,7 +475,7 @@ The advance method for an evaluation either does a selection or a step
                 finishStep( value )
 </pre>
 <h3>  Allowing editing during execution</h3>
-<p>It would be nice if during execution one could edit the program, for example to fix mistakes or fill in missing parts. In order not to mess up any partially complete evaluations, it is important not to change some AST.  For example if we deleted a node that is on a pending stack, that would cause problems the next time we send a step or select message that node. Luckly by using an immutable data structure to represent program nodes, this just can't happen. </p>
+<p>It would be nice if during execution one could edit the program, for example to fix mistakes or fill in missing parts. In order not to mess up any partially complete evaluations, it is important not to change some AST.  For example if we deleted a node that is on a pending stack, that would cause problems the next time we send a step or select message that node. Luckily by using an immutable data structure to represent program nodes, this just can't happen. </p>
 <p>pro: No restriction on editing.</p>
 <p>con: Edits do not affect current evaluations and so the user may see &quot;old code&quot; when they return to execution mode.</p>
 <p>precedent: This was done in the Sharp APL editor. It was also done in the 1985 implementation of Prograph.</p>
