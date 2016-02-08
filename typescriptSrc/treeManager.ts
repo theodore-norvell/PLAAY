@@ -54,28 +54,28 @@ module treeManager {
 
         createNode(label:String, selection:Selection) : Selection {
 
-            if (label.match("If")) {
+            if (label.match("if")) {
                 return this.makeIfNode(selection);
             }
-            else if (label.match("For")) {
+            else if (label.match("for")) {
                 return this.makeForNode(selection);
             }
-            else if (label.match("While")) {
+            else if (label.match("while")) {
                 return this.makeWhileNode(selection);
             }
-            else if (label.match("Assign")) {
+            else if (label.match("assign")) {
                 return this.makeAssignNode(selection);
             }
-            else if (label.match("Add")) {
+            else if (label.match("add")) {
                 return this.makeAddNode(selection);
             }
-            else if (label.match("Subtract")) {
+            else if (label.match("sub")) {
                 return this.makeSubNode(selection);
             }
-            else if (label.match("Multiply")) {
+            else if (label.match("mul")) {
                 return this.makeMultNode(selection);
             }
-            else if (label.match("Divide")) {
+            else if (label.match("div")) {
                 return this.makeDivNode(selection);
             }
 
