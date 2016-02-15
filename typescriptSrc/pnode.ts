@@ -121,6 +121,8 @@ module pnode {
         abstract isExprSeqNode() : boolean ;
     
         abstract isTypeNode() : boolean ;
+
+        abstract evaluate() : any ;
     
         toString() : string {
             var strs = this._children.map( ( p : PNode ) => p.toString() ) ;
@@ -182,19 +184,21 @@ module pnode {
 
     //Node Labels
     export class ExprLabel implements Label {
+    /*
         isValid( children : Array<PNode> ) {
-            return children.every(function(c : PNode) {
-                if(c.isExprNode() || c.isExprSeqNode() || c.isTypeNode())
-                {
-                    return true;
-                }
-                else return false;
-            }
-            ) ; }//TODO Is this correct?
+        return children.every(function(c : PNode) {
+        if(c.isExprNode() || c.isExprSeqNode() || c.isTypeNode())
+        {
+        return true;
+        }
+        else return false;
+        }
+        ) ; }//TODO Is this correct?
+    */
+
+        isValid : ( children : Array<PNode> ) => boolean ;
 
         getClass() : PNodeClass { return ExprNode ; }
-
-        toString() : string { return "exp"  ; }
 
         /*private*/ constructor() {}
 
@@ -218,17 +222,37 @@ module pnode {
     }
 
     export class TypeLabel implements Label {
+        /*
         isValid( children : Array<PNode> ) {
-            return children.every(function(c : PNode) { return c.isTypeNode() } ) ; }
+        return children.every(function(c : PNode) { return c.isTypeNode() } ) ; }
+        */
+
+        isValid : ( children : Array<PNode> ) => boolean ;
 
         getClass() : PNodeClass { return TypeNode ; }
-
-        toString() : string { return "type"  ; }
 
         /*private*/ constructor() {}
 
         // Singleton
         public static theTypeLabel = new TypeLabel() ;
+    }
+
+    //Variable
+
+    export class VarLabel implements ExprLabel {
+
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 0) return false ;
+            return true }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "var"  ; }
+
+        /*private*/ constructor() {}
+
+        // Singleton
+        public static theVarLabel = new VarLabel() ;
     }
 
     //Arithmetic Labels
@@ -251,6 +275,7 @@ module pnode {
         // Singleton
         public static theAssignLabel = new AssignLabel() ;
     }
+/*
 
     export class AddLabel extends ExprLabel {
 
@@ -264,7 +289,7 @@ module pnode {
 
         toString() : string { return "add" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -284,7 +309,7 @@ module pnode {
 
         toString() : string { return "sub" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -304,7 +329,7 @@ module pnode {
 
         toString() : string { return "mul" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -324,13 +349,14 @@ module pnode {
 
         toString() : string { return "div" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
         // Singleton
         public static theDivideLabel = new DivideLabel() ;
     }
+*/
 
     //Placeholder Labels
 
@@ -374,7 +400,7 @@ module pnode {
 
     //Conditional Logic Labels
 
-    export class LessLabel extends ExprLabel {
+  /*  export class LessLabel extends ExprLabel {
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
@@ -385,7 +411,7 @@ module pnode {
 
         toString() : string { return "less than" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -404,7 +430,7 @@ module pnode {
 
         toString() : string { return "greater than" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -423,7 +449,7 @@ module pnode {
 
         toString() : string { return "less than or equal to" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -442,7 +468,7 @@ module pnode {
 
         toString() : string { return "greater than or equal to" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
@@ -461,14 +487,14 @@ module pnode {
 
         toString() : string { return "equal" ; }
 
-        /*private*/ constructor() {
+        /!*private*!/ constructor() {
             super();
         }
 
         // Singleton
         public static theEqualLabel = new EqualLabel() ;
     }
-
+*/
 
     //Loops and If Labels
 
@@ -534,9 +560,154 @@ module pnode {
         public static theWhileLabel = new WhileLabel() ;
     }
 
-    //Type Labels
+    //Const Labels
 
-    export class StringConstLabel implements Label {
+    export class StringConstLabel implements ExprLabel {
+        _val : String ;
+
+        constructor( val : String) { this._val = val ; }
+
+        val() : String { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }
+    }
+
+    export class NumberConstLabel implements ExprLabel {
+        _val : number ;
+
+        constructor( val : number) { this._val = val ; }
+
+
+        val() : number { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+    export class BooleanConstLabel implements ExprLabel {
+        _val : boolean ;
+
+        constructor( val : boolean) { this._val = val ; }
+
+        val() : boolean { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+    export class AnyConstLabel implements ExprLabel {
+        _val : any ;
+
+        constructor( val : any) { this._val = val ; }
+
+        val() : any { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+
+    //Var Labels
+
+
+    export class StringVarLabel implements ExprLabel {
+        _val : String ;
+
+        constructor( val : String) { this._val = val ; }
+
+        val() : String { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }
+    }
+
+    export class NumberVarLabel implements ExprLabel {
+        _val : number ;
+
+        constructor( val : number) { this._val = val ; }
+
+
+        val() : number { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+    export class BooleanVarLabel implements ExprLabel {
+        _val : boolean ;
+
+        constructor( val : boolean) { this._val = val ; }
+
+        val() : boolean { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+    export class AnyVarLabel implements ExprLabel {
+        _val : any ;
+
+        constructor( val : any) { this._val = val ; }
+
+        val() : any { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        evaluate() : any { return this._val ; }//TODO Necessary given val() is a thing?
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+/*
+    //Literal Labels TODO needs fixing/might not be necessary
+
+    export class StringLiteralLabel implements ExprLabel {
         _val : String ;
 
         constructor( val : String) { this._val = val ; }
@@ -551,7 +722,7 @@ module pnode {
         toString() : string { return "string[" + this._val + "]"  ; }
     }
 
-    export class NumberConstLabel implements Label {
+    export class NumberLiteralLabel implements ExprLabel {
         _val : number ;
 
         constructor( val : number) { this._val = val ; }
@@ -562,12 +733,12 @@ module pnode {
         isValid( children : Array<PNode> ) {
             return children.length == 0 ; }
 
-        getClass() : PNodeClass { return TypeNode ; }
+        getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
     }
 
-    export class BooleanConstLabel implements Label {
+    export class BooleanLiteralLabel implements ExprLabel {
         _val : boolean ;
 
         constructor( val : boolean) { this._val = val ; }
@@ -577,14 +748,65 @@ module pnode {
         isValid( children : Array<PNode> ) {
             return children.length == 0 ; }
 
-        getClass() : PNodeClass { return TypeNode ; }
+        getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
     }
 
 
+
+
+
+
+    export class AnyLiteralLabel implements ExprLabel {
+        _val : any ;
+
+        constructor( val : any) { this._val = val ; }
+
+        val() : any { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ; }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }//will this work in TS?
+    }
+
+    */
+
+    export class  MethodLabel implements ExprLabel {
+        isValid( children : Array<PNode> ) {
+            return children.every(function(c : PNode) { return c.isTypeNode() } ) ; }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "method"  ; }
+
+        /*private*/ constructor() {}
+
+        // Singleton
+        public static theMethodLabel = new MethodLabel() ;
+    }
+
+    export class  CallLabel implements ExprLabel {
+        isValid( children : Array<PNode> ) {
+            //TODO check if child 0 is a method
+            return children.every(function(c : PNode) { return c.isExprNode() } ) ; }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "call"  ; }
+
+        /*private*/ constructor() {}
+
+        // Singleton
+        public static theCallLabel = new CallLabel() ;
+    }
+
+
     //Conditional Logic Make
-    export function mkLess( left : ExprNode, right : ExprNode) : ExprNode {
+  /*  export function mkLess( left : ExprNode, right : ExprNode) : ExprNode {
         return <ExprNode> make (LessLabel.theLessLabel , [left, right]) ; }
 
     export function mkLessEq( left : ExprNode, right : ExprNode) : ExprNode {
@@ -599,7 +821,7 @@ module pnode {
     export function mkEqual( left : ExprNode, right : ExprNode) : ExprNode {
         return <ExprNode> make (EqualLabel.theEqualLabel , [left, right]) ; }
 
-
+*/
 
     //Placeholder Make
     export function mkExprPH() : ExprNode{
@@ -624,7 +846,7 @@ module pnode {
     export function mkAssign( left : ExprNode, right : ExprNode) : ExprNode {
         return <ExprNode> make (AssignLabel.theAssignLabel , [left, right]) ; }
 
-    export function mkAdd( left : ExprNode, right : ExprNode) : ExprNode {
+  /*  export function mkAdd( left : ExprNode, right : ExprNode) : ExprNode {
         return <ExprNode> make (AddLabel.theAddLabel , [left, right]) ; }
 
     export function mkSub( left : ExprNode, right : ExprNode) : ExprNode {
@@ -636,7 +858,7 @@ module pnode {
     export function mkDiv( left : ExprNode, right : ExprNode) : ExprNode {
         return <ExprNode> make (DivideLabel.theDivideLabel , [left, right]) ; }
 
-
+*/
     //Node Make
 
      export function mkExpr( exprs : Array<PNode> ) : ExprNode {
@@ -651,15 +873,51 @@ module pnode {
      return <TypeNode> make( TypeLabel.theTypeLabel, exprs ) ; }
 
 
-    //Type? Make
-    export function mkStringConst( val : String ) : ExprNode{//TODO should this be a Type node?
+    //Const Make
+    export function mkStringConst( val : String ) : ExprNode{
         return <ExprNode> make( new StringConstLabel(val),[] ) ; }
 
-    export function mkNumberConst( val : number ) : TypeNode{
-        return <TypeNode> make( new NumberConstLabel(val),[] ) ; }  //
+    export function mkNumberConst( val : number ) : ExprNode{
+        return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
 
-    export function mkBooleanConst( val : boolean ) : TypeNode{
-        return <TypeNode> make( new BooleanConstLabel(val),[] ) ; }
+    export function mkBooleanConst( val : boolean ) : ExprNode{
+        return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }
+
+    export function mkAnyConst( val : any ) : ExprNode{
+        return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
+
+    //Var Make
+    export function mkStringVar( val : String ) : ExprNode{
+        return <ExprNode> make( new StringVarLabel(val),[] ) ; }
+
+    export function mkNumberVar( val : number ) : ExprNode{
+        return <ExprNode> make( new NumberVarLabel(val),[] ) ; }  //
+
+    export function mkBooleanVar( val : boolean ) : ExprNode{
+        return <ExprNode> make( new BooleanVarLabel(val),[] ) ; }
+
+    export function mkAnyVar( val : any ) : ExprNode{
+        return <ExprNode> make( new AnyVarLabel(val),[] ) ; }
+
+    /*
+    //Literal Make TODO Is this necessary?
+    export function mkStringLit( val : String ) : ExprNode{
+        return <ExprNode> make( new StringLiteralLabel(val),[] ) ; }
+
+    export function mkNumberLit( val : number ) : ExprNode{
+        return <ExprNode> make( new NumberLiteralLabel(val),[] ) ; }  //
+
+    export function mkBooleanLit( val : boolean ) : ExprNode{
+        return <ExprNode> make( new BooleanLiteralLabel(val),[] ) ; }
+
+    export function mkAnyLit( val : any ) : ExprNode{
+        return <ExprNode> make( new AnyLiteralLabel(val),[] ) ; }
+
+*/
+/*
+    export function mkVar( val : number ) : ExprNode{
+        return <ExprNode> make( new VarLabel(val),[] ) ; }
+*/
 }
 
 export = pnode ;
