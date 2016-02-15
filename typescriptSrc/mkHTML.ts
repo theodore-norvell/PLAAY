@@ -21,7 +21,6 @@ module mkHTML {
 
     var undostack = [];
     var redostack = [];
-    var ifnumber = 0;
     var currentSelection;
 
     var root = pnode.mkExprSeq([]);
@@ -224,9 +223,19 @@ module mkHTML {
         while (children.firstChild) {
             children.removeChild(children.firstChild);
         }
-        traverseTree(select.root());
+        traverseAndBuild(select.root(), select.root().count());
     }
 
+    function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
+    {
+        var children = new Array<HTMLElement>() ;
+        for(var i = 0; i < node.count(); i++)
+        {
+            children.push( traverseAndBuild(node.child(i), i) ) ;
+        }
+        return buildHTML(node, children, childNumber);
+    }
+/*
     function traverseTree(root:PNode)
     {
         buildHTML(root);
@@ -238,7 +247,7 @@ module mkHTML {
             }
         }
     }
-
+    /*
     function buildHTML(node:PNode)
     {
         var label = node.label().toString();
@@ -279,7 +288,54 @@ module mkHTML {
             dropzone.setAttribute("class", "dropZone H droppable");
             document.getElementById("container").appendChild(dropzone);
         }
+    }*/
+
+    function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number) : HTMLElement
+    {
+        var label = node.label().toString();
+
+        if(label.match('if'))
+        {
+            assert.check( children.length == 3 ) ;
+
+            var guardbox = document.createElement("div");
+            guardbox.setAttribute("class", "guardBox H workplace");
+            guardbox.appendChild( children[0] ) ;
+
+            var thenbox = document.createElement("div");
+            thenbox.setAttribute("class", "thenBox H workplace");
+            thenbox.appendChild( children[1] ) ;
+
+            var elsebox = document.createElement("div");
+            elsebox.setAttribute("class", "elseBox H workplace");
+            elsebox.appendChild( children[2] ) ;
+
+            var ifbox = document.createElement("div");
+            ifbox["childNumber"] = childNumber ;
+            ifbox.setAttribute("class", "ifBox V workplace");
+            ifbox.appendChild(guardbox);
+            ifbox.appendChild(thenbox);
+            ifbox.appendChild(elsebox);
+            return ifbox ;
+        }
+        else if(label.match("ExprSeq"))
+        {
+            var seqBox = document.createElement("div");
+            seqBox.setAttribute( "class", "seqBox V" ) ;
+            seqBox["childNumber"] = childNumber ;
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                seqBox.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                seqBox.appendChild( children[i] ) ;
+            }
+            return seqBox ;
+        }
     }
+
 }
 
 export = mkHTML ;
