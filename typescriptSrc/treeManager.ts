@@ -68,16 +68,16 @@ module treeManager {
                 return this.makeAssignNode(selection);
             }
             else if (label.match("add")) {
-                return this.makeAddNode(selection);
+               //return this.makeAddNode(selection);
             }
             else if (label.match("sub")) {
-                return this.makeSubNode(selection);
+                //return this.makeSubNode(selection);
             }
             else if (label.match("mul")) {
-                return this.makeMultNode(selection);
+                //return this.makeMultNode(selection);
             }
             else if (label.match("div")) {
-                return this.makeDivNode(selection);
+               //return this.makeDivNode(selection);
             }
 
             else {
@@ -198,7 +198,7 @@ module treeManager {
             return sel;
         }
 
-        private makeAddNode(selection:Selection) : Selection {
+        /*private makeAddNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
@@ -223,9 +223,9 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
-        }
+        }*/
 
-        private makeSubNode(selection:Selection) : Selection {
+        /*private makeSubNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
@@ -250,9 +250,9 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
-        }
+        }*/
 
-        private makeMultNode(selection:Selection) : Selection {
+        /*private makeMultNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
@@ -277,9 +277,9 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
-        }
+        }*/
 
-        private makeDivNode(selection:Selection) : Selection {
+        /*private makeDivNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
@@ -304,7 +304,7 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
-        }
+        }*/
     }
 }
 

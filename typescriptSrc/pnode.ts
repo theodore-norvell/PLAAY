@@ -159,6 +159,7 @@ module pnode {
         isExprNode() : boolean { return true ; }
         isExprSeqNode() : boolean { return false ; }
         isTypeNode() : boolean { return false ; }
+        evaluate() : any { };
     }
 
     export class ExprSeqNode extends PNode {
@@ -169,6 +170,7 @@ module pnode {
         isExprNode() : boolean { return false ; }
         isExprSeqNode() : boolean { return true ; }
         isTypeNode() : boolean { return false ; }
+        evaluate() : any { };
     }
 
     export class TypeNode extends PNode {
@@ -179,6 +181,7 @@ module pnode {
         isExprNode() : boolean { return false ; }
         isExprSeqNode() : boolean { return false ; }
         isTypeNode() : boolean { return true ; }
+        evaluate() : any { };
     }
 
 
@@ -258,11 +261,11 @@ module pnode {
     //Arithmetic Labels
     export class AssignLabel extends ExprLabel {
 
-        isValid( children : Array<PNode> ) : boolean {
+        /*isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
             if( ! children[0].isExprNode()) return false ;
             if( ! children[1].isExprNode()) return false ;
-            return true }
+            return true }*/
 
         getClass() : PNodeClass { return ExprNode ; }
 
@@ -362,11 +365,11 @@ module pnode {
 
     export class ExprPHLabel extends ExprLabel {
 
-        isValid( children : Array<PNode> ) : boolean {
+        /*isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
             //if( ! children[0].isExprNode()) return false ;
             //if( ! children[1].isExprNode()) return false ;
-            return true }
+            return true }*/
 
         getClass() : PNodeClass { return ExprNode ; }
 
@@ -500,12 +503,12 @@ module pnode {
 
     export class IfLabel extends ExprLabel {
 
-        isValid(  children : Array<PNode> ) : boolean {
+        /*isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 3 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprSeqNode() ) return false ;
             if( ! children[2].isExprSeqNode() ) return false ;
-            return true ; }
+            return true ; }*/
 
         getClass() : PNodeClass { return ExprNode ; }
 
@@ -521,12 +524,12 @@ module pnode {
 
     export class ForLabel extends ExprLabel {
 
-        isValid(  children : Array<PNode> ) : boolean {
+        /*isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 3 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprNode() ) return false ;
             if( ! children[2].isExprSeqNode() ) return false ;
-            return true ; }
+            return true ; }*/
 
         getClass() : PNodeClass { return ExprNode ; }
 
@@ -542,11 +545,11 @@ module pnode {
 
     export class WhileLabel extends ExprLabel {
 
-        isValid(  children : Array<PNode> ) : boolean {
+        /*isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprSeqNode() ) return false ;
-            return true ; }
+            return true ; }*/
 
         getClass() : PNodeClass { return ExprNode ; }
 
