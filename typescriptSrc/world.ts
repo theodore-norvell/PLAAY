@@ -25,6 +25,46 @@ module world {
         value : Value;
         type : Type;
         isConstant : boolean;
+
+        constructor(name : String, value : Value, type : Type, isConstant : boolean) {
+            this.name = name;
+            this.value = value;
+            this.type = type;
+            this. isConstant = isConstant;
+        }
+
+        // getters and setters
+        getName() {
+            return this.name;
+        }
+
+        setName(name : String) {
+            this.name = name;
+        }
+
+        getValue() {
+            return this.value;
+        }
+
+        setValue(value : Value) {
+            this.value = value;
+        }
+
+        getType() {
+            return this.type;
+        }
+
+        setType(type : Type) {
+            this.type = type;
+        }
+
+        getIsConstant() {
+            return this.isConstant;
+        }
+
+        setIsConstant(isConstant :boolean) {
+            this.isConstant = isConstant;
+        }
     }
 
     abstract class Value {
