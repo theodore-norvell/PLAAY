@@ -56,8 +56,8 @@ module treeManager {
             if (label.match("if")) {
                 return this.makeIfNode(selection);
             }
-            else if (label.match("for")) {
-                return this.makeForNode(selection);
+            else if (label.match("this")) {
+                return this.makeThisNode(selection);
             }
             else if (label.match("while")) {
                 return this.makeWhileNode(selection);
@@ -65,56 +65,25 @@ module treeManager {
             else if (label.match("assign")) {
                 return this.makeAssignNode(selection);
             }
-            else if (label.match("add")) {
-               return this.makeAddNode(selection);
+            else if (label.match("var")) {
+               return this.makeVarNode(selection);
             }
-            else if (label.match("sub")) {
-                return this.makeSubNode(selection);
+            else if (label.match("literal")) {
+                return this.makeLiteralNode(selection);
             }
-            else if (label.match("mul")) {
-                return this.makeMultNode(selection);
+            else if (label.match("call")) {
+               //return this.makeCallNode(selection);
             }
-            else if (label.match("div")) {
-               return this.makeDivNode(selection);
-            }
-
             else {
                 //throw error stating label not recognized
             }
         }
 
         // Loop and If Nodes
-        private makeForNode(selection:Selection) : Selection {
-
-            var init = pnode.mkExprPH();
-            var cond = pnode.mkExpr( [] );
-            var seq = pnode.mkExprSeq( [] );
-
-            var opt = pnode.tryMake(pnode.ForLabel.theForLabel, [init, cond, seq]);
-
-            var fornode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ fornode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
 
         private makeWhileNode(selection:Selection) : Selection {
 
-            var cond = pnode.mkExpr( [] );
+            var cond = pnode.mkExprPH();
             var seq = pnode.mkExprSeq( [] );
 
             var opt = pnode.tryMake(pnode.WhileLabel.theWhileLabel, [cond, seq]);
@@ -196,21 +165,21 @@ module treeManager {
             return sel;
         }
 
-        private makeAddNode(selection:Selection) : Selection {
+        private makeVarNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
             var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
 
-            var addnode = opt.choose(
+            var varnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ addnode ] );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ varnode ] );
             var editResult = edit.applyEdit( selection );
             var sel = editResult.choose(
                 p => p,
@@ -223,21 +192,21 @@ module treeManager {
             return sel;
         }
 
-        private makeSubNode(selection:Selection) : Selection {
+        private makeLiteralNode(selection:Selection) : Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
             var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
 
-            var subnode = opt.choose(
+            var literalnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ subnode ] );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ literalnode ] );
             var editResult = edit.applyEdit( selection );
             var sel = editResult.choose(
                 p => p,
@@ -250,21 +219,20 @@ module treeManager {
             return sel;
         }
 
-        private makeMultNode(selection:Selection) : Selection {
+        private makeThisNode(selection:Selection) : Selection {
 
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
+            var thiss = pnode.mkExpr( [] );
+1
+            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [thiss]);
 
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var multnode = opt.choose(
+            var thisnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ multnode ] );
+            var edit = new pnodeEdits.InsertChildrenEdit( [ thisnode ] );
             var editResult = edit.applyEdit( selection );
             var sel = editResult.choose(
                 p => p,
@@ -276,169 +244,6 @@ module treeManager {
             this.root = sel.root();
             return sel;
         }
-
-        private makeDivNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var divnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ divnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
-        private makeLessNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var lessnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ lessnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
-        private makeGreaterNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var greaternode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ greaternode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
-        private makeLessEqNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var lesseqnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ lesseqnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
-        private makeGreaterEqNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var greatereqnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ greatereqnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
-        private makeEqualNode(selection:Selection) : Selection {
-
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
-
-            var equalnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ equalnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }
-
     }
 }
 
