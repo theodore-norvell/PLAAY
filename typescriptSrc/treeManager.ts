@@ -5,27 +5,32 @@ import collections = require( './collections' ) ;
 
 module treeManager {
 
+    import ExprSeq = pnode.ExprSeqNode;
+    import ExprNode = pnode.ExprNode;
+    import ExprSeqLabel = pnode.ExprSeqLabel;
     import Selection = pnodeEdits.Selection;
     import list = collections.list;
     import PNode = pnode.PNode;
 
-    export class treeManager {
+    export class TreeManager {
 
         // make root a selection - JH
         //optiontype, maybetype
         private root:PNode;
 
+        /*
         constructor() {
             this.createRoot();
-        }
+        }*/
 
-        private getSelection():PNode {
+        public getRoot():PNode {
             return this.root;
         }
 
-        private createRoot() {
+        createRoot() {
 
-            var testroot = pnode.tryMake(pnode.ExprSeqLabel.theExprSeqLabel, []);
+            var testroot = pnode.tryMake(ExprSeqLabel.theExprSeqLabel, []);
+            // not sure how option works but will keep this
             this.root = testroot.choose(
                 p => p,
                 () => {
@@ -50,34 +55,33 @@ module treeManager {
 
         createNode(label:String, selection:Selection) : Selection {
 
-            if (label.match("If")) {
+            if (label.match("if")) {
                 return this.makeIfNode(selection);
             }
-            else if (label.match("For")) {
+            else if (label.match("for")) {
                 return this.makeForNode(selection);
             }
-            else if (label.match("While")) {
+            else if (label.match("while")) {
                 return this.makeWhileNode(selection);
             }
-            else if (label.match("Assign")) {
+            else if (label.match("assign")) {
                 return this.makeAssignNode(selection);
             }
-            else if (label.match("Add")) {
+            else if (label.match("add")) {
                 return this.makeAddNode(selection);
             }
-            else if (label.match("Subtract")) {
+            else if (label.match("sub")) {
                 return this.makeSubNode(selection);
             }
-            else if (label.match("Multiply")) {
+            else if (label.match("mul")) {
                 return this.makeMultNode(selection);
             }
-            else if (label.match("Divide")) {
+            else if (label.match("div")) {
                 return this.makeDivNode(selection);
             }
 
             else {
                 //throw error stating label not recognized
-
             }
         }
 

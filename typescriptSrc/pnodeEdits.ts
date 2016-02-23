@@ -51,6 +51,7 @@ module pnodeEdits {
             this._path = path;
             this._anchor = anchor ;
             this._focus = focus ; }
+
         private _root : PNode ;
         private _path : List<number> ;
         private _anchor : number ;
