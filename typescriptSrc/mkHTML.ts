@@ -203,7 +203,7 @@ module mkHTML {
         }
         else if ('var' === e)
         {
-
+            $(self).replaceWith('<div id="var H"')
         }
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -223,7 +223,7 @@ module mkHTML {
         while (children.firstChild) {
             children.removeChild(children.firstChild);
         }
-        traverseAndBuild(select.root(), select.root().count());
+        children.appendChild(traverseAndBuild(select.root(), select.root().count()));
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -235,60 +235,6 @@ module mkHTML {
         }
         return buildHTML(node, children, childNumber);
     }
-/*
-    function traverseTree(root:PNode)
-    {
-        buildHTML(root);
-        if(root.count() != 0)
-        {
-            for(var i = 0; i < root.count(); i++)
-            {
-                traverseTree(root.child(i));
-            }
-        }
-    }
-    /*
-    function buildHTML(node:PNode)
-    {
-        var label = node.label().toString();
-
-        if(label.match('if'))
-        {
-            var ifbox = document.createElement("div");
-            var guardbox = document.createElement("div");
-            var thenbox = document.createElement("div");
-            var elsebox = document.createElement("div");
-            var dropzone = document.createElement("div");
-
-            dropzone.setAttribute("id", "dropZone");
-            dropzone.setAttribute("class", "dropZone H droppable");
-            document.getElementById("container").appendChild(dropzone);
-
-            ifbox.setAttribute("class", "ifBox V workplace");
-            ifbox.setAttribute("id", "ifbox");
-            document.getElementById("container").appendChild(ifbox);
-            guardbox.setAttribute("class", "guardBox H workplace");
-            guardbox.setAttribute("id", "guardbox");
-            document.getElementById("ifbox").appendChild(guardbox);
-            document.getElementById("guardbox").appendChild(dropzone);
-            thenbox.setAttribute("class", "thenBox H workplace");
-            thenbox.setAttribute("id", "thenbox");
-            document.getElementById("ifbox").appendChild(thenbox);
-            document.getElementById("thenbox").appendChild(dropzone);
-            elsebox.setAttribute("class", "elseBox H workplace");
-            elsebox.setAttribute("id", "elsebox");
-            document.getElementById("ifbox").appendChild(elsebox);
-            document.getElementById("elsebox").appendChild(dropzone);
-            document.getElementById("container").appendChild(dropzone);
-        }
-        else if(label.match("ExprSeq"))
-        {
-            var dropzone = document.createElement("div");
-            dropzone.setAttribute("id", "dropZone");
-            dropzone.setAttribute("class", "dropZone H droppable");
-            document.getElementById("container").appendChild(dropzone);
-        }
-    }*/
 
     function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number) : HTMLElement
     {
@@ -318,7 +264,7 @@ module mkHTML {
             ifbox.appendChild(elsebox);
             return ifbox ;
         }
-        else if(label.match("ExprSeq"))
+        else if(label.match("seq"))
         {
             var seqBox = document.createElement("div");
             seqBox.setAttribute( "class", "seqBox V" ) ;
@@ -333,6 +279,80 @@ module mkHTML {
                 seqBox.appendChild( children[i] ) ;
             }
             return seqBox ;
+        }
+        else if(label.match("expPH"))
+        {
+            var PHBox = document.createElement("div");
+            PHBox.setAttribute( "class", "PHBox V" ) ;
+            PHBox["childNumber"] = childNumber ;
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                PHBox.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                PHBox.appendChild( children[i] ) ;
+            }
+            return PHBox ;
+        }
+        else if(label.match("while"))
+        {
+            assert.check( children.length == 2 ) ;
+
+            var guardbox = document.createElement("div");
+            guardbox.setAttribute("class", "guardBox H workplace");
+            guardbox.appendChild( children[0] ) ;
+
+            var thenbox = document.createElement("div");
+            thenbox.setAttribute("class", "thenBox H workplace");
+            thenbox.appendChild( children[1] ) ;
+
+            var whileBox = document.createElement("div");
+            whileBox["childNumber"] = childNumber ;
+            whileBox.setAttribute("class", "ifBox V workplace");
+            whileBox.appendChild(guardbox);
+            whileBox.appendChild(thenbox);
+
+            return whileBox;
+        }
+        else if(label.match("exp"))
+        {
+            var ExpBox = document.createElement("div");
+            ExpBox.setAttribute( "class", "PHBox V" ) ;
+            ExpBox["childNumber"] = childNumber ;
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                ExpBox.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                ExpBox.appendChild( children[i] ) ;
+            }
+            return ExpBox ;
+        }
+        else if(label.match("var"))
+        {
+            var VarBox = document.createElement("div");
+            VarBox.setAttribute("class", "hCont H" );
+            VarBox["childNumber"] = childNumber;
+
+            var name = document.createElement("div");
+            name.setAttribute("class", "var H");
+            name.textContent = "x";
+            var op = document.createElement("div");
+            op.setAttribute("class", "op H");
+            op.textContent = "=";
+            var value = document.createElement("div");
+            value.setAttribute("class","var H");
+            value.textContent = "0";
+
+            VarBox.appendChild(name);
+            VarBox.appendChild(op);
+            VarBox.appendChild(value);
+
+            return VarBox;
         }
     }
 
