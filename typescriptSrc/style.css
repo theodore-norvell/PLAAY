@@ -256,6 +256,11 @@ div.seqBox {
     border-radius: 5px ;
 }
 
+div.PHBox {
+    /*border: thin solid lightgrey ;*/
+    border-radius: 5px ;
+}
+
 div.dropZone {
     margin: 2px 0px 2px 0px ;
     min-height: 5ex ;
