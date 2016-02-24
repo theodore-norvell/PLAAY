@@ -134,7 +134,7 @@ module mkHTML {
         document.getElementById("sidebar").appendChild(nullblock);
 
         const assignmentblock = document.createElement("div");
-        assignmentblock.setAttribute("id", "assignment");
+        assignmentblock.setAttribute("id", "assign");
         assignmentblock.setAttribute("class", "assignmentBox V palette");
         assignmentblock.textContent = "Assignment";
         document.getElementById("sidebar").appendChild(assignmentblock);
@@ -203,7 +203,48 @@ module mkHTML {
         }
         else if ('var' === e)
         {
-            $(self).replaceWith('<div id="var H"')
+            var VarBox = document.createElement("div");
+            VarBox.setAttribute("class", "hCont H" );
+            //VarBox["childNumber"] = childNumber;
+
+            var name = document.createElement("input");
+            name.setAttribute("class", "var H");
+            name.setAttribute("type", "text");
+            name.setAttribute("width", "5px");
+
+            var op = document.createElement("input");
+            op.setAttribute("class", "op H");
+            op.setAttribute("type", "text");
+            op.setAttribute("list", "oplist");
+            op.setAttribute("width", "5px");
+
+            var list = document.createElement("datalist");
+            list.setAttribute("id", "oplist");
+            var optionplus = document.createElement("option");
+            optionplus.value = "+";
+            var optionminus = document.createElement("option");
+            optionminus.value = "-";
+            var optionmul = document.createElement("option");
+            optionmul.value = "x";
+            var optiondiv = document.createElement("option");
+            optiondiv.value = "/";
+            list.appendChild(optionplus);
+            list.appendChild(optionminus);
+            list.appendChild(optionmul);
+            list.appendChild(optiondiv);
+
+            //op.textContent = "=";
+            var value = document.createElement("input");
+            value.setAttribute("class","var H");
+            value.setAttribute("type", "text");
+            value.setAttribute("width", "5px");
+
+            VarBox.appendChild(name);
+            VarBox.appendChild(op);
+            VarBox.appendChild(list);
+            VarBox.appendChild(value);
+
+            var box = document.getElementById("container").appendChild(VarBox);
         }
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -318,7 +359,7 @@ module mkHTML {
         }
         else if(label.match("exp"))
         {
-            var ExpBox = document.createElement("div");
+            /*var ExpBox = document.createElement("div");
             ExpBox.setAttribute( "class", "PHBox V" ) ;
             ExpBox["childNumber"] = childNumber ;
 
@@ -330,7 +371,7 @@ module mkHTML {
                 if( i == children.length ) break ;
                 ExpBox.appendChild( children[i] ) ;
             }
-            return ExpBox ;
+            return ExpBox ;*/
         }
         else if(label.match("var"))
         {
@@ -338,24 +379,71 @@ module mkHTML {
             VarBox.setAttribute("class", "hCont H" );
             VarBox["childNumber"] = childNumber;
 
-            var name = document.createElement("div");
+            var name = document.createElement("input");
             name.setAttribute("class", "var H");
-            name.textContent = "x";
-            var op = document.createElement("div");
+            name.setAttribute("type", "text");
+            name.setAttribute("width", "5px");
+
+            var op = document.createElement("input");
             op.setAttribute("class", "op H");
-            op.textContent = "=";
-            var value = document.createElement("div");
+            op.setAttribute("type", "text");
+            op.setAttribute("list", "oplist");
+            op.setAttribute("width", "5px");
+
+            var list = document.createElement("datalist");
+            list.setAttribute("id", "oplist");
+            var optionplus = document.createElement("option");
+            optionplus.value = "+";
+            var optionminus = document.createElement("option");
+            optionminus.value = "-";
+            var optionmul = document.createElement("option");
+            optionmul.value = "x";
+            var optiondiv = document.createElement("option");
+            optiondiv.value = "/";
+            list.appendChild(optionplus);
+            list.appendChild(optionminus);
+            list.appendChild(optionmul);
+            list.appendChild(optiondiv);
+
+            var value = document.createElement("input");
             value.setAttribute("class","var H");
-            value.textContent = "0";
+            value.setAttribute("type", "text");
+            value.setAttribute("width", "5px");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
+            VarBox.appendChild(list);
             VarBox.appendChild(value);
 
             return VarBox;
         }
-    }
+        else if(label.match("assign"))
+        {
+            var AssignBox = document.createElement("div");
+            AssignBox.setAttribute("class", "hCont H" );
+            AssignBox["childNumber"] = childNumber;
 
+            var name = document.createElement("input");
+            name.setAttribute("class", "var H");
+            name.setAttribute("type", "text");
+            name.setAttribute("width", "5px");
+
+            var equal = document.createElement("input");
+            equal.setAttribute("class", "op H");
+            equal.textContent = "=";
+
+            var value = document.createElement("input");
+            value.setAttribute("class","var H");
+            value.setAttribute("type", "text");
+            value.setAttribute("width", "5px");
+
+            AssignBox.appendChild(name);
+            AssignBox.appendChild(equal);
+            AssignBox.appendChild(value);
+
+            return AssignBox;
+        }
+    }
 }
 
 export = mkHTML ;

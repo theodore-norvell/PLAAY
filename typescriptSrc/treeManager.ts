@@ -167,8 +167,8 @@ module treeManager {
 
         private makeVarNode(selection:Selection) : Selection {
 
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
+            var left = pnode.mkExpr([]);
+            var right = pnode.mkExpr([]);
 
             var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
 

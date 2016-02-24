@@ -283,6 +283,7 @@ div.placeHolder {
 div.hCont, div.var {
     border: thin solid rgb(190, 133, 197) ;
     border-radius: 5px ;
+    align-content: center;
 }
 
 div.selected {
