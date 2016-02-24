@@ -179,6 +179,11 @@ module pnode {
             return false;
         }
 
+        isLambdaNode():boolean {
+            return false;
+        }
+
+
         evaluate():any {
         };
     }
@@ -201,6 +206,11 @@ module pnode {
         isTypeNode():boolean {
             return false;
         }
+
+        isLambdaNode():boolean {
+            return false;
+        }
+
 
         evaluate():any {
         };
@@ -225,8 +235,36 @@ module pnode {
             return true;
         }
 
+        isLambdaNode():boolean {
+            return false;
+        }
+
         evaluate():any {
         };
+    }
+
+    export class LambdaNode extends ExprNode {
+        typeNodeTag:any // Unique field to defeat duck typing
+        // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
+        constructor(label:Label, children:Array<PNode>) {
+            super(label, children);
+        }
+
+        isExprNode():boolean {
+            return false;
+        }
+
+        isExprSeqNode():boolean {
+            return false;
+        }
+
+        isTypeNode():boolean {
+            return false;
+        }
+
+        isLambdaNode():boolean {
+            return true;
+        }
     }
 
 
@@ -403,6 +441,26 @@ module pnode {
 
         // Singleton
         public static theTypePHLabel = new TypePHLabel();
+    }
+
+    export class LambdaLabel implements Label {
+        /*
+         isValid( children : Array<PNode> ) {
+         return children.every(function(c : PNode) { return c.isTypeNode() } ) ; }
+         */
+
+        isValid:(children:Array<PNode>) => boolean;
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theLambdaLabel = new LambdaLabel();
     }
 
     //Loops and If Labels
@@ -716,24 +774,28 @@ module pnode {
         }//will this work in TS?
     }
 
-    /*
+
      //Literal Labels TODO needs fixing/might not be necessary
 
-     export class StringLiteralLabel implements ExprLabel {
-     _val : String ;
+     export class LiteralLabel implements ExprLabel {
+        _val : String ;
 
-     constructor( val : String) { this._val = val ; }
+        constructor( val : String) { this._val = val ; }
+         public static theLiteralLabel = new LiteralLabel( null );
 
-     val() : String { return this._val ; }
+        val() : String { return this._val ; }
 
-     isValid( children : Array<PNode> ) {
-     return children.length == 0 ; }
+        isValid( children : Array<PNode> ) {
+        return children.length == 0 ; }
 
-     getClass() : PNodeClass { return ExprNode ; }
+        getClass() : PNodeClass { return ExprNode ; }
 
-     toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "string[" + this._val + "]"  ; }
+
+
      }
 
+    /*
      export class NumberLiteralLabel implements ExprLabel {
      _val : number ;
 

@@ -170,7 +170,7 @@ module treeManager {
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.VarLabel.theVarLabel, [left, right]);
 
             var varnode = opt.choose(
                 p => p,
@@ -197,7 +197,7 @@ module treeManager {
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.LiteralLabel.theLiteralLabel, [left, right]);
 
             var literalnode = opt.choose(
                 p => p,
@@ -222,9 +222,7 @@ module treeManager {
         private makeThisNode(selection:Selection) : Selection {
 
             var thiss = pnode.mkExpr( [] );
-1
             var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [thiss]);
-
             var thisnode = opt.choose(
                 p => p,
                 () => {
