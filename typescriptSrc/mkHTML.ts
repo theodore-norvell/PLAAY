@@ -207,10 +207,8 @@ module mkHTML {
             VarBox.setAttribute("class", "hCont H" );
             //VarBox["childNumber"] = childNumber;
 
-            var name = document.createElement("input");
-            name.setAttribute("class", "var H");
-            name.setAttribute("type", "text");
-            name.setAttribute("width", "5px");
+            var name = document.createElement("div");
+            name.setAttribute("class", "var H click");
 
             var op = document.createElement("input");
             op.setAttribute("class", "op H");
@@ -234,10 +232,8 @@ module mkHTML {
             list.appendChild(optiondiv);
 
             //op.textContent = "=";
-            var value = document.createElement("input");
-            value.setAttribute("class","var H");
-            value.setAttribute("type", "text");
-            value.setAttribute("width", "5px");
+            var value = document.createElement("div");
+            value.setAttribute("class","var H click");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
@@ -246,6 +242,7 @@ module mkHTML {
 
             var box = document.getElementById("container").appendChild(VarBox);
         }
+
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
@@ -253,6 +250,17 @@ module mkHTML {
                 console.log($(this).attr("id"));
                 createHTML(ui.draggable.attr("id"), this);
                 //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" width="5" class="var H input">')
+        });
+
+        $(".input").on('keyup', function(e){
+            if(e.which == 13)
+            {
+                $(this).replaceWith('<div class="var H click"></div>')
             }
         });
     }
@@ -274,6 +282,7 @@ module mkHTML {
         {
             children.push( traverseAndBuild(node.child(i), i) ) ;
         }
+
         return buildHTML(node, children, childNumber);
     }
 
@@ -319,6 +328,7 @@ module mkHTML {
                 if( i == children.length ) break ;
                 seqBox.appendChild( children[i] ) ;
             }
+
             return seqBox ;
         }
         else if(label.match("expPH"))
@@ -335,6 +345,7 @@ module mkHTML {
                 if( i == children.length ) break ;
                 PHBox.appendChild( children[i] ) ;
             }
+
             return PHBox ;
         }
         else if(label.match("while"))
@@ -357,32 +368,14 @@ module mkHTML {
 
             return whileBox;
         }
-        else if(label.match("exp"))
-        {
-            /*var ExpBox = document.createElement("div");
-            ExpBox.setAttribute( "class", "PHBox V" ) ;
-            ExpBox["childNumber"] = childNumber ;
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                ExpBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                ExpBox.appendChild( children[i] ) ;
-            }
-            return ExpBox ;*/
-        }
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
             VarBox.setAttribute("class", "hCont H" );
             VarBox["childNumber"] = childNumber;
 
-            var name = document.createElement("input");
+            var name = document.createElement("div");
             name.setAttribute("class", "var H");
-            name.setAttribute("type", "text");
-            name.setAttribute("width", "5px");
 
             var op = document.createElement("input");
             op.setAttribute("class", "op H");
@@ -405,10 +398,8 @@ module mkHTML {
             list.appendChild(optionmul);
             list.appendChild(optiondiv);
 
-            var value = document.createElement("input");
+            var value = document.createElement("div");
             value.setAttribute("class","var H");
-            value.setAttribute("type", "text");
-            value.setAttribute("width", "5px");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
@@ -423,19 +414,15 @@ module mkHTML {
             AssignBox.setAttribute("class", "hCont H" );
             AssignBox["childNumber"] = childNumber;
 
-            var name = document.createElement("input");
+            var name = document.createElement("div");
             name.setAttribute("class", "var H");
-            name.setAttribute("type", "text");
-            name.setAttribute("width", "5px");
 
             var equal = document.createElement("input");
             equal.setAttribute("class", "op H");
             equal.textContent = "=";
 
-            var value = document.createElement("input");
+            var value = document.createElement("div");
             value.setAttribute("class","var H");
-            value.setAttribute("type", "text");
-            value.setAttribute("width", "5px");
 
             AssignBox.appendChild(name);
             AssignBox.appendChild(equal);
