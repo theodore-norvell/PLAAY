@@ -137,11 +137,12 @@ module collections {
         return acc ;
     }
     
-    function cons<A>( head : A, rest : List<A> ) : List<A> {
+    export function cons<A>( head : A, rest : List<A> ) : List<A> {
             return new Cons<A>( head, rest ) ; }
             
-    function nil<A>() : List<A> { return new Nil<A>() ; }
+    export function nil<A>() : List<A> { return new Nil<A>() ; }
     
 }
 
 export = collections ;
+
