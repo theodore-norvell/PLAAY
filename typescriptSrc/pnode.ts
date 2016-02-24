@@ -311,12 +311,12 @@ module pnode {
     //Arithmetic Labels
     export class AssignLabel extends ExprLabel {
 
-        //TODO discuss this
-        /*isValid( children : Array<PNode> ) : boolean {
-         if( children.length != 2) return false ;
-         if( ! children[0].isExprNode()) return false ;
-         if( ! children[1].isExprNode()) return false ;
-         return true }*/
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 2) return false ;
+            if( ! children[0].isExprNode()) return false ;
+            if( ! children[1].isExprNode()) return false ;
+            return true
+        }
 
         getClass():PNodeClass {
             return ExprNode;
@@ -339,12 +339,12 @@ module pnode {
 
     export class ExprPHLabel extends ExprLabel {
 
-        //TODO discuss
-        /*isValid( children : Array<PNode> ) : boolean {
-         if( children.length != 0) return false ;
-         //if( ! children[0].isExprNode()) return false ;
-         //if( ! children[1].isExprNode()) return false ;
-         return true }*/
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 0) return false ;
+            //if( ! children[0].isExprNode()) return false ;
+            //if( ! children[1].isExprNode()) return false ;
+            return true
+        }
 
         getClass():PNodeClass {
             return ExprNode;
@@ -568,10 +568,7 @@ module pnode {
         }//will this work in TS?
     }
 
-
     //Var Labels
-
-
     export class StringVarLabel implements ExprLabel {
         _val:String;
 
@@ -602,7 +599,6 @@ module pnode {
         constructor(val:number) {
             this._val = val;
         }
-
 
         val():number {
             return this._val;
