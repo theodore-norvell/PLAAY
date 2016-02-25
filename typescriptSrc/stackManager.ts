@@ -5,22 +5,15 @@ module stack {
         head : StackObject;
 
         constructor(){
-            var obj = new StackObject();
-
-
+            this.head = new StackObject();
         }
 
         push(stackobj : StackObject ) {
-
-            var it = this.head;
-            while (it.getNext() !=null){
-                it.getNext();
-            }
-
-            it.setNext(stackobj);
+            stackobj.next = this.head;
+            this.head = stackobj;
         }
 
-        pop() {
+        pop() : StackObject{
             var it = this.head;
             this.head = this.head.getNext();
             return it;
