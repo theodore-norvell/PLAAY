@@ -362,7 +362,6 @@ module pnode {
     }
 
     export class TypePHLabel implements Label {
-
         isValid(children:Array<PNode>):boolean {
             if (children.length != 0) return false;
             return true;

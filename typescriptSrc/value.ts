@@ -55,8 +55,7 @@ module value {
         }
     }
 
-    abstract class Value {
-
+    export abstract class Value {
 
     }
 
@@ -65,12 +64,48 @@ module value {
     }
 
     export class ObjectV extends Value {
-        fields : (  ...args : Array<Field> ) => List<Field> = list;
+        fields : Array<Field>;
 
-        addField() {
-
+        constructor(){
+            super();
+            this.fields = new Array<Field>();
         }
 
+        addField(field : Field) {
+            this.fields.push(field);
+        }
+
+        deleteField(fieldName : String) {
+            for (var i = 0 ; i < this.fields.length ; i++){
+                if (this.fields[i].getName().match(fieldName.toString())) {
+                    this.fields.splice(i, 1);
+                }
+            }
+        }
+
+        getFieldValue(fieldName : String) : Value {
+            for (var i = 0 ; i < this.fields.length ; i++){
+                if (this.fields[i].getName().match(fieldName.toString())) {
+                    return this.fields[i].getValue();
+                }
+            }
+        }
+
+        getFieldType(fieldName : String) : Value {
+            for (var i = 0 ; i < this.fields.length ; i++){
+                if (this.fields[i].getName().match(fieldName.toString())) {
+                    return this.fields[i].getType();
+                }
+            }
+        }
+
+        getFieldisConstant(fieldName : String) : Value {
+            for (var i = 0 ; i < this.fields.length ; i++){
+                if (this.fields[i].getName().match(fieldName.toString())) {
+                    return this.fields[i].getIsConstant();
+                }
+            }
+        }
     }
 
     export class ClosureV extends Value {
