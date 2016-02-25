@@ -5,7 +5,7 @@ module stack {
         head : StackObject;
 
         constructor(){
-            this.head = new StackObject();
+            this.head = new StackObject(null, null);
         }
 
         push(stackobj : StackObject ) {
@@ -18,8 +18,6 @@ module stack {
             this.head = this.head.getNext();
             return it;
         }
-
-
     }
 
     export class StackObject {
