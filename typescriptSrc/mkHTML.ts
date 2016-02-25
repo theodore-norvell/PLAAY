@@ -64,7 +64,7 @@ module mkHTML {
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
             }
-        }
+        };
 
         const playbutton = document.createElement("div");
         playbutton.setAttribute("id", "play");
@@ -166,6 +166,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -173,6 +174,15 @@ module mkHTML {
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
                 //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $( ".trash").droppable({
+            accept:".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            drop: function(event, ui){
+                ui.draggable.remove();
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -262,6 +272,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log($(this).attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -294,6 +305,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -314,6 +326,11 @@ module mkHTML {
                 alert("Enter");
                 $(this).replaceWith('<div class="var H click"></div>')
             }
+        });
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid'
         });
     }
 
@@ -350,7 +367,7 @@ module mkHTML {
 
             var ifbox = document.createElement("div");
             ifbox["childNumber"] = childNumber ;
-            ifbox.setAttribute("class", "ifBox V workplace");
+            ifbox.setAttribute("class", "ifBox V workplace canDrag");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
