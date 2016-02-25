@@ -22,9 +22,16 @@ module stack {
 
     }
 
-    class StackObject {
+    export class StackObject {
         next : StackObject;
         varmap : VarMap;
+
+        constructor (name : String, value : String) {
+            this.varmap = new VarMap();
+            this.varmap.setName(name);
+            this.varmap.setValue(value);
+        }
+
 
         getNext(){
             return this.next;
