@@ -16,11 +16,6 @@ module treeManager {
 
         private root:PNode;
 
-        /*
-        constructor() {
-            this.createRoot();
-        }*/
-
         public getRoot():PNode {
             return this.root;
         }
