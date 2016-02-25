@@ -426,7 +426,7 @@ module mkHTML {
 
             var whileBox = document.createElement("div");
             whileBox["childNumber"] = childNumber ;
-            whileBox.setAttribute("class", "ifBox V workplace");
+            whileBox.setAttribute("class", "ifBox V workplace canDrag");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
@@ -435,7 +435,7 @@ module mkHTML {
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "hCont H" );
+            VarBox.setAttribute("class", "hCont H canDrag" );
             VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
@@ -462,7 +462,7 @@ module mkHTML {
             list.appendChild(optiondiv);
 
             var value = document.createElement("div");
-            value.setAttribute("class","var H click");
+            value.setAttribute("class","var H click ");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
@@ -474,7 +474,7 @@ module mkHTML {
         else if(label.match("assign"))
         {
             var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "hCont H" );
+            AssignBox.setAttribute("class", "hCont H canDrag" );
             AssignBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
