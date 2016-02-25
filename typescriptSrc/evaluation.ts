@@ -15,7 +15,7 @@ module evaluation {
     export class Evaluation {
         root : ExprNode;
         stack : Stack;
-        map : Map;
+        //map : Map;
         pending : Array<Number>;
         ready : Boolean;
 

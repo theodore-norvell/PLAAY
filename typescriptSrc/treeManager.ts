@@ -57,7 +57,7 @@ module treeManager {
                 return this.makeIfNode(selection);
             }
             else if (label.match("this")) {
-                return this.makeThisNode(selection);
+                //return this.makeThisNode(selection);
             }
             else if (label.match("while")) {
                 return this.makeWhileNode(selection);
@@ -218,7 +218,7 @@ module treeManager {
             this.root = sel.root();
             return sel;
         }
-
+    /*
         private makeThisNode(selection:Selection) : Selection {
 
             var thiss = pnode.mkExpr( [] );
@@ -241,7 +241,7 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
-        }
+        }*/
     }
 }
 
