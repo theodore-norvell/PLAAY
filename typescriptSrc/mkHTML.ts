@@ -65,7 +65,7 @@ module mkHTML {
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
             }
-        }
+        };
 
         const playbutton = document.createElement("div");
         playbutton.setAttribute("id", "play");
@@ -149,6 +149,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -156,6 +157,15 @@ module mkHTML {
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
                 //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $( ".trash").droppable({
+            accept:".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            drop: function(event, ui){
+                ui.draggable.remove();
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -245,6 +255,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log($(this).attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -277,6 +288,7 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
                 //createHTML(ui.draggable.attr("id"), this);
@@ -304,6 +316,11 @@ module mkHTML {
                     enterList();
                 });
             }
+        });
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid'
         });
     }
 
@@ -355,7 +372,7 @@ module mkHTML {
 
             var ifbox = document.createElement("div");
             ifbox["childNumber"] = childNumber ;
-            ifbox.setAttribute("class", "ifBox V workplace");
+            ifbox.setAttribute("class", "ifBox V workplace canDrag");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
@@ -409,7 +426,7 @@ module mkHTML {
 
             var whileBox = document.createElement("div");
             whileBox["childNumber"] = childNumber ;
-            whileBox.setAttribute("class", "ifBox V workplace");
+            whileBox.setAttribute("class", "ifBox V workplace canDrag");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
@@ -418,7 +435,7 @@ module mkHTML {
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "hCont H" );
+            VarBox.setAttribute("class", "hCont H canDrag" );
             VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
@@ -445,7 +462,7 @@ module mkHTML {
             list.appendChild(optiondiv);
 
             var value = document.createElement("div");
-            value.setAttribute("class","var H click");
+            value.setAttribute("class","var H click ");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
@@ -457,7 +474,7 @@ module mkHTML {
         else if(label.match("assign"))
         {
             var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "hCont H" );
+            AssignBox.setAttribute("class", "hCont H canDrag" );
             AssignBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
