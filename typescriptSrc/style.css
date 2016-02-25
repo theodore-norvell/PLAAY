@@ -37,11 +37,20 @@ div.redo
 
 div.play
 {
-    width:100px;
+    width:90px;
     height:40px;
     background-color:green;
     position:absolute;
     bottom:50px; left: 0px;
+}
+
+div.trash
+{
+    width: 50px;
+    height: 90px;
+    background-color: grey;
+    position:absolute;
+    bottom:4px; left: 100px;
 }
 
 div.sidebar

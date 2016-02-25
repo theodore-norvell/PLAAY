@@ -78,6 +78,12 @@ module mkHTML {
             window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
         };
 
+        const trash = document.createElement("div");
+        trash.setAttribute("id","trash");
+        trash.setAttribute("class", "trash");
+        trash.textContent = "Trash";
+        document.getElementById("body").appendChild(trash);
+
         //creates side bar
         const sidebar = document.createElement("div");
         sidebar.setAttribute("id","sidebar");
@@ -162,7 +168,7 @@ module mkHTML {
             hoverClass: "hover",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
+                //createHTML(ui.draggable.attr("id"), this);
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
@@ -174,7 +180,17 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" width="5" class="var H input">')
+        });
 
+        $(".input").keyup(function(e){
+            if(e.keyCode == 13)
+            {
+                alert("Enter");
+                $(this).replaceWith('<div class="var H click"></div>')
+            }
+        });
     }
 
     export function createHTML(e, self) {
@@ -248,7 +264,7 @@ module mkHTML {
             hoverClass: "hover",
             drop: function (event, ui) {
                 console.log($(this).attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
+                //createHTML(ui.draggable.attr("id"), this);
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -257,9 +273,10 @@ module mkHTML {
             $(this).replaceWith('<input type="text" width="5" class="var H input">')
         });
 
-        $(".input").on('keyup', function(e){
-            if(e.which == 13)
+        $(".input").keyup(function(e){
+            if(e.keyCode == 13)
             {
+                alert("Enter");
                 $(this).replaceWith('<div class="var H click"></div>')
             }
         });
@@ -273,6 +290,31 @@ module mkHTML {
             children.removeChild(children.firstChild);
         }
         children.appendChild(traverseAndBuild(select.root(), select.root().count()));
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                //createHTML(ui.draggable.attr("id"), this);
+                undostack.push(currentSelection);
+                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                generateHTML(currentSelection);
+                //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" class="var H input">')
+        });
+
+        $(".input").keyup(function(e){
+            if(e.keyCode == 13)
+            {
+                alert("Enter");
+                $(this).replaceWith('<div class="var H click"></div>')
+            }
+        });
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -375,7 +417,7 @@ module mkHTML {
             VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
-            name.setAttribute("class", "var H");
+            name.setAttribute("class", "var H click");
 
             var op = document.createElement("input");
             op.setAttribute("class", "op H");
@@ -399,7 +441,7 @@ module mkHTML {
             list.appendChild(optiondiv);
 
             var value = document.createElement("div");
-            value.setAttribute("class","var H");
+            value.setAttribute("class","var H click");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
