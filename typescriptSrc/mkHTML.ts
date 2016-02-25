@@ -27,6 +27,7 @@ module mkHTML {
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
+    var replace = 1;
     currentSelection = select;
 
     export function onLoad() : void
@@ -78,6 +79,12 @@ module mkHTML {
             window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
         };
 
+        const trash = document.createElement("div");
+        trash.setAttribute("id","trash");
+        trash.setAttribute("class", "trash");
+        trash.textContent = "Trash";
+        document.getElementById("body").appendChild(trash);
+
         //creates side bar
         const sidebar = document.createElement("div");
         sidebar.setAttribute("id","sidebar");
@@ -103,11 +110,11 @@ module mkHTML {
         varblock.textContent = "Var";
         document.getElementById("sidebar").appendChild(varblock);
 
-        const forblock = document.createElement("div");
-        forblock.setAttribute("id", "for");
-        forblock.setAttribute("class", "forBox V palette");
-        forblock.textContent = "For";
-        document.getElementById("sidebar").appendChild(forblock);
+        const assignmentblock = document.createElement("div");
+        assignmentblock.setAttribute("id", "assign");
+        assignmentblock.setAttribute("class", "assignmentBox V palette");
+        assignmentblock.textContent = "Assignment";
+        document.getElementById("sidebar").appendChild(assignmentblock);
 
         const thisblock = document.createElement("div");
         thisblock.setAttribute("id", "this");
@@ -115,29 +122,11 @@ module mkHTML {
         thisblock.textContent = "This";
         document.getElementById("sidebar").appendChild(thisblock);
 
-        const trueblock = document.createElement("div");
-        trueblock.setAttribute("id", "true");
-        trueblock.setAttribute("class", "trueBox V palette");
-        trueblock.textContent = "True";
-        document.getElementById("sidebar").appendChild(trueblock);
-
-        const falseblock = document.createElement("div");
-        falseblock.setAttribute("id", "false");
-        falseblock.setAttribute("class", "falseBox V palette");
-        falseblock.textContent = "False";
-        document.getElementById("sidebar").appendChild(falseblock);
-
         const nullblock = document.createElement("div");
         nullblock.setAttribute("id", "null");
         nullblock.setAttribute("class", "nullBox V palette");
         nullblock.textContent = "Null";
         document.getElementById("sidebar").appendChild(nullblock);
-
-        const assignmentblock = document.createElement("div");
-        assignmentblock.setAttribute("id", "assignment");
-        assignmentblock.setAttribute("class", "assignmentBox V palette");
-        assignmentblock.textContent = "Assignment";
-        document.getElementById("sidebar").appendChild(assignmentblock);
 
         //creates container for code
         const container = document.createElement("div");
@@ -162,7 +151,7 @@ module mkHTML {
             hoverClass: "hover",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
+                //createHTML(ui.draggable.attr("id"), this);
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
@@ -174,7 +163,17 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" width="5" class="var H input">')
+        });
 
+        $(".input").keyup(function(e){
+            if(e.keyCode == 13)
+            {
+                alert("Enter");
+                $(this).replaceWith('<div class="var H click"></div>')
+            }
+        });
     }
 
     export function createHTML(e, self) {
@@ -203,15 +202,65 @@ module mkHTML {
         }
         else if ('var' === e)
         {
-            $(self).replaceWith('<div id="var H"')
+            var VarBox = document.createElement("div");
+            VarBox.setAttribute("class", "hCont H" );
+            //VarBox["childNumber"] = childNumber;
+
+            var name = document.createElement("div");
+            name.setAttribute("class", "var H click");
+
+            var op = document.createElement("input");
+            op.setAttribute("class", "op H");
+            op.setAttribute("type", "text");
+            op.setAttribute("list", "oplist");
+            op.setAttribute("width", "5px");
+
+            var list = document.createElement("datalist");
+            list.setAttribute("id", "oplist");
+            var optionplus = document.createElement("option");
+            optionplus.value = "+";
+            var optionminus = document.createElement("option");
+            optionminus.value = "-";
+            var optionmul = document.createElement("option");
+            optionmul.value = "x";
+            var optiondiv = document.createElement("option");
+            optiondiv.value = "/";
+            list.appendChild(optionplus);
+            list.appendChild(optionminus);
+            list.appendChild(optionmul);
+            list.appendChild(optiondiv);
+
+            //op.textContent = "=";
+            var value = document.createElement("div");
+            value.setAttribute("class","var H click");
+
+            VarBox.appendChild(name);
+            VarBox.appendChild(op);
+            VarBox.appendChild(list);
+            VarBox.appendChild(value);
+
+            var box = document.getElementById("container").appendChild(VarBox);
         }
+
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
             drop: function (event, ui) {
                 console.log($(this).attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
+                //createHTML(ui.draggable.attr("id"), this);
                 //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" width="5" class="var H input">')
+        });
+
+        $(".input").keyup(function(e){
+            if(e.keyCode == 13)
+            {
+                alert("Enter");
+                $(this).replaceWith('<div class="var H click"></div>')
             }
         });
     }
@@ -224,6 +273,54 @@ module mkHTML {
             children.removeChild(children.firstChild);
         }
         children.appendChild(traverseAndBuild(select.root(), select.root().count()));
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                //createHTML(ui.draggable.attr("id"), this);
+                undostack.push(currentSelection);
+                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                generateHTML(currentSelection);
+                //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        clickDiv();
+
+        enterList();
+    }
+
+    function enterList()
+    {
+        $(".input").keyup(function (e) {
+            if (e.keyCode == 13) {
+                var text = $(this).val();
+                $(this).replaceWith('<div class="var H click">' + text + '</div>')
+
+                $(".click").click(function(){
+                   $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
+                    enterList();
+                });
+            }
+        });
+    }
+
+    function clickDiv()
+    {
+        $(".click").click(function(){
+            $(this).replaceWith('<input type="text" class="var H input">');
+
+            $(".input").keyup(function(e){
+                if(e.keyCode == 13)
+                {
+                    var text = $(this).val();
+                    $(this).replaceWith('<div class="var H click">' + text + '</div>')
+                    clickDiv();
+                }
+            });
+        });
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -278,6 +375,7 @@ module mkHTML {
                 if( i == children.length ) break ;
                 seqBox.appendChild( children[i] ) ;
             }
+
             return seqBox ;
         }
         else if(label.match("expPH"))
@@ -294,6 +392,7 @@ module mkHTML {
                 if( i == children.length ) break ;
                 PHBox.appendChild( children[i] ) ;
             }
+
             return PHBox ;
         }
         else if(label.match("while"))
@@ -316,22 +415,6 @@ module mkHTML {
 
             return whileBox;
         }
-        else if(label.match("exp"))
-        {
-            var ExpBox = document.createElement("div");
-            ExpBox.setAttribute( "class", "PHBox V" ) ;
-            ExpBox["childNumber"] = childNumber ;
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                ExpBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                ExpBox.appendChild( children[i] ) ;
-            }
-            return ExpBox ;
-        }
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
@@ -339,23 +422,61 @@ module mkHTML {
             VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
-            name.setAttribute("class", "var H");
-            name.textContent = "x";
-            var op = document.createElement("div");
-            op.setAttribute("class", "op H");
-            op.textContent = "=";
+            name.setAttribute("class", "var H click");
+
+            var op = document.createElement("input");
+            op.setAttribute("class", "op H input");
+            op.setAttribute("type", "text");
+            op.setAttribute("list", "oplist");
+
+            var list = document.createElement("datalist");
+            list.setAttribute("id", "oplist");
+            var optionplus = document.createElement("option");
+            optionplus.value = "+";
+            var optionminus = document.createElement("option");
+            optionminus.value = "-";
+            var optionmul = document.createElement("option");
+            optionmul.value = "x";
+            var optiondiv = document.createElement("option");
+            optiondiv.value = "/";
+            list.appendChild(optionplus);
+            list.appendChild(optionminus);
+            list.appendChild(optionmul);
+            list.appendChild(optiondiv);
+
             var value = document.createElement("div");
-            value.setAttribute("class","var H");
-            value.textContent = "0";
+            value.setAttribute("class","var H click");
 
             VarBox.appendChild(name);
             VarBox.appendChild(op);
+            VarBox.appendChild(list);
             VarBox.appendChild(value);
 
             return VarBox;
         }
-    }
+        else if(label.match("assign"))
+        {
+            var AssignBox = document.createElement("div");
+            AssignBox.setAttribute("class", "hCont H" );
+            AssignBox["childNumber"] = childNumber;
 
+            var name = document.createElement("div");
+            name.setAttribute("class", "var H click");
+
+            var equal = document.createElement("div");
+            equal.setAttribute("class", "op H");
+            equal.textContent = "=";
+
+            var value = document.createElement("div");
+            value.setAttribute("class","var H click");
+
+            AssignBox.appendChild(name);
+            AssignBox.appendChild(equal);
+            AssignBox.appendChild(value);
+
+            return AssignBox;
+        }
+    }
 }
 
 export = mkHTML ;
