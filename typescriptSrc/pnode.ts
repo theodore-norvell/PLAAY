@@ -341,9 +341,7 @@ module pnode {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
-            //if( ! children[0].isExprNode()) return false ;
-            //if( ! children[1].isExprNode()) return false ;
-            return true
+            return true;
         }
 
         getClass():PNodeClass {
@@ -365,12 +363,9 @@ module pnode {
 
     export class TypePHLabel implements Label {
 
-        //TODO discuss
         isValid(children:Array<PNode>):boolean {
             if (children.length != 0) return false;
-            //if( ! children[0].isExprNode()) return false ;
-            //if( ! children[1].isExprNode()) return false ;
-            return true
+            return true;
         }
 
         getClass():PNodeClass {
@@ -501,7 +496,6 @@ module pnode {
         constructor(val:number) {
             this._val = val;
         }
-
 
         val():number {
             return this._val;
