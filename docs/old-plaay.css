@@ -4,7 +4,7 @@
 /* Star trek mauve: rgb(190, 133, 197) */
 /* Star trek dark orange: rgb(182, 78, 78) */
 
-body {
+.play {
 	color: rgb(244, 140, 0);
 	background-color: black;
 }
@@ -26,9 +26,7 @@ body {
 	align-items: flex-start;
 	
 	
-	background-color: black;
-	
-	
+	background-color: black;	
 }
 
 div {
@@ -205,9 +203,7 @@ div.selection{
 div.calls{
 	border:thin solid rgb(190,133,197);
 	background-color:rgb(0,0,0);
-    width:100px;
     color:rgb(255,255,255);
-    text-align:center;
     font-family:"Times New Roman",Times,serif;
     font-weight:bold;
     font-size:25px;	

@@ -3,10 +3,16 @@
 /* Star trek orange: rgb(244, 140, 0) */
 /* Star trek mauve: rgb(190, 133, 197) */
 /* Star trek dark orange: rgb(182, 78, 78) */
-
-body {
+/* Blue: rgb(135,206,250);  */
+.plaay {
 	color:rgb(244, 140, 0) ;
 	background-color:black ;
+}
+
+div.selected {
+	border: thin solid rgb(255,0,0) ;
+	padding: 2px ;
+	margin: 2px ;
 }
 
 div {
@@ -60,18 +66,22 @@ div.ifBox {
 	padding-left: 0px ;
 }
 
-div.guardBox {
+div.ifGuardBox {
 	border-top: none ;
 	border-bottom: medium dashed rgb(190, 133, 197) ;
 	border-left: none ;
 	border-right: none ;
 	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.guard:before { content: "?" ; 
+
+div.ifGuardBox:before { content: "?" ; 
 	display: inline ;
     vertical-align: top ;
-	color: rgb(190, 133, 197)
+	color: rgb(190, 133, 197) ;
+	font-size: large ;
+	margin: 0px 5px 0px 0px ;
 }
 
 div.thenBox {
@@ -80,6 +90,7 @@ div.thenBox {
 	border-left: none ;
 	border-right: none ;
 	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
 }
 
 div.elseBox {
@@ -88,38 +99,226 @@ div.elseBox {
 	border-left: none ;
 	border-right: none ;
 	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.whileBox {
+	border-top: medium solid rgb(190, 133, 197) ;
+	border-bottom: medium solid rgb(190, 133, 197) ;
+	border-left: 10px solid rgb(190, 133, 197) ;
+	border-right: thin solid rgb(190, 133, 197) ;
+	border-radius: 10px ;
+	padding-left: 0px ;
+}
+
+
+div.whileGuardBox:before { content: "\27f3" ; 
+	display: inline ;
+    vertical-align: top ;
+	color: rgb(190, 133, 197) ;
+	font-size: large ;
+	margin: 0px 5px 0px 0px ;
+}
+
+div.whileGuardBox {
+	border-top: none ;
+	border-bottom: medium dashed rgb(190, 133, 197) ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.doBox { /*Used with both whiles and lambdas */
+	border-top: none ;
+	border-bottom:none ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.lambdaBox {
+	border-top: medium solid rgb(135,206,250) ;
+	border-bottom: medium solid rgb(135,206,250) ;
+	border-left: 10px solid rgb(135,206,250) ;
+	border-right: thin solid rgb(135,206,250) ;
+	border-radius: 10px ;
+	padding-left: 0px ;
+}
+
+div.lambdaHeader {
+	border-top: none ;
+	border-bottom: medium dashed rgb(135,206,250) ;
+	border-left: none ;
+	border-right: none ;
+	padding-left: 10px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.paramlistOuter {
+	border: none ;
+}
+
+
+div.paramlistOuter:before { content: "\03bb" ; 
+	display: inline ;
+    vertical-align: top ;
+	color: rgb(135,206,250) ;
+	font-size: large ;
+}
+
+div.paramlistInner {
+	margin: 2px 0px 2px 5px ;
+	border: thin solid rgb(135,206,250) ;
+}
+
+div.noReturnType {
+	margin: 2px 0px 2px 0px ;
+	min-height: 1ex ;
+	min-width: 10ex ; 
+	border-radius: 5px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.noReturnType:hover {
+	background-color: slategrey;
+	min-height: 2ex ;
+}
+
+
+div.returnTypeOuter {
+}
+
+div.returnTypeInner {
+	margin: 2px 0px 2px 5px ;
+}
+
+
+div.returnTypeOuter:before { content: "\2192" ; 
+	display: inline ;
+    vertical-align: top ;
+	color: rgb(135,206,250) ;
+	font-size: large ;
 }
 
 div.seqBox {
 	/*border: thin solid lightgrey ;*/
 	border-radius: 5px ; 
+	-webkit-align-self: stretch ; align-self: stretch ;
 }
 
+/* This sort of dropzone is usually used in vertical boxes like seqBoxes. */
 div.dropZone {
 	margin: 2px 0px 2px 0px ;
 	min-height: 1ex ;
-	min-width: 5ex ;
+	min-width: 10ex ; 
+	border-radius: 5px ;
+	-webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.dropZone:hover {
 	background-color: slategrey;
+	min-height: 2ex ;
+}
+
+/* This sort of dropzone is usually used in horizontal boxes like calls. */
+div.dropZoneSmall {
+	margin: 0px 0px 0px 0px ;
+	min-height: 2ex ;
+	min-width: 0.5ex ;
 	border-radius: 5px ;
 }
 
+div.dropZoneSmall:hover {
+	background-color: slategrey;
+	min-width: 2ex ;
+}
 
 div.placeHolder {
+	border: thin solid rgb(244, 140, 0) ; /* Orange */
 	margin: 2px 0px 2px 0px ;
-	min-height: 2px ;
+	min-width: 2ex ;
+	min-height: 10px ;
 	width: auto ;
-	background-color: rgb(182, 78, 78);
-	border-radius: 5px ;
-	min-width: 5ex ;
-}
-
-div.hCont, div.var {
-	border: thin solid rgb(190, 133, 197) ;
+	font-weight: normal ;
+	font-size: medium ;
+	color: rgb(244, 140, 0) ; /* Orange */
 	border-radius: 5px ;
 }
 
-div.selected {
-	border: thick solid rgb(255,0,0) ;
-	padding: 2px ;
-	margin: 2px ;
+div.hCont, div.var, div.assign {
+	border: thin solid rgb(244, 140, 0) ; /* Orange */
+	border-radius: 5px ;
+	font-weight: normal ;
+	font-size: medium ;
+	color: rgb(244, 140, 0) ; /* Orange */
+	padding: 1px 2px 1px 2px ;
+	margin: 1px 2px 1px 2px ;
+}
+
+div.type {
+	border: thin solid #999 ;
+	border-radius: 5px ;
+	font-weight: normal ;
+	font-size: medium ;
+	color:  #999 ;
+}
+
+div.call {
+	border:thin solid rgb(190, 133, 197) ; /* Mauve */
+	border-radius: 5px ;
+	background-color:rgb(0,0,0);
+    color:rgb(190, 133, 197) ; /* Mauve */
+    font-family:"Times New Roman",Times,serif;
+    font-weight:bold;
+    font-size:large;	
+}
+
+div.callWorld {
+	border:thin solid rgb(190, 133, 197) ; /* Mauve */
+	border-radius: 5px ;
+	background-color:rgb(0,0,0);
+    color:rgb(190, 133, 197) ; /* Mauve */
+    font-family:"Times New Roman",Times,serif;
+    font-weight:bold;
+    font-size:large;	
+}
+
+
+div.stringLiteral{
+	border: thin solid rgb(135,206,250);
+	border-radius: 5px ;
+	font-family:"Lucida Console", monospace;
+	font-weight: normal ;
+	font-size: medium ;
+	color: rgb(255,255,255);
+	max-width: 200px ;
+	text-wrap:normal ;
+	padding: 1px 2px 1px 2px ;
+	margin: 1px 2px 1px 2px ;
+}
+
+
+
+div.nullLiteral {
+	border:thin solid rgb(135,206,250);
+	border-radius: 5px ;
+	font-size: x-large ;
+	font-family:"Lucida Console", Monospace;
+	font-weight:bold; 
+	text-align:center;
+	color:rgb(255,255,255);
+	vertical-align:middle;
+	padding: 1px 2px 1px 2px ;
+	margin: 1px 2px 1px 2px ;	
+}
+
+div.selection {
+	border:thin solid rgb(244, 140, 0) ; /* Orange */
+	background-color:rgb(0,0,0);
+	color:rgb(244, 140, 0) ; /* Orange */
+	font-weight: normal ;
+	font-size: medium ;
+    font-family:"Times New Roman",Times,serif;
 }
