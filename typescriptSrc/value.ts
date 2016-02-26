@@ -121,6 +121,14 @@ module value {
 
     }
 
+    export class BuiltInV extends Value {
+        //var step : (vms : VMS) -> void;
+        //constructor (  step : (vms : VMS) -> void ){
+            //this.step = step;
+        //}
+
+    }
+
     export enum Type {
         STRING,
         BOOL,
