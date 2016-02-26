@@ -1,37 +1,49 @@
+
+import evaluation = require( './evaluation' ) ;
+
 module stack {
+
+    import Evaluation = evaluation.Evaluation;
 
     export class Stack {
 
-        head : StackObject;
+        head : Evaluation;
 
         constructor(){
-            var obj = new StackObject();
-
-
+            this.head = new Evaluation(null, null);
         }
 
-        push(stackobj : StackObject ) {
-
-            var it = this.head;
-            while (it.getNext() !=null){
-                it.getNext();
-            }
-
-            it.setNext(stackobj);
+        push(val : Evaluation ) {
+            val.next = this.head;
+            this.head = val;
         }
 
-        pop() {
+        pop() : Evaluation{
             var it = this.head;
             this.head = this.head.getNext();
             return it;
         }
 
+        top() : Evaluation{
+            return this.head;
+        }
 
+        public notEmpty() : boolean{
+            if(this.head == null){return false;}
+            else{return true;}
+        }
     }
 
-    class StackObject {
+ /*   export class StackObject {
         next : StackObject;
         varmap : VarMap;
+
+        constructor (name : String, value : String) {
+            this.varmap = new VarMap();
+            this.varmap.setName(name);
+            this.varmap.setValue(value);
+        }
+
 
         getNext(){
             return this.next;
@@ -48,8 +60,8 @@ module stack {
             this.varmap = map;
         }
     }
-
-    class VarMap {
+*/
+    export class VarMap {
         varName : String;
         varValue : String;
 

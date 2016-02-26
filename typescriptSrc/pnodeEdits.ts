@@ -117,7 +117,7 @@ module pnodeEdits {
                         ( newChild : PNode ) : Option<PNode> => {
                             return node.tryModify( [newChild], k, k+1 ) ; },
                         () => { return new None<PNode>() ; } ) ; }
-            }
+            };
                     
             // Determine the start and end
             var start : number ;
@@ -131,7 +131,7 @@ module pnodeEdits {
             // If successful, build a new Selection object.
             return opt.choose(
                 ( newRoot : PNode ) : Option<Selection> => {
-                    const f = start + this._newNodes.length 
+                    const f = start + this._newNodes.length;
                     const newSelection = new Selection( newRoot,
                                                         selection.path(),
                                                         f, f) ;
@@ -139,7 +139,6 @@ module pnodeEdits {
                 () : Option<Selection>  => { return new None<Selection> () ; } ) ;
         }
     }
-
 }
 
 export = pnodeEdits ;
