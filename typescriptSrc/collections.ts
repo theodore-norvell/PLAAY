@@ -136,7 +136,7 @@ module collections {
         while( i > 0 ) {  i -= 1 ; acc = new Cons( args[i], acc ) ; }
         return acc ;
     }
-    
+
     export function cons<A>( head : A, rest : List<A> ) : List<A> {
             return new Cons<A>( head, rest ) ; }
             
