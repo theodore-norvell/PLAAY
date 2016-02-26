@@ -285,7 +285,57 @@ module pnode {
 
     //Variable
 
-    export class VarLabel implements ExprLabel {
+    export class VariableLabel implements ExprLabel {
+
+        id : String;
+        isValid(children:Array<PNode>):boolean {
+            if (children.length != 0) return false;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "variable";
+        }
+
+        /*private*/
+        constructor(name : String) {
+            this.id = name;
+        }
+    }
+
+    export class varDeclLabel implements ExprLabel {
+
+        id : String;
+        con : Boolean;
+        isValid(children:Array<PNode>):boolean {//TODO check logic
+            if (children.length != 2) return false;
+            if (!children[0].isTypeNode()) return false;
+            if (!children[1].isExprNode()) return false;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "varDecl";
+        }
+
+        /*private*/
+        constructor(name : String, c : Boolean) {
+            this.id = name;
+            this.con = c;
+        }
+    }
+
+
+
+
+
+    export class VarLabel implements ExprLabel {//TODO change name(and isValid) Will be callWorld?
 
         isValid(children:Array<PNode>):boolean {
             if (children.length != 2) return false;
@@ -308,7 +358,30 @@ module pnode {
         public static theVarLabel = new VarLabel();
     }
 
-    //Arithmetic Labels
+    export class callWorldLabel implements ExprLabel {
+
+        id : String;//the operation
+        isValid(children:Array<PNode>):boolean {
+            return children.every(function(c : PNode) { return c.isExprNode() } ) ;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "callWorld";
+        }
+
+        /*private*/
+        constructor(name : String) {
+            this.id = name;
+        }
+    }
+
+
+
+    //Arithmetic Labels TODO encompass this in callWorld?
     export class AssignLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
@@ -410,7 +483,7 @@ module pnode {
         public static theLambdaLabel = new LambdaLabel();
     }
 
-    //Loops and If Labels
+    //While and If Labels
 
     export class IfLabel extends ExprLabel {
 
@@ -561,8 +634,178 @@ module pnode {
         }//will this work in TS?
     }
 
+    //Type Labels
+
+    export class NoTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "noType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theNoTypeLabel = new NoTypeLabel();
+    }
+
+    export class numTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "numType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theNumTypeLabel = new numTypeLabel();
+    }
+
+    export class strTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "strType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theStrTypeLabel = new strTypeLabel();
+    }
+
+    export class anyTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "anyType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theAnyTypeLabel = new anyTypeLabel();
+    }
+
+    export class nullTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "nullType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theNullTypeLabel = new nullTypeLabel();
+    }
+
+    export class commTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "commType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theCommTypeLabel = new commTypeLabel();
+    }
+
+    export class classTypeLabel implements TypeLabel {
+
+        id : String;
+        isValid(children:Array<PNode>):boolean {
+            return children.length == 0;}
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "classType";
+        }
+
+        /*private*/
+        constructor(name : String) {
+            this.id = name;
+        }
+    }
+
+    export class altTypeLabel implements TypeLabel {
+        isValid(children:Array<PNode>):boolean {
+            return children.every(function (c:PNode) {
+                return c.isTypeNode()
+            });
+        }
+
+        getClass():PNodeClass {
+            return TypeNode;
+        }
+
+        toString():string {
+            return "altType";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        // Singleton
+        public static theAltTypeLabel = new altTypeLabel();
+    }
+
+
+
+
+
+
     //Var Labels
-    export class StringVarLabel implements ExprLabel {
+  /*  export class StringVarLabel implements ExprLabel {
         _val:String;
 
         constructor(val:String) {
@@ -656,16 +899,15 @@ module pnode {
         toString():string {
             return "string[" + this._val + "]";
         }//will this work in TS?
-    }
+    }*/
 
 
-     //Literal Labels TODO needs fixing/might not be necessary
+     //Literal Labels
 
-     export class LiteralLabel implements ExprLabel {
+     export class StringLiteralLabel implements ExprLabel {
         _val : String ;
 
         constructor( val : String) { this._val = val ; }
-         public static theLiteralLabel = new LiteralLabel( null );
 
         val() : String { return this._val ; }
 
@@ -677,7 +919,58 @@ module pnode {
         toString() : string { return "string[" + this._val + "]"  ; }
      }
 
-    export class MethodLabel implements ExprLabel {
+    export class NumberLiteralLabel implements StringLiteralLabel {
+        _val : String ;
+
+        constructor( val : String) { this._val = val ; }
+
+        val() : String { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0 ;
+        //TODO logic to make sure this is a number
+        }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }
+    }
+
+    export class BooleanLiteralLabel implements StringLiteralLabel {
+        _val : String ;
+
+        constructor( val : String) { this._val = val ; }
+
+        val() : String { return this._val ; }
+
+        isValid( children : Array<PNode> ) {
+            if(children.length != 0){return false}
+            if(this.val() != "true" && this.val() != "false"){return false;}
+            return true;
+        }
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }
+    }
+
+
+    export class NullLiteralLabel implements ExprLabel {
+
+        _val : void;
+        constructor() { this._val = null ; }
+
+        val() : String { return null }
+
+        isValid( children : Array<PNode> ) {
+            return children.length == 0;}
+
+        getClass() : PNodeClass { return ExprNode ; }
+
+        toString() : string { return "string[" + this._val + "]"  ; }
+    }
+
+    export class MethodLabel implements ExprLabel { //TODO should this be type?
         isValid(children:Array<PNode>) {
             return children.every(function (c:PNode) {
                 return c.isTypeNode()
@@ -765,7 +1058,9 @@ module pnode {
     export function mkAnyConst( val : any ) : ExprNode{
         return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
 
-    //Var Make
+
+    //TODO mk functions for literals etc.
+/*    //Var Make
     export function mkStringVar( val : String ) : ExprNode{
         return <ExprNode> make( new StringVarLabel(val),[] ) ; }
 
@@ -776,7 +1071,7 @@ module pnode {
         return <ExprNode> make( new BooleanVarLabel(val),[] ) ; }
 
     export function mkAnyVar( val : any ) : ExprNode{
-        return <ExprNode> make( new AnyVarLabel(val),[] ) ; }
+        return <ExprNode> make( new AnyVarLabel(val),[] ) ; }*/
 }
 
 export = pnode ;

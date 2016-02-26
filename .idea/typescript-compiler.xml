@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="TypeScriptCompiler">
+    <option name="isCompilerEnabled" value="true" />
+    <option name="typeScriptServiceDirectory" value="C:\npm\node_modules\typescript\lib" />
+    <option name="typeScriptCompilerParams" value="tsc --module commonjs  --out out.js Assert.ts pnode.ts Collections.ts playWithTrees.ts  " />
+    <option name="hasOutDirectory" value="true" />
+    <option name="outDirectory" value="C:\Users\Ryne\IdeaProjects\PLAAY" />
+    <option name="versionType" value="SERVICE_DIRECTORY" />
+  </component>
+</project>
