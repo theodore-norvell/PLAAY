@@ -338,8 +338,7 @@ module pnode {
     export class VarLabel implements ExprLabel {//TODO change name(and isValid) Will be callWorld?
 
         isValid(children:Array<PNode>):boolean {
-            if (children.length != 2) return false;
-            return children.every(function(c : PNode) { return c.isExprNode() } ) ;
+            if (children.length == 0) return false;
         }
 
         getClass():PNodeClass {
@@ -377,6 +376,8 @@ module pnode {
         constructor(name : String) {
             this.id = name;
         }
+
+        public static theCallWorldLabel = new callWorldLabel("");
     }
 
 
@@ -462,11 +463,11 @@ module pnode {
             return super.isValid(children) && this.childisValid(children);
         }
 
-        //TODO HOW????????
+        //TODO figure out parameter list
          childisValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
-             //if( ! children[0].isTypeNode() ) return false ;
-             if( ! children[1].isExprSeqNode() ) return false ;
+             //if ( ! children[0].isParameterList() ) return false ;
+             if( ! children[1].isTypeNode() ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
          }
 

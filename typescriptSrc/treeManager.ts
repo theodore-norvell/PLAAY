@@ -32,9 +32,9 @@ module treeManager {
                 });
 
             var placeholder = pnode.mkExprPH();
-            var sel = new Selection( this.root, collections.list(0), 0, 1 );
-            var edit = new pnodeEdits.InsertChildrenEdit( [ placeholder ] );
-            var editResult = edit.applyEdit( sel );
+            var sel = new Selection(this.root, collections.list(0), 0, 1);
+            var edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
+            var editResult = edit.applyEdit(sel);
             this.root = editResult.choose(
                 p => p,
                 () => {
@@ -46,40 +46,63 @@ module treeManager {
 
         }
 
-        createNode(label:String, selection:Selection) : Selection {
+        createNode(label:String, selection:Selection):Selection {
 
-            if (label.match("if")) {
-                return this.makeIfNode(selection);
-            }
-            else if (label.match("this")) {
-                //return this.makeThisNode(selection);
-            }
-            else if (label.match("while")) {
-                return this.makeWhileNode(selection);
-            }
-            else if (label.match("assign")) {
-                return this.makeAssignNode(selection);
-            }
-            else if (label.match("var")) {
-               return this.makeVarNode(selection);
-            }
-            else if (label.match("literal")) {
-                return this.makeLiteralNode(selection);
-            }
-            else if (label.match("call")) {
-               //return this.makeCallNode(selection);
-            }
-            else {
-                //throw error stating label not recognized
+
+            switch(label) {
+
+                //loops & if
+                case "if":
+                    return this.makeIfNode(selection);
+                case "while":
+                    return this.makeWhileNode(selection);
+
+                //literals
+                case "stringliteral":
+                    break;
+                case "numberliteral":
+                    break;
+                case "booleanliteral":
+                    break;
+                case "nullliteral":
+                    break;
+
+                //constants
+                case "stringliteral":
+                    break;
+                case "numberliteral":
+                    break;
+                case "booleanliteral":
+                    break;
+                case "nullliteral":
+                    break;
+
+                //variables & variable manipulation
+                case "var":
+                    break;
+                case "assign":
+                    return this.makeAssignNode(selection);
+                case "call":
+                    return this.makeCallNode(selection);
+                case "worldcall":
+                    return this.makeWorldCallNode(selection);
+
+                //misc
+                case "this":
+                    break;
+                case "lambda":
+                    break;
+                case "method":
+                    break;
             }
         }
 
         // Loop and If Nodes
 
-        private makeWhileNode(selection:Selection) : Selection {
+        private makeWhileNode(selection:Selection):Selection {
 
             var cond = pnode.mkExprPH();
-            var seq = pnode.mkExprSeq( [] );
+            var seq = pnode.mkExprSeq([]);
 
             var opt = pnode.tryMake(pnode.WhileLabel.theWhileLabel, [cond, seq]);
 
@@ -90,8 +113,8 @@ module treeManager {
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ whilenode ] );
-            var editResult = edit.applyEdit( selection );
+            var edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
+            var editResult = edit.applyEdit(selection);
             var sel = editResult.choose(
                 p => p,
                 () => {
@@ -103,11 +126,11 @@ module treeManager {
             return sel;
         }
 
-        private makeIfNode(selection: Selection) : Selection {
+        private makeIfNode(selection:Selection):Selection {
 
             var guard = pnode.mkExprPH();
-            var thn = pnode.mkExprSeq( [] );
-            var els = pnode.mkExprSeq( [] );
+            var thn = pnode.mkExprSeq([]);
+            var els = pnode.mkExprSeq([]);
 
             var opt = pnode.tryMake(pnode.IfLabel.theIfLabel, [guard, thn, els]);
 
@@ -118,8 +141,8 @@ module treeManager {
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ ifnode ] );
-            var editResult = edit.applyEdit( selection );
+            var edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
+            var editResult = edit.applyEdit(selection);
 
             var sel = editResult.choose(
                 p => p,
@@ -133,7 +156,7 @@ module treeManager {
         }
 
         //Arithmetic Nodes
-        private makeAssignNode(selection:Selection) : Selection {
+        private makeAssignNode(selection:Selection):Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
@@ -147,8 +170,8 @@ module treeManager {
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ assignnode ] );
-            var editResult = edit.applyEdit( selection );
+            var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
+            var editResult = edit.applyEdit(selection);
             var sel = editResult.choose(
                 p => p,
                 () => {
@@ -160,22 +183,22 @@ module treeManager {
             return sel;
         }
 
-        private makeVarNode(selection:Selection) : Selection {
+        private makeWorldCallNode(selection:Selection):Selection {
 
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
-            var opt = pnode.tryMake(pnode.VarLabel.theVarLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, [left, right]);
 
-            var varnode = opt.choose(
+            var worldcallnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ varnode ] );
-            var editResult = edit.applyEdit( selection );
+            var edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
+            var editResult = edit.applyEdit(selection);
             var sel = editResult.choose(
                 p => p,
                 () => {
@@ -187,22 +210,19 @@ module treeManager {
             return sel;
         }
 
-        private makeLiteralNode(selection:Selection) : Selection {
+        private makeCallNode(selection:Selection):Selection {
 
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
+            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, []);
 
-            var opt = pnode.tryMake(pnode.LiteralLabel.theLiteralLabel, [left, right]);
-
-            var literalnode = opt.choose(
+            var callnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit( [ literalnode ] );
-            var editResult = edit.applyEdit( selection );
+            var edit = new pnodeEdits.InsertChildrenEdit([callnode]);
+            var editResult = edit.applyEdit(selection);
             var sel = editResult.choose(
                 p => p,
                 () => {
@@ -213,30 +233,7 @@ module treeManager {
             this.root = sel.root();
             return sel;
         }
-    /*
-        private makeThisNode(selection:Selection) : Selection {
 
-            var thiss = pnode.mkExpr( [] );
-            var opt = pnode.tryMake(pnode.ExprLabel.theExprLabel, [thiss]);
-            var thisnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit( [ thisnode ] );
-            var editResult = edit.applyEdit( selection );
-            var sel = editResult.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            this.root = sel.root();
-            return sel;
-        }*/
     }
 }
 
