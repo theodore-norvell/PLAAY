@@ -225,6 +225,7 @@ module mkHTML {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
+                getPathToNode(currentSelection, $(this));
                 $(this).replaceWith('<div class="var H click">' + text + '</div>')
 
                 $(".click").click(function(){
@@ -249,6 +250,7 @@ module mkHTML {
                 if(e.keyCode == 13)
                 {
                     var text = $(this).val();
+                    getPathToNode(currentSelection, $(this));
                     $(this).replaceWith('<div class="var H click">' + text + '</div>')
                     clickDiv();
                 }
@@ -259,8 +261,9 @@ module mkHTML {
     function getPathToNode(select:Selection, self) : Selection
     {
         var array = [];
-        var anchor = 0;
-        var first = 1;
+        var anchor;
+        var focus;
+
         console.log(self.attr("data-childNumber"));
 
         var parent = $(self);
@@ -268,19 +271,19 @@ module mkHTML {
 
         if (isNaN(child))
         {
+            var index = parent.index();
             parent = parent.parent();
             child = Number(parent.attr("data-childNumber"));
+            if (parent.children().length === 1)
+            {
+                anchor = 0;
+                focus = 0;
+            }
         }
         while (child != -1) {
             if (!isNaN(child))
             {
-                if (first) {
-                    anchor = child;
-                    first = 0;
-                }
-                else {
-                    array.push(Number(parent.attr("data-childNumber")));
-                }
+                array.push(Number(parent.attr("data-childNumber")));
             }
             parent = parent.parent();
             child = Number(parent.attr("data-childNumber"));
@@ -294,7 +297,7 @@ module mkHTML {
         if(array.length === 0)
             return new pnodeEdits.Selection(select.root(), path, 0, 0);
         else
-            return new pnodeEdits.Selection(tree, path, anchor, (anchor+1));
+            return new pnodeEdits.Selection(tree, path, anchor, anchor);
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
