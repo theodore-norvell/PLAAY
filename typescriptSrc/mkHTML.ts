@@ -136,7 +136,7 @@ module mkHTML {
 
         const seq = document.createElement("div");
         seq.setAttribute("id", "seq");
-        seq.setAttribute("name", "-1");
+        seq.setAttribute("data-childNumber", "-1");
         document.getElementById("container").appendChild(seq);
 
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
@@ -160,7 +160,7 @@ module mkHTML {
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("name", "-1");
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -210,7 +210,7 @@ module mkHTML {
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("name", "-1");
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -259,33 +259,42 @@ module mkHTML {
     function getPathToNode(select:Selection, self) : Selection
     {
         var array = [];
-        var path : (  ...args : Array<number> ) => List<number> = list;
-
-        console.log(self.attr("name"));
+        var anchor = 0;
+        var first = 1;
+        console.log(self.attr("data-childNumber"));
 
         var parent = $(self);
-        var child = Number(parent.attr("name"));
+        var child = Number(parent.attr("data-childNumber"));
 
         if (isNaN(child))
         {
             parent = parent.parent();
-            child = Number(parent.attr("name"));
+            child = Number(parent.attr("data-childNumber"));
         }
-        var focus = child;
-        while (child != -1)
-        {
-            if(!isNaN(child))
-                array.unshift(Number(parent.attr("name")));
+        while (child != -1) {
+            if (!isNaN(child))
+            {
+                if (first) {
+                    anchor = child;
+                    first = 0;
+                }
+                else {
+                    array.push(Number(parent.attr("data-childNumber")));
+                }
+            }
             parent = parent.parent();
-            child = Number(parent.attr("name"));
+            child = Number(parent.attr("data-childNumber"));
         }
-
-        var numpath = array.toString();
+        var tree = select.root();
+        var path = list<number>();
+        var i ;
+        for( i = 0 ; i < array.length ; i++ )
+            path = collections.cons( array[i], path ) ;
 
         if(array.length === 0)
-            return new pnodeEdits.Selection(select.root(), path(), 0, 0);
+            return new pnodeEdits.Selection(select.root(), path, 0, 0);
         else
-            return new pnodeEdits.Selection(select.root(), path(Number(numpath)), focus, (focus + 1));
+            return new pnodeEdits.Selection(tree, path, anchor, (anchor+1));
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -319,7 +328,7 @@ module mkHTML {
             elsebox.appendChild( children[2] ) ;
 
             var ifbox = document.createElement("div");
-            ifbox.setAttribute("name", childNumber.toString());
+            ifbox.setAttribute("data-childNumber", childNumber.toString());
             ifbox.setAttribute("class", "ifBox V workplace canDrag");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
@@ -330,7 +339,7 @@ module mkHTML {
         {
             var seqBox = document.createElement("div");
             seqBox.setAttribute( "class", "seqBox V" ) ;
-            seqBox.setAttribute("name", childNumber.toString());
+            seqBox.setAttribute("data-childNumber", childNumber.toString());
             //seqBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
@@ -348,7 +357,7 @@ module mkHTML {
         {
             var PHBox = document.createElement("div");
             PHBox.setAttribute( "class", "PHBox V" ) ;
-            PHBox.setAttribute("name", childNumber.toString());
+            PHBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
@@ -375,7 +384,7 @@ module mkHTML {
             thenbox.appendChild( children[1] ) ;
 
             var whileBox = document.createElement("div");
-            whileBox.setAttribute("name", childNumber.toString());
+            whileBox.setAttribute("data-childNumber", childNumber.toString());
             //whileBox["childNumber"] = childNumber ;
             whileBox.setAttribute("class", "ifBox V workplace canDrag");
             whileBox.appendChild(guardbox);
@@ -388,7 +397,7 @@ module mkHTML {
         {
             var VarBox = document.createElement("div");
             VarBox.setAttribute("class", "hCont H canDrag" );
-            VarBox.setAttribute("name", childNumber.toString());
+            VarBox.setAttribute("data-childNumber", childNumber.toString());
             //VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
@@ -428,7 +437,7 @@ module mkHTML {
         {
             var AssignBox = document.createElement("div");
             AssignBox.setAttribute("class", "hCont H canDrag" );
-            AssignBox.setAttribute("name", childNumber.toString());
+            AssignBox.setAttribute("data-childNumber", childNumber.toString());
             //AssignBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
