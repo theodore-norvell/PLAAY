@@ -258,7 +258,7 @@ would be implemented by
         method advance() 
             pre canAdvance()
             if evalStack.top().isDone() 
-                con value := evalStack.top().map.apply( the empty path )
+                con value := evalStack.top() 
                 evalStack.pop()
                 if evalStack.notEmpty
                     evalStack.top.setResult( value )
@@ -460,11 +460,10 @@ The advance method for an evaluation either does a selection or a step
         ...
         method canAdvance()
             return evalStack.notEmpty()
-
         method advance() 
             pre canAdvance()
             if evalStack.top().isDone() 
-                con value := evalStack.top().map.apply( the empty path )
+                con value := evalStack.top() 
                 evalStack.pop()
                 if evalStack.notEmpty
                     evalStack.top.setResult( value )
