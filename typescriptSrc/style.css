@@ -304,8 +304,8 @@ div.selected {
 .workplace {
     min-height: 100px;
     min-width: 100px;
-    height: 80% !important;
-    width: 80% !important;
+    height: 50% !important;
+    width: 50% !important;
 }
 
 .hover {
