@@ -153,7 +153,7 @@ module pnodeEdits {
     }
 
     //changes the id inside the label
-    export class changeLabel extends AbstractEdit<Selection> {
+    export class ChangeLabelEdit extends AbstractEdit<Selection> {
         _newString:String;
 
         constructor(newString:String) {
