@@ -258,7 +258,7 @@ would be implemented by
         method advance() 
             pre canAdvance()
             if evalStack.top().isDone() 
-                con value := evalStack.top() 
+                con value := evalStack.top().map.apply( the empty path )
                 evalStack.pop()
                 if evalStack.notEmpty
                     evalStack.top.setResult( value )
@@ -293,7 +293,8 @@ The advance method for an evaluation either does a selection or a step
     con eval := vms.evalStack.top()
     con pending := eval.pending
     pre pending != null
-        and eval.root.get(pending).getLabel() = this
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
     if all pending's children are in the domain of eval.map then 
         // Select this node.
         eval.ready := true
@@ -308,8 +309,9 @@ The advance method for an evaluation either does a selection or a step
     con eval := vms.evalStack.top()
     con pending := eval.pending
     pre pending != null
-        and eval.root.get(pending).getLabel() = this
-    con ifNode := eval.root.get(pending)
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
+
     con guardPath := pending ^ [0]
     con thenPath := pending ^ [1]
     con elsePath := pending ^ [2]
@@ -319,17 +321,17 @@ The advance method for an evaluation either does a selection or a step
                  eval.ready := true
              else
                  eval.pending := thenPath
-                 ifNode.children(1).getLabel.select( vms )
+                 node.children(1).getLabel.select( vms )
         else guardPath is mapped to a value representing &quot;false&quot; then
              if elsePath is in the domain of eval.map then
                  eval.ready := true
              else
                  eval.pending := elsePath
-                 ifNode.children(2).getLabel().select( vms )
+                 node.children(2).getLabel().select( vms )
         else error!!
     else
         eval.pending := guardPath
-        ifNode.children(0).getLabel().select( vms )
+        node.children(0).getLabel().select( vms )
         </pre>
 <p>For nodes representing variables, selection is simple</p>
 <pre>
@@ -337,19 +339,23 @@ The advance method for an evaluation either does a selection or a step
     con eval := vms.evalStack.top()
     con pending := eval.pending
     pre pending != null
-        and eval.root.get(pending).getLabel() = this
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
     
     look up the variable in the stack and highlight it.
+    if there is no variable in the stack with this name, error.
     eval.ready := true</pre>
 <p>Sequence nodes simply select each child in turn and then once all the children have been mapped, the sequence itself is selected. If there are variable declarations in the sequence things might get a bit more interesting.</p>
 <h4>Stepping</h4>
-<p>Stepping also depends on the node type. For plus nodes</p>
+<p>Stepping also depends on the node type. For a call of a built in function, for example + the stepping algorith looks like this.</p>
 <pre>
  method step( vms : VMS )
+    pre eval.ready
     con eval := vms.evalStack.top() 
-    pre eval.pending != null
-        and eval.root.get( eval.pending ).getLabel() = this
-        and eval.ready
+    pre pending != null
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
+    
     get the values mapped by the two children
     if both represent numbers,
       con v := make a new number representing the sum
@@ -370,10 +376,12 @@ The advance method for an evaluation either does a selection or a step
 <p>For if nodes</p>
 <pre>
  method step( vms : VMS )
+    pre eval.ready
     con eval := vms.evalStack.top() 
-    pre eval.pending != null
-        and eval.root.get( eval.pending ).getLabel() = this
-        and eval.ready
+    pre pending != null
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
+
     con thenPath := eval.pending ^ [1]
     con elsePath := eval.pending ^ [2]
     var v : Value
@@ -386,10 +394,12 @@ The advance method for an evaluation either does a selection or a step
 <p>For variable nodes</p>
 <pre>
  method step( vms : VMS )
+    pre eval.ready
     con eval := vms.evalStack.top() 
-    pre eval.pending != null
-        and eval.root.get( eval.pending ).getLabel() = this
-        and eval.ready
+    pre pending != null
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
+
     var f := lookUp( name, eval.stack )
     remove highlight from f
     eval.finishStep( v ) 
@@ -412,10 +422,12 @@ The advance method for an evaluation either does a selection or a step
 <p>The step method for <span class="kbd">CallClosureLabel</span> looks like this:</p>
 <pre>
  method step( vms : VMS )
+    pre eval.ready
     con eval := vms.evalStack.top() 
-    pre eval.pending != null
-        and eval.root.get( eval.pending ).getLabel() = this
-        and eval.ready
+    pre pending != null
+    con node := eval.root.get(pending)
+    pre node.getLabel() = this
+
     con functionPath = eval.pending ^ [0]
     con c := eval.map.get( functionPath )
     if not c isA ClosureV then  error!
@@ -448,10 +460,11 @@ The advance method for an evaluation either does a selection or a step
         ...
         method canAdvance()
             return evalStack.notEmpty()
+
         method advance() 
             pre canAdvance()
             if evalStack.top().isDone() 
-                con value := evalStack.top() 
+                con value := evalStack.top().map.apply( the empty path )
                 evalStack.pop()
                 if evalStack.notEmpty
                     evalStack.top.setResult( value )

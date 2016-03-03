@@ -134,12 +134,16 @@ module mkHTML {
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
 
+        const seq = document.createElement("div");
+        seq.setAttribute("id", "seq");
+        seq.setAttribute("data-childNumber", "-1");
+        document.getElementById("container").appendChild(seq);
+
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
         const div = document.createElement("div") ;
         div.setAttribute("id", "dropZone");
         div.setAttribute("class", "dropZone H droppable") ;
-        div["childCount"] = 0 ;
-        document.getElementById("container").appendChild( div ) ;
+        document.getElementById("seq").appendChild( div ) ;
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -152,10 +156,11 @@ module mkHTML {
             tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                //createHTML(ui.draggable.attr("id"), this);
+                currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -186,96 +191,6 @@ module mkHTML {
         });
     }
 
-    export function createHTML(e, self) {
-        if ('if' === e)
-        {
-            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
-                '<div class="ifBox V workplace">' +
-                '<div class="guardBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="thenBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="elseBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div></div>' +
-                '<div id="dropZone" class="dropZone H droppable"></div>');
-        }
-        else if ('while' === e)
-        {
-            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
-                '<div class="whileBox V workplace">' +
-                '<div class="guardBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="thenBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '</div>' +
-                '<div id="dropZone" class="dropZone H droppable"></div>');
-        }
-        else if ('var' === e)
-        {
-            var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "hCont H" );
-            //VarBox["childNumber"] = childNumber;
-
-            var name = document.createElement("div");
-            name.setAttribute("class", "var H click");
-
-            var op = document.createElement("input");
-            op.setAttribute("class", "op H");
-            op.setAttribute("type", "text");
-            op.setAttribute("list", "oplist");
-            op.setAttribute("width", "5px");
-
-            var list = document.createElement("datalist");
-            list.setAttribute("id", "oplist");
-            var optionplus = document.createElement("option");
-            optionplus.value = "+";
-            var optionminus = document.createElement("option");
-            optionminus.value = "-";
-            var optionmul = document.createElement("option");
-            optionmul.value = "x";
-            var optiondiv = document.createElement("option");
-            optiondiv.value = "/";
-            list.appendChild(optionplus);
-            list.appendChild(optionminus);
-            list.appendChild(optionmul);
-            list.appendChild(optiondiv);
-
-            //op.textContent = "=";
-            var value = document.createElement("div");
-            value.setAttribute("class","var H click");
-
-            VarBox.appendChild(name);
-            VarBox.appendChild(op);
-            VarBox.appendChild(list);
-            VarBox.appendChild(value);
-
-            var box = document.getElementById("container").appendChild(VarBox);
-        }
-
-        $( ".droppable" ).droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
-            hoverClass: "hover",
-            tolerance:"pointer",
-            drop: function (event, ui) {
-                console.log($(this).attr("id"));
-                //createHTML(ui.draggable.attr("id"), this);
-                //$(ui.draggable).clone().appendTo($(this));
-            }
-        });
-
-        $(".click").click(function(){
-            $(this).replaceWith('<input type="text" width="5" class="var H input">')
-        });
-
-        $(".input").keyup(function(e){
-            if(e.keyCode == 13)
-            {
-                alert("Enter");
-                $(this).replaceWith('<div class="var H click"></div>')
-            }
-        });
-    }
-
     export function generateHTML(select:Selection)
     {
         currentSelection = select;
@@ -291,10 +206,11 @@ module mkHTML {
             tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                //createHTML(ui.draggable.attr("id"), this);
+                currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                 //$(ui.draggable).clone().appendTo($(this));
             }
         });
@@ -309,6 +225,7 @@ module mkHTML {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
+                getPathToNode(currentSelection, $(this));
                 $(this).replaceWith('<div class="var H click">' + text + '</div>')
 
                 $(".click").click(function(){
@@ -333,11 +250,54 @@ module mkHTML {
                 if(e.keyCode == 13)
                 {
                     var text = $(this).val();
+                    getPathToNode(currentSelection, $(this));
                     $(this).replaceWith('<div class="var H click">' + text + '</div>')
                     clickDiv();
                 }
             });
         });
+    }
+
+    function getPathToNode(select:Selection, self) : Selection
+    {
+        var array = [];
+        var anchor;
+        var focus;
+
+        console.log(self.attr("data-childNumber"));
+
+        var parent = $(self);
+        var child = Number(parent.attr("data-childNumber"));
+
+        if (isNaN(child))
+        {
+            var index = parent.index();
+            parent = parent.parent();
+            child = Number(parent.attr("data-childNumber"));
+            if (parent.children().length === 1)
+            {
+                anchor = 0;
+                focus = 0;
+            }
+        }
+        while (child != -1) {
+            if (!isNaN(child))
+            {
+                array.push(Number(parent.attr("data-childNumber")));
+            }
+            parent = parent.parent();
+            child = Number(parent.attr("data-childNumber"));
+        }
+        var tree = select.root();
+        var path = list<number>();
+        var i ;
+        for( i = 0 ; i < array.length ; i++ )
+            path = collections.cons( array[i], path ) ;
+
+        if(array.length === 0)
+            return new pnodeEdits.Selection(select.root(), path, 0, 0);
+        else
+            return new pnodeEdits.Selection(tree, path, anchor, anchor);
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -371,7 +331,7 @@ module mkHTML {
             elsebox.appendChild( children[2] ) ;
 
             var ifbox = document.createElement("div");
-            ifbox["childNumber"] = childNumber ;
+            ifbox.setAttribute("data-childNumber", childNumber.toString());
             ifbox.setAttribute("class", "ifBox V workplace canDrag");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
@@ -382,7 +342,8 @@ module mkHTML {
         {
             var seqBox = document.createElement("div");
             seqBox.setAttribute( "class", "seqBox V" ) ;
-            seqBox["childNumber"] = childNumber ;
+            seqBox.setAttribute("data-childNumber", childNumber.toString());
+            //seqBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
             {
@@ -399,7 +360,8 @@ module mkHTML {
         {
             var PHBox = document.createElement("div");
             PHBox.setAttribute( "class", "PHBox V" ) ;
-            PHBox["childNumber"] = childNumber ;
+            PHBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
             {
@@ -425,18 +387,21 @@ module mkHTML {
             thenbox.appendChild( children[1] ) ;
 
             var whileBox = document.createElement("div");
-            whileBox["childNumber"] = childNumber ;
+            whileBox.setAttribute("data-childNumber", childNumber.toString());
+            //whileBox["childNumber"] = childNumber ;
             whileBox.setAttribute("class", "ifBox V workplace canDrag");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
             return whileBox;
         }
+            //rename to world
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
             VarBox.setAttribute("class", "hCont H canDrag" );
-            VarBox["childNumber"] = childNumber;
+            VarBox.setAttribute("data-childNumber", childNumber.toString());
+            //VarBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
             name.setAttribute("class", "var H click");
@@ -475,7 +440,8 @@ module mkHTML {
         {
             var AssignBox = document.createElement("div");
             AssignBox.setAttribute("class", "hCont H canDrag" );
-            AssignBox["childNumber"] = childNumber;
+            AssignBox.setAttribute("data-childNumber", childNumber.toString());
+            //AssignBox["childNumber"] = childNumber;
 
             var name = document.createElement("div");
             name.setAttribute("class", "var H click");

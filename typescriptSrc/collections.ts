@@ -55,6 +55,11 @@ module collections {
     
         toString() : string { return "None" ; }
     }
+
+    export function some<A>( a : A ) : Option<A> {
+            return new Some<A>( a ) ; }
+            
+    export function none<A>() : Option<A> { return new None<A>() ; }
     
     /** Lisp-like lists */
     export abstract class List<A> implements Collection<A> {
