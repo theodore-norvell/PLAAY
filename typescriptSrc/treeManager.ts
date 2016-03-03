@@ -419,6 +419,22 @@ module treeManager {
             this.root = sel.root();
             return sel;
         }
+
+        changeNodeLabel(selection : Selection, newString : String ) {
+            var edit = new pnodeEdits.ChangeLabelEdit(newString);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Error applying edit to node");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+
+        }
     }
 }
 
