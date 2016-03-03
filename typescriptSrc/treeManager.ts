@@ -187,7 +187,13 @@ module treeManager {
             var lambdatype = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
             var dothis = pnode.mkExprSeq([]);
 
-            var opt = pnode.tryMake(pnode.LambdaLabel.theLambdaLabel, [header, lambdatype, dothis]);
+            var ltype = lambdatype.choose(
+                p => p,
+                () => {
+                    return null;
+                });
+
+            var opt = pnode.tryMake(pnode.LambdaLabel.theLambdaLabel, [header, ltype, dothis]);
 
             var lambdanode = opt.choose(
                 p => p,
