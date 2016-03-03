@@ -315,6 +315,10 @@ module pnode {
             return "variable";
         }
 
+        getId(){
+            return this.id;
+        }
+
         changeString (newString : String) : Option<Label> {
             return new None<Label>();
         }
@@ -343,6 +347,10 @@ module pnode {
 
         toString():string {
             return "varDecl";
+        }
+
+        getId(){
+            return this.id;
         }
 
         /*private*/
@@ -379,6 +387,10 @@ module pnode {
 
         toString():string {
             return "callWorld";
+        }
+
+        getId(){
+            return this.id;
         }
 
         //constant can't be changed
