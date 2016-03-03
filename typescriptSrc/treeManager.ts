@@ -49,7 +49,7 @@ module treeManager {
         createNode(label:String, selection:Selection):Selection {
 
 
-            switch(label) {
+            switch (label) {
 
                 //loops & if
                 case "if":
@@ -59,22 +59,22 @@ module treeManager {
 
                 //literals
                 case "stringliteral":
-                    break;
+                    return this.makeStringLiteralNode(selection);
                 case "numberliteral":
-                    break;
+                    return this.makeNumberLiteralNode(selection);
                 case "booleanliteral":
-                    break;
+                    return this.makeBooleanLiteralNode(selection);
                 case "nullliteral":
-                    break;
+                    return this.makeNullLiteralNode(selection);
 
                 //constants
-                case "stringliteral":
+                case "stringconstant":
                     break;
-                case "numberliteral":
+                case "numberconstant":
                     break;
-                case "booleanliteral":
+                case "booleanconstant":
                     break;
-                case "nullliteral":
+                case "nullconstant":
                     break;
 
                 //variables & variable manipulation
@@ -91,14 +91,40 @@ module treeManager {
                 case "this":
                     break;
                 case "lambda":
-                    break;
+                    return this.makeLambdaNode(selection);
                 case "method":
                     break;
+                case "type":
+                    return this.makeTypeNode(selection);
             }
         }
 
-        // Loop and If Nodes
+        private makeVarNode(selection:Selection):Selection {
 
+            var opt = pnode.tryMake(pnode.VariableLabel.theVariableLabel, []);
+
+            var varnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([varnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        // Loop and If Nodes
         private makeWhileNode(selection:Selection):Selection {
 
             var cond = pnode.mkExprPH();
@@ -142,6 +168,35 @@ module treeManager {
                 });
 
             var edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        private makeLambdaNode(selection:Selection):Selection {
+
+            var header = pnode.mkExprSeq([]);
+            var lambdatype = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
+            var dothis = pnode.mkExprSeq([]);
+
+            var opt = pnode.tryMake(pnode.LambdaLabel.theLambdaLabel, [header, lambdatype, dothis]);
+
+            var lambdanode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
             var editResult = edit.applyEdit(selection);
 
             var sel = editResult.choose(
@@ -212,7 +267,7 @@ module treeManager {
 
         private makeCallNode(selection:Selection):Selection {
 
-            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, []);
+            var opt = pnode.tryMake(pnode.CallLabel.theCallLabel, []);
 
             var callnode = opt.choose(
                 p => p,
@@ -234,6 +289,130 @@ module treeManager {
             return sel;
         }
 
+        private makeTypeNode(selection:Selection):Selection {
+
+            var opt = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
+
+            var typenode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([typenode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        private makeStringLiteralNode(selection:Selection):Selection {
+
+            var opt = pnode.tryMake(pnode.StringLiteralLabel.theStringLiteralLabel, []);
+
+            var literalnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        private makeNumberLiteralNode(selection:Selection):Selection {
+
+            var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
+
+            var literalnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        private makeBooleanLiteralNode(selection:Selection):Selection {
+
+            var opt = pnode.tryMake(pnode.BooleanLiteralLabel.theBooleanLiteralLabel, []);
+
+            var literalnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        private makeNullLiteralNode(selection:Selection):Selection {
+
+            var opt = pnode.tryMake(pnode.NullLiteralLabel.theNullLiteralLabel, []);
+
+            var literalnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
     }
 }
 

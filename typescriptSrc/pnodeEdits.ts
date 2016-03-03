@@ -16,6 +16,7 @@ module pnodeEdits {
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
+    import Label = pnode.Label;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -89,55 +90,6 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
-    //TODO test this out
-    export class DeleteEdit extends AbstractEdit<Selection> {
-
-        constructor() {
-            super() ; }
-
-        applyEdit( selection : Selection ) : Option<Selection> {
-            // The following function dives down the tree following the path
-            // until it reaches the node to be changed.
-            // As it climbs back out of the recursion it generates new
-            // nodes along the path it followed.
-            const loop = ( node : PNode, path : List<number>,
-                           start : number, end : number ) : Option<PNode> =>
-            {
-                if( path.size() == 1 ) {
-                    return node.tryModify( [], start, end ) ; }
-                else {
-                    const k = path.first() ;
-                    const len = node.count() ;
-                    assert.check( 0 <= k, "Bad Path. k < 0 in applyEdit" ) ;
-                    assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
-                    const opt = loop( node.child(k), path.rest(), start, end ) ;
-                    return opt.choose(
-                        ( newChild : PNode ) : Option<PNode> => {
-                            return node.tryModify( [newChild], k, k+1 ) ; },
-                        () => { return new None<PNode>() ; } ) ; }
-            };
-
-            // Determine the start and end
-            var start : number ;
-            var end : number ;
-            if( selection.anchor() <= selection.focus() ) {
-                start = selection.anchor() ; end = selection.focus() ; }
-            else {
-                start = selection.focus() ; end = selection.anchor() ; }
-            // Loop down to find and modify the selections target node.
-            const opt = loop( selection.root(), selection.path(), start, end ) ;
-            // If successful, build a new Selection object.
-            return opt.choose(
-                ( newRoot : PNode ) : Option<Selection> => {
-                    const f = start;
-                    const newSelection = new Selection( newRoot,
-                        selection.path(),
-                        f, f) ;
-                    return new Some( newSelection ) ; },
-                () : Option<Selection>  => { return new None<Selection> () ; } ) ;
-        }
-    }
-
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
 
@@ -189,54 +141,81 @@ module pnodeEdits {
         }
     }
 
-    export class ReplaceNodeEdit extends AbstractEdit<Selection> {
-        _newNodes : Array<PNode> ;
+    export class DeleteEdit extends AbstractEdit<Selection> {
 
-        constructor( newNodes : Array<PNode> ) {
-            super() ;
-            this._newNodes = newNodes ; }
+        constructor() {
+            super() ; }
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            // The following function dives down the tree following the path
-            // until it reaches the node to be changed.
-            // As it climbs back out of the recursion it generates new
-            // nodes along the path it followed.
-            const loop = ( node : PNode, path : List<number>,
-                           start : number, end : number ) : Option<PNode> =>
-            {
-                if( path.isEmpty() ) {
+            var edit = new pnodeEdits.InsertChildrenEdit([]);
+            return edit.applyEdit(selection);
+        }
+    }
+
+    //changes the id inside the label
+    export class changeLabel extends AbstractEdit<Selection> {
+        _newString:String;
+
+        constructor(newString:String) {
+            super();
+            this._newString = newString;
+        }
+
+        applyEdit(selection:Selection):Option<Selection> {
+            const loop = (node:PNode, path:List<number>,
+                          start:number, end:number):Option<PNode> => {
+                if (path.isEmpty()) {
                     //console.log("this._newNodes is " + this._newNodes ) ;
-                    return node.tryModify( this._newNodes, start, end ) ; }
-                else {
-                    const k = path.first() ;
-                    const len = node.count() ;
-                    assert.check( 0 <= k, "Bad Path. k < 0 in applyEdit" ) ;
-                    assert.check( k < len, "Bad Path. k >= len in applyEdit" ) ;
-                    const opt = loop( node.child(k), path.rest(), start, end ) ;
+                    var opt = node.label().changeString(this._newString);
                     return opt.choose(
-                        ( newChild : PNode ) : Option<PNode> => {
-                            return node.tryModify( [newChild], k, k+1 ) ; },
-                        () => { return new None<PNode>() ; } ) ; }
+                        (label:Label):Option<PNode> => {
+                        return node.tryModifyLabel(label);
+                        },
+                        () => {
+                            return new None<PNode>();
+                        });
+                }
+                else {
+                    const k = path.first();
+                    const len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    const opt = loop(node.child(k), path.rest(), start, end);
+                    return opt.choose(
+                        (newChild:PNode):Option<PNode> => {
+                            return node.tryModify([newChild], k, k + 1);
+                        },
+                        () => {
+                            return new None<PNode>();
+                        });
+                }
             };
 
             // Determine the start and end
-            var start : number ;
-            var end : number ;
-            if( selection.anchor() <= selection.focus() ) {
-                start = selection.anchor() ; end = selection.focus() ; }
+            var start:number;
+            var end:number;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
             else {
-                start = selection.focus() ; end = selection.anchor() ; }
+                start = selection.focus();
+                end = selection.anchor();
+            }
             // Loop down to find and modify the selections target node.
-            const opt = loop( selection.root(), selection.path(), start, end ) ;
+            const opt = loop(selection.root(), selection.path(), start, end);
             // If successful, build a new Selection object.
             return opt.choose(
-                ( newRoot : PNode ) : Option<Selection> => {
-                    const f = start + this._newNodes.length;
-                    const newSelection = new Selection( newRoot,
+                (newRoot:PNode):Option<Selection> => {
+                    const f = start;
+                    const newSelection = new Selection(newRoot,
                         selection.path(),
-                        f, f) ;
-                    return new Some( newSelection ) ; },
-                () : Option<Selection>  => { return new None<Selection> () ; } ) ;
+                        f, f);
+                    return new Some(newSelection);
+                },
+                ():Option<Selection> => {
+                    return new None<Selection>();
+                });
         }
     }
 }
