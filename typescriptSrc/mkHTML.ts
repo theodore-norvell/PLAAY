@@ -135,7 +135,7 @@ module mkHTML {
         document.getElementById("sidebar").appendChild(selectionblock);
 
         const stringlitblock = document.createElement("div");
-        stringlitblock.setAttribute("id", "stringlit");
+        stringlitblock.setAttribute("id", "stringliteral");
         stringlitblock.setAttribute("class", "block V palette");
         stringlitblock.textContent = "String Literal";
         document.getElementById("sidebar").appendChild(stringlitblock);
@@ -206,8 +206,7 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
-        clickDiv();
-        clickString();
+        //clickDiv();
         enterList();
     }
 
@@ -235,11 +234,9 @@ module mkHTML {
             }
         });
 
-        clickDiv();
+        //clickDiv();
 
         enterList();
-
-        clickString();
     }
 
     function enterList()
@@ -263,39 +260,35 @@ module mkHTML {
         });
     }
 
-    function clickDiv()
+    /*function clickDiv()
     {
-        $(".click").click(function(){
-            $(this).replaceWith('<input type="text" class="var H input">');
-
-            $(".input").keyup(function(e){
-                if(e.keyCode == 13)
-                {
-                    var text = $(this).val();
-                    getPathToNode(currentSelection, $(this));
-                    $(this).replaceWith('<div class="var H click">' + text + '</div>')
-                    clickDiv();
-                }
-            });
+        //var self = $(this);
+        $(".click").click(function () {
+            var label = $(this).attr("class");
+            if (/var/i.test(label)) {
+                $(this).replaceWith('<input type="text" class="var H input">');
+                $(".click").keyup(function (e) {
+                    if (e.keyCode == 13) {
+                        var text = $(this).val();
+                        $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                        clickDiv();
+                        getPathToNode(currentSelection, $(this));
+                    }
+                });
+            }
+            else if (/stringLiteral/i.test(label)) {
+                $(this).replaceWith('<input type="text" class="stringLiteral H input">');
+                $(".input").keyup(function (e) {
+                    if (e.keyCode == 13) {
+                        var text = $(this).val();
+                        $(this).replaceWith('<div class="stringLiteral H clickstring">' + text + '</div>');
+                        clickDiv();
+                        getPathToNode(currentSelection, $(this));
+                    }
+                });
+            }
         });
-    }
-
-    function clickString()
-    {
-        $(".clickstring").click(function(){
-            $(this).replaceWith('<input type="text" class="stringLiteral H input">');
-
-            $(".input").keyup(function(e){
-                if(e.keyCode == 13)
-                {
-                    var text = $(this).val();
-                    getPathToNode(currentSelection, $(this));
-                    $(this).replaceWith('<div class="stringLiteral H clickstring">' + text + '</div>')
-                    clickString();
-                }
-            });
-        });
-    }
+    }*/
 
     function getPathToNode(select:Selection, self) : Selection
     {
@@ -312,12 +305,9 @@ module mkHTML {
         {
             var index = parent.index();
             parent = parent.parent();
-            var length = parent.children().length;
             var num = parent.children().eq(index).prevAll(".dropZone").length;
-            var dz = parent.children(".dropZone").length;
             child = Number(parent.attr("data-childNumber"));
             var place = index - num;
-            var numItems = length - dz;
 
             anchor = place;
             focus = anchor;
@@ -382,7 +372,7 @@ module mkHTML {
             var seqBox = document.createElement("div");
             seqBox.setAttribute( "class", "seqBox V" ) ;
             seqBox.setAttribute("data-childNumber", childNumber.toString());
-            //seqBox["childNumber"] = childNumber ;
+            seqBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
             {
@@ -399,13 +389,13 @@ module mkHTML {
         {
             var PHBox = document.createElement("div");
             PHBox.setAttribute( "class", "placeHolder V" ) ;
-            PHBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
             {
                 var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
                 PHBox.appendChild( dropZone ) ;
                 if( i == children.length ) break ;
                 PHBox.appendChild( children[i] ) ;
@@ -433,41 +423,40 @@ module mkHTML {
 
             return whileBox;
         }
-            //rename to world
-        else if(label.match("worldcall"))
+        else if(label.match("callWorld"))
         {
             var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "var H canDrag" );
+            WorldBox.setAttribute("class", "callWorld H canDrag" );
             WorldBox.setAttribute("data-childNumber", childNumber.toString());
             WorldBox.setAttribute("type", "text");
             WorldBox.setAttribute("list", "oplist");
 
-            var name = document.createElement("div");
-            name.setAttribute("class", "var H click");
+            var op = document.createElement("input");
+            op.setAttribute("class", "var H input");
+            op.setAttribute("type", "text");
+            op.setAttribute("list", "oplist");
 
-            var value = document.createElement("div");
-            value.setAttribute("class","stringLiteral H clickstring");
 
-            WorldBox.appendChild(name);
-            WorldBox.appendChild(value);
+            WorldBox.appendChild(children[0]);
+            WorldBox.appendChild(op);
+            WorldBox.appendChild(children[1]);
 
             return WorldBox;
         }
         else if(label.match("assign"))
         {
             var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "var H canDrag" );
+            AssignBox.setAttribute("class", "assign H canDrag" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
             AssignBox.textContent = ":=";
 
-            var name = document.createElement("div");
-            name.setAttribute("class", "var H click");
+            var equals = document.createElement("div");
+            equals.setAttribute("class", "var H");
+            equals.textContent = ":=";
 
-            var value = document.createElement("div");
-            value.setAttribute("class","stringLiteral H clickstring");
-
-            AssignBox.appendChild(name);
-            AssignBox.appendChild(value);
+            AssignBox.appendChild(children[0]);
+            AssignBox.appendChild(equals);
+            AssignBox.appendChild(children[1]);
 
             return AssignBox;
         }
@@ -500,9 +489,16 @@ module mkHTML {
         else if(label.match("var"))
         {
             var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "var H click");
+            VarBox.setAttribute("class", "var H input");
 
             return VarBox;
+        }
+        else if(label.match("stringLiteral"))
+        {
+            var StringBox = document.createElement("div");
+            StringBox.setAttribute("class", "stringLiteral H input");
+
+            return StringBox;
         }
     }
 }
