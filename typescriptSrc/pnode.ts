@@ -14,7 +14,8 @@ module pnode {
         /** Returns the class that uses this sort of label */
         getClass : () => PNodeClass ;
 
-        changeString:(newString : String) => Option<Label> ;
+        getVal : () => string ;
+        changeValue:(newString : string) => Option<Label> ;
     }
 
     /**  Interface is to describe objects that are classes that are subclasses of PNode
@@ -52,7 +53,7 @@ module pnode {
         }
 
         public child(i:number):PNode {
-            return this._children[i]
+            return this._children[i];
         }
 
         public label():Label {
@@ -127,10 +128,9 @@ module pnode {
 
         abstract isTypeNode():boolean ;
 
-        toString():string {
+        toString ():string {
             var strs = this._children.map((p:PNode) => p.toString());
-            var args = strs.reduce((a:string, p:string) => a + " " + p.toString(),
-                "");
+            var args = strs.reduce((a:string, p:string) => a + " " + p.toString(), "");
 
             return this._label.toString() + "(" + args + ")";
         }
@@ -198,6 +198,7 @@ module pnode {
         isTypeNode():boolean {
             return false;
         }
+
     }
 
     export class TypeNode extends PNode {
@@ -243,9 +244,10 @@ module pnode {
         constructor() {
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
+        getVal : () => string ;
 
         // Singleton
         //public static theExprLabel = new ExprLabel();
@@ -271,8 +273,12 @@ module pnode {
         constructor() {
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return null;
         }
 
         // Singleton
@@ -290,8 +296,12 @@ module pnode {
         constructor() {
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return null;
         }
 
         // Singleton
@@ -301,8 +311,8 @@ module pnode {
     //Variable
 
     export class VariableLabel implements ExprLabel {
+        _val : string;
 
-        id : String;
         isValid(children:Array<PNode>):boolean {
             if (children.length != 0) return false;
         }
@@ -315,110 +325,31 @@ module pnode {
             return "variable";
         }
 
-        getId(){
-            return this.id;
+        getVal() : string {
+            return this._val;
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
 
         /*private*/
-        constructor(name : String) {
-            this.id = name;
+        constructor(name : string) {
+            this._val = name;
         }
 
         public static theVariableLabel = new VariableLabel("");
     }
 
-    export class varDeclLabel implements ExprLabel {
-
-        id : String;
-        con : Boolean;
-        isValid(children:Array<PNode>):boolean {//TODO check logic
-            if (children.length != 2) return false;
-            if (!children[0].isTypeNode()) return false;
-            if (!children[1].isExprNode()) return false;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "varDecl";
-        }
-
-        getId(){
-            return this.id;
-        }
-
-        /*private*/
-        constructor(name : String, c : Boolean) {
-            this.id = name;
-            this.con = c;
-        }
-
-        changeString (newString : String ) : Option<Label> {
-            if (this.con = false) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
-        }
-
-
-    }
-
-
-    //Arithmetic Labels
-    export class callWorldLabel implements ExprLabel {
-
-        id : String;//the operation
-
-        isValid(children:Array<PNode>):boolean {
-            return children.every(function(c : PNode) { return c.isExprNode() } ) ;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "callWorld";
-        }
-
-        getId(){
-            return this.id;
-        }
-
-        //constant can't be changed
-        changeString (newString : String) : Option<Label> {
-
-            if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
-                var newLabel = new callWorldLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor(name : String) {
-            this.id = name;
-        }
-
-        public static theCallWorldLabel = new callWorldLabel("");
-    }
-
     export class AssignLabel extends ExprLabel {
+        _val : string;
+        con : boolean;
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
             if( ! children[0].isExprNode()) return false ;
             if( ! children[1].isExprNode()) return false ;
-            return true
+            return true;
         }
 
         getClass():PNodeClass {
@@ -434,8 +365,57 @@ module pnode {
             super();
         }
 
+        changeValue (newString : string ) : Option<Label> {
+            if (this.con = false) {
+                var newLabel = new NumberLiteralLabel(newString);
+                return new Some(newLabel);
+            }
+
+            return new None<Label>();
+        }
+
         // Singleton
         public static theAssignLabel = new AssignLabel();
+    }
+
+
+    //Arithmetic Labels
+    export class callWorldLabel implements ExprLabel {
+
+        _val : string;//the operation
+
+        isValid(children:Array<PNode>):boolean {
+            return children.every(function(c : PNode) { return c.isExprNode() } ) ;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "callWorld";
+        }
+
+        getVal() : string {
+            return this._val;
+        }
+
+        changeValue (newString : string) : Option<Label> {
+
+            if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
+                var newLabel = new callWorldLabel(newString);
+                return new Some(newLabel);
+            }
+
+            return new None<Label>();
+        }
+
+        /*private*/
+        constructor(name : string) {
+            this._val = name;
+        }
+
+        public static theCallWorldLabel = new callWorldLabel("");
     }
 
     //Placeholder Labels
@@ -464,44 +444,14 @@ module pnode {
         public static theExprPHLabel = new ExprPHLabel();
     }
 
-    export class TypePHLabel implements Label {
-        isValid(children:Array<PNode>):boolean {
-            if (children.length != 0) return false;
-            return true;
-        }
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "typePH";
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        // Singleton
-        public static theTypePHLabel = new TypePHLabel();
-    }
-
     export class LambdaLabel extends ExprLabel {
 
-        isValid( children : Array<PNode> ) {
-            return super.isValid(children) && this.childisValid(children);
-        }
-
-        //TODO figure out parameter list
-         childisValid( children : Array<PNode> ) {
+         isValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
-             //if ( ! children[0].isParameterList() ) return false ;
+             if ( ! children[0].isExprSeqNode() ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
+             return true;
          }
 
         getClass():PNodeClass {
@@ -573,13 +523,13 @@ module pnode {
     //Const Labels
 
     export class StringConstLabel implements ExprLabel {
-        _val:String;
+        _val:string;
 
-        constructor(val:String) {
+        constructor(val:string) {
             this._val = val;
         }
 
-        val():String {
+        getVal():string {
             return this._val;
         }
 
@@ -592,7 +542,7 @@ module pnode {
         }
 
         //constant can't be changed
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
 
@@ -602,15 +552,12 @@ module pnode {
     }
 
     export class NumberConstLabel implements ExprLabel {
-        _val:number;
+        _val:string;
 
-        constructor(val:number) {
+        constructor(val:string) {
             this._val = val;
         }
 
-        val():number {
-            return this._val;
-        }
 
         isValid(children:Array<PNode>) {
             return children.length == 0;
@@ -620,8 +567,12 @@ module pnode {
             return ExprNode;
         }
 
+        getVal() : string {
+            return this._val;
+        }
+
         //constant can't be changed
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
 
@@ -631,13 +582,13 @@ module pnode {
     }
 
     export class BooleanConstLabel implements ExprLabel {
-        _val:boolean;
+        _val:string;
 
-        constructor(val:boolean) {
+        constructor(val:string) {
             this._val = val;
         }
 
-        val():boolean {
+        getVal():string {
             return this._val;
         }
 
@@ -650,7 +601,7 @@ module pnode {
         }
 
         //constant can't be changed
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
 
@@ -679,8 +630,12 @@ module pnode {
         }
 
         //constant can't be changed
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return this._val;
         }
 
         toString():string {
@@ -702,8 +657,12 @@ module pnode {
             return "noType";
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return null;
         }
 
         /*private*/
@@ -714,317 +673,48 @@ module pnode {
         public static theNoTypeLabel = new NoTypeLabel();
     }
 
-    export class numTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "numType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theNumTypeLabel = new numTypeLabel();
-    }
-
-    export class strTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "strType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theStrTypeLabel = new strTypeLabel();
-    }
-
-    export class anyTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "anyType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theAnyTypeLabel = new anyTypeLabel();
-    }
-
-    export class nullTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "nullType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theNullTypeLabel = new nullTypeLabel();
-    }
-
-    export class commTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "commType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theCommTypeLabel = new commTypeLabel();
-    }
-
-    export class classTypeLabel implements TypeLabel {
-
-        id : String;
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "classType";
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        /*private*/
-        constructor(name : String) {
-            this.id = name;
-        }
-    }
-
-    export class altTypeLabel implements TypeLabel {
-        isValid(children:Array<PNode>):boolean {
-            return children.every(function (c:PNode) {
-                return c.isTypeNode()
-            });
-        }
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
-
-        toString():string {
-            return "altType";
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        changeString (newString : String) : Option<Label> {
-            return new None<Label>();
-        }
-
-        // Singleton
-        public static theAltTypeLabel = new altTypeLabel();
-    }
-
-
-
-
-
-
-    //Var Labels
-  /*  export class StringVarLabel implements ExprLabel {
-        _val:String;
-
-        constructor(val:String) {
-            this._val = val;
-        }
-
-        val():String {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }
-    }
-
-    export class NumberVarLabel implements ExprLabel {
-        _val:number;
-
-        constructor(val:number) {
-            this._val = val;
-        }
-
-        val():number {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-    }
-
-    export class BooleanVarLabel implements ExprLabel {
-        _val:boolean;
-
-        constructor(val:boolean) {
-            this._val = val;
-        }
-
-        val():boolean {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-    }
-
-    export class AnyVarLabel implements ExprLabel {
-        _val:any;
-
-        constructor(val:any) {
-            this._val = val;
-        }
-
-        val():any {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-    }*/
-
-
      //Literal Labels
 
      export class StringLiteralLabel implements ExprLabel {
-        _val : String ;
+        _val : string ;
 
-        constructor( val : String) { this._val = val ; }
+        constructor( val : string) { this._val = val ; }
 
-        val() : String { return this._val ; }
+        val() : string { return this._val ; }
 
         isValid( children : Array<PNode> ) {
         return children.length == 0 ; }
 
         getClass() : PNodeClass { return ExprNode ; }
 
-         changeString (newString : String) : Option<Label> {
+
+         changeValue (newString : string) : Option<Label> {
              var newLabel = new StringLiteralLabel(newString);
              return new Some(newLabel);
          }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+         getVal() : string {
+             return this._val;
+         }
+
+        toString() : string { return "string"  ; }
 
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
      }
 
     export class NumberLiteralLabel implements StringLiteralLabel {
-        _val : String ;
+        _val : string ;
 
-        constructor( val : String) { this._val = val ; }
+        constructor( val : string) { this._val = val ; }
 
-        val() : String { return this._val ; }
+        val() : string { return this._val ; }
 
         isValid( children : Array<PNode> ) {
             return children.length == 0 ;
         //TODO logic to make sure this is a number
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
 
             var valid = true;
             for (var i = 0; i < newString.length; i++) {
@@ -1047,6 +737,10 @@ module pnode {
             return new None<Label>();
         }
 
+        getVal() : string {
+            return null;
+        }
+
         getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }
@@ -1054,13 +748,13 @@ module pnode {
     }
 
     export class BooleanLiteralLabel implements StringLiteralLabel {
-        _val : String ;
+        _val : string ;
 
-        constructor( val : String) { this._val = val ; }
+        constructor( val : string) { this._val = val ; }
 
-        val() : String { return this._val ; }
+        val() : string { return this._val ; }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             if (newString.match("true") || newString.match ("false")) {
                 var newLabel = new BooleanLiteralLabel(newString);
                 return new Some(newLabel);
@@ -1075,6 +769,10 @@ module pnode {
             return true;
         }
 
+        getVal() : string {
+            return this._val;
+        }
+
         getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }
@@ -1083,19 +781,22 @@ module pnode {
 
 
     export class NullLiteralLabel implements ExprLabel {
+        _val : string;
+        constructor() { this._val = "null" ; }
 
-        _val : void;
-        constructor() { this._val = null ; }
-
-        val() : String { return null }
+        val() : string { return null }
 
         isValid( children : Array<PNode> ) {
             return children.length == 0;}
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return "null";
         }
 
         toString() : string { return "string[" + this._val + "]"  ; }
@@ -1117,8 +818,12 @@ module pnode {
             return "method";
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return null;
         }
 
         /*private*/
@@ -1130,6 +835,8 @@ module pnode {
     }
 
     export class CallLabel implements ExprLabel {
+        _id : string ;
+
         isValid(children:Array<PNode>) {
             //TODO check if child 0 is a method
             return children.every(function (c:PNode) {
@@ -1145,8 +852,12 @@ module pnode {
             return "call";
         }
 
-        changeString (newString : String) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
             return new None<Label>();
+        }
+
+        getVal() : string {
+            return this._id;
         }
 
         /*private*/
@@ -1162,56 +873,29 @@ module pnode {
         return <ExprNode> make(ExprPHLabel.theExprPHLabel, []);
     }
 
-    export function mkTypePH():TypeNode {
-        return <TypeNode> make(TypePHLabel.theTypePHLabel, []);
-    }
-
-
     //Loop and If Make
     export function mkIf(guard:ExprNode, thn:ExprSeqNode, els:ExprSeqNode):ExprNode {
-        return <ExprNode> make(IfLabel.theIfLabel, [guard, thn, els]);
-    }
+        return <ExprNode> make(IfLabel.theIfLabel, [guard, thn, els]); }
 
     export function mkWhile(cond:ExprNode, seq:ExprSeqNode):ExprNode {
-        return <ExprNode> make(WhileLabel.theWhileLabel, [cond, seq]);
-    }
-
-
-    //Arithmetic Make
-    export function mkAssign(left:ExprNode, right:ExprNode):ExprNode {
-        return <ExprNode> make(AssignLabel.theAssignLabel, [left, right]);
-    }
+        return <ExprNode> make(WhileLabel.theWhileLabel, [cond, seq]); }
 
     export function mkExprSeq( exprs : Array<ExprNode> ) : ExprSeqNode {
         return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
     //Const Make
-    export function mkStringConst( val : String ) : ExprNode{
+    export function mkStringConst( val : string ) : ExprNode{
         return <ExprNode> make( new StringConstLabel(val),[] ) ; }
 
-    export function mkNumberConst( val : number ) : ExprNode{
+    export function mkNumberConst( val : string ) : ExprNode{
         return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
 
-    export function mkBooleanConst( val : boolean ) : ExprNode{
+    export function mkBooleanConst( val : string ) : ExprNode{
         return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }
 
     export function mkAnyConst( val : any ) : ExprNode{
         return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
 
-
-    //TODO mk functions for literals etc.
-/*    //Var Make
-    export function mkStringVar( val : String ) : ExprNode{
-        return <ExprNode> make( new StringVarLabel(val),[] ) ; }
-
-    export function mkNumberVar( val : number ) : ExprNode{
-        return <ExprNode> make( new NumberVarLabel(val),[] ) ; }  //
-
-    export function mkBooleanVar( val : boolean ) : ExprNode{
-        return <ExprNode> make( new BooleanVarLabel(val),[] ) ; }
-
-    export function mkAnyVar( val : any ) : ExprNode{
-        return <ExprNode> make( new AnyVarLabel(val),[] ) ; }*/
 }
 
 export = pnode ;

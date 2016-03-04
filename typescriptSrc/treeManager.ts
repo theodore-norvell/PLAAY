@@ -46,7 +46,7 @@ module treeManager {
 
         }
 
-        createNode(label:String, selection:Selection):Selection {
+        createNode(label:string, selection:Selection):Selection {
 
 
             switch (label) {
@@ -79,7 +79,7 @@ module treeManager {
 
                 //variables & variable manipulation
                 case "var":
-                    break;
+                    return this.makeVarNode(selection);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
@@ -88,8 +88,6 @@ module treeManager {
                     return this.makeWorldCallNode(selection);
 
                 //misc
-                case "this":
-                    break;
                 case "lambda":
                     return this.makeLambdaNode(selection);
                 case "method":
@@ -420,7 +418,7 @@ module treeManager {
             return sel;
         }
 
-        changeNodeLabel(selection : Selection, newString : String ) {
+        changeNodeString(selection : Selection, newString : string ) : Selection {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
             var editResult = edit.applyEdit(selection);
 
@@ -434,6 +432,21 @@ module treeManager {
             this.root = sel.root();
             return sel;
 
+        }
+
+        deleteNode(selection : Selection ) {
+            var edit = new pnodeEdits.DeleteEdit();
+            var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Error applying edit to node");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
         }
     }
 }

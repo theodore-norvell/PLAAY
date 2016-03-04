@@ -154,9 +154,9 @@ module pnodeEdits {
 
     //changes the id inside the label
     export class ChangeLabelEdit extends AbstractEdit<Selection> {
-        _newString:String;
+        _newString:string;
 
-        constructor(newString:String) {
+        constructor(newString:string) {
             super();
             this._newString = newString;
         }
@@ -166,7 +166,7 @@ module pnodeEdits {
                           start:number, end:number):Option<PNode> => {
                 if (path.isEmpty()) {
                     //console.log("this._newNodes is " + this._newNodes ) ;
-                    var opt = node.label().changeString(this._newString);
+                    var opt = node.label().changeValue(this._newString);
                     return opt.choose(
                         (label:Label):Option<PNode> => {
                         return node.tryModifyLabel(label);
