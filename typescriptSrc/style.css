@@ -84,6 +84,15 @@ div.trash
     bottom:4px; left: 100px;
 }
 
+div.play
+{
+    width:90px;
+    height:40px;
+    background-color:green;
+    position:fixed;
+    bottom:50px; left: 0px;
+}
+
 div.sidebar
 {
     position:fixed;
