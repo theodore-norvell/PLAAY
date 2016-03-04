@@ -315,7 +315,7 @@ module pnode {
             return "variable";
         }
 
-        getId(){
+        getId() : String {
             return this.id;
         }
 
@@ -389,11 +389,10 @@ module pnode {
             return "callWorld";
         }
 
-        getId(){
+        getId() : String {
             return this.id;
         }
 
-        //constant can't be changed
         changeString (newString : String) : Option<Label> {
 
             if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
@@ -1002,12 +1001,13 @@ module pnode {
 
         getClass() : PNodeClass { return ExprNode ; }
 
+
          changeString (newString : String) : Option<Label> {
              var newLabel = new StringLiteralLabel(newString);
              return new Some(newLabel);
          }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "string"  ; }
 
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
      }
