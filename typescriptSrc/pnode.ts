@@ -445,7 +445,7 @@ module pnode {
     }
 
     export class LambdaLabel implements Label {
-
+        
          isValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
              if ( ! children[0].isExprSeqNode() ) return false ;
