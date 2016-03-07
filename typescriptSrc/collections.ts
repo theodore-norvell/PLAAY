@@ -55,6 +55,11 @@ module collections {
     
         toString() : string { return "None" ; }
     }
+
+    export function some<A>( a : A ) : Option<A> {
+            return new Some<A>( a ) ; }
+            
+    export function none<A>() : Option<A> { return new None<A>() ; }
     
     /** Lisp-like lists */
     export abstract class List<A> implements Collection<A> {
@@ -136,12 +141,13 @@ module collections {
         while( i > 0 ) {  i -= 1 ; acc = new Cons( args[i], acc ) ; }
         return acc ;
     }
-    
-    function cons<A>( head : A, rest : List<A> ) : List<A> {
+
+    export function cons<A>( head : A, rest : List<A> ) : List<A> {
             return new Cons<A>( head, rest ) ; }
             
-    function nil<A>() : List<A> { return new Nil<A>() ; }
+    export function nil<A>() : List<A> { return new Nil<A>() ; }
     
 }
 
 export = collections ;
+

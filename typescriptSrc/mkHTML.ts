@@ -27,6 +27,7 @@ module mkHTML {
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
+    var replace = 1;
     currentSelection = select;
 
     export function onLoad() : void
@@ -64,7 +65,7 @@ module mkHTML {
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
             }
-        }
+        };
 
         const playbutton = document.createElement("div");
         playbutton.setAttribute("id", "play");
@@ -78,6 +79,12 @@ module mkHTML {
             window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
         };
 
+        const trash = document.createElement("div");
+        trash.setAttribute("id","trash");
+        trash.setAttribute("class", "trash");
+        trash.textContent = "Trash";
+        document.getElementById("body").appendChild(trash);
+
         //creates side bar
         const sidebar = document.createElement("div");
         sidebar.setAttribute("id","sidebar");
@@ -86,58 +93,74 @@ module mkHTML {
 
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
-        ifblock.setAttribute("class","ifBox V palette");
+        ifblock.setAttribute("class","block V palette");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
 
 
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
-        whileblock.setAttribute("class", "whileBox V palette");
+        whileblock.setAttribute("class", "block V palette");
         whileblock.textContent = "While";
         document.getElementById("sidebar").appendChild(whileblock);
 
         const varblock = document.createElement("div");
         varblock.setAttribute("id", "var");
-        varblock.setAttribute("class", "varBox V palette");
+        varblock.setAttribute("class", "block V palette");
         varblock.textContent = "Var";
         document.getElementById("sidebar").appendChild(varblock);
 
-        const forblock = document.createElement("div");
-        forblock.setAttribute("id", "for");
-        forblock.setAttribute("class", "forBox V palette");
-        forblock.textContent = "For";
-        document.getElementById("sidebar").appendChild(forblock);
+        const stringlitblock = document.createElement("div");
+        stringlitblock.setAttribute("id", "stringliteral");
+        stringlitblock.setAttribute("class", "block V palette");
+        stringlitblock.textContent = "String Literal";
+        document.getElementById("sidebar").appendChild(stringlitblock);
 
-        const thisblock = document.createElement("div");
-        thisblock.setAttribute("id", "this");
-        thisblock.setAttribute("class", "thisBox V palette");
-        thisblock.textContent = "This";
-        document.getElementById("sidebar").appendChild(thisblock);
+        const worldblock = document.createElement("div");
+        worldblock.setAttribute("id", "worldcall");
+        worldblock.setAttribute("class", "block V palette");
+        worldblock.textContent = "Call World";
+        document.getElementById("sidebar").appendChild(worldblock);
 
-        const trueblock = document.createElement("div");
-        trueblock.setAttribute("id", "true");
-        trueblock.setAttribute("class", "trueBox V palette");
-        trueblock.textContent = "True";
-        document.getElementById("sidebar").appendChild(trueblock);
-
-        const falseblock = document.createElement("div");
-        falseblock.setAttribute("id", "false");
-        falseblock.setAttribute("class", "falseBox V palette");
-        falseblock.textContent = "False";
-        document.getElementById("sidebar").appendChild(falseblock);
+        const assignmentblock = document.createElement("div");
+        assignmentblock.setAttribute("id", "assign");
+        assignmentblock.setAttribute("class", "block V palette");
+        assignmentblock.textContent = "Assignment";
+        document.getElementById("sidebar").appendChild(assignmentblock);
 
         const nullblock = document.createElement("div");
         nullblock.setAttribute("id", "null");
-        nullblock.setAttribute("class", "nullBox V palette");
+        nullblock.setAttribute("class", "block V palette");
         nullblock.textContent = "Null";
         document.getElementById("sidebar").appendChild(nullblock);
 
-        const assignmentblock = document.createElement("div");
-        assignmentblock.setAttribute("id", "assignment");
-        assignmentblock.setAttribute("class", "assignmentBox V palette");
-        assignmentblock.textContent = "Assignment";
-        document.getElementById("sidebar").appendChild(assignmentblock);
+        const lambdablock = document.createElement("div");
+        lambdablock.setAttribute("id", "lambda");
+        lambdablock.setAttribute("class", "block V palette");
+        lambdablock.textContent = "Lambda Expression";
+        document.getElementById("sidebar").appendChild(lambdablock);
+
+        const selectionblock = document.createElement("div");
+        selectionblock.setAttribute("id", "selection");
+        selectionblock.setAttribute("class", "block V palette");
+        selectionblock.textContent = "Selection";
+        document.getElementById("sidebar").appendChild(selectionblock);
+
+        var list = document.createElement("datalist");
+        list.setAttribute("id", "oplist");
+        var optionplus = document.createElement("option");
+        optionplus.value = "+";
+        var optionminus = document.createElement("option");
+        optionminus.value = "-";
+        var optionmul = document.createElement("option");
+        optionmul.value = "*";
+        var optiondiv = document.createElement("option");
+        optiondiv.value = "/";
+        list.appendChild(optionplus);
+        list.appendChild(optionminus);
+        list.appendChild(optionmul);
+        list.appendChild(optiondiv);
+        document.getElementById("body").appendChild(list);
 
         //creates container for code
         const container = document.createElement("div");
@@ -145,12 +168,16 @@ module mkHTML {
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
 
+        const seq = document.createElement("div");
+        seq.setAttribute("id", "seq");
+        seq.setAttribute("data-childNumber", "-1");
+        document.getElementById("container").appendChild(seq);
+
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
         const div = document.createElement("div") ;
         div.setAttribute("id", "dropZone");
         div.setAttribute("class", "dropZone H droppable") ;
-        div["childCount"] = 0 ;
-        document.getElementById("container").appendChild( div ) ;
+        document.getElementById("seq").appendChild( div ) ;
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -160,13 +187,25 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
+            tolerance:"pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
+                currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                 //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        $( ".trash").droppable({
+            accept:".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            drop: function(event, ui){
+                ui.draggable.remove();
+                currentSelection = getPathToNode(currentSelection, $(this));
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -174,46 +213,7 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
-
-    }
-
-    export function createHTML(e, self) {
-        if ('if' === e)
-        {
-            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
-                '<div class="ifBox V workplace">' +
-                '<div class="guardBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="thenBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="elseBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div></div>' +
-                '<div id="dropZone" class="dropZone H droppable"></div>');
-        }
-        else if ('while' === e)
-        {
-            $(self).replaceWith('<div id="dropZone" class="dropZone H droppable"></div>' +
-                '<div class="whileBox V workplace">' +
-                '<div class="guardBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '<div class="thenBox H workplace">' +
-                '<div id="dropZone" class="dropZone H droppable"></div></div>' +
-                '</div>' +
-                '<div id="dropZone" class="dropZone H droppable"></div>');
-        }
-        else if ('var' === e)
-        {
-            $(self).replaceWith('<div id="var H"')
-        }
-        $( ".droppable" ).droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
-            hoverClass: "hover",
-            drop: function (event, ui) {
-                console.log($(this).attr("id"));
-                createHTML(ui.draggable.attr("id"), this);
-                //$(ui.draggable).clone().appendTo($(this));
-            }
-        });
+        enterList();
     }
 
     export function generateHTML(select:Selection)
@@ -224,6 +224,154 @@ module mkHTML {
             children.removeChild(children.firstChild);
         }
         children.appendChild(traverseAndBuild(select.root(), select.root().count()));
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            tolerance:"pointer",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                currentSelection = getPathToNode(currentSelection, $(this));
+                undostack.push(currentSelection);
+                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                //$(ui.draggable).clone().appendTo($(this));
+            }
+        });
+
+        enterList();
+        enterBox();
+    }
+
+    function enterBox()
+    {
+        $(".input").keyup(function (e) {
+            if (e.keyCode == 13) {
+                var text = $(this).val();
+                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var label = $(this).attr("class");
+                if (/var/i.test(label)) {
+                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                }
+                else if (/stringLiteral/i.test(label)) {
+                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
+                }
+
+                $(".click").click(function(){
+                    var label = $(this).attr("class");
+                    var val = $(this).attr("data-childNumber")
+                    if (/var/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
+                    }
+                    else if (/stringLiteral/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
+                    }
+                    enterBox();
+                    enterList();
+                });
+            }
+        });
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid'
+        });
+    }
+
+    function enterList()
+    {
+        $(".inputList").keyup(function (e) {
+            if (e.keyCode == 13) {
+                var text = $(this).val();
+                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var label = $(this).attr("class");
+                if (/op/i.test(label)) {
+                    $(this).replaceWith('<div class="op H clickList">' + text + '</div>');
+                }
+
+                $(".clickList").click(function(){
+                    var label = $(this).attr("class");
+                    if(/op/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="op H inputList" list="oplist">');
+                    }
+                    enterList();
+                });
+            }
+        });
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid'
+        });
+    }
+
+    function getPathToNode(select:Selection, self) : Selection
+    {
+        var array = [];
+        var anchor;
+        var focus;
+
+        var parent = $(self);
+        var child = Number(parent.attr("data-childNumber"));
+
+        if (isNaN(child))
+        {
+            var index = parent.index();
+            parent = parent.parent();
+            var num = parent.children().eq(index).prevAll(".dropZone").length;
+            child = Number(parent.attr("data-childNumber"));
+            var place = index - num;
+
+            var label = parent.attr("class");
+            if (/placeHolder/i.test(label))
+            {
+                anchor = child;
+                focus = anchor + 1;
+                parent = parent.parent();
+                child = Number(parent.attr("data-childNumber"));
+            }
+            else
+            {
+                anchor = place;
+                focus = anchor;
+            }
+        }
+        else
+        {
+            if(/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class")))
+            {
+                anchor = 0;
+                focus = anchor;
+            }
+            else
+            {
+                anchor = child;
+                focus = anchor;
+            }
+        }
+        while (child != -1) {
+            if (!isNaN(child))
+            {
+                array.push(Number(parent.attr("data-childNumber")));
+            }
+            parent = parent.parent();
+            child = Number(parent.attr("data-childNumber"));
+        }
+        var tree = select.root();
+        var path = list<number>();
+        var i ;
+        for( i = 0 ; i < array.length ; i++ )
+            path = collections.cons( array[i], path ) ;
+
+        return new pnodeEdits.Selection(tree, path, anchor, focus);
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -245,7 +393,7 @@ module mkHTML {
             assert.check( children.length == 3 ) ;
 
             var guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "guardBox H workplace");
+            guardbox.setAttribute("class", "ifGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
             var thenbox = document.createElement("div");
@@ -257,8 +405,8 @@ module mkHTML {
             elsebox.appendChild( children[2] ) ;
 
             var ifbox = document.createElement("div");
-            ifbox["childNumber"] = childNumber ;
-            ifbox.setAttribute("class", "ifBox V workplace");
+            ifbox.setAttribute("data-childNumber", childNumber.toString());
+            ifbox.setAttribute("class", "ifBox V workplace canDrag");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
@@ -268,6 +416,7 @@ module mkHTML {
         {
             var seqBox = document.createElement("div");
             seqBox.setAttribute( "class", "seqBox V" ) ;
+            seqBox.setAttribute("data-childNumber", childNumber.toString());
             seqBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
@@ -278,22 +427,25 @@ module mkHTML {
                 if( i == children.length ) break ;
                 seqBox.appendChild( children[i] ) ;
             }
+
             return seqBox ;
         }
         else if(label.match("expPH"))
         {
             var PHBox = document.createElement("div");
-            PHBox.setAttribute( "class", "PHBox V" ) ;
-            PHBox["childNumber"] = childNumber ;
+            PHBox.setAttribute( "class", "placeHolder V" ) ;
+            PHBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
             {
                 var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
                 PHBox.appendChild( dropZone ) ;
                 if( i == children.length ) break ;
                 PHBox.appendChild( children[i] ) ;
             }
+
             return PHBox ;
         }
         else if(label.match("while"))
@@ -301,7 +453,7 @@ module mkHTML {
             assert.check( children.length == 2 ) ;
 
             var guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "guardBox H workplace");
+            guardbox.setAttribute("class", "whileGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
             var thenbox = document.createElement("div");
@@ -309,53 +461,129 @@ module mkHTML {
             thenbox.appendChild( children[1] ) ;
 
             var whileBox = document.createElement("div");
-            whileBox["childNumber"] = childNumber ;
-            whileBox.setAttribute("class", "ifBox V workplace");
+            whileBox.setAttribute("data-childNumber", childNumber.toString());
+            whileBox.setAttribute("class", "whileBox V workplace canDrag");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
             return whileBox;
         }
-        else if(label.match("exp"))
+        else if(label.match("callWorld"))
         {
-            var ExpBox = document.createElement("div");
-            ExpBox.setAttribute( "class", "PHBox V" ) ;
-            ExpBox["childNumber"] = childNumber ;
+            var WorldBox = document.createElement("div");
+            WorldBox.setAttribute("class", "callWorld H canDrag" );
+            WorldBox.setAttribute("data-childNumber", childNumber.toString());
+            WorldBox.setAttribute("type", "text");
+            WorldBox.setAttribute("list", "oplist");
 
-            for( var i=0 ; true ; ++i )
+            if(node.label().getVal().length > 0)
             {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                ExpBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                ExpBox.appendChild( children[i] ) ;
+                var opval = document.createElement("div");
+                opval.setAttribute("class", "op H clickList");
+                opval.textContent = node.label().getVal();
+
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(opval);
+                WorldBox.appendChild(children[1]);
             }
-            return ExpBox ;
+            else
+            {
+                var op = document.createElement("input");
+                op.setAttribute("class", "op H inputList");
+                op.setAttribute("type", "text");
+                op.setAttribute("list", "oplist");
+                op.textContent = "";
+
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(op);
+                WorldBox.appendChild(children[1]);
+            }
+
+            return WorldBox;
         }
-        else if(label.match("var"))
+        else if(label.match("assign"))
         {
-            var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "hCont H" );
-            VarBox["childNumber"] = childNumber;
+            var AssignBox = document.createElement("div");
+            AssignBox.setAttribute("class", "assign H canDrag" );
+            AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var name = document.createElement("div");
-            name.setAttribute("class", "var H");
-            name.textContent = "x";
-            var op = document.createElement("div");
-            op.setAttribute("class", "op H");
-            op.textContent = "=";
-            var value = document.createElement("div");
-            value.setAttribute("class","var H");
-            value.textContent = "0";
+            var equals = document.createElement("div");
+            equals.setAttribute("class", "op H");
+            equals.textContent = ":=";
 
-            VarBox.appendChild(name);
-            VarBox.appendChild(op);
-            VarBox.appendChild(value);
+            AssignBox.appendChild(children[0]);
+            AssignBox.appendChild(equals);
+            AssignBox.appendChild(children[1]);
 
+            return AssignBox;
+        }
+        else if(label.match("lambda"))
+        {
+            var lambdahead = document.createElement("div");
+            lambdahead.setAttribute("class", "lambdaHeader V");
+            lambdahead.appendChild( children[0] ) ;
+
+            var doBox = document.createElement("div");
+            doBox.setAttribute("class", "doBox");
+            doBox.appendChild( children[1] ) ;
+
+            var LambdaBox = document.createElement("div");
+            LambdaBox.setAttribute("class", "lambdaBox V");
+
+            LambdaBox.appendChild(lambdahead);
+            LambdaBox.appendChild(doBox);
+
+            return LambdaBox;
+        }
+        else if(label.match("null"))
+        {
+            var NullBox = document.createElement("div");
+            NullBox.setAttribute("class", "nullLiteral H");
+            NullBox.textContent = "-";
+
+            return NullBox;
+        }
+        else if (label.match("var"))
+        {
+            var VarBox;
+            if (node.label().getVal().length > 0)
+            {
+                VarBox = document.createElement("div");
+                VarBox.setAttribute("class", "var H click");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.textContent = node.label().getVal();
+            }
+            else
+            {
+                VarBox = document.createElement("input");
+                VarBox.setAttribute("class", "var H input");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.setAttribute("type", "text");
+                VarBox.textContent = "";
+            }
             return VarBox;
         }
+        else if (label.match("string"))
+        {
+            var StringBox;
+            if (node.label().getVal().length > 0)
+            {
+                StringBox = document.createElement("div");
+                StringBox.setAttribute("class", "stringLiteral H click");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.textContent = node.label().getVal();
+            }
+            else
+            {
+                StringBox = document.createElement("input");
+                StringBox.setAttribute("class", "stringLiteral H input");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.setAttribute("type", "text");
+                StringBox.textContent = "";
+            }
+            return StringBox;
+        }
     }
-
 }
 
 export = mkHTML ;

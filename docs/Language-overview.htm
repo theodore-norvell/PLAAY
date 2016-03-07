@@ -15,7 +15,7 @@
   <li>Version 0 -- from the depths of time. Circa 2007.</li>
 </ul>
 <h2>Data model</h2>
-<p>The state of a PLAY program is called a world. A world is an object, which means that it may have one or more &quot;fields&quot;  (or &quot;attributes&quot; or &quot;member variables&quot;). Each of these fields has a &quot;value&quot; (or &quot;state&quot;), which may be a string, a reference to an object, or the special null value. (In fact, as we will soon see, null and strings are also objects, and so we may simply say that the value (or state) of a field is a reference to an object.)</p>
+<p>The state of a PLAAY program is called a world. A world is an object, which means that it may have one or more &quot;fields&quot;  (or &quot;attributes&quot; or &quot;member variables&quot;). Each of these fields has a &quot;value&quot; (or &quot;state&quot;), which may be a string, a reference to an object, or the special null value. (In fact, as we will soon see, null and strings are also objects, and so we may simply say that the value (or state) of a field is a reference to an object.)</p>
 <h3>Values</h3>
 <p>Each value is a reference to an object.</p>
 <h3>Objects: primitive and complex</h3>
@@ -63,8 +63,8 @@
 <p align="left">where <em>object</em> is an expression that evaluates to an object reference, <em>name</em> is a name. For example </p>
 <p align="center">world . fred</p>
 <p align="left">is an  expression for a field or method named &quot;fred&quot; in  world object.</p>
-<p align="left">[Aside on &quot;textual notations&quot;. The PLAY language is intended to be mostly visual. The textual notations in this document are just used as a convenience.]</p>
-<p align="left">The value of a field is found by first looking at the object. If the object does not supply a value, then the value is the default for the class. If the class does not supply the value, one goes to the classes superclass and so on. </p>
+<p align="left">[Aside on &quot;textual notations&quot;. The PLAAY language is intended to be mostly visual. The textual notations in this document are just used as a convenience.]</p>
+<p align="left">The value of a field is found by first looking at the object. If the object does not supply a value, then the value is the default for the class. If the class does not supply the value, one goes to the class's superclass and so on. </p>
 <h3 align="left">The World class </h3>
 <p align="left">The class of the world is a class called World. When the user adds objects (i.e. attributes) to world, it may be necessary to add new field descriptions to World.</p>
 <h3 align="left">Methods</h3>

@@ -18,11 +18,11 @@
 <p>The program is represented at run time by the same abstract syntax trees during execution and during editing. There is no difference.</p>
 <p> More detail on what sorts of nodes are needed and what information they need to carry is in the <a href="Abstract-Syntax-and-Static-Checking.htm">Abstract Syntax and Static Checking</a> document. More information about how the AST is used during execution is in the <a href="Run-time-model.html">Run-time-model</a> document.</p>
 <p>ASTs are represented using immutable data. Once a node is created it can never by changed. This simplifies editing considerably and makes undo-redo during editing trivial.</p>
-<p>ASTs are represented by an abstrac class PNode</p>
+<p>ASTs are represented by an abstract class PNode</p>
 <pre>    abstract class PNode
         con _label : Label
         con _children : Array&lt;PNode&gt;</pre>
-<p>See the code for details on contructors and methods. Here I'll just concentrate on the structure.</p>
+<p>See the code for details on constructors and methods. Here I'll just concentrate on the structure.</p>
 <p>Most of the information that differentiates one PNode from another is contained in its label. Each some of the label types include</p>
 <pre>
     interface Label
@@ -52,7 +52,7 @@
         //    all children are expression nodes
 </pre>
 <p>(The &quot;valid iff&quot; constraints listed above indicate how the &quot;isValid&quot; method is implemented in each case. Validity is discussed below.)</p>
-<p>Members of the children array are never null. Holes in the program where expressions are expected are represented by nodes labeled wtih <span class="kbd">PlaceHolderExpLabel</span></p>
+<p>Members of the children array are never null. Holes in the program where expressions are expected are represented by nodes labelled with <span class="kbd">PlaceHolderExpLabel</span></p>
 <pre>    class PlaceHolderExpLabel extends ExprLabel
 </pre>
 <p>Subclasses of PNode. PNode is a concrete class. Actual nodes are created from one of a selection of subclasses of PNode</p>
@@ -65,7 +65,7 @@
     class TypeNode extends TypeNode
         invariant label is a TypeLabel
 </pre>
-<p>ExprNode nodes are labeled by expression labels (instanceof ExprLabel etc.).</p>
+<p>ExprNode nodes are labelled by expression labels (instanceof ExprLabel etc.).</p>
 <h3>Validity</h3>
 <p>In Plaay there are some trees you can create and some trees you can't. Consider a model:</p>
 <pre>    if( placeHolder, Seq() , Seq() )</pre>
