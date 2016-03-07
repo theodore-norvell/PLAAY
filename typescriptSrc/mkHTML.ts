@@ -104,6 +104,18 @@ module mkHTML {
         whileblock.textContent = "While";
         document.getElementById("sidebar").appendChild(whileblock);
 
+        const varblock = document.createElement("div");
+        varblock.setAttribute("id", "var");
+        varblock.setAttribute("class", "block V palette");
+        varblock.textContent = "Var";
+        document.getElementById("sidebar").appendChild(varblock);
+
+        const stringlitblock = document.createElement("div");
+        stringlitblock.setAttribute("id", "stringliteral");
+        stringlitblock.setAttribute("class", "block V palette");
+        stringlitblock.textContent = "String Literal";
+        document.getElementById("sidebar").appendChild(stringlitblock);
+
         const worldblock = document.createElement("div");
         worldblock.setAttribute("id", "worldcall");
         worldblock.setAttribute("class", "block V palette");
@@ -134,12 +146,6 @@ module mkHTML {
         selectionblock.textContent = "Selection";
         document.getElementById("sidebar").appendChild(selectionblock);
 
-        const stringlitblock = document.createElement("div");
-        stringlitblock.setAttribute("id", "stringliteral");
-        stringlitblock.setAttribute("class", "block V palette");
-        stringlitblock.textContent = "String Literal";
-        document.getElementById("sidebar").appendChild(stringlitblock);
-
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
         var optionplus = document.createElement("option");
@@ -147,7 +153,7 @@ module mkHTML {
         var optionminus = document.createElement("option");
         optionminus.value = "-";
         var optionmul = document.createElement("option");
-        optionmul.value = "x";
+        optionmul.value = "*";
         var optiondiv = document.createElement("option");
         optiondiv.value = "/";
         list.appendChild(optionplus);
@@ -199,6 +205,7 @@ module mkHTML {
             tolerance:'pointer',
             drop: function(event, ui){
                 ui.draggable.remove();
+                currentSelection = getPathToNode(currentSelection, $(this));
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -206,7 +213,6 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
-        //clickDiv();
         enterList();
     }
 
@@ -234,21 +240,38 @@ module mkHTML {
             }
         });
 
-        //clickDiv();
-
         enterList();
+        enterBox();
     }
 
-    function enterList()
+    function enterBox()
     {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
-                getPathToNode(currentSelection, $(this));
-                $(this).replaceWith('<div class="var H click">' + text + '</div>')
+                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var label = $(this).attr("class");
+                if (/var/i.test(label)) {
+                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                }
+                else if (/stringLiteral/i.test(label)) {
+                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
+                }
 
                 $(".click").click(function(){
-                   $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
+                    var label = $(this).attr("class");
+                    var val = $(this).attr("data-childNumber")
+                    if (/var/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
+                    }
+                    else if (/stringLiteral/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
+                    }
+                    enterBox();
                     enterList();
                 });
             }
@@ -260,43 +283,41 @@ module mkHTML {
         });
     }
 
-    /*function clickDiv()
+    function enterList()
     {
-        //var self = $(this);
-        $(".click").click(function () {
-            var label = $(this).attr("class");
-            if (/var/i.test(label)) {
-                $(this).replaceWith('<input type="text" class="var H input">');
-                $(".click").keyup(function (e) {
-                    if (e.keyCode == 13) {
-                        var text = $(this).val();
-                        $(this).replaceWith('<div class="var H click">' + text + '</div>');
-                        clickDiv();
-                        getPathToNode(currentSelection, $(this));
+        $(".inputList").keyup(function (e) {
+            if (e.keyCode == 13) {
+                var text = $(this).val();
+                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var label = $(this).attr("class");
+                if (/op/i.test(label)) {
+                    $(this).replaceWith('<div class="op H clickList">' + text + '</div>');
+                }
+
+                $(".clickList").click(function(){
+                    var label = $(this).attr("class");
+                    if(/op/i.test(label))
+                    {
+                        $(this).replaceWith('<input type="text" class="op H inputList" list="oplist">');
                     }
-                });
-            }
-            else if (/stringLiteral/i.test(label)) {
-                $(this).replaceWith('<input type="text" class="stringLiteral H input">');
-                $(".input").keyup(function (e) {
-                    if (e.keyCode == 13) {
-                        var text = $(this).val();
-                        $(this).replaceWith('<div class="stringLiteral H clickstring">' + text + '</div>');
-                        clickDiv();
-                        getPathToNode(currentSelection, $(this));
-                    }
+                    enterList();
                 });
             }
         });
-    }*/
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid'
+        });
+    }
 
     function getPathToNode(select:Selection, self) : Selection
     {
         var array = [];
         var anchor;
         var focus;
-
-        console.log(self.attr("data-childNumber"));
 
         var parent = $(self);
         var child = Number(parent.attr("data-childNumber"));
@@ -309,8 +330,32 @@ module mkHTML {
             child = Number(parent.attr("data-childNumber"));
             var place = index - num;
 
-            anchor = place;
-            focus = anchor;
+            var label = parent.attr("class");
+            if (/placeHolder/i.test(label))
+            {
+                anchor = child;
+                focus = anchor + 1;
+                parent = parent.parent();
+                child = Number(parent.attr("data-childNumber"));
+            }
+            else
+            {
+                anchor = place;
+                focus = anchor;
+            }
+        }
+        else
+        {
+            if(/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class")))
+            {
+                anchor = 0;
+                focus = anchor;
+            }
+            else
+            {
+                anchor = child;
+                focus = anchor;
+            }
         }
         while (child != -1) {
             if (!isNaN(child))
@@ -389,7 +434,7 @@ module mkHTML {
         {
             var PHBox = document.createElement("div");
             PHBox.setAttribute( "class", "placeHolder V" ) ;
-            //PHBox.setAttribute("data-childNumber", childNumber.toString());
+            PHBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
             for( var i=0 ; true ; ++i )
@@ -431,15 +476,28 @@ module mkHTML {
             WorldBox.setAttribute("type", "text");
             WorldBox.setAttribute("list", "oplist");
 
-            var op = document.createElement("input");
-            op.setAttribute("class", "var H input");
-            op.setAttribute("type", "text");
-            op.setAttribute("list", "oplist");
+            if(node.label().getVal().length > 0)
+            {
+                var opval = document.createElement("div");
+                opval.setAttribute("class", "op H clickList");
+                opval.textContent = node.label().getVal();
 
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(opval);
+                WorldBox.appendChild(children[1]);
+            }
+            else
+            {
+                var op = document.createElement("input");
+                op.setAttribute("class", "op H inputList");
+                op.setAttribute("type", "text");
+                op.setAttribute("list", "oplist");
+                op.textContent = "";
 
-            WorldBox.appendChild(children[0]);
-            WorldBox.appendChild(op);
-            WorldBox.appendChild(children[1]);
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(op);
+                WorldBox.appendChild(children[1]);
+            }
 
             return WorldBox;
         }
@@ -448,10 +506,9 @@ module mkHTML {
             var AssignBox = document.createElement("div");
             AssignBox.setAttribute("class", "assign H canDrag" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
-            AssignBox.textContent = ":=";
 
             var equals = document.createElement("div");
-            equals.setAttribute("class", "var H");
+            equals.setAttribute("class", "op H");
             equals.textContent = ":=";
 
             AssignBox.appendChild(children[0]);
@@ -486,18 +543,44 @@ module mkHTML {
 
             return NullBox;
         }
-        else if(label.match("var"))
+        else if (label.match("var"))
         {
-            var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "var H input");
-
+            var VarBox;
+            if (node.label().getVal().length > 0)
+            {
+                VarBox = document.createElement("div");
+                VarBox.setAttribute("class", "var H click");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.textContent = node.label().getVal();
+            }
+            else
+            {
+                VarBox = document.createElement("input");
+                VarBox.setAttribute("class", "var H input");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.setAttribute("type", "text");
+                VarBox.textContent = "";
+            }
             return VarBox;
         }
-        else if(label.match("stringLiteral"))
+        else if (label.match("string"))
         {
-            var StringBox = document.createElement("div");
-            StringBox.setAttribute("class", "stringLiteral H input");
-
+            var StringBox;
+            if (node.label().getVal().length > 0)
+            {
+                StringBox = document.createElement("div");
+                StringBox.setAttribute("class", "stringLiteral H click");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.textContent = node.label().getVal();
+            }
+            else
+            {
+                StringBox = document.createElement("input");
+                StringBox.setAttribute("class", "stringLiteral H input");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.setAttribute("type", "text");
+                StringBox.textContent = "";
+            }
             return StringBox;
         }
     }

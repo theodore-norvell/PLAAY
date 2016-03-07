@@ -402,7 +402,7 @@ module pnode {
 
         changeValue (newString : string) : Option<Label> {
 
-            if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
+            if (newString.match(/\+/gi) || newString.match(/\*/gi) || newString.match(/\-/gi) || newString.match(/\//gi)) {
                 var newLabel = new callWorldLabel(newString);
                 return new Some(newLabel);
             }
