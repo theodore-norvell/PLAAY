@@ -314,7 +314,7 @@ module pnode {
         _val : string;
 
         isValid(children:Array<PNode>):boolean {
-            if (children.length != 0) return false;
+            return children.length == 0;
         }
 
         getClass():PNodeClass {
