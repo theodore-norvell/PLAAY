@@ -6,6 +6,7 @@ import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
+import value = require('./value') ;
 
 module evaluation {
 
@@ -13,6 +14,7 @@ module evaluation {
     import ExprNode = pnode.ExprNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
+    import Value = value.Value;
 
     export class Evaluation {
         root : ExprNode;
@@ -24,10 +26,9 @@ module evaluation {
         next : Evaluation;
         varmap : VarMap;
 
-        constructor (name : String, value : String) {
-            this.varmap = new VarMap();
-            this.varmap.setName(name);
-            this.varmap.setValue(value);
+        constructor (){//path : Array<Number>, value : Value) {
+            //this.varmap = new VarMap();
+            //this.varmap.put(path, value);
         }
 
         getNext(){
@@ -42,10 +43,28 @@ module evaluation {
             this.next = next;
         }
 
-        setResult(value : Evaluation ){
-            this.varmap.setName(value.getVarMap().getName());
-            this.varmap.setValue(value.getVarMap().getValue());
+        finishStep( v : Value ){
+            if(this.pending != null && this.ready){
+                this.varmap.put( this.pending , v)
+                if( this.pending.length == 0){
+                    this.pending = null;
+                }
+
+                else{
+                    this.pending.pop();
+                }
+                this.ready = false;
+            }
         }
+
+        setResult(value : Value ){
+            var node = this.root.get( this.pending );
+            var closurePath = this.pending ^ [0];
+            var closure = this.varmap.get( closurePath );
+            var lambda = closure.function;
+            this.finishStep( value );
+        }
+
         setVarMap(map : VarMap){
             this.varmap = map;
         }
@@ -66,6 +85,9 @@ module evaluation {
                 }
             }
         }
+
+
+
     }
 }
 export = evaluation;

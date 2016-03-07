@@ -3,13 +3,216 @@
 
 import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import vms = require('./vms' ) ;
+import evaluation = require('./evaluation') ;
+import stack = require( './stackManager' ) ;
+import value = require('./value') ;
+
 
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
+    import VMS = vms.VMS;
+    import Evaluation = evaluation.Evaluation;
+    import Stack = stack.Stack;
+    import Value = value.Value;
+    import varMap = stack.VarMap;
 
-    export interface Label {
+
+    export interface nodeStrategy {
+        select( vms : VMS ) : void;
+        step( vms : VMS ) : void;
+    }
+
+    export class lrStrategy implements nodeStrategy {
+
+        select( vms : VMS ) : void{
+            var eval = vms.stack.top();
+            var pending = eval.pending;
+
+            if(pending != null) {
+                var node = eval.root.get(pending);
+
+
+                if(node.getLabel() == this){
+
+                    if (all pendings children are in the domain of eval.map then){//TODO find out how many children
+                        eval.ready = true;// Select this node.
+                    }
+
+                else{
+                        let i be the number of the first child of pending not in the domain of eval.map
+                        eval.pending = pending ^ [i];
+                        node.children[i].select(vms);
+                    }
+                }
+            }
+        }
+
+        step( vms : VMS ){
+            if(vms.stack.top().ready == true){
+                var eval = vms.stack.top();
+                if(eval.pending != null) {
+                    var node = eval.root.get(eval.pending);
+                    if(node.getLabel() == this){
+                        /*     get the values mapped by the two children //TODO node specific stuff
+                         if(both represent numbers){//math functions
+                         var v = make a new number representing the sum//+ function
+                         eval.finishStep(v);*/
+                    }
+                         else{} //error!
+
+                         }
+                    }
+                }
+            }
+
+
+    export class varStrategy implements nodeStrategy {
+        select( vms:VMS ){
+            var eval = vms.stack.top();
+            var pending = eval.pending
+            if(pending != null){
+                var node = eval.root.get(pending);
+                if(node.getLabel() == this){
+                    look up the variable in the stack and highlight it.
+                    if (there is no variable in the stack with this name){} //error}
+                    else{eval.ready = true;}
+                }
+            }
+        }
+
+        step( vms:VMS  ){
+            if(vms.stack.top().ready){
+                var eval = vms.stack.top();
+                if(eval.pending != null){
+                    var node = eval.root.get(eval.pending);
+                    if(node.getLabel() == this){
+                        var v = lookUp( name, eval.stack ) //TODO find a way to lookup stack values
+                        remove highlight from f
+                        eval.finishStep( v )
+                    }
+                }
+            }
+        }
+    }
+
+    export class ifStrategy implements nodeStrategy {
+        select( vms : VMS){
+            var eval = vms.stack.top();
+            var pending = eval.pending;
+            if(pending != null){
+                var node = eval.root.get(pending);
+                if(node.getLabel() == this){
+                    var guardPath = pending ^ [0];
+                    var thenPath = pending ^ [1];
+                    var elsePath = pending ^ [2];
+                    if (eval.varmap.inMap(guardPath)){
+                        if (eval.varmap.get(guardPath) == true){
+                            if(eval.varmap.inMap(thenPath)){
+                                eval.ready = true;
+                            }
+                        else{
+                                eval.pending = thenPath;
+                                node.children(1).getLabel.select( vms );
+                            }
+                        }
+
+                        else if(eval.varmap.get(guardPath) == false){
+                            if (eval.varmap.inMap(elsePath)){
+                                eval.ready = true;
+                            }
+
+                            else{
+                                eval.pending = elsePath;
+                                node.children(2).getLabel().select( vms );
+                            }
+                        }
+
+                        else{}//error
+                    }
+
+                    else{
+                        eval.pending = guardPath;
+                        node.children(0).getLabel().select( vms );
+                    }
+                }
+            }
+        }
+
+        step(vms:VMS){
+            if(vms.stack.top().ready){
+                var eval = vms.stack.top();
+                if(eval.pending != null){
+                    var node = eval.root.get(eval.pending);
+                    if(node.getLabel() == this){
+                        var guardPath = eval.pending ^ [0];
+                        var thenPath = eval.pending ^ [1];
+                        var elsePath = eval.pending ^ [2];
+                        var v : Value;
+
+                        if( eval.varmap.get(guardPath) == true){
+                            v = eval.varmap.get( thenPath );
+                        }
+
+                        else{
+                            v = eval.varmap.get( elsePath );
+                            eval.finishStep( v );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    export class callStrategy implements nodeStrategy{
+       select(){}
+
+        step( vms : VMS ){
+            if( vms.stack.ready){
+                var eval = vms.stack.top();
+                if(eval.pending != null){
+                    var node = eval.root.get(eval.pending);
+                    if( node.getLabel() == this ){
+                        var functionPath = eval.pending ^ [0];
+                        var c = eval.varmap.get( functionPath );
+                        if (not c isA ClosureV){}//  error!
+                        var c1 = c asA ClosureV;
+                        var f : LambdaNode = c1.function;
+
+                        var argList = [eval.varmap.get( eval.pending ^ [1] ),
+                            eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
+
+                        if( the length of arglist not= the length of f.params.children){} //error!
+                        if (any argument has a value not compatible with the corresponding parameter type){}
+                        // error!
+                        var params = f.params.children; //TODO make params
+                        var arFields := [ new Field( params[0].name, argList[0] ),
+                            new Field( params[1].name, argList[1] ),
+                            .. ] //for all f.params.children
+                        var activationRecord = new ObjectV( arFields );
+                        var stack = new Stack( activationRecord, cl.context );
+
+                        var newEval = new Evaluation();
+                            newEval.root = f.body; //TODO what is the body
+                        newEval.stack = stack;
+                        newEval.varmap = new varMap();
+                        newEval.pending = [];
+                        newEval.ready = false;
+
+                        vms.stack.push( newEval );
+                    }
+                }
+            }
+        }
+    }
+
+
+
+
+
+        export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
         /** Returns the class that uses this sort of label */
         getClass : () => PNodeClass ;
@@ -27,6 +230,15 @@ module pnode {
     export abstract class PNode {
         private _label:Label;
         private _children:Array<PNode>;
+        strategy:nodeStrategy;
+
+        select(vms:VMS){
+            this.strategy.select(vms);
+        }
+
+        step(vms:VMS){
+            this.strategy.step(vms);
+        }
 
         /** Construct a PNode.
          *  Precondition: label.isValid( children )
@@ -58,6 +270,10 @@ module pnode {
 
         public label():Label {
             return this._label;
+        }
+
+        get(pending : Array<Number>){
+
         }
 
         /** Possibly return a copy of the node in which the children are replaced.
@@ -479,6 +695,8 @@ module pnode {
     //While and If Labels
 
     export class IfLabel extends ExprLabel {
+
+        strategy:ifStrategy;
 
         isValid(  children : Array<PNode> ) : boolean {
          if( children.length != 3 ) return false ;

@@ -1,9 +1,12 @@
 
 import evaluation = require( './evaluation' ) ;
+import value = require( './value')
+import math = require('./math');
 
 module stack {
 
     import Evaluation = evaluation.Evaluation;
+    import Value = value.Value;
 
     export class Stack {
 
@@ -61,23 +64,84 @@ module stack {
         }
     }
 */
+
+    export class mapEntry{
+        path : Array<Number>;
+        val : Value;
+
+        constructor (key : Array<Number>, value : Value ){
+            this.path = key;
+            this.val = value;
+        }
+
+        getPath(){return this.path;}
+        getValue(){return this.val;}
+        setValue(v : Value ){this.val = v;}
+
+
+    }
+
     export class VarMap {
-        varName : String;
-        varValue : String;
+        size : Number ;
+        entries : Array<mapEntry>;
 
-        getName(){
-            return this.varName;
+        samePath(a : Array<Number>, b : Array<Number>){
+            var flag = true;
+            for(var p = 0; p < Math.max(a.length, b.length); p++){
+                if(a[p] != b[p]){
+                    flag = false;
+                }
+            }
+            return flag;
         }
 
-        getValue(){
-            return this.varValue;
+        get(p : Array<Number>){
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+            }
+            if(this.samePath(tmp, p)){
+                return this.entries[i].getValue();
+            }
         }
 
-        setName(name : String){
-            this.varName = name;
+        put(p : Array<Number>, v : Value){
+            var notIn = true;
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    this.entries[i].setValue(v);
+                    notIn = false;
+                }
+            }
+            if(notIn){
+//                this.entries[this.size++] = new mapEntry(p, v); //would this go out of bounds for the array?
+                this.entries.push(new mapEntry(p, v));
+                this.size++;
+            }
         }
-        setValue(value : String){
-            this.varValue = value;
+
+        remove(p : Array<Number>){
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    this.size--;
+                    var j = i;
+                    for(; j < this.size; j++){
+                        this.entries[j] = this.entries[j+1];//move all values down by one
+                    }
+                    this.entries[j] = null;//don't think this is necessary
+                }
+            }
+        }
+
+        inMap(p : Array<Number>){
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    return true;
+                }
+            }
+            return false;
         }
     }
 
