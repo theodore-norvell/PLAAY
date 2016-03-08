@@ -147,8 +147,11 @@ module pnodeEdits {
             super() ; }
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            var edit = new pnodeEdits.InsertChildrenEdit([]);
-            return edit.applyEdit(selection);
+            var noPH = new pnodeEdits.InsertChildrenEdit([]);
+            var withPH = new pnodeEdits.InsertChildrenEdit([pnode.mkExprPH()]);
+            var alt = edits.alt(noPH, withPH);
+
+            return alt.applyEdit(selection);
         }
     }
 
@@ -218,6 +221,74 @@ module pnodeEdits {
                 });
         }
     }
+
+    //changes the id inside the label
+    export class MoveNodeEdit extends AbstractEdit<Selection> {
+        _newString:string;
+
+        constructor(newString:string) {
+            super();
+            this._newString = newString;
+        }
+
+        applyEdit(selection:Selection):Option<Selection> {
+            const loop = (node:PNode, path:List<number>,
+                          start:number, end:number):Option<PNode> => {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    var opt = node.label().changeValue(this._newString);
+                    return opt.choose(
+                        (label:Label):Option<PNode> => {
+                            return node.tryModifyLabel(label);
+                        },
+                        () => {
+                            return new None<PNode>();
+                        });
+                }
+                else {
+                    const k = path.first();
+                    const len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    const opt = loop(node.child(k), path.rest(), start, end);
+                    return opt.choose(
+                        (newChild:PNode):Option<PNode> => {
+                            return node.tryModify([newChild], k, k + 1);
+                        },
+                        () => {
+                            return new None<PNode>();
+                        });
+                }
+            };
+
+            // Determine the start and end
+            var start:number;
+            var end:number;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            const opt = loop(selection.root(), selection.path(), start, end);
+            // If successful, build a new Selection object.
+            return opt.choose(
+                (newRoot:PNode):Option<Selection> => {
+                    const f = start;
+                    const newSelection = new Selection(newRoot,
+                        selection.path(),
+                        f, f);
+                    return new Some(newSelection);
+                },
+                ():Option<Selection> => {
+                    return new None<Selection>();
+                });
+        }
+    }
+
 }
 
 export = pnodeEdits ;
