@@ -377,13 +377,17 @@ module mkHTML {
             }
             else
             {
-                if(/if/i.test(parent.attr("class")))
-                {
+                if (/ifBox/i.test(parent.attr("class"))) {
                     anchor = child;
                     focus = child + 1;
+                    parent = parent.parent();
+                    child = Number(parent.attr("data-childNumber"));
                 }
-                anchor = child;
-                focus = anchor;
+                else
+                {
+                    anchor = child;
+                    focus = anchor;
+                }
             }
         }
         while (child != -1) {
