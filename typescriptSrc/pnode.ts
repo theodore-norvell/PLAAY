@@ -458,6 +458,9 @@ module pnode {
             return new None<Label>();
         }
 
+        toString():string {
+            return "lambda";
+        }
 
         /*private*/
         constructor() {

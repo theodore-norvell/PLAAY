@@ -61,16 +61,24 @@ div.undo
 {
     width:40px;
     bottom:4px; left: 0px;
-    height:40px;
+    height:calc(4%);
     background-color: darkred;
     position:fixed;
+}
+
+.dropdown
+{
+    display:none;
+    width:300px;
+    border: 1px solid slategrey;
+    position: relative;
 }
 
 div.redo
 {
     width:40px;
     bottom:4px; left: 50px;
-    height:40px;
+    height:calc(4%);
     background-color: darkred;
     position:fixed;
 }
@@ -78,7 +86,7 @@ div.redo
 div.trash
 {
     width: 50px;
-    height: 90px;
+    height: calc(10%);
     background-color: grey;
     position:fixed;
     bottom:4px; left: 100px;
@@ -87,7 +95,7 @@ div.trash
 div.play
 {
     width:90px;
-    height:40px;
+    height:calc(5%);
     background-color:green;
     position:fixed;
     bottom:50px; left: 0px;
@@ -215,7 +223,7 @@ div.doBox { /*Used with both whiles and lambdas */
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.lambdaBox {
+div.lambdaBox:before { content: "\03bb";
     border-top: medium solid rgb(135,206,250) ;
     border-bottom: medium solid rgb(135,206,250) ;
     border-left: 10px solid rgb(135,206,250) ;
