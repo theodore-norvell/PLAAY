@@ -315,8 +315,8 @@ module pnodeEdits {
 
             var newSel = new Selection(oldSel.root(), selection.path(), selection.anchor(), selection.focus());
 
-            var edit = new InsertChildrenEdit(this._newNodes);
-            return edit.applyEdit(newSel);
+            var edit2 = new InsertChildrenEdit(this._newNodes);
+            return edit2.applyEdit(newSel);
         }
 
     }
