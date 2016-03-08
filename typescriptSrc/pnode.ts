@@ -401,13 +401,8 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-
-            if (newString.match(/\+/gi) || newString.match(/\*/gi) || newString.match(/\-/gi) || newString.match(/\//gi)) {
-                var newLabel = new callWorldLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
+            var newLabel = new callWorldLabel(newString);
+            return new Some(newLabel);
         }
 
         /*private*/
@@ -455,7 +450,16 @@ module pnode {
          }
 
         getClass():PNodeClass {
-            return TypeNode;
+            return ExprNode;
+        }
+
+        //constant can't be changed
+        changeValue (newString : string) : Option<Label> {
+            return new None<Label>();
+        }
+
+        toString():string {
+            return "lambda";
         }
 
         /*private*/
@@ -715,26 +719,8 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-
-            var valid = true;
-            for (var i = 0; i < newString.length; i++) {
-                var character = newString.charAt(i);
-                if (!(character.match("0") || character.match("1") ||
-                    character.match("2") || character.match("3") ||
-                    character.match("4") || character.match("5") ||
-                    character.match("6") || character.match("7") ||
-                    character.match("8") || character.match("9") ||
-                    character.match("."))) {
-                    valid = false;
-                }
-            }
-
-            if (valid == true) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
+            var newLabel = new NumberLiteralLabel(newString);
+            return new Some(newLabel);
         }
 
         getVal() : string {
@@ -755,12 +741,8 @@ module pnode {
         val() : string { return this._val ; }
 
         changeValue (newString : string) : Option<Label> {
-            if (newString.match("true") || newString.match ("false")) {
                 var newLabel = new BooleanLiteralLabel(newString);
                 return new Some(newLabel);
-            }
-
-            return new None<Label>();
         }
 
         isValid( children : Array<PNode> ) {
