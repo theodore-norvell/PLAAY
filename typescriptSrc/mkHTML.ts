@@ -47,6 +47,7 @@ module mkHTML {
                 redostack.push(currentSelection);
                 currentSelection = undostack.pop();
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
         };
 
@@ -64,6 +65,7 @@ module mkHTML {
                 undostack.push(currentSelection);
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
         };
 
@@ -162,6 +164,18 @@ module mkHTML {
         list.appendChild(optiondiv);
         document.getElementById("body").appendChild(list);
 
+        var optionlist = document.createElement("ul");
+        optionlist.setAttribute("class", "dropdown");
+        var edit = document.createElement("li");
+        edit.textContent = "drop here";
+        var copy = document.createElement("li");
+        edit.textContent = "copy here";
+        var swap = document.createElement("li");
+        edit.textContent = "swap here";
+        optionlist.appendChild(edit);
+        optionlist.appendChild(copy);
+        optionlist.appendChild(swap);
+
         //creates container for code
         const container = document.createElement("div");
         container.setAttribute("id","container");
@@ -181,6 +195,13 @@ module mkHTML {
 
         $( ".palette" ).draggable({
             helper:"clone" ,
+            start : function(event, ui){
+                ui.helper.animate({
+                    width: 80,
+                    height: 50
+                });
+            },
+            cursorAt: {left:40, top:25},
             appendTo:"body"
         });
 
@@ -204,8 +225,11 @@ module mkHTML {
             hoverClass: "hover",
             tolerance:'pointer',
             drop: function(event, ui){
-                ui.draggable.remove();
-                currentSelection = getPathToNode(currentSelection, $(this));
+                currentSelection = getPathToNode(currentSelection, ui.draggable);
+                currentSelection = tree.deleteNode(currentSelection);
+                generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                //ui.draggable.remove();
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -353,6 +377,11 @@ module mkHTML {
             }
             else
             {
+                if(/if/i.test(parent.attr("class")))
+                {
+                    anchor = child;
+                    focus = child + 1;
+                }
                 anchor = child;
                 focus = anchor;
             }
@@ -476,14 +505,27 @@ module mkHTML {
             WorldBox.setAttribute("type", "text");
             WorldBox.setAttribute("list", "oplist");
 
-            if(node.label().getVal().length > 0)
-            {
+            var dropZone = document.createElement("div");
+            dropZone.setAttribute("class", "dropZoneSmall H droppable");
+
+            if(node.label().getVal().length > 0 && (node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
+                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi))) {
                 var opval = document.createElement("div");
                 opval.setAttribute("class", "op H clickList");
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(children[0]);
                 WorldBox.appendChild(opval);
+                WorldBox.appendChild(children[1]);
+            }
+            else if(node.label().getVal().length > 0)
+            {
+                var opval = document.createElement("div");
+                opval.setAttribute("class", "op H clickList");
+                opval.textContent = node.label().getVal();
+
+                WorldBox.appendChild(opval);
+                WorldBox.appendChild(children[0]);
                 WorldBox.appendChild(children[1]);
             }
             else
@@ -582,6 +624,24 @@ module mkHTML {
                 StringBox.textContent = "";
             }
             return StringBox;
+        }
+        else if(label.match("noType"))
+        {
+            var noType = document.createElement("div");
+            noType.setAttribute( "class", "noReturnType V" ) ;
+            noType.setAttribute("data-childNumber", childNumber.toString());
+            noType["childNumber"] = childNumber ;
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                noType.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                noType.appendChild( children[i] ) ;
+            }
+
+            return noType ;
         }
     }
 }

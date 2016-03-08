@@ -57,12 +57,12 @@ module evaluation {
 
         advance( vms : VMS ){
             if(!this.isDone()){
-                var topNode = this.root.get( this.pending );
+                //var topNode = this.root.get( this.pending );
                 if( this.ready ){
-                    topNode.getLabel().step( vms );
+                //    topNode.getLabel().step( vms );
                 }
                 else{
-                    topNode.getLabel().select( vms );
+                 //   topNode.getLabel().select( vms );
                 }
             }
         }
