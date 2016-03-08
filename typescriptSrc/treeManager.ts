@@ -418,7 +418,7 @@ module treeManager {
             return sel;
         }
 
-        changeNodeString(selection : Selection, newString : string ) : Selection {
+        changeNodeString(selection:Selection, newString:string):Selection {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
             var editResult = edit.applyEdit(selection);
 
@@ -434,9 +434,24 @@ module treeManager {
 
         }
 
-        deleteNode(selection : Selection ) {
+        deleteNode(selection:Selection) {
             var edit = new pnodeEdits.DeleteEdit();
             var editResult = edit.applyEdit(selection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Error applying edit to node");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        moveNode(oldSelection:Selection, newSelection:Selection) {
+            var edit = new pnodeEdits.MoveNodeEdit(oldSelection);
+            var editResult = edit.applyEdit(newSelection);
 
             var sel = editResult.choose(
                 p => p,
