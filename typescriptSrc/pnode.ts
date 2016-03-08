@@ -439,7 +439,7 @@ module pnode {
         public static theExprPHLabel = new ExprPHLabel();
     }
 
-    export class LambdaLabel implements Label {
+    export class LambdaLabel extends ExprLabel {
 
          isValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
@@ -449,12 +449,8 @@ module pnode {
              return true;
          }
 
-        getVal():string {
-            return null;
-        }
-
         getClass():PNodeClass {
-            return TypeNode;
+            return ExprNode;
         }
 
         //constant can't be changed
@@ -465,6 +461,7 @@ module pnode {
 
         /*private*/
         constructor() {
+            super();
         }
 
         // Singleton
