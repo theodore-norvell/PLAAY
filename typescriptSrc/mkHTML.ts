@@ -158,10 +158,34 @@ module mkHTML {
         optionmul.value = "*";
         var optiondiv = document.createElement("option");
         optiondiv.value = "/";
+
+        var optiongreater = document.createElement("option");
+        optiongreater.value = ">";
+        var optionless = document.createElement("option");
+        optionless.value = "<";
+        var optioneq = document.createElement("option");
+        optioneq.value = "==";
+        var optiongreatereq = document.createElement("option");
+        optiongreatereq.value = ">=";
+
+        var optionlesseq = document.createElement("option");
+        optionlesseq.value = "<=";
+        var optionand = document.createElement("option");
+        optionand.value = "&";
+        var optionor = document.createElement("option");
+        optionor.value = "|";
+
         list.appendChild(optionplus);
         list.appendChild(optionminus);
         list.appendChild(optionmul);
         list.appendChild(optiondiv);
+        list.appendChild(optiongreater);
+        list.appendChild(optiongreatereq);
+        list.appendChild(optionless);
+        list.appendChild(optionlesseq);
+        list.appendChild(optioneq);
+        list.appendChild(optionand);
+        list.appendChild(optionor);
         document.getElementById("body").appendChild(list);
 
         var optionlist = document.createElement("ul");
@@ -197,11 +221,11 @@ module mkHTML {
             helper:"clone" ,
             start : function(event, ui){
                 ui.helper.animate({
-                    width: 80,
-                    height: 50
+                    width: 40,
+                    height: 40
                 });
             },
-            cursorAt: {left:40, top:25},
+            cursorAt: {left:20, top:20},
             appendTo:"body"
         });
 
@@ -216,7 +240,6 @@ module mkHTML {
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                //$(ui.draggable).clone().appendTo($(this));
             }
         });
 
@@ -229,7 +252,6 @@ module mkHTML {
                 currentSelection = tree.deleteNode(currentSelection);
                 generateHTML(currentSelection);
                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                //ui.draggable.remove();
             }
         });
         //$(".droppable" ).hover(function(e) {
@@ -237,7 +259,7 @@ module mkHTML {
         //}, function (e) {
         //    $(this).removeClass("hover");
         //});
-        enterList();
+        enterBox();
     }
 
     export function generateHTML(select:Selection)
@@ -260,11 +282,8 @@ module mkHTML {
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
                 generateHTML(currentSelection);
                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                //$(ui.draggable).clone().appendTo($(this));
             }
         });
-
-        enterList();
         enterBox();
     }
 
@@ -283,6 +302,9 @@ module mkHTML {
                 else if (/stringLiteral/i.test(label)) {
                     $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
                 }
+                else if (/op/i.test(label)) {
+                    $(this).replaceWith('<div class="op H click">' + text + '</div>');
+                }
 
                 $(".click").click(function(){
                     var label = $(this).attr("class");
@@ -295,38 +317,12 @@ module mkHTML {
                     {
                         $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
                     }
-                    enterBox();
-                    enterList();
-                });
-            }
-        });
-        $(".canDrag").draggable({
-            //helper:'clone',
-            //appendTo:'body',
-            revert:'invalid'
-        });
-    }
-
-    function enterList()
-    {
-        $(".inputList").keyup(function (e) {
-            if (e.keyCode == 13) {
-                var text = $(this).val();
-                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                var label = $(this).attr("class");
-                if (/op/i.test(label)) {
-                    $(this).replaceWith('<div class="op H clickList">' + text + '</div>');
-                }
-
-                $(".clickList").click(function(){
-                    var label = $(this).attr("class");
-                    if(/op/i.test(label))
+                    else if(/op/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="op H inputList" list="oplist">');
+                        $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
                     }
-                    enterList();
+                    enterBox();
+                    //enterList();
                 });
             }
         });
@@ -377,7 +373,9 @@ module mkHTML {
             }
             else
             {
-                if (/ifBox/i.test(parent.attr("class"))) {
+                if ((/ifBox/i.test(parent.attr("class"))) || (/lambdaBox/i.test(parent.attr("class"))) ||
+                    (/whileBox/i.test(parent.attr("class"))) || (/callWorld/i.test(parent.attr("class")))
+                    || (/assign/i.test(parent.attr("class")))) {
                     anchor = child;
                     focus = child + 1;
                     parent = parent.parent();
@@ -513,9 +511,12 @@ module mkHTML {
             dropZone.setAttribute("class", "dropZoneSmall H droppable");
 
             if(node.label().getVal().length > 0 && (node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
-                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi))) {
+                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
+                || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
+                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/|/gi)) ))
+            {
                 var opval = document.createElement("div");
-                opval.setAttribute("class", "op H clickList");
+                opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(children[0]);
@@ -525,7 +526,7 @@ module mkHTML {
             else if(node.label().getVal().length > 0)
             {
                 var opval = document.createElement("div");
-                opval.setAttribute("class", "op H clickList");
+                opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(opval);
@@ -535,7 +536,7 @@ module mkHTML {
             else
             {
                 var op = document.createElement("input");
-                op.setAttribute("class", "op H inputList");
+                op.setAttribute("class", "op H input");
                 op.setAttribute("type", "text");
                 op.setAttribute("list", "oplist");
                 op.textContent = "";
@@ -607,6 +608,16 @@ module mkHTML {
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
             }
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                VarBox.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                VarBox.appendChild( children[i] ) ;
+            }
+
             return VarBox;
         }
         else if (label.match("string"))
@@ -627,6 +638,16 @@ module mkHTML {
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
             }
+
+            for( var i=0 ; true ; ++i )
+            {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                StringBox.appendChild( dropZone ) ;
+                if( i == children.length ) break ;
+                StringBox.appendChild( children[i] ) ;
+            }
+
             return StringBox;
         }
         else if(label.match("noType"))
