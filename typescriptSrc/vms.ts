@@ -25,11 +25,11 @@ module vms{
 
         advance(){
             if(this.canAdvance()){
-               if(this.stack.top().isDone()) {//TODO add top to stack why can't this file see members?
+               if(this.stack.top().isDone()) {//TODO is done for evaluations?
                   // eval = stack.top();
-                  this.val = this.stack.pop().getVarMap().getValue(); //TODO add pop to stack why can't this file see members?
+                  var value = this.stack.pop().getVarMap().get([]); //TODO get value from evaluation?
                    if(this.stack.notEmpty()){
-                       this.stack.top().setResult( this.val );
+                       this.stack.top().setResult( value );
                    }
                    else{
                        this.stack.top().advance( this );

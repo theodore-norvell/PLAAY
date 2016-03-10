@@ -7,6 +7,41 @@ module stack {
 
     import Evaluation = evaluation.Evaluation;
     import Value = value.Value;
+    import ObjectV = value.ObjectV;
+
+    export class execStack {
+
+        obj : ObjectV;
+        next : execStack;
+
+        constructor(){
+            this.obj = null;
+            this.next = null;
+        }
+
+        setNext(stack : execStack){
+            this.next = stack;
+        }
+
+        top() : ObjectV{
+            return this.obj;
+        }
+
+        getNext() : execStack {
+            return this.next;
+        }
+
+        inStack(name : String) : Boolean{
+            for(var i = 0; i < this.obj.numFields(); i++){
+                if(name.match(this.obj.fields[i].getName())){
+                    return true;
+                }
+            }
+            var here = this.next.inStack(name);
+            return here;
+        }
+
+    }
 
     export class Stack {
 
@@ -95,7 +130,7 @@ module stack {
             return flag;
         }
 
-        get(p : Array<Number>){
+        get(p : Array<Number>) : Value{
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
             }

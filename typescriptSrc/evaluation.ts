@@ -10,21 +10,22 @@ import value = require('./value') ;
 
 module evaluation {
 
-    import Stack = stack.Stack;
+    import execStack = stack.execStack;
     import ExprNode = pnode.ExprNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
     import Value = value.Value;
+    import ClosureV = value.ClosureV;
 
     export class Evaluation {
         root : ExprNode;
-        stack : Stack;
-        //map : Map;
+        stack : execStack;
         pending : Array<Number>;
         ready : Boolean;
+        varmap : VarMap;
 
         next : Evaluation;
-        varmap : VarMap;
+
 
         constructor (){//path : Array<Number>, value : Value) {
             //this.varmap = new VarMap();
@@ -61,7 +62,7 @@ module evaluation {
             var node = this.root.get( this.pending );
             var closurePath = this.pending ^ [0];
             var closure = this.varmap.get( closurePath );
-            var lambda = closure.function;
+            //TODO how to cast this correctly var lambda = <ClosureV>closure.function;
             this.finishStep( value );
         }
 
@@ -76,12 +77,12 @@ module evaluation {
 
         advance( vms : VMS ){
             if(!this.isDone()){
-                //var topNode = this.root.get( this.pending );
+                var topNode = this.root.get( this.pending );
                 if( this.ready ){
-                //    topNode.getLabel().step( vms );
+                    topNode.getLabel().step( vms );
                 }
                 else{
-                 //   topNode.getLabel().select( vms );
+                    topNode.getLabel().select( vms );
                 }
             }
         }
