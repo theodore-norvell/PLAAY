@@ -3,11 +3,30 @@
 
 import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import vms = require('./vms' ) ;
+import evaluation = require('./evaluation') ;
+import stack = require( './stackManager' ) ;
+import value = require('./value') ;
+
 
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
+    import VMS = vms.VMS;
+    import Evaluation = evaluation.Evaluation;
+    import Stack = stack.Stack;
+    import execStack = stack.execStack;
+    import Value = value.Value;
+    import varMap = stack.VarMap;
+    import Field = value.Field;
+    import StringV = value.StringV;
+
+
+    export interface nodeStrategy {
+        select( vms : VMS ) : void;
+        step( vms : VMS ) : void;
+    }
 
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
@@ -27,6 +46,15 @@ module pnode {
     export abstract class PNode {
         private _label:Label;
         private _children:Array<PNode>;
+        strategy:nodeStrategy;
+
+        select(vms:VMS){
+            this.strategy.select(vms);
+        }
+
+        step(vms:VMS){
+            this.strategy.step(vms);
+        }
 
         /** Construct a PNode.
          *  Precondition: label.isValid( children )
@@ -59,6 +87,27 @@ module pnode {
         public label():Label {
             return this._label;
         }
+
+        //return the node at the path
+        public get(path : Array<number>){
+
+            if(path.length <= 0){
+            //error
+            }
+
+            if(path.length == 1){
+                var p = path.shift();
+                return this.child[p]
+            }
+        else {
+                var p = path.shift();
+                var childNode = this.child[p];
+                var node = childNode.get(path);
+                return node;
+            }
+        }
+
+
 
         /** Possibly return a copy of the node in which the children are replaced.
          * The result will have children
@@ -156,6 +205,231 @@ module pnode {
         const cls = label.getClass();
         return new cls(label, children);
     }
+
+    export function lookUp( varName : String, stack : execStack ) : Field {
+        if (stack == null){
+            return null;
+        }
+
+        else {
+            for (var i = 0; i < stack.top().fields.length; i++) {
+                if (stack.top().fields[i].name == varName) {
+                    return stack.top().fields[i];
+                }
+            }
+        }
+        return lookUp( varName, stack.next );
+    }
+
+    export class lrStrategy implements nodeStrategy {
+
+        select( vms : VMS ) : void{
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+
+            if(pending != null) {
+                var node = evalu.root.get(pending);
+
+                if(node.getLabel() == this){
+
+
+                    var flag = true;
+
+                    for(var i = 0; i < node.count(); i++){
+                        var p = pending.concat([i]);
+                        if(!evalu.varmap.inMap(p)){
+                            flag = false;
+                        }
+                    }
+
+                    if (flag){
+                        evalu.ready = true;// Select this node.
+                    }
+
+                    else{
+
+                        var n;
+                        for(var i = 0; i < node.count(); i++){
+                            var p = pending.concat([i]);
+                            if(!evalu.varmap.inMap(p)){
+                                n = i;
+                                break;
+                            }
+                        }
+
+                        evalu.pending = pending.concat([n]);
+                        node.child[n].strategy.select(vms);
+                    }
+                }
+            }
+        }
+
+        step( vms : VMS ){
+            if(vms.stack.top().ready == true){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null) {
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.getLabel() == this){
+                        /*     get the values mapped by the two children //TODO node specific stuff
+                         if(both represent numbers){//math functions
+                         var v = make a new number representing the sum//+ function
+                         eval.finishStep(v);*/
+                    }
+                    else{} //error!
+
+                }
+            }
+        }
+    }
+
+
+    export class varStrategy implements nodeStrategy {
+        select( vms:VMS ){
+            var evalu = vms.stack.top();
+            var pending = evalu.pending
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.getLabel() == this){
+                  //TODO how to highlight  look up the variable in the stack and highlight it.
+//                    there is no variable in the stack with this name
+                   /* if (eval.stack.inStack()){} //error} //what name? Where is it stored
+                    else{eval.ready = true;}*/
+                }
+            }
+        }
+
+        step( vms:VMS  ){
+            if(vms.stack.top().ready){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null){
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.getLabel() == this){
+                        var v = lookUp( name, evalu.stack).getValue(); //TODO not in pseudo code but would make sense to have this as a value
+      //TODO how                  remove highlight from f
+                        evalu.finishStep( v )
+                    }
+                }
+            }
+        }
+    }
+
+    export class ifStrategy implements nodeStrategy {
+        select( vms : VMS){
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.getLabel() == this){
+                    var guardPath = pending.concat([0]);
+                    var thenPath = pending.concat([1]);
+                    var elsePath = pending.concat([2]);
+                    if (evalu.varmap.inMap(guardPath)){
+                        var string = <StringV>evalu.varmap.get(guardPath);
+                        if (string.contents.match("true")){
+                            if(evalu.varmap.inMap(thenPath)){
+                                evalu.ready = true;
+                            }
+                            else{
+                                evalu.pending = thenPath;
+                                node.children(1).getLabel.select( vms );
+                            }
+                        }
+
+                        else if(string.contents.match("false")){
+                            if (evalu.varmap.inMap(elsePath)){
+                                evalu.ready = true;
+                            }
+
+                            else{
+                                evalu.pending = elsePath;
+                                node.children(2).getLabel().select( vms );
+                            }
+                        }
+
+                        else{}//error
+                    }
+
+                    else{
+                        evalu.pending = guardPath;
+                        node.children(0).getLabel().select( vms );
+                    }
+                }
+            }
+        }
+
+        step(vms:VMS){
+            if(vms.stack.top().ready){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null){
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.getLabel() == this){
+                        var guardPath = evalu.pending.concat([0]);
+                        var thenPath = evalu.pending.concat([1]);
+                        var elsePath = evalu.pending.concat([2]);
+                        var v : Value;
+                        var string = <StringV>evalu.varmap.get(guardPath);
+                        if( string.contents.match("true")){
+                            v = evalu.varmap.get( thenPath );
+                        }
+
+                        else{
+                            v = evalu.varmap.get( elsePath );
+                            evalu.finishStep( v );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+   /* export class callStrategy implements nodeStrategy{
+        select(){}
+
+        step( vms : VMS ){
+            if( vms.stack.ready){
+                var eval = vms.stack.top();
+                if(eval.pending != null){
+                    var node = eval.root.get(eval.pending);
+                    if( node.getLabel() == this ){
+                        var functionPath = eval.pending ^ [0];
+                        var c = eval.varmap.get( functionPath );
+                        if (!c.isClosureV()){}//  error!
+                        var c1 = c;
+                        var f : LambdaNode = c1.function;
+
+                        var argList = [eval.varmap.get( eval.pending ^ [1] ),
+                            eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
+
+                        if( the length of arglist not= the length of f.params.children){} //error!
+                        if (any argument has a value not compatible with the corresponding parameter type){}
+                        // error!
+                        var params = f.params.children; //TODO make params
+                        var arFields := [ new Field( params[0].name, argList[0] ),
+                            new Field( params[1].name, argList[1] ),
+                            .. ] //for all f.params.children
+                        var activationRecord = new ObjectV( arFields );
+                        var stack = new Stack( activationRecord, cl.context );
+
+                        var newEval = new Evaluation();
+                        newEval.root = f.body; //TODO what is the body
+                        newEval.stack = stack;
+                        newEval.varmap = new varMap();
+                        newEval.pending = [];
+                        newEval.ready = false;
+
+                        vms.stack.push( newEval );
+                    }
+                }
+            }
+        }
+    }
+*/
+
+
+
+
+
+
 
     //Node Declarations
 
@@ -367,7 +641,7 @@ module pnode {
 
         changeValue (newString : string ) : Option<Label> {
             if (this.con = false) {
-                var newLabel = new NumberLiteralLabel(newString);
+                var newLabel = new numberLiteralLabel(newString);
                 return new Some(newLabel);
             }
 
@@ -475,6 +749,8 @@ module pnode {
 
     export class IfLabel extends ExprLabel {
 
+        strategy:ifStrategy;
+
         isValid(  children : Array<PNode> ) : boolean {
          if( children.length != 3 ) return false ;
          if( ! children[0].isExprNode() ) return false ;
@@ -555,7 +831,7 @@ module pnode {
         }
     }
 
-    export class NumberConstLabel implements ExprLabel {
+    export class numberConstLabel implements ExprLabel {
         _val:string;
 
         constructor(val:string) {
@@ -706,7 +982,7 @@ module pnode {
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
      }
 
-    export class NumberLiteralLabel implements StringLiteralLabel {
+    export class numberLiteralLabel implements StringLiteralLabel {
         _val : string ;
 
         constructor( val : string) { this._val = val ; }
@@ -719,7 +995,7 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-            var newLabel = new NumberLiteralLabel(newString);
+            var newLabel = new numberLiteralLabel(newString);
             return new Some(newLabel);
         }
 
@@ -730,7 +1006,7 @@ module pnode {
         getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }
-        public static theNumberLiteralLabel = new NumberLiteralLabel( "" );
+        public static thenumberLiteralLabel = new numberLiteralLabel( "" );
     }
 
     export class BooleanLiteralLabel implements StringLiteralLabel {
@@ -850,6 +1126,7 @@ module pnode {
         public static theCallLabel = new CallLabel();
     }
 
+
     //Placeholder Make
     export function mkExprPH():ExprNode {
         return <ExprNode> make(ExprPHLabel.theExprPHLabel, []);
@@ -870,7 +1147,7 @@ module pnode {
         return <ExprNode> make( new StringConstLabel(val),[] ) ; }
 
     export function mkNumberConst( val : string ) : ExprNode{
-        return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
+        return <ExprNode> make( new numberConstLabel(val),[] ) ; }  //
 
     export function mkBooleanConst( val : string ) : ExprNode{
         return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }

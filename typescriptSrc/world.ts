@@ -37,5 +37,6 @@ module world {
 
     }
 
-
 }
+
+export = world;
