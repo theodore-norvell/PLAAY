@@ -147,8 +147,11 @@ module pnodeEdits {
             super() ; }
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            var edit = new pnodeEdits.InsertChildrenEdit([]);
-            return edit.applyEdit(selection);
+            var noPH = new pnodeEdits.InsertChildrenEdit([]);
+            var withPH = new pnodeEdits.InsertChildrenEdit([pnode.mkExprPH()]);
+            var alt = edits.alt(noPH, withPH);
+
+            return alt.applyEdit(selection);
         }
     }
 
@@ -218,6 +221,106 @@ module pnodeEdits {
                 });
         }
     }
+
+    export class CopyNodeEdit extends AbstractEdit<Selection> {
+        _newNodes : Array<PNode> ;
+
+        constructor(selection:Selection) {
+            super();
+
+            const loop = (node:PNode, path:List<number>,
+                          start:number, end:number) => {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    this._newNodes = node.children(start, end);
+                }
+                else {
+                    const k = path.first();
+                    const len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    loop(node.child(k), path.rest(), start, end);
+                }
+            };
+
+            // Determine the start and end
+            var start:number;
+            var end:number;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            loop(selection.root(), selection.path(), start, end);
+
+        }
+
+        applyEdit(selection:Selection):Option<Selection> {
+            var edit = new pnodeEdits.InsertChildrenEdit(this._newNodes);
+            return edit.applyEdit(selection);
+        }
+
+    }
+
+    export class MoveNodeEdit extends AbstractEdit<Selection> {
+        _newNodes : Array<PNode> ;
+        _oldSelection : Selection;
+
+        constructor(selection:Selection) {
+            super();
+            const loop = (node:PNode, path:List<number>,
+                          start:number, end:number) => {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    this._newNodes = node.children(start, end);
+                }
+                else {
+                    const k = path.first();
+                    const len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    loop(node.child(k), path.rest(), start, end);
+                }
+            };
+
+            // Determine the start and end
+            var start:number;
+            var end:number;
+            this._oldSelection = selection;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            loop(selection.root(), selection.path(), start, end);
+
+        }
+
+        applyEdit(selection:Selection):Option<Selection> {
+            var edit = new pnodeEdits.DeleteEdit();
+            var oldSel = edit.applyEdit(this._oldSelection).choose(
+                p => p,
+                    () => {
+                        assert.check(false, "Error applying edit to node");
+                        return null;
+                    });
+
+            var newSel = new Selection(oldSel.root(), selection.path(), selection.anchor(), selection.focus());
+
+            var edit2 = new InsertChildrenEdit(this._newNodes);
+            return edit2.applyEdit(newSel);
+        }
+
+    }
+
 }
 
 export = pnodeEdits ;

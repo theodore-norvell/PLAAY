@@ -6,28 +6,30 @@ import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
+import value = require('./value') ;
 
 module evaluation {
 
-    import Stack = stack.Stack;
+    import execStack = stack.execStack;
     import ExprNode = pnode.ExprNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
+    import Value = value.Value;
+    import ClosureV = value.ClosureV;
 
     export class Evaluation {
         root : ExprNode;
-        stack : Stack;
-        //map : Map;
-        pending : Array<Number>;
+        stack : execStack;
+        pending : Array<number>;
         ready : Boolean;
-
-        next : Evaluation;
         varmap : VarMap;
 
-        constructor (name : String, value : String) {
-            this.varmap = new VarMap();
-            this.varmap.setName(name);
-            this.varmap.setValue(value);
+        next : Evaluation;
+
+
+        constructor (){//path : Array<Number>, value : Value) {
+            //this.varmap = new VarMap();
+            //this.varmap.put(path, value);
         }
 
         getNext(){
@@ -42,10 +44,28 @@ module evaluation {
             this.next = next;
         }
 
-        setResult(value : Evaluation ){
-            this.varmap.setName(value.getVarMap().getName());
-            this.varmap.setValue(value.getVarMap().getValue());
+        finishStep( v : Value ){
+            if(this.pending != null && this.ready){
+                this.varmap.put( this.pending , v)
+                if( this.pending.length == 0){
+                    this.pending = null;
+                }
+
+                else{
+                    this.pending.pop();
+                }
+                this.ready = false;
+            }
         }
+
+        setResult(value : Value ){
+            var node = this.root.get( this.pending );
+            var closurePath = this.pending.concat([0]);
+            var closure = this.varmap.get( closurePath );
+            //TODO how to cast this correctly var lambda = <ClosureV>closure.function;
+            this.finishStep( value );
+        }
+
         setVarMap(map : VarMap){
             this.varmap = map;
         }
@@ -66,6 +86,9 @@ module evaluation {
                 }
             }
         }
+
+
+
     }
 }
 export = evaluation;
