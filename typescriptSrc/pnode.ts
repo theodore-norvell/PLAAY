@@ -680,11 +680,6 @@ module pnode {
         }
 
         changeValue (newString : string ) : Option<Label> {
-            if (this.con = false) {
-                var newLabel = new numberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
             return new None<Label>();
         }
 
@@ -957,11 +952,11 @@ module pnode {
         }//will this work in TS?
 
         public toJSON() : any {
-            return { kind: "NumberConstLabel", val : this._val } ;
+            return { kind: "numberConstLabel", val : this._val } ;
         }
 
-        public static fromJSON( json : any ) : NumberConstLabel {
-            return new NumberConstLabel( json.val )  ;
+        public static fromJSON( json : any ) : numberConstLabel {
+            return new numberConstLabel( json.val )  ;
         }
     }
 
@@ -1143,6 +1138,14 @@ module pnode {
 
         toString() : string { return "string[" + this._val + "]"  ; }
         public static thenumberLiteralLabel = new numberLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "numberLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : numberLiteralLabel {
+            return new numberLiteralLabel( json.val )  ;
+        }
     }
 
     export class BooleanLiteralLabel implements StringLiteralLabel {
