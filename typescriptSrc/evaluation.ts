@@ -20,7 +20,7 @@ module evaluation {
     export class Evaluation {
         root : ExprNode;
         stack : execStack;
-        pending : Array<Number>;
+        pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
 
@@ -60,7 +60,7 @@ module evaluation {
 
         setResult(value : Value ){
             var node = this.root.get( this.pending );
-            var closurePath = this.pending ^ [0];
+            var closurePath = this.pending.concat([0]);
             var closure = this.varmap.get( closurePath );
             //TODO how to cast this correctly var lambda = <ClosureV>closure.function;
             this.finishStep( value );

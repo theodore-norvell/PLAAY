@@ -345,7 +345,7 @@ module treeManager {
 
         private makeNumberLiteralNode(selection:Selection):Selection {
 
-            var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
+            var opt = pnode.tryMake(pnode.numberLiteralLabel.thenumberLiteralLabel, []);
 
             var literalnode = opt.choose(
                 p => p,

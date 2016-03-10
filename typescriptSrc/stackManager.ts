@@ -1,7 +1,6 @@
 
 import evaluation = require( './evaluation' ) ;
-import value = require( './value')
-import math = require('./math');
+import value = require( './value') ;
 
 module stack {
 
@@ -33,7 +32,7 @@ module stack {
 
         inStack(name : String) : Boolean{
             for(var i = 0; i < this.obj.numFields(); i++){
-                if(name.match(this.obj.fields[i].getName())){
+                if(name.match(this.obj.fields[i].getName().toString())){
                     return true;
                 }
             }
@@ -48,7 +47,7 @@ module stack {
         head : Evaluation;
 
         constructor(){
-            this.head = new Evaluation(null, null);
+            this.head = new Evaluation();
         }
 
         push(val : Evaluation ) {
@@ -101,10 +100,10 @@ module stack {
 */
 
     export class mapEntry{
-        path : Array<Number>;
+        path : Array<number>;
         val : Value;
 
-        constructor (key : Array<Number>, value : Value ){
+        constructor (key : Array<number>, value : Value ){
             this.path = key;
             this.val = value;
         }
@@ -117,10 +116,10 @@ module stack {
     }
 
     export class VarMap {
-        size : Number ;
+        size : number ;
         entries : Array<mapEntry>;
 
-        samePath(a : Array<Number>, b : Array<Number>){
+        samePath(a : Array<number>, b : Array<number>){
             var flag = true;
             for(var p = 0; p < Math.max(a.length, b.length); p++){
                 if(a[p] != b[p]){
@@ -130,7 +129,7 @@ module stack {
             return flag;
         }
 
-        get(p : Array<Number>) : Value{
+        get(p : Array<number>) : Value{
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
             }
@@ -139,7 +138,7 @@ module stack {
             }
         }
 
-        put(p : Array<Number>, v : Value){
+        put(p : Array<number>, v : Value){
             var notIn = true;
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
@@ -155,7 +154,7 @@ module stack {
             }
         }
 
-        remove(p : Array<Number>){
+        remove(p : Array<number>){
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
@@ -169,7 +168,7 @@ module stack {
             }
         }
 
-        inMap(p : Array<Number>){
+        inMap(p : Array<number>){
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
