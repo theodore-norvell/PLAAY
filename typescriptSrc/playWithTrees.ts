@@ -48,6 +48,14 @@ console.log( opt2.toString() ) ;
 var opt2 = ite0.tryModify( [s0, a], 0, 2 ) ;
 console.log( opt2.toString() ) ;
 
+// Convert to a JSON string.
+var string0 = pnode.fromPNodeToJSON( ite0 ) ;
+console.log( string0 ) ;
+
+// Convert back from a string
+var ite0a = pnode.fromJSONToPNode( string0 ) ;
+console.log( ite0a.toString() ) ;
+
 // Try to create a tree using edits.
 console.log( "Building a tree from the top down using edits" ) ;
 
