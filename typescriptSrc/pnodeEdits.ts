@@ -366,7 +366,7 @@ module pnodeEdits {
             loop(selection.root(), selection.path(), start, end);
         }
 
-        applyEdit(selection:Selection):Option<Selection> {
+        applyEdit():Option<Selection> {
             var edit1 = new pnodeEdits.InsertChildrenEdit([this._newNode1]);
 
             var firstSel = edit1.applyEdit(this._secondSelection).choose(

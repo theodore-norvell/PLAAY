@@ -511,8 +511,8 @@ module treeManager {
             }
 
             var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
-            if (swapedit.canApply(newSelection)) {
-                var sel = swapedit.applyEdit(newSelection).choose(
+            if (swapedit.canApply()) {
+                var sel = swapedit.applyEdit().choose(
                     p => p,
                     () => {
                         assert.check(false, "Error applying edit to node");
