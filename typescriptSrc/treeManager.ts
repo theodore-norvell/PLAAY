@@ -482,9 +482,9 @@ module treeManager {
         }
 
 
-        moveCopySwapEditList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Selection] > {
+        moveCopySwapselectionList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Selection] > {
 
-            var editList : Array< [string, string, Selection] > = [];
+            var selectionList : Array< [string, string, Selection] > = [];
 
             var moveedit = new pnodeEdits.MoveNodeEdit(oldSelection);
             if (moveedit.canApply(newSelection)) {
@@ -495,7 +495,7 @@ module treeManager {
                         return null;
                     });
 
-                editList.push(["Moved", "Move", sel]);
+                selectionList.push(["Moved", "Move", sel]);
             }
 
             var copyedit = new pnodeEdits.CopyNodeEdit(oldSelection);
@@ -507,7 +507,7 @@ module treeManager {
                         return null;
                     });
 
-                editList.push(['Copied', "Copy", sel]);
+                selectionList.push(['Copied', "Copy", sel]);
             }
 
             var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
@@ -519,10 +519,10 @@ module treeManager {
                         return null;
                     });
 
-                editList.push(['Swapped', "Swap", sel]);
+                selectionList.push(['Swapped', "Swap", sel]);
             }
 
-            return editList;
+            return selectionList;
 
         }
     }

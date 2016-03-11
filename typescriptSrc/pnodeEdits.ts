@@ -320,8 +320,8 @@ module pnodeEdits {
     }
 
     export class SwapNodeEdit extends AbstractEdit<Selection> {
-        _newNode1 : PNode ;
-        _newNode2 : PNode ;
+        _newNode1 : Array<PNode> ;
+        _newNode2 : Array<PNode> ;
         _firstSelection : Selection;
         _secondSelection : Selection;
 
@@ -335,9 +335,15 @@ module pnodeEdits {
             this._newNode2 = this.getChildrenToSwap(firstSelection);
         }
 
-        getChildrenToSwap(selection : Selection) : PNode {
+        canApply() : boolean {
+            return this.applyEdit().choose(
+                a => true,
+                () => false ) ;
+        }
+
+        getChildrenToSwap(selection : Selection) : Array<PNode> {
             const loop = (node:PNode, path:List<number>,
-                          start:number, end:number) => {
+                          start:number, end:number) : Array<PNode> => {
                 if (path.isEmpty()) {
                     //console.log("this._newNodes is " + this._newNodes ) ;
                     return node.children(start, end);
@@ -367,7 +373,7 @@ module pnodeEdits {
         }
 
         applyEdit():Option<Selection> {
-            var edit1 = new pnodeEdits.InsertChildrenEdit([this._newNode1]);
+            var edit1 = new pnodeEdits.InsertChildrenEdit(this._newNode1);
 
             var firstSel = edit1.applyEdit(this._secondSelection).choose(
                 p => p,
@@ -377,7 +383,7 @@ module pnodeEdits {
                 });
 
             var sel =  new Selection(firstSel._root, this._firstSelection.path(), this._firstSelection.anchor(), this._firstSelection.focus() );
-            var edit2 = new pnodeEdits.InsertChildrenEdit([this._newNode2]);
+            var edit2 = new pnodeEdits.InsertChildrenEdit(this._newNode2);
             return edit2.applyEdit(sel);
 
         }
