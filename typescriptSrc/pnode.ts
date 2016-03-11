@@ -35,6 +35,8 @@ module pnode {
 
         getVal : () => string ;
         changeValue:(newString : string) => Option<Label> ;
+
+        toJSON : () => any ;
     }
 
     /**  Interface is to describe objects that are classes that are subclasses of PNode
@@ -183,6 +185,25 @@ module pnode {
 
             return this._label.toString() + "(" + args + ")";
         }
+
+        /** Convert a node to a simple object that can be stringified with JSON */
+        toJSON () : any {
+            var result : any = {} ;
+            result.label = this._label.toJSON() ;
+            result.children = [] ;
+            var i ;
+            for( i = 0 ; i < this._children.length ; ++i )
+                result.children.push( this._children[i].toJSON() ) ; 
+            return result ;
+        }
+
+        /** Convert a simple object created by toJSON to a PNode */
+        static fromJSON( json : any ) : PNode {
+             var label = fromJSONToLabel( json.label ) ;
+             var children = json.children.map( PNode.fromJSON ) ;
+             return make( label, children ) ;
+        }
+
     }
 
 
@@ -525,6 +546,8 @@ module pnode {
 
         // Singleton
         //public static theExprLabel = new ExprLabel();
+
+        abstract toJSON() : any ;
     }
 
 
@@ -557,6 +580,12 @@ module pnode {
 
         // Singleton
         public static theExprSeqLabel = new ExprSeqLabel();
+
+        public toJSON() : any {
+            return { kind:  "ExprSeqLabel" } ; }
+
+        public static fromJSON( json : any ) : ExprSeqLabel {
+            return ExprSeqLabel.theExprSeqLabel ; }
     }
 
     export class TypeLabel implements Label {
@@ -580,6 +609,12 @@ module pnode {
 
         // Singleton
         public static theTypeLabel = new TypeLabel();
+
+        public toJSON() : any {
+            return { kind:  "TypeLabel" } ; }
+
+        public static fromJSON( json : any ) : TypeLabel {
+            return TypeLabel.theTypeLabel ; }
     }
 
     //Variable
@@ -613,12 +648,17 @@ module pnode {
         }
 
         public static theVariableLabel = new VariableLabel("");
+
+        public toJSON() : any {
+            return { kind : "VariableLabel", name : this._val } ; 
+        }
+
+        public static fromJSON( json : any ) : VariableLabel {
+            return new VariableLabel( json.name ) ; }
+
     }
 
     export class AssignLabel extends ExprLabel {
-        _val : string;
-        con : boolean;
-
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
             if( ! children[0].isExprNode()) return false ;
@@ -640,16 +680,19 @@ module pnode {
         }
 
         changeValue (newString : string ) : Option<Label> {
-            if (this.con = false) {
-                var newLabel = new numberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
             return new None<Label>();
         }
 
         // Singleton
         public static theAssignLabel = new AssignLabel();
+
+        public toJSON() : any {
+            return { kind: "AssignLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : AssignLabel {
+            return AssignLabel.theAssignLabel ;
+        }
     }
 
 
@@ -685,6 +728,14 @@ module pnode {
         }
 
         public static theCallWorldLabel = new callWorldLabel("");
+
+        public toJSON() : any {
+            return { kind: "callWorldLabel" , name: this._val } ;
+        }
+
+        public static fromJSON( json : any ) : callWorldLabel {
+            return new callWorldLabel( json.name ) ;
+        }
     }
 
     //Placeholder Labels
@@ -711,6 +762,14 @@ module pnode {
 
         // Singleton
         public static theExprPHLabel = new ExprPHLabel();
+
+        public toJSON() : any {
+            return { kind: "ExprPHLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : ExprPHLabel {
+            return ExprPHLabel.theExprPHLabel ;
+        }
     }
 
     export class LambdaLabel extends ExprLabel {
@@ -743,6 +802,14 @@ module pnode {
 
         // Singleton
         public static theLambdaLabel = new LambdaLabel();
+
+        public toJSON() : any {
+            return { kind: "LambdaLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : LambdaLabel {
+            return LambdaLabel.theLambdaLabel ;
+        }
     }
 
     //While and If Labels
@@ -773,6 +840,14 @@ module pnode {
 
         // Singleton
         public static theIfLabel = new IfLabel();
+
+        public toJSON() : any {
+            return { kind: "IfLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : IfLabel {
+            return IfLabel.theIfLabel ;
+        }
     }
 
     export class WhileLabel extends ExprLabel {
@@ -798,6 +873,14 @@ module pnode {
 
         // Singleton
         public static theWhileLabel = new WhileLabel();
+
+        public toJSON() : any {
+            return { kind: "WhileLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : WhileLabel {
+            return WhileLabel.theWhileLabel ;
+        }
     }
 
     //Const Labels
@@ -829,6 +912,14 @@ module pnode {
         toString():string {
             return "string[" + this._val + "]";
         }
+
+        public toJSON() : any {
+            return { kind: "StringConstLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : StringConstLabel {
+            return new StringConstLabel( json.val )  ;
+        }
     }
 
     export class numberConstLabel implements ExprLabel {
@@ -859,6 +950,14 @@ module pnode {
         toString():string {
             return "string[" + this._val + "]";
         }//will this work in TS?
+
+        public toJSON() : any {
+            return { kind: "numberConstLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : numberConstLabel {
+            return new numberConstLabel( json.val )  ;
+        }
     }
 
     export class BooleanConstLabel implements ExprLabel {
@@ -888,6 +987,14 @@ module pnode {
         toString():string {
             return "string[" + this._val + "]";
         }//will this work in TS?
+
+        public toJSON() : any {
+            return { kind: "BooleanConstLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : BooleanConstLabel {
+            return new BooleanConstLabel( json.val )  ;
+        }
     }
 
     export class AnyConstLabel implements ExprLabel {
@@ -921,6 +1028,14 @@ module pnode {
         toString():string {
             return "string[" + this._val + "]";
         }//will this work in TS?
+
+        public toJSON() : any {
+            return { kind: "AnyConstLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : AnyConstLabel {
+            return new AnyConstLabel( json.val )  ;
+        }
     }
 
     //Type Labels
@@ -951,6 +1066,14 @@ module pnode {
 
         // Singleton
         public static theNoTypeLabel = new NoTypeLabel();
+
+        public toJSON() : any {
+            return { kind: "NoTypeLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : NoTypeLabel {
+            return NoTypeLabel.theNoTypeLabel ;
+        }
     }
 
      //Literal Labels
@@ -980,6 +1103,14 @@ module pnode {
         toString() : string { return "string"  ; }
 
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "StringLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : StringLiteralLabel {
+            return new StringLiteralLabel( json.val )  ;
+        }
      }
 
     export class numberLiteralLabel implements StringLiteralLabel {
@@ -1007,6 +1138,14 @@ module pnode {
 
         toString() : string { return "string[" + this._val + "]"  ; }
         public static thenumberLiteralLabel = new numberLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "numberLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : numberLiteralLabel {
+            return new numberLiteralLabel( json.val )  ;
+        }
     }
 
     export class BooleanLiteralLabel implements StringLiteralLabel {
@@ -1034,7 +1173,17 @@ module pnode {
         getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }
+
+        // The following line makes no sense.
         public static theBooleanLiteralLabel = new BooleanLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "BooleanLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : BooleanLiteralLabel {
+            return new BooleanLiteralLabel( json.val )  ;
+        }
     }
 
 
@@ -1059,6 +1208,14 @@ module pnode {
 
         toString() : string { return "string[" + this._val + "]"  ; }
         public static theNullLiteralLabel = new NullLiteralLabel();
+
+        public toJSON() : any {
+            return { kind: "NullLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : NullLiteralLabel {
+            return  NullLiteralLabel.theNullLiteralLabel ;
+        }
     }
 
     export class MethodLabel implements ExprLabel { //TODO should this be type?
@@ -1090,10 +1247,17 @@ module pnode {
 
         // Singleton
         public static theMethodLabel = new MethodLabel();
+
+        public toJSON() : any {
+            return { kind: "MethodLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : MethodLabel {
+            return MethodLabel.theMethodLabel  ;
+        }
     }
 
     export class CallLabel implements ExprLabel {
-        _id : string ;
 
         isValid(children:Array<PNode>) {
             //TODO check if child 0 is a method
@@ -1115,7 +1279,7 @@ module pnode {
         }
 
         getVal() : string {
-            return this._id;
+            return null;
         }
 
         /*private*/
@@ -1124,6 +1288,14 @@ module pnode {
 
         // Singleton
         public static theCallLabel = new CallLabel();
+
+        public toJSON() : any {
+            return { kind: "CallLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : CallLabel {
+            return CallLabel.theCallLabel ;
+        }
     }
 
 
@@ -1155,6 +1327,38 @@ module pnode {
     export function mkAnyConst( val : any ) : ExprNode{
         return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
 
+    // JSON support
+    
+    export function fromPNodeToJSON( p : PNode ) : string {
+        var json = p.toJSON() ;
+        return JSON.stringify( json ) ; }
+
+    export function fromJSONToPNode( s : string ) : PNode {
+        var json = JSON.parse( s ) ;
+        return PNode.fromJSON( json ) ; }
+
+    function fromJSONToLabel( json : any ) : Label {
+         // There is probably a reflective way to do this
+         //   Perhaps
+         //       var labelClass = pnode[json.kind] ;
+         //       check that labelClass is not undefined
+         //       var  fromJSON : any => Label = labelClass["fromJSON"] ;
+         //       check that fromJSON is not undefined
+         //       return fromJSON( json ) ;
+         var labelClass = pnode[json.kind] ; // This line relies on
+             //  (a) the json.kind field being the name of the concrete label class.
+             //  (b) that all the concrete label classes are exported from the pnode module.
+         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
+         var  fromJSON : (json : any) => Label = labelClass["fromJSON"] ; //
+         assert.check( fromJSON !== undefined ) // check that fromJSON is not undefined
+         return fromJSON( json ) ;
+         // If the code above doesn't work, then make a big ugly switch like this:
+         // switch( json.kind ) {
+             // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
+             // // and so on.
+             // default : assert.check(false ) ; 
+         // }
+    }
 }
 
 export = pnode ;
