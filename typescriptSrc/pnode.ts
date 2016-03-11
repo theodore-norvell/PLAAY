@@ -697,7 +697,7 @@ module pnode {
 
 
     //Arithmetic Labels
-    export class callWorldLabel implements ExprLabel {
+    export class CallWorldLabel implements ExprLabel {
 
         _val : string;//the operation
 
@@ -718,7 +718,7 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-            var newLabel = new callWorldLabel(newString);
+            var newLabel = new CallWorldLabel(newString);
             return new Some(newLabel);
         }
 
@@ -727,14 +727,14 @@ module pnode {
             this._val = name;
         }
 
-        public static theCallWorldLabel = new callWorldLabel("");
+        public static theCallWorldLabel = new CallWorldLabel("");
 
         public toJSON() : any {
-            return { kind: "callWorldLabel" , name: this._val } ;
+            return { kind: "CallWorldLabel" , name: this._val } ;
         }
 
-        public static fromJSON( json : any ) : callWorldLabel {
-            return new callWorldLabel( json.name ) ;
+        public static fromJSON( json : any ) : CallWorldLabel {
+            return new CallWorldLabel( json.name ) ;
         }
     }
 
@@ -922,7 +922,7 @@ module pnode {
         }
     }
 
-    export class numberConstLabel implements ExprLabel {
+    export class NumberConstLabel implements ExprLabel {
         _val:string;
 
         constructor(val:string) {
@@ -952,11 +952,11 @@ module pnode {
         }//will this work in TS?
 
         public toJSON() : any {
-            return { kind: "numberConstLabel", val : this._val } ;
+            return { kind: "NumberConstLabel", val : this._val } ;
         }
 
-        public static fromJSON( json : any ) : numberConstLabel {
-            return new numberConstLabel( json.val )  ;
+        public static fromJSON( json : any ) : NumberConstLabel {
+            return new NumberConstLabel( json.val )  ;
         }
     }
 
@@ -1113,7 +1113,7 @@ module pnode {
         }
      }
 
-    export class numberLiteralLabel implements StringLiteralLabel {
+    export class NumberLiteralLabel implements StringLiteralLabel {
         _val : string ;
 
         constructor( val : string) { this._val = val ; }
@@ -1126,7 +1126,7 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-            var newLabel = new numberLiteralLabel(newString);
+            var newLabel = new NumberLiteralLabel(newString);
             return new Some(newLabel);
         }
 
@@ -1137,14 +1137,14 @@ module pnode {
         getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "string[" + this._val + "]"  ; }
-        public static thenumberLiteralLabel = new numberLiteralLabel( "" );
+        public static theNumberLiteralLabel = new NumberLiteralLabel( "" );
 
         public toJSON() : any {
-            return { kind: "numberLiteralLabel", val : this._val } ;
+            return { kind: "NumberLiteralLabel", val : this._val } ;
         }
 
-        public static fromJSON( json : any ) : numberLiteralLabel {
-            return new numberLiteralLabel( json.val )  ;
+        public static fromJSON( json : any ) : NumberLiteralLabel {
+            return new NumberLiteralLabel( json.val )  ;
         }
     }
 
@@ -1319,7 +1319,7 @@ module pnode {
         return <ExprNode> make( new StringConstLabel(val),[] ) ; }
 
     export function mkNumberConst( val : string ) : ExprNode{
-        return <ExprNode> make( new numberConstLabel(val),[] ) ; }  //
+        return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
 
     export function mkBooleanConst( val : string ) : ExprNode{
         return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }
