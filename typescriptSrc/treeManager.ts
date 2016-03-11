@@ -247,7 +247,7 @@ module treeManager {
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
-            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.CallWorldLabel.theCallWorldLabel, [left, right]);
 
             var worldcallnode = opt.choose(
                 p => p,
@@ -345,7 +345,7 @@ module treeManager {
 
         private makeNumberLiteralNode(selection:Selection):Selection {
 
-            var opt = pnode.tryMake(pnode.numberLiteralLabel.thenumberLiteralLabel, []);
+            var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
 
             var literalnode = opt.choose(
                 p => p,
