@@ -523,13 +523,10 @@ module pnode {
 
     }
 
-
     //Node Labels
     export abstract class ExprLabel implements Label {
 
-        isValid(children:Array<PNode>) {
-            return true;
-        }
+        abstract isValid(children:Array<PNode>) ;
 
         getClass():PNodeClass {
             return ExprNode;
@@ -542,7 +539,10 @@ module pnode {
         changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
-        getVal : () => string ;
+        
+        getVal() : string { 
+            return null ;
+        }
 
         // Singleton
         //public static theExprLabel = new ExprLabel();
@@ -588,7 +588,7 @@ module pnode {
             return ExprSeqLabel.theExprSeqLabel ; }
     }
 
-    export class TypeLabel implements Label {
+    export abstract class TypeLabel implements Label {
         isValid:(children:Array<PNode>) => boolean;
 
         getClass():PNodeClass {
@@ -607,19 +607,12 @@ module pnode {
             return null;
         }
 
-        // Singleton
-        public static theTypeLabel = new TypeLabel();
-
-        public toJSON() : any {
-            return { kind:  "TypeLabel" } ; }
-
-        public static fromJSON( json : any ) : TypeLabel {
-            return TypeLabel.theTypeLabel ; }
+        public abstract toJSON() : any ;
     }
 
     //Variable
 
-    export class VariableLabel implements ExprLabel {
+    export class VariableLabel extends ExprLabel {
         _val : string;
 
         isValid(children:Array<PNode>):boolean {
@@ -644,6 +637,7 @@ module pnode {
 
         /*private*/
         constructor(name : string) {
+            super() ;
             this._val = name;
         }
 
@@ -697,7 +691,7 @@ module pnode {
 
 
     //Arithmetic Labels
-    export class CallWorldLabel implements ExprLabel {
+    export class CallWorldLabel extends ExprLabel {
 
         _val : string;//the operation
 
@@ -724,6 +718,7 @@ module pnode {
 
         /*private*/
         constructor(name : string) {
+            super() ;
             this._val = name;
         }
 
@@ -784,11 +779,6 @@ module pnode {
 
         getClass():PNodeClass {
             return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
         }
 
         toString():string {
@@ -883,161 +873,6 @@ module pnode {
         }
     }
 
-    //Const Labels
-
-    export class StringConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
-        }
-
-        getVal():string {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }
-
-        public toJSON() : any {
-            return { kind: "StringConstLabel", val : this._val } ;
-        }
-
-        public static fromJSON( json : any ) : StringConstLabel {
-            return new StringConstLabel( json.val )  ;
-        }
-    }
-
-    export class NumberConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
-        }
-
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        getVal() : string {
-            return this._val;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-
-        public toJSON() : any {
-            return { kind: "NumberConstLabel", val : this._val } ;
-        }
-
-        public static fromJSON( json : any ) : NumberConstLabel {
-            return new NumberConstLabel( json.val )  ;
-        }
-    }
-
-    export class BooleanConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
-        }
-
-        getVal():string {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-
-        public toJSON() : any {
-            return { kind: "BooleanConstLabel", val : this._val } ;
-        }
-
-        public static fromJSON( json : any ) : BooleanConstLabel {
-            return new BooleanConstLabel( json.val )  ;
-        }
-    }
-
-    export class AnyConstLabel implements ExprLabel {
-        _val:any;
-
-        constructor(val:any) {
-            this._val = val;
-        }
-
-        val():any {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        getVal() : string {
-            return this._val;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-
-        public toJSON() : any {
-            return { kind: "AnyConstLabel", val : this._val } ;
-        }
-
-        public static fromJSON( json : any ) : AnyConstLabel {
-            return new AnyConstLabel( json.val )  ;
-        }
-    }
-
     //Type Labels
 
     export class NoTypeLabel implements TypeLabel {
@@ -1078,10 +913,10 @@ module pnode {
 
      //Literal Labels
 
-     export class StringLiteralLabel implements ExprLabel {
+     export class StringLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
@@ -1113,10 +948,10 @@ module pnode {
         }
      }
 
-    export class NumberLiteralLabel implements StringLiteralLabel {
+    export class NumberLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
@@ -1131,12 +966,12 @@ module pnode {
         }
 
         getVal() : string {
-            return null;
+            return this._val ;
         }
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "number[" + this._val + "]"  ; }
         public static theNumberLiteralLabel = new NumberLiteralLabel( "" );
 
         public toJSON() : any {
@@ -1148,10 +983,10 @@ module pnode {
         }
     }
 
-    export class BooleanLiteralLabel implements StringLiteralLabel {
+    export class BooleanLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
@@ -1172,7 +1007,7 @@ module pnode {
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "boolean[" + this._val + "]"  ; }
 
         // The following line makes no sense.
         public static theBooleanLiteralLabel = new BooleanLiteralLabel( "" );
@@ -1187,30 +1022,20 @@ module pnode {
     }
 
 
-    export class NullLiteralLabel implements ExprLabel {
-        _val : string;
-        constructor() { this._val = "null" ; }
-
-        val() : string { return null }
+    export class NullLiteralLabel extends ExprLabel {
+        constructor() { super() ; }
 
         isValid( children : Array<PNode> ) {
             return children.length == 0;}
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
+        toString() : string { return "null"  ; }
 
-        getVal() : string {
-            return "null";
-        }
-
-        toString() : string { return "string[" + this._val + "]"  ; }
         public static theNullLiteralLabel = new NullLiteralLabel();
 
         public toJSON() : any {
-            return { kind: "NullLiteralLabel", val : this._val } ;
+            return { kind: "NullLiteralLabel" } ;
         }
 
         public static fromJSON( json : any ) : NullLiteralLabel {
@@ -1218,46 +1043,7 @@ module pnode {
         }
     }
 
-    export class MethodLabel implements ExprLabel { //TODO should this be type?
-        isValid(children:Array<PNode>) {
-            return children.every(function (c:PNode) {
-                return c.isTypeNode()
-            });
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "method";
-        }
-
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        getVal() : string {
-            return null;
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theMethodLabel = new MethodLabel();
-
-        public toJSON() : any {
-            return { kind: "MethodLabel" } ;
-        }
-
-        public static fromJSON( json : any ) : MethodLabel {
-            return MethodLabel.theMethodLabel  ;
-        }
-    }
-
-    export class CallLabel implements ExprLabel {
+    export class CallLabel extends ExprLabel {
 
         isValid(children:Array<PNode>) {
             //TODO check if child 0 is a method
@@ -1284,6 +1070,7 @@ module pnode {
 
         /*private*/
         constructor() {
+            super() ;
         }
 
         // Singleton
@@ -1315,17 +1102,14 @@ module pnode {
         return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
     //Const Make
-    export function mkStringConst( val : string ) : ExprNode{
-        return <ExprNode> make( new StringConstLabel(val),[] ) ; }
+    export function mkStringLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new StringLiteralLabel(val),[] ) ; }
 
-    export function mkNumberConst( val : string ) : ExprNode{
-        return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
+    export function mkNumberLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new NumberLiteralLabel(val),[] ) ; }
 
-    export function mkBooleanConst( val : string ) : ExprNode{
-        return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }
-
-    export function mkAnyConst( val : any ) : ExprNode{
-        return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
+    export function mkBooleanLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new BooleanLiteralLabel(val),[] ) ; }
 
     // JSON support
     
