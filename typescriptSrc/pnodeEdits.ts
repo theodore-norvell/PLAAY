@@ -363,7 +363,8 @@ module pnodeEdits {
                 end = selection.anchor();
             }
             // Loop down to find and modify the selections target node.
-            return loop(selection.root(), selection.path(), start, end);
+            var node = loop(selection.root(), selection.path(), start, end);
+            return node.pop();
         }
 
         applyEdit():Option<Selection> {
