@@ -1,13 +1,20 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="pnodeEdits.ts" />
 
 import collections = require( './collections' );
 import assert = require( './assert' );
+import pnode = require('./pnode');
+import pnodeEdits = require( './pnodeEdits');
 
 module playground
 {
     import list = collections.list;
     import List = collections.List;
+    import PNode = pnode.PNode;
+    import Selection = pnodeEdits.Selection;
+    import fromJSONToPNode = pnode.fromJSONToPNode;
 
     export function onLoad()
     {
@@ -28,6 +35,17 @@ module playground
             window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/test.html";
         }
 
+        var json = localStorage.getItem("currentSelection");
+        var currentSelection = unserialize(json);
+    }
+
+    function unserialize(string:string) : Selection
+    {
+        var path = list<number>();
+        var newSelection = new Selection(fromJSONToPNode(string),path,0,0)
+        return newSelection;
+        //generateHTML(newSelection);
+        //$("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
     }
 }
 
