@@ -379,7 +379,8 @@ div.stringLiteral{
     font-size: medium ;
     color: rgb(255,255,255);
     max-width: 200px ;
-    text-wrap:normal ;
+    white-space: pre-wrap ;
+    word-wrap: break-word ;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
