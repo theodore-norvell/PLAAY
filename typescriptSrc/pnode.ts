@@ -20,6 +20,7 @@ module pnode {
     import Value = value.Value;
     import varMap = stack.VarMap;
     import Field = value.Field;
+    import ClosureV = value.ClosureV;
     import StringV = value.StringV;
 
 
@@ -101,7 +102,8 @@ module pnode {
                 var p = path.shift();
                 return this.child[p]
             }
-        else {
+
+            else {
                 var p = path.shift();
                 var childNode = this.child[p];
                 var node = childNode.get(path);
@@ -193,7 +195,7 @@ module pnode {
             result.children = [] ;
             var i ;
             for( i = 0 ; i < this._children.length ; ++i )
-                result.children.push( this._children[i].toJSON() ) ; 
+                result.children.push( this._children[i].toJSON() ) ;
             return result ;
         }
 
@@ -234,7 +236,7 @@ module pnode {
 
         else {
             for (var i = 0; i < stack.top().fields.length; i++) {
-                if (stack.top().fields[i].name == varName) {
+                if (stack.top().fields[i].name.match(varName)) {
                     return stack.top().fields[i];
                 }
             }
@@ -251,7 +253,7 @@ module pnode {
             if(pending != null) {
                 var node = evalu.root.get(pending);
 
-                if(node.getLabel() == this){
+                if(node.label() == this){
 
 
                     var flag = true;
@@ -287,10 +289,10 @@ module pnode {
 
         step( vms : VMS ){
             if(vms.stack.top().ready == true){
-                var evalu = vms.stack.top();
-                if(evalu.pending != null) {
-                    var node = evalu.root.get(evalu.pending);
-                    if(node.getLabel() == this){
+                var eval = vms.stack.top();
+                if(eval.pending != null) {
+                    var node = eval.root.get(eval.pending);
+                    if(node.label() == this){
                         /*     get the values mapped by the two children //TODO node specific stuff
                          if(both represent numbers){//math functions
                          var v = make a new number representing the sum//+ function
@@ -310,7 +312,7 @@ module pnode {
             var pending = evalu.pending
             if(pending != null){
                 var node = evalu.root.get(pending);
-                if(node.getLabel() == this){
+                if(node.label() == this){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
 //                    there is no variable in the stack with this name
                    /* if (eval.stack.inStack()){} //error} //what name? Where is it stored
@@ -324,7 +326,7 @@ module pnode {
                 var evalu = vms.stack.top();
                 if(evalu.pending != null){
                     var node = evalu.root.get(evalu.pending);
-                    if(node.getLabel() == this){
+                    if(node.label() == this){
                         var v = lookUp( name, evalu.stack).getValue(); //TODO not in pseudo code but would make sense to have this as a value
       //TODO how                  remove highlight from f
                         evalu.finishStep( v )
@@ -340,7 +342,7 @@ module pnode {
             var pending = evalu.pending;
             if(pending != null){
                 var node = evalu.root.get(pending);
-                if(node.getLabel() == this){
+                if(node.label() == this){
                     var guardPath = pending.concat([0]);
                     var thenPath = pending.concat([1]);
                     var elsePath = pending.concat([2]);
@@ -363,7 +365,7 @@ module pnode {
 
                             else{
                                 evalu.pending = elsePath;
-                                node.children(2).getLabel().select( vms );
+                                node.children(2).label().select( vms );
                             }
                         }
 
@@ -407,7 +409,7 @@ module pnode {
         select(){}
 
         step( vms : VMS ){
-            if( vms.stack.ready){
+            if( vms.stack.top().ready){
                 var eval = vms.stack.top();
                 if(eval.pending != null){
                     var node = eval.root.get(eval.pending);
@@ -415,9 +417,12 @@ module pnode {
                         var functionPath = eval.pending ^ [0];
                         var c = eval.varmap.get( functionPath );
                         if (!c.isClosureV()){}//  error!
-                        var c1 = c;
+                        var c1 = <ClosureV>c;
                         var f : LambdaNode = c1.function;
 
+                        argList : Array<PNode>;
+
+                        for(var i = 0; i <)
                         var argList = [eval.varmap.get( eval.pending ^ [1] ),
                             eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
 
@@ -539,8 +544,8 @@ module pnode {
         changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
-        
-        getVal() : string { 
+
+        getVal() : string {
             return null ;
         }
 
@@ -644,7 +649,7 @@ module pnode {
         public static theVariableLabel = new VariableLabel("");
 
         public toJSON() : any {
-            return { kind : "VariableLabel", name : this._val } ; 
+            return { kind : "VariableLabel", name : this._val } ;
         }
 
         public static fromJSON( json : any ) : VariableLabel {
@@ -1112,7 +1117,7 @@ module pnode {
         return <ExprNode> make( new BooleanLiteralLabel(val),[] ) ; }
 
     // JSON support
-    
+
     export function fromPNodeToJSON( p : PNode ) : string {
         var json = p.toJSON() ;
         return JSON.stringify( json ) ; }
@@ -1140,7 +1145,7 @@ module pnode {
          // switch( json.kind ) {
              // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
              // // and so on.
-             // default : assert.check(false ) ; 
+             // default : assert.check(false ) ;
          // }
     }
 }

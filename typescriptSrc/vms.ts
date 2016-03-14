@@ -31,9 +31,10 @@ module vms{
                    if(this.stack.notEmpty()){
                        this.stack.top().setResult( value );
                    }
-                   else{
-                       this.stack.top().advance( this );
-                   }
+               }
+
+               else{
+                   this.stack.top().advance( this );
                }
             }
         }
