@@ -1,0 +1,62 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<web-app xmlns="http://xmlns.jcp.org/xml/ns/javaee"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://xmlns.jcp.org/xml/ns/javaee http://xmlns.jcp.org/xml/ns/javaee/web-app_3_1.xsd"
+         version="3.1">
+
+        <welcome-file-list>
+            <welcome-file>index.html</welcome-file>
+        </welcome-file-list>
+    
+        <servlet>
+            <servlet-name>HelloWorld</servlet-name>
+            <servlet-class>user.TestServlet</servlet-class>
+        </servlet>
+    
+        <servlet>
+            <servlet-name>LoginRequest</servlet-name>
+            <servlet-class>user.LoginRequest</servlet-class>
+        </servlet>
+    
+        <servlet-mapping>
+            <servlet-name>LoginRequest</servlet-name>
+            <url-pattern>/Login</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>RegisterRequest</servlet-name>
+            <servlet-class>user.RegisterRequest</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>RegisterRequest</servlet-name>
+            <url-pattern>/Register</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>LoadPrograms</servlet-name>
+            <servlet-class>user.LoadRequest</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>LoadPrograms</servlet-name>
+            <url-pattern>/LoadPrograms</url-pattern>
+        </servlet-mapping>
+
+        <servlet>
+            <servlet-name>SavePrograms</servlet-name>
+            <servlet-class>user.SaveRequest</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>SavePrograms</servlet-name>
+            <url-pattern>/SavePrograms</url-pattern>
+        </servlet-mapping>
+
+        <servlet-mapping>
+            <servlet-name>HelloWorld</servlet-name>
+            <url-pattern>/HelloWorld</url-pattern>
+        </servlet-mapping>
+
+</web-app>
+
