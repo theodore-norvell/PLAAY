@@ -304,17 +304,16 @@ module pnodeEdits {
         }
 
         applyEdit(selection:Selection):Option<Selection> {
-            var edit = new pnodeEdits.DeleteEdit();
-            var oldSel = edit.applyEdit(this._oldSelection).choose(
+            var edit = new InsertChildrenEdit(this._newNodes);
+            var selwithchildren = edit.applyEdit(selection).choose(
                 p => p,
                     () => {
                         assert.check(false, "Error applying edit to node");
                         return null;
                     });
 
-            var newSel = new Selection(oldSel.root(), selection.path(), selection.anchor(), selection.focus());
-
-            var edit2 = new InsertChildrenEdit(this._newNodes);
+            var newSel = new Selection(selwithchildren.root(), this._oldSelection.path(), this._oldSelection.anchor(), this._oldSelection.focus());
+            var edit2 = new DeleteEdit();
             return edit2.applyEdit(newSel);
         }
     }
@@ -370,7 +369,7 @@ module pnodeEdits {
             }
             // Loop down to find and modify the selections target node.
             var node = loop(selection.root(), selection.path(), start, end);
-            return node.pop();
+            return node;
         }
 
         applyEdit():Option<Selection> {
