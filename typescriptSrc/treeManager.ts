@@ -482,7 +482,7 @@ module treeManager {
         }
 
 
-        moveCopySwapselectionList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Selection] > {
+        moveCopySwapEditList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Selection] > {
 
             var selectionList : Array< [string, string, Selection] > = [];
 
@@ -510,8 +510,8 @@ module treeManager {
                 selectionList.push(['Copied', "Copy", sel]);
             }
 
-            var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
-            if (swapedit.canApply()) {
+           /* var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
+            if (swapedit.canApply(newSelection)) {
                 var sel = swapedit.applyEdit().choose(
                     p => p,
                     () => {
@@ -520,7 +520,7 @@ module treeManager {
                     });
 
                 selectionList.push(['Swapped', "Swap", sel]);
-            }
+            }*/
 
             return selectionList;
 

@@ -46,11 +46,10 @@ module evaluation {
 
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
-                this.varmap.put( this.pending , v)
+                this.varmap.put( this.pending , v);
                 if( this.pending.length == 0){
                     this.pending = null;
                 }
-
                 else{
                     this.pending.pop();
                 }

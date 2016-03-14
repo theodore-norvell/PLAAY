@@ -18,16 +18,18 @@ module mkHTML {
     import PNode = pnode.PNode;
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
+    import fromJSONToPNode = pnode.fromJSONToPNode;
 
     var undostack = [];
     var redostack = [];
     var currentSelection;
+    var draggedSelection;
+    var draggedObject;
 
     var root = pnode.mkExprSeq([]);
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
-    var replace = 1;
     currentSelection = select;
 
     export function onLoad() : void
@@ -78,6 +80,7 @@ module mkHTML {
         var play = document.getElementById("play");
         play.onclick = function play()
         {
+            //localStorage.setItem("currentSelection", serialize(currentSelection));
             window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
         };
 
@@ -188,18 +191,6 @@ module mkHTML {
         list.appendChild(optionor);
         document.getElementById("body").appendChild(list);
 
-        var optionlist = document.createElement("ul");
-        optionlist.setAttribute("class", "dropdown");
-        var edit = document.createElement("li");
-        edit.textContent = "drop here";
-        var copy = document.createElement("li");
-        edit.textContent = "copy here";
-        var swap = document.createElement("li");
-        edit.textContent = "swap here";
-        optionlist.appendChild(edit);
-        optionlist.appendChild(copy);
-        optionlist.appendChild(swap);
-
         //creates container for code
         const container = document.createElement("div");
         container.setAttribute("id","container");
@@ -232,9 +223,12 @@ module mkHTML {
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
-            tolerance:"pointer",
+            tolerance: "pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
+
+                //createDialog($(this), ui.draggable.attr("id"));
+
                 currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
                 currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
@@ -262,6 +256,60 @@ module mkHTML {
         enterBox();
     }
 
+    function createCopyDialog(selectionArray) {
+        return $("<div></div>")
+            .dialog({
+                resizable: false,
+                dialogClass: 'no-close success-dialog',
+                modal: true,
+                height: 75,
+                width: 75,
+                open: function(event, ui)
+                {
+                    var markup = selectionArray[0][0];
+                    $(this).html(markup);
+
+                    setTimeout(function() {
+                        $('.ui-dialog-content').dialog('destroy');;
+                    },3000);
+                },
+                buttons: {
+                    "Copy": function()
+                    {
+                        generateHTML(selectionArray[1][2]);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        $( this ).dialog( "destroy" );
+                    }
+                }
+            });
+    }
+
+    function createSwapDialog(selectionArray) {
+        return $("<div class='dialog'</div>")
+            .dialog({
+                resizable: false,
+                height:140,
+                modal: true,
+                buttons: {
+                    "Move": function()
+                    {
+                        var markup = selectionArray[0][0];
+                        $(this).html(markup);
+
+                        setTimeout(function() {
+                            $('.ui-dialog-content').dialog('destroy');;
+                        },3000);
+                    },
+                    "Swap": function()
+                    {
+                        generateHTML(selectionArray[2][2]);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        $( this ).dialog( "destroy" );
+                    }
+                }
+            });
+    }
+
     export function generateHTML(select:Selection)
     {
         currentSelection = select;
@@ -273,15 +321,41 @@ module mkHTML {
 
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
+            greedy: true,
             hoverClass: "hover",
             tolerance:"pointer",
-            drop: function (event, ui) {
-                console.log(ui.draggable.attr("id"));
+            drop: function (event, ui)
+            {
+                var selectionArray = [];
                 currentSelection = getPathToNode(currentSelection, $(this));
-                undostack.push(currentSelection);
-                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
+                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
+                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
+                {
+                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    generateHTML(selectionArray[0][2]);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    createSwapDialog(selectionArray);
+                }
+                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
+                {
+                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    generateHTML(selectionArray[0][2]);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    createCopyDialog(selectionArray);
+                }
+                else
+                {
+                    console.log(ui.draggable.attr("id"));
+                    undostack.push(currentSelection);
+                    currentSelection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                }
             }
         });
         enterBox();
@@ -308,7 +382,7 @@ module mkHTML {
 
                 $(".click").click(function(){
                     var label = $(this).attr("class");
-                    var val = $(this).attr("data-childNumber")
+                    var val = $(this).attr("data-childNumber");
                     if (/var/i.test(label))
                     {
                         $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
@@ -329,7 +403,11 @@ module mkHTML {
         $(".canDrag").draggable({
             //helper:'clone',
             //appendTo:'body',
-            revert:'invalid'
+            revert:'invalid',
+            start: function(event,ui){
+                draggedObject = $(this).attr("class");
+                draggedSelection = getPathToNode(currentSelection, $(this));
+            }
         });
     }
 
@@ -405,6 +483,21 @@ module mkHTML {
         return new pnodeEdits.Selection(tree, path, anchor, focus);
     }
 
+    function serialize(select : Selection) : string
+    {
+        var json = pnode.fromPNodeToJSON(currentSelection.root());
+        return json;
+    }
+
+    function unserialize(string:string) : Selection
+    {
+        var path = list<number>();
+        var newSelection = new Selection(fromJSONToPNode(string),path,0,0)
+        return newSelection;
+
+
+    }
+
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
     {
         var children = new Array<HTMLElement>() ;
@@ -418,7 +511,6 @@ module mkHTML {
     function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number) : HTMLElement
     {
         var label = node.label().toString();
-
         if(label.match('if'))
         {
             assert.check( children.length == 3 ) ;
@@ -437,7 +529,7 @@ module mkHTML {
 
             var ifbox = document.createElement("div");
             ifbox.setAttribute("data-childNumber", childNumber.toString());
-            ifbox.setAttribute("class", "ifBox V workplace canDrag");
+            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
@@ -493,7 +585,7 @@ module mkHTML {
 
             var whileBox = document.createElement("div");
             whileBox.setAttribute("data-childNumber", childNumber.toString());
-            whileBox.setAttribute("class", "whileBox V workplace canDrag");
+            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
@@ -502,7 +594,7 @@ module mkHTML {
         else if(label.match("callWorld"))
         {
             var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "callWorld H canDrag" );
+            WorldBox.setAttribute("class", "callWorld H canDrag droppable" );
             WorldBox.setAttribute("data-childNumber", childNumber.toString());
             WorldBox.setAttribute("type", "text");
             WorldBox.setAttribute("list", "oplist");
@@ -510,10 +602,11 @@ module mkHTML {
             var dropZone = document.createElement("div");
             dropZone.setAttribute("class", "dropZoneSmall H droppable");
 
-            if(node.label().getVal().length > 0 && (node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
+            if((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
                 || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
                 || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
-                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/|/gi)) ))
+                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)) )
+                && node.label().getVal().length > 0)
             {
                 var opval = document.createElement("div");
                 opval.setAttribute("class", "op H click");
@@ -551,7 +644,7 @@ module mkHTML {
         else if(label.match("assign"))
         {
             var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "assign H canDrag" );
+            AssignBox.setAttribute("class", "assign H canDrag droppable" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
             var equals = document.createElement("div");
@@ -567,7 +660,7 @@ module mkHTML {
         else if(label.match("lambda"))
         {
             var lambdahead = document.createElement("div");
-            lambdahead.setAttribute("class", "lambdaHeader V");
+            lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
 
             var doBox = document.createElement("div");
@@ -575,7 +668,7 @@ module mkHTML {
             doBox.appendChild( children[1] ) ;
 
             var LambdaBox = document.createElement("div");
-            LambdaBox.setAttribute("class", "lambdaBox V");
+            LambdaBox.setAttribute("class", "lambdaBox V droppable");
 
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
@@ -585,7 +678,7 @@ module mkHTML {
         else if(label.match("null"))
         {
             var NullBox = document.createElement("div");
-            NullBox.setAttribute("class", "nullLiteral H");
+            NullBox.setAttribute("class", "nullLiteral H droppable");
             NullBox.textContent = "-";
 
             return NullBox;
@@ -608,16 +701,6 @@ module mkHTML {
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
             }
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                VarBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                VarBox.appendChild( children[i] ) ;
-            }
-
             return VarBox;
         }
         else if (label.match("string"))
@@ -638,16 +721,6 @@ module mkHTML {
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
             }
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                StringBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                StringBox.appendChild( children[i] ) ;
-            }
-
             return StringBox;
         }
         else if(label.match("noType"))
