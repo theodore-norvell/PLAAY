@@ -215,6 +215,7 @@ module mkHTML {
                     width: 40,
                     height: 40
                 });
+                draggedObject = $(this).attr("class");
             },
             cursorAt: {left:20, top:20},
             appendTo:"body"
