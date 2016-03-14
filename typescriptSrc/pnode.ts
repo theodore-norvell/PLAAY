@@ -236,7 +236,7 @@ module pnode {
 
         else {
             for (var i = 0; i < stack.top().fields.length; i++) {
-                if (stack.top().fields[i].name.match(varName)) {
+                if (stack.top().fields[i].name.match(varName.toString())) {
                     return stack.top().fields[i];
                 }
             }
@@ -289,9 +289,9 @@ module pnode {
 
         step( vms : VMS ){
             if(vms.stack.top().ready == true){
-                var eval = vms.stack.top();
-                if(eval.pending != null) {
-                    var node = eval.root.get(eval.pending);
+                var evalu = vms.stack.top();
+                if(evalu.pending != null) {
+                    var node = evalu.root.get(evalu.pending);
                     if(node.label() == this){
                         /*     get the values mapped by the two children //TODO node specific stuff
                          if(both represent numbers){//math functions
