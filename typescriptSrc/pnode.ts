@@ -935,7 +935,7 @@ module pnode {
              return this._val;
          }
 
-        toString() : string { return "string"  ; }
+        toString() : string { return "string[" + this._val + "]"  ; }
 
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
 

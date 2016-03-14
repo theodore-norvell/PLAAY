@@ -76,7 +76,7 @@ module pnodeEdits {
         return isFinite(n) && Math.floor(n) === n ; }
     
     /** Checks the invariant of Selection.  See the documentation of Selection. */
-    function checkSelection( tree : PNode, path : List<number>,
+    export function checkSelection( tree : PNode, path : List<number>,
                     anchor : number, focus : number ) { 
         if( path.isEmpty() ) {
             var start, end ;
