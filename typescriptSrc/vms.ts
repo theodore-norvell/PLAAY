@@ -27,6 +27,10 @@ module vms{
             return this.stack.notEmpty();//TODO add notEmpty to stack why can't this file see members?
         }
 
+        getEval(){
+            return this.evalu;
+        }
+
         advance(){
             if(this.canAdvance()){
                if(this.stack.top().isDone()) {//TODO is done for evaluations?
