@@ -83,6 +83,15 @@ div.redo
     position:fixed;
 }
 
+div.advance
+{
+    width:90px;
+    bottom:4px; left: 0px;
+    height:calc(4%);
+    background-color: royalblue;
+    position:fixed;
+}
+
 div.trash
 {
     width: 50px;
@@ -101,17 +110,52 @@ div.play
     bottom:50px; left: 0px;
 }
 
+div.edit
+{
+    width:90px;
+    height:calc(5%);
+    background-color:green;
+    position:fixed;
+    bottom:50px; left: 0px;
+}
+
 div.sidebar
 {
     position:fixed;
-    top:4px; bottom:0px; left:4px;
+    top:4px; left:4px;
     width:150px;
     height:calc(80% - 8px);
     background-color:grey;
     overflow:auto;
 }
 
+div.stack
+{
+    position:fixed;
+    top:4px; left:4px;
+    height:calc(80% - 8px);
+    width:20%;
+    background-color:grey;
+    overflow:auto;
+}
+
 div.container
+ {
+     display:block;
+     position:absolute;
+     top:0;
+     bottom:0;
+     left:0;
+     right:0;
+     height:auto;
+     margin-top:4px;
+     margin-bottom:4px;
+     margin-right:4px;
+     margin-left:159px;
+     background-color:black;
+ }
+
+div.vms
 {
     display:block;
     position:absolute;
@@ -431,7 +475,7 @@ div.selection {
 
 .ui-widget-content.success-dialog {
     background: #F9F9F9;
-    border: 1px solid #90d93f;
+    border: 1px solid purple;
     color: #222222;
 }
 
@@ -453,7 +497,7 @@ div.selection {
 }
 
 .ui-dialog.success-dialog .ui-widget-header {
-    background: #b0de78;
+    background: purple;
     border: 0;
     color: #fff;
     font-weight: normal;

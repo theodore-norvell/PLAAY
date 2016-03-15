@@ -8,14 +8,14 @@ module evaluationManager {
     import PNode = pnode.PNode;
     import VMS = vms.VMS;
 
-    export class evaluationManager {
+    export class EvaluationManager {
 
         private _vms : VMS;
 
         PLAAY(root : PNode) : VMS {
             var e = new Evaluation(root);
             this._vms = new VMS(e);
-            return this._VMS;
+            return this._vms;
         }
 
         next() : VMS {

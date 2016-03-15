@@ -35,6 +35,11 @@ module evaluation {
             this.varmap = new VarMap();
         }
 
+        getRoot()
+        {
+            return this.root;
+        }
+
         getNext(){
             return this.next;
         }
