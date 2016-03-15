@@ -27,9 +27,12 @@ module evaluation {
         next : Evaluation;
 
 
-        constructor (root : PNode, path : Array<number>) {
+        constructor (root : PNode) {
             this.root = root;
-            this.pending = path;
+            this.pending = [];
+            this.ready = false;
+            this.stack = new execStack();
+            this.varmap = new VarMap();
         }
 
         getNext(){

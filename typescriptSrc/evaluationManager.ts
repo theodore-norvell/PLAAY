@@ -12,17 +12,14 @@ module evaluationManager {
 
         _vms : VMS;
 
-        constructor(root : PNode) {
-            this._vms.evalu = new Evaluation(root, []);
+        PLAAY(root : PNode) {
+            var e = new Evaluation(root);
+            this._vms = new VMS(e);
         }
 
-        PLAAY() {
-
-
-        }
-
-        advance() {
+        next() : VMS {
             this._vms.advance();
+            return this._vms;
         }
 
     }
