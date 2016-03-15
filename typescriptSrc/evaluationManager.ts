@@ -10,11 +10,12 @@ module evaluationManager {
 
     export class evaluationManager {
 
-        _vms : VMS;
+        private _vms : VMS;
 
-        PLAAY(root : PNode) {
+        PLAAY(root : PNode) : VMS {
             var e = new Evaluation(root);
             this._vms = new VMS(e);
+            return this._VMS;
         }
 
         next() : VMS {
