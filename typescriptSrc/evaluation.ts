@@ -46,11 +46,10 @@ module evaluation {
 
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
-                this.varmap.put( this.pending , v)
+                this.varmap.put( this.pending , v);
                 if( this.pending.length == 0){
                     this.pending = null;
                 }
-
                 else{
                     this.pending.pop();
                 }
@@ -61,8 +60,8 @@ module evaluation {
         setResult(value : Value ){
             var node = this.root.get( this.pending );
             var closurePath = this.pending.concat([0]);
-            var closure = this.varmap.get( closurePath );
-            //TODO how to cast this correctly var lambda = <ClosureV>closure.function;
+            var closure = <ClosureV>this.varmap.get( closurePath );
+            var lambda = closure.function;
             this.finishStep( value );
         }
 
@@ -79,10 +78,10 @@ module evaluation {
             if(!this.isDone()){
                 var topNode = this.root.get( this.pending );
                 if( this.ready ){
-                    topNode.getLabel().step( vms );
+                    topNode.label().step( vms );
                 }
                 else{
-                    topNode.getLabel().select( vms );
+                    topNode.label().select( vms );//strategy.select
                 }
             }
         }

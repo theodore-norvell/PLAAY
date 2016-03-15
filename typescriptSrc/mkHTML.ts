@@ -215,6 +215,7 @@ module mkHTML {
                     width: 40,
                     height: 40
                 });
+                draggedObject = $(this).attr("class");
             },
             cursorAt: {left:20, top:20},
             appendTo:"body"
@@ -270,7 +271,7 @@ module mkHTML {
                     $(this).html(markup);
 
                     setTimeout(function() {
-                        $('.ui-dialog-content').dialog('destroy');;
+                        $('.ui-dialog-content').dialog('destroy');
                     },3000);
                 },
                 buttons: {
@@ -285,11 +286,13 @@ module mkHTML {
     }
 
     function createSwapDialog(selectionArray) {
-        return $("<div class='dialog'</div>")
+        return $("<div></div>")
             .dialog({
                 resizable: false,
-                height:140,
+                dialogClass: 'no-close success-dialog',
                 modal: true,
+                height: 75,
+                width: 75,
                 buttons: {
                     "Move": function()
                     {
@@ -297,7 +300,7 @@ module mkHTML {
                         $(this).html(markup);
 
                         setTimeout(function() {
-                            $('.ui-dialog-content').dialog('destroy');;
+                            $('.ui-dialog-content').dialog('destroy');
                         },3000);
                     },
                     "Swap": function()
