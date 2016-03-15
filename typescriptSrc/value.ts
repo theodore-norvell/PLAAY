@@ -69,52 +69,41 @@ module value {
     }
 
     export class ObjectV extends Value {
-        fields : Array<Field>;
+        fields:Array<Field>;
 
-        constructor(){
+        constructor() {
             super();
             this.fields = new Array<Field>();
         }
 
-        public numFields() : Number {
+        public numFields():Number {
             return this.fields.length;
         }
 
-        public addField(field : Field) {
+        public addField(field:Field) {
             this.fields.push(field);
         }
 
-        public deleteField(fieldName : String) {
-            for (var i = 0 ; i < this.fields.length ; i++){
+        public deleteField(fieldName:String):boolean {
+            for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     this.fields.splice(i, 1);
+                    return true;
                 }
             }
+
+            return false;
         }
 
-        public getFieldValue(fieldName : String) : Value {
-            for (var i = 0 ; i < this.fields.length ; i++){
+        public getField(fieldName:String):Field {
+            for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName().match(fieldName.toString())) {
-                    return this.fields[i].getValue();
+                    return this.fields[i];
                 }
             }
+            return null;
         }
 
-        public getFieldType(fieldName : String) : Type {
-            for (var i = 0 ; i < this.fields.length ; i++){
-                if (this.fields[i].getName().match(fieldName.toString())) {
-                    return this.fields[i].getType();
-                }
-            }
-        }
-
-        public getFieldisConstant(fieldName : String) : Boolean {
-            for (var i = 0 ; i < this.fields.length ; i++){
-                if (this.fields[i].getName().match(fieldName.toString())) {
-                    return this.fields[i].getIsConstant();
-                }
-            }
-        }
 
         isClosureV(){
             return false;

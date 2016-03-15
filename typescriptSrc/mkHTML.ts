@@ -3,6 +3,7 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
+/// <reference path="evaluationManager.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
@@ -11,6 +12,7 @@ import assert = require( './assert' );
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
+import evaluationManager = require('./evaluationManager');
 
 module mkHTML {
     import list = collections.list;
@@ -19,6 +21,7 @@ module mkHTML {
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
     import fromJSONToPNode = pnode.fromJSONToPNode;
+    import EvaluationManager = evaluationManager.EvaluationManager;
 
     var undostack = [];
     var redostack = [];
@@ -29,11 +32,24 @@ module mkHTML {
     var root = pnode.mkExprSeq([]);
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
+    var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     currentSelection = select;
 
     export function onLoad() : void
     {
+        //creates side bar
+        const sidebar = document.createElement("div");
+        sidebar.setAttribute("id","sidebar");
+        sidebar.setAttribute("class","sidebar");
+        document.getElementById("body").appendChild(sidebar);
+
+        const stackbar = document.createElement("div");
+        stackbar.setAttribute("id", "stackbar");
+        stackbar.setAttribute("class", "stack");
+        document.getElementById("body").appendChild(stackbar);
+        document.getElementById("stackbar").style.visibility = "hidden";
+
         //creates undo/redo buttons
         const undoblock = document.createElement("div");
         undoblock.setAttribute("id", "undo");
@@ -80,9 +96,44 @@ module mkHTML {
         var play = document.getElementById("play");
         play.onclick = function play()
         {
-            //localStorage.setItem("currentSelection", serialize(currentSelection));
-            window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
+            document.getElementById("trash").style.visibility = "hidden";
+            document.getElementById("redo").style.visibility = "hidden";
+            document.getElementById("undo").style.visibility = "hidden";
+            document.getElementById("sidebar").style.visibility = "hidden";
+            document.getElementById("container").style.visibility = "hidden";
+            document.getElementById("play").style.visibility = "hidden";
+            document.getElementById("vms").style.visibility = "visible";
+            document.getElementById("stackbar").style.visibility = "visible";
+            document.getElementById("advance").style.visibility = "visible";
+            document.getElementById("edit").style.visibility = "visible";
+
+            var vms = evaluation.PLAAY(currentSelection.root());
+            var children = document.getElementById("vms");
+            children.appendChild(traverseAndBuild(vms.evalu.getRoot(), vms.evalu.getRoot().count()));
+            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         };
+
+        const editorbutton = document.createElement("div");
+        editorbutton.setAttribute("id", "edit");
+        editorbutton.setAttribute("class", "edit");
+        editorbutton.setAttribute("onclick", "edit()");
+        editorbutton.textContent = "Edit";
+        document.getElementById("body").appendChild(editorbutton);
+        var edit = document.getElementById("edit");
+        edit.onclick = function edit()
+        {
+            document.getElementById("trash").style.visibility = "visible";
+            document.getElementById("redo").style.visibility = "visible";
+            document.getElementById("undo").style.visibility = "visible";
+            document.getElementById("sidebar").style.visibility = "visible";
+            document.getElementById("container").style.visibility = "visible";
+            document.getElementById("play").style.visibility = "visible";
+            document.getElementById("vms").style.visibility = "hidden";
+            document.getElementById("stackbar").style.visibility = "hidden";
+            document.getElementById("advance").style.visibility = "hidden";
+            document.getElementById("edit").style.visibility = "hidden"
+        };
+        document.getElementById("edit").style.visibility = "hidden";
 
         const trash = document.createElement("div");
         trash.setAttribute("id","trash");
@@ -90,18 +141,24 @@ module mkHTML {
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
 
-        //creates side bar
-        const sidebar = document.createElement("div");
-        sidebar.setAttribute("id","sidebar");
-        sidebar.setAttribute("class","sidebar");
-        document.getElementById("body").appendChild(sidebar);
+        const advancebutton = document.createElement("div");
+        advancebutton.setAttribute("id", "advance");
+        advancebutton.setAttribute("class","advance");
+        advancebutton.setAttribute("onclick", "advance()");
+        advancebutton.textContent = "Next";
+        document.getElementById("body").appendChild(advancebutton);
+        var advance = document.getElementById("advance");
+        advance.onclick = function advance()
+        {
+            evaluation.next();
+        };
+        document.getElementById("advance").style.visibility = "hidden";
 
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
         ifblock.setAttribute("class","block V palette");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
-
 
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
@@ -161,7 +218,6 @@ module mkHTML {
         optionmul.value = "*";
         var optiondiv = document.createElement("option");
         optiondiv.value = "/";
-
         var optiongreater = document.createElement("option");
         optiongreater.value = ">";
         var optionless = document.createElement("option");
@@ -170,7 +226,6 @@ module mkHTML {
         optioneq.value = "==";
         var optiongreatereq = document.createElement("option");
         optiongreatereq.value = ">=";
-
         var optionlesseq = document.createElement("option");
         optionlesseq.value = "<=";
         var optionand = document.createElement("option");
@@ -196,6 +251,12 @@ module mkHTML {
         container.setAttribute("id","container");
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
+
+        const vms = document.createElement("div");
+        vms.setAttribute("id","vms");
+        vms.setAttribute("class", "vms");
+        document.getElementById("body").appendChild(vms);
+        document.getElementById("vms").style.visibility = "hidden";
 
         const seq = document.createElement("div");
         seq.setAttribute("id", "seq");
@@ -272,7 +333,7 @@ module mkHTML {
 
                     setTimeout(function() {
                         $('.ui-dialog-content').dialog('destroy');
-                    },3000);
+                    },2000);
                 },
                 buttons: {
                     "Copy": function()
@@ -293,21 +354,18 @@ module mkHTML {
                 modal: true,
                 height: 75,
                 width: 75,
+                open: function (event, ui) {
+                    var markup = selectionArray[0][0];
+                    $(this).html(markup);
+                    setTimeout(function () {
+                        $('.ui-dialog-content').dialog('destroy');
+                    }, 2000);
+                },
                 buttons: {
-                    "Move": function()
-                    {
-                        var markup = selectionArray[0][0];
-                        $(this).html(markup);
-
-                        setTimeout(function() {
-                            $('.ui-dialog-content').dialog('destroy');
-                        },3000);
-                    },
-                    "Swap": function()
-                    {
+                    "Swap": function () {
                         generateHTML(selectionArray[2][2]);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        $( this ).dialog( "destroy" );
+                        $(this).dialog("destroy");
                     }
                 }
             });
@@ -497,8 +555,6 @@ module mkHTML {
         var path = list<number>();
         var newSelection = new Selection(fromJSONToPNode(string),path,0,0)
         return newSelection;
-
-
     }
 
     function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
@@ -615,9 +671,13 @@ module mkHTML {
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
+                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(opval);
+                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
+                WorldBox.appendChild(dropZone);
             }
             else if(node.label().getVal().length > 0)
             {
@@ -626,8 +686,11 @@ module mkHTML {
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(opval);
+                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
+                WorldBox.appendChild(dropZone);
             }
             else
             {
@@ -692,14 +755,14 @@ module mkHTML {
             if (node.label().getVal().length > 0)
             {
                 VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click");
+                VarBox.setAttribute("class", "var H click canDrag");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.textContent = node.label().getVal();
             }
             else
             {
                 VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input");
+                VarBox.setAttribute("class", "var H input canDrag");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
@@ -712,14 +775,14 @@ module mkHTML {
             if (node.label().getVal().length > 0)
             {
                 StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.textContent = node.label().getVal();
             }
             else
             {
                 StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input");
+                StringBox.setAttribute("class", "stringLiteral H input canDrag");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
