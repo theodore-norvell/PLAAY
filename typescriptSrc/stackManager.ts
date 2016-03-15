@@ -47,7 +47,7 @@ module stack {
         head : Evaluation;
 
         constructor(){
-            this.head = new Evaluation();
+            this.head = new Evaluation(null, null);
         }
 
         push(val : Evaluation ) {

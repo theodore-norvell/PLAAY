@@ -11,14 +11,14 @@ import value = require('./value') ;
 module evaluation {
 
     import execStack = stack.execStack;
-    import ExprNode = pnode.ExprNode;
+    import PNode = pnode.PNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
     import Value = value.Value;
     import ClosureV = value.ClosureV;
 
     export class Evaluation {
-        root : ExprNode;
+        root : PNode;
         stack : execStack;
         pending : Array<number>;
         ready : Boolean;
@@ -27,9 +27,9 @@ module evaluation {
         next : Evaluation;
 
 
-        constructor (){//path : Array<Number>, value : Value) {
-            //this.varmap = new VarMap();
-            //this.varmap.put(path, value);
+        constructor (root : PNode, path : Array<number>) {
+            this.root = root;
+            this.pending = path;
         }
 
         getNext(){

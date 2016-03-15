@@ -19,6 +19,10 @@ module vms{
         evalu : Evaluation ;
         val : String ;
 
+        constructor() {
+
+        }
+
         canAdvance(){
             return this.stack.notEmpty();//TODO add notEmpty to stack why can't this file see members?
         }
