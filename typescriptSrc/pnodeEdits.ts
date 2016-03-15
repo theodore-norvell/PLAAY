@@ -331,7 +331,7 @@ module pnodeEdits {
             this._secondSelection = secondSelection;
 
             this._newNode1 = this.getChildrenToSwap(firstSelection);
-            this._newNode2 = this.getChildrenToSwap(firstSelection);
+            this._newNode2 = this.getChildrenToSwap(secondSelection);
         }
 
         canApply() : boolean {
