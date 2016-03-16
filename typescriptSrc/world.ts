@@ -17,40 +17,41 @@ module world {
     import Value = value.Value;
     import Type = value.Type;
 
-    export class World {
+    export class World extends ObjectV {
         values : ObjectV;
 
        constructor() {
+           super();
             this.values = new ObjectV();
         }
 
-        addField(name : String, value : Value, type : Type, isConstant : boolean){
+        addField(field : Field){
 
-            var field = this.values.getField(name);
+            //check to see if the field with the same name already exist
+            var field = this.values.getField(field.getName());
 
             assert.check(field == null,
                 "Field with that name already exists!");
 
-
-            var f = new Field(name, value, type, isConstant);
-            this.values.addField(f);
+            this.values.addField(field);
         }
 
-        deleteField(name : String) {
-            this.values.deleteField(name);
+        deleteField(name : String) : boolean {
+            return this.values.deleteField(name);
         }
 
-        getField(name : String) {
+        getField(name : String) : Field {
             var field = this.values.getField(name);
             assert.check(field != null,
                 "field does not exist!");
+            return null;
+            return field;
         }
     }
 
     export class Method {
 
     }
-
 }
 
 export = world;

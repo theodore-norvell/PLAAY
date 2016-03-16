@@ -47,12 +47,17 @@ module stack {
         head : Evaluation;
 
         constructor(){
-            this.head = new Evaluation(null);
+
         }
 
         push(val : Evaluation ) {
-            val.next = this.head;
-            this.head = val;
+            if (this.notEmpty()) {
+                val.next = this.head;
+                this.head = val;
+            }
+            else {
+                this.head = val;
+            }
         }
 
         pop() : Evaluation{
