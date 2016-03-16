@@ -26,6 +26,7 @@ module vms{
 
         constructor(root : PNode, world: World) {
             this.evalu = new Evaluation(root, world);
+            this.stack = new Stack();
             this.stack.push(this.evalu);
             this.world = world;
         }
