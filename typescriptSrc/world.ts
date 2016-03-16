@@ -18,14 +18,17 @@ module world {
     import Type = value.Type;
 
     export class World extends ObjectV {
-        values : ObjectV;
+        //values : ObjectV;
+
 
        constructor() {
            super();
-            this.values = new ObjectV();
+
+       }
+           //this.values = new ObjectV();
         }
 
-        addField(field : Field){
+/*        addField(field : Field){
 
             //check to see if the field with the same name already exist
             var field = this.values.getField(field.getName());
@@ -47,7 +50,7 @@ module world {
             return null;
             return field;
         }
-    }
+    }*/
 
     export class Method {
 
