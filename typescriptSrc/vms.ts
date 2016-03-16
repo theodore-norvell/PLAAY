@@ -19,8 +19,9 @@ module vms{
         evalu : Evaluation ;
         val : String ;
 
-        constructor(evaluation : Evaluation) {
+        constructor(evaluation : Evaluation, evalStack : Stack) {
             this.evalu = evaluation;
+            this.stack = evalStack;
         }
 
         canAdvance(){
