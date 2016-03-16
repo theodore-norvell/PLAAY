@@ -244,7 +244,7 @@ module pnode {
             if(pending != null) {
                 var node = evalu.root.get(pending);
 
-                if(node.label() == this){
+                if(node.label() == label){
                     var flag = true;
                     for(var i = 0; i < node.count(); i++){
                         var p = pending.concat([i]);
@@ -279,7 +279,7 @@ module pnode {
             var pending = evalu.pending;
             if(pending != null){
                 var node = evalu.root.get(pending);
-                if(node.label() == this){
+                if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
                     if (evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
                     else{evalu.ready = true;}
@@ -294,7 +294,7 @@ module pnode {
             var pending = evalu.pending;
             if (pending != null) {
                 var node = evalu.root.get(pending);
-                if (node.label() == this) {
+                if (node.label() == label) {
 
                 }
             }
@@ -307,7 +307,7 @@ module pnode {
             var pending = evalu.pending;
             if(pending != null){
                 var node = evalu.root.get(pending);
-                if(node.label() == this){
+                if(node.label() == label){
                     var guardPath = pending.concat([0]);
                     var thenPath = pending.concat([1]);
                     var elsePath = pending.concat([2]);
@@ -339,7 +339,7 @@ module pnode {
 
                     else{
                         evalu.pending = guardPath;
-                        node.children(0).getLabel().select( vms );
+                        node.children(0).label().select( vms );
                     }
                 }
             }
@@ -349,12 +349,12 @@ module pnode {
    /* export class callStrategy implements nodeStrategy{
         select(){}
 
-        step( vms : VMS ){
+        step( vms : VMS, label : Label ){
             if( vms.stack.top().ready){
                 var eval = vms.stack.top();
                 if(eval.pending != null){
                     var node = eval.root.get(eval.pending);
-                    if( node.getLabel() == this ){
+                    if( node.label() == label ){
                         var functionPath = eval.pending ^ [0];
                         var c = eval.varmap.get( functionPath );
                         if (!c.isClosureV()){}//  error!
