@@ -6,30 +6,40 @@ import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import evaluation = require( './evaluation' ) ;
 import value = require('./value');
+import world = require('./world');
+import pnode = require('./pnode');
 
 module vms{
 
     import Stack = stack.Stack ;
     import Evaluation = evaluation.Evaluation;
     import Value = value.Value;
+    import World = world.World;
+    import PNode = pnode.PNode;
 
     export class VMS{
 
         stack : Stack ;
         evalu : Evaluation ;
         val : String ;
+        private world : World;
 
-        constructor(evaluation : Evaluation, evalStack : Stack) {
-            this.evalu = evaluation;
-            this.stack = evalStack;
+        constructor(root : PNode, world: World) {
+            this.evalu = new Evaluation(root, world);
+            this.stack.push(this.evalu);
+            this.world = world;
         }
 
-        canAdvance(){
+        canAdvance() : boolean {
             return this.stack.notEmpty();//TODO add notEmpty to stack why can't this file see members?
         }
 
-        getEval(){
+        getEval() : Evaluation {
             return this.evalu;
+        }
+
+        getWorld() : World {
+            return this.world;
         }
 
         advance(){
