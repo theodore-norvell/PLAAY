@@ -5,6 +5,7 @@
 import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import value = require('./value') ;
+import assert = require( './assert' ) ;
 
 
 module world {
@@ -24,12 +25,25 @@ module world {
         }
 
         addField(name : String, value : Value, type : Type, isConstant : boolean){
+
+            var field = this.values.getField(name);
+
+            assert.check(field == null,
+                "Field with that name already exists!");
+
+
             var f = new Field(name, value, type, isConstant);
             this.values.addField(f);
         }
 
         deleteField(name : String) {
             this.values.deleteField(name);
+        }
+
+        getField(name : String) {
+            var field = this.values.getField(name);
+            assert.check(field != null,
+                "field does not exist!");
         }
     }
 
