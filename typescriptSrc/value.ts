@@ -11,12 +11,12 @@ module value {
     import LambdaNode = pnode.LambdaNode;
 
     export class Field {
-        name : String;
+        name : string;
         value : Value;
         type : Type;
         isConstant : boolean;
 
-        constructor(name : String, value : Value, type : Type, isConstant : boolean) {
+        constructor(name : string, value : Value, type : Type, isConstant : boolean) {
             this.name = name;
             this.value = value;
             this.type = type;
@@ -28,7 +28,7 @@ module value {
             return this.name;
         }
 
-        setName(name : String) {
+        setName(name : string) {
             this.name = name;
         }
 
@@ -58,11 +58,24 @@ module value {
     }
 
     export abstract class Value {
-        abstract isClosureV() : boolean;
+        abstract isClosureV() : boolean;//possibly not needed and can be checked another way?
     }
 
     export class StringV extends Value {
-        contents : String;
+        contents : string;
+
+        constructor(val : string){
+            super();
+            this.contents = val;
+        }
+
+        getVal(){
+            return this.contents;
+        }
+
+        setVal(val : string){
+            this.contents = val;
+        }
         isClosureV(){
             return false;
         }
@@ -84,7 +97,7 @@ module value {
             this.fields.push(field);
         }
 
-        public deleteField(fieldName:String):boolean {
+        public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     this.fields.splice(i, 1);
@@ -95,7 +108,7 @@ module value {
             return false;
         }
 
-        public getField(fieldName:String):Field {
+        public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     return this.fields[i];
