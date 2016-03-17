@@ -7,19 +7,22 @@ import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import value = require('./value') ;
+import world = require('./world');
 
 module evaluation {
 
-    import execStack = stack.execStack;
+    import ExecStack = stack.execStack;
     import PNode = pnode.PNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
     import Value = value.Value;
     import ClosureV = value.ClosureV;
+    import World = world.World;
+    import ObjectV = value.ObjectV;
 
     export class Evaluation {
         root : PNode;
-        stack : execStack;
+        private stack : ExecStack;
         pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
@@ -27,11 +30,11 @@ module evaluation {
         next : Evaluation;
 
 
-        constructor (root : PNode) {
+        constructor (root : PNode, obj: ObjectV) {
             this.root = root;
             this.pending = [];
             this.ready = false;
-            this.stack = new execStack();
+            this.stack = new ExecStack(obj);
             this.varmap = new VarMap();
         }
 
@@ -46,6 +49,10 @@ module evaluation {
 
         getVarMap(){
             return this.varmap;
+        }
+
+        getStack(){
+            return this.stack;
         }
 
         setNext(next : Evaluation){
