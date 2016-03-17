@@ -335,7 +335,7 @@ module mkHTML {
         document.getElementById("advance").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        //var vms = evaluation.PLAAY(currentSelection.root());
+        var vms = evaluation.PLAAY(currentSelection.root());
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);

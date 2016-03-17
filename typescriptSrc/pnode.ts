@@ -96,12 +96,12 @@ module pnode {
 
             if(path.length == 1){
                 var p = path.shift();
-                return this.child[p]
+                return this.child(p);
             }
 
             else {
                 var p = path.shift();
-                var childNode = this.child[p];
+                var childNode = this.child(p);
                 var node = childNode.get(path);
                 return node;
             }
@@ -241,13 +241,14 @@ module pnode {
     }
 
     export class lrStrategy implements nodeStrategy {
-
-        select( vms : VMS, label:Label ) : void{
+        select( vms : VMS, label:Label ) : void {
             var evalu = vms.stack.top();
-            var pending = evalu.pending;
+            var pending = evalu.getPending();
 
             if(pending != null) {
-                var node = evalu.root.get(pending);
+
+                var pending2 = Object.create(pending); //Javascript passes by reference, this is the only way I could figure out how to keep the path
+                var node = evalu.root.get(pending2);
 
                 if(node.label() == label){
                     var flag = true;
@@ -269,21 +270,21 @@ module pnode {
                                 break;
                             }
                         }
-                        evalu.pending = pending.concat([n]);
-                        node.child[n].strategy.select(vms);
+                        vms.stack.top().setPending(pending.concat([n]));
+                        node.child(n).label().strategy.select(vms, node.child(n).label() );
                     }
                 }
             }
         }
     }
 
-
     export class varStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
             var evalu = vms.stack.top();
-            var pending = evalu.pending;
+            var pending = evalu.getPending();
             if(pending != null){
-                var node = evalu.root.get(pending);
+                var pending2 = Object.create(pending);
+                var node = evalu.root.get(pending2);
                 if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
                     if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
@@ -296,9 +297,10 @@ module pnode {
     export class whileStrategy implements nodeStrategy {
         select(vms:VMS, label:Label) {
             var evalu = vms.stack.top();
-            var pending = evalu.pending;
+            var pending = evalu.getPending();
             if (pending != null) {
-                var node = evalu.root.get(pending);
+                var pending2 = Object.create(pending);
+                var node = evalu.root.get(pending2);
                 if (node.label() == label) {
 
                 }
@@ -306,10 +308,26 @@ module pnode {
         }
     }
 
+    export class LiteralStrategy implements nodeStrategy {
+        select( vms:VMS, label:Label ){
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if(pending != null){
+                var pending2 = Object.create(pending);
+                var node = evalu.root.get(pending2);
+                if(node.label() == label){
+                    vms.stack.top().ready = true;
+                }
+            }
+        }
+
+
+    }
+
      export class ifStrategy implements nodeStrategy {
         select( vms : VMS, label:Label){
             var evalu = vms.stack.top();
-            var pending = evalu.pending;
+            var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
                 if(node.label() == label){
@@ -323,7 +341,7 @@ module pnode {
                                 evalu.ready = true;
                             }
                             else{
-                                evalu.pending = thenPath;
+                                evalu.setPending(thenPath);
                                 node.children(1).label.select( vms );
                             }
                         }
@@ -334,7 +352,7 @@ module pnode {
                             }
 
                             else{
-                                evalu.pending = elsePath;
+                                evalu.setPending(elsePath);
                                 node.children(2).label().select( vms );
                             }
                         }
@@ -343,7 +361,7 @@ module pnode {
                     }
 
                     else{
-                        evalu.pending = guardPath;
+                        evalu.setPending(guardPath);
                         node.children(0).label().select( vms );
                     }
                 }
@@ -357,10 +375,10 @@ module pnode {
         step( vms : VMS, label : Label ){
             if( vms.stack.top().ready){
                 var eval = vms.stack.top();
-                if(eval.pending != null){
-                    var node = eval.root.get(eval.pending);
+                if(eval.getPending() != null){
+                    var node = eval.root.get(eval.getPending());
                     if( node.label() == label ){
-                        var functionPath = eval.pending ^ [0];
+                        var functionPath = eval.getPending() ^ [0];
                         var c = eval.varmap.get( functionPath );
                         if (!c.isClosureV()){}//  error!
                         var c1 = <ClosureV>c;
@@ -369,8 +387,8 @@ module pnode {
                         argList : Array<PNode>;
 
                         for(var i = 0; i <)
-                        var argList = [eval.varmap.get( eval.pending ^ [1] ),
-                            eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
+                        var argList = [eval.varmap.get( eval.getPending() ^ [1] ),
+                            eval.varmap.get( eval.getPending() ^ [2],.. ]//for all arguments TODO
 
                         if( the length of arglist not= the length of f.params.children){} //error!
                         if (any argument has a value not compatible with the corresponding parameter type){}
@@ -386,7 +404,7 @@ module pnode {
                         newEval.root = f.body; //TODO what is the body
                         newEval.stack = stack;
                         newEval.varmap = new varMap();
-                        newEval.pending = [];
+                        newEval.getPending() = [];
                         newEval.ready = false;
 
                         vms.stack.push( newEval );
@@ -507,8 +525,9 @@ module pnode {
         step(vms:VMS){
             if(vms.stack.top().ready == true){
                 var evalu = vms.stack.top();
-                if(evalu.pending != null) {
-                    var node = evalu.root.get(evalu.pending);
+                if(evalu.getPending() != null) {
+                    var pending2 = Object.create(evalu.getPending());
+                    var node = evalu.root.get(pending2);
                     this.nodeStep(node, evalu);
                 }
                 else{}//error
@@ -529,7 +548,7 @@ module pnode {
             });
         }
 
-        strategy:lrStrategy = new lrStrategy();
+        strategy : lrStrategy = new lrStrategy();
 
         getClass():PNodeClass {
             return ExprSeqNode;
@@ -737,6 +756,8 @@ module pnode {
 
         _val : string;//the operation
 
+        strategy : lrStrategy = new lrStrategy();
+
         isValid(children:Array<PNode>):boolean {
             return children.every(function(c : PNode) { return c.isExprNode() } ) ;
         }
@@ -886,9 +907,9 @@ module pnode {
         }
 
         nodeStep(node, evalu){
-            var guardPath = evalu.pending.concat([0]);
-            var thenPath = evalu.pending.concat([1]);
-            var elsePath = evalu.pending.concat([2]);
+            var guardPath = evalu.getPending().concat([0]);
+            var thenPath = evalu.getPending().concat([1]);
+            var elsePath = evalu.getPending().concat([2]);
             var v : Value;
             var string = <StringV>evalu.varmap.get(guardPath);
             if( string.contents.match("true")){
@@ -995,6 +1016,8 @@ module pnode {
      export class StringLiteralLabel extends ExprLabel {
         _val : string ;
 
+        strategy : LiteralStrategy = new LiteralStrategy();
+
         constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
@@ -1019,7 +1042,7 @@ module pnode {
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
 
          nodeStep(node, evalu){
-
+             evalu.finishStep( this._val );
          }
 
         public toJSON() : any {

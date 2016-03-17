@@ -100,34 +100,6 @@ module stack {
         }
     }
 
- /*   export class StackObject {
-        next : StackObject;
-        varmap : VarMap;
-
-        constructor (name : String, value : String) {
-            this.varmap = new VarMap();
-            this.varmap.setName(name);
-            this.varmap.setValue(value);
-        }
-
-
-        getNext(){
-            return this.next;
-        }
-
-        getVarMap(){
-            return this.varmap;
-        }
-
-        setNext(next : StackObject){
-            this.next = next;
-        }
-        setVarMap(map : VarMap){
-            this.varmap = map;
-        }
-    }
-*/
-
     export class mapEntry{
         path : Array<number>;
         val : Value;
@@ -141,12 +113,15 @@ module stack {
         getValue(){return this.val;}
         setValue(v : Value ){this.val = v;}
 
-
     }
 
     export class VarMap {
         size : number ;
         entries : Array<mapEntry>;
+
+        constructor(){
+            this.entries = new Array<mapEntry>();
+        }
 
         samePath(a : Array<number>, b : Array<number>){
             var flag = true;
@@ -177,8 +152,9 @@ module stack {
                 }
             }
             if(notIn){
-//                this.entries[this.size++] = new mapEntry(p, v); //would this go out of bounds for the array?
-                this.entries.push(new mapEntry(p, v));
+
+                var me = new mapEntry(p, v);
+                this.entries.push(me);
                 this.size++;
             }
         }

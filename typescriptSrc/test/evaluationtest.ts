@@ -61,22 +61,42 @@ var newroot = newwc.choose(
     });
 
 var root : pnode.ExprSeqNode = pnode.mkExprSeq([newroot]);
-describe ("start evaluation", () => {
-
-    var evalmananger = new evaluationManager.EvaluationManager();
+var evalmananger = new evaluationManager.EvaluationManager();
+describe ("initialize evaluation", () => {
     var ms = evalmananger.PLAAY(root);
-    it('should initialize', () => {
+    it('should have null stack', () => {
         assert.check(ms.stack != null);
-        assert.check(ms.getEval().getRoot() != null);
-        assert.check(ms.getEval().ready == false);
-        assert.check(ms.getWorld().getField("+") != null);
-        assert.check(ms.getWorld().numFields() == 1);
     });
-    var ms2 = evalmananger.next();
-    it('should step ok', () => {
-        assert.check(ms2.stack != null);
-    })
-
+    it('should not be ready', () => {
+        assert.check(ms.getEval().ready == false);
+    });
+    it('should have a plus world call', () => {
+        assert.check(ms.getWorld().getField("+") != null);
+    });
+    it('should have nothing in the pending', () => {
+        assert.check(ms.getEval().getPending().length == 0);
+    });
 });
+
+var ms2 = evalmananger.next();
+describe('first step', () => {
+    it('should have pending as [0]', () => {
+        assert.check(ms2.getEval().getPending().length == 1);
+    });
+    it('should not be ready', () => {
+        assert.check(ms2.getEval().ready == false);
+    });
+});
+
+var ms3 = evalmananger.next();
+describe('secon step step', () => {
+    it('should have pending as [0,0]', () => {
+        assert.check(ms3.getEval().getPending().length == 2);
+    });
+    it('should not be ready', () => {
+        assert.check(ms3.getEval().ready == false);
+    });
+});
+
 
 

@@ -33,8 +33,8 @@ module world {
             super();
 
             function addstep(node : PNode, evalu : Evaluation ){
-                var leftside = evalu.pending.concat([0]);
-                var rightside = evalu.pending.concat([1]);
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
 
                 var ls = <StringV>evalu.varmap.get(leftside);
                 var rs = <StringV>evalu.varmap.get(rightside);
