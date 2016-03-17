@@ -40,6 +40,7 @@ module mkHTML {
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
+    var highlighted = false;
     currentSelection = select;
 
     export function onLoad() : void
@@ -114,19 +115,7 @@ module mkHTML {
         var edit = document.getElementById("edit");
         edit.onclick = function edit()
         {
-            document.getElementById("trash").style.visibility = "visible";
-            document.getElementById("redo").style.visibility = "visible";
-            document.getElementById("undo").style.visibility = "visible";
-            document.getElementById("sidebar").style.visibility = "visible";
-            document.getElementById("container").style.visibility = "visible";
-            document.getElementById("play").style.visibility = "visible";
-            document.getElementById("vms").style.visibility = "hidden";
-            document.getElementById("stackbar").style.visibility = "hidden";
-            document.getElementById("advance").style.visibility = "hidden";
-            document.getElementById("edit").style.visibility = "hidden";
-
-            $(".dropZone").show();
-            $(".dropZoneSmall").show();
+            editor();
         };
         document.getElementById("edit").style.visibility = "hidden";
 
@@ -145,7 +134,7 @@ module mkHTML {
         var advance = document.getElementById("advance");
         advance.onclick = function advance()
         {
-            evaluation.next();
+            setValAndHighlight();
         };
         document.getElementById("advance").style.visibility = "hidden";
 
@@ -352,6 +341,69 @@ module mkHTML {
         //setValueHTMLTest(root, array);
     }
 
+    function editor()
+    {
+        document.getElementById("trash").style.visibility = "visible";
+        document.getElementById("redo").style.visibility = "visible";
+        document.getElementById("undo").style.visibility = "visible";
+        document.getElementById("sidebar").style.visibility = "visible";
+        document.getElementById("container").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
+        document.getElementById("vms").style.visibility = "hidden";
+        document.getElementById("stackbar").style.visibility = "hidden";
+        document.getElementById("advance").style.visibility = "hidden";
+        document.getElementById("edit").style.visibility = "hidden";
+
+        $(".dropZone").show();
+        $(".dropZoneSmall").show();
+    }
+
+    function setHTMLValueTest(root, array)
+    {
+        if(array.length == 0)
+        {
+            var self = $(root);
+            self.replaceWith("<div>23</div>");
+        }
+        else{
+            setHTMLValueTest(root.children[array.pop()], array);
+        }
+    }
+
+    function highlight(parent, pending:Array<number>)
+    {
+        if(pending.length == 0)
+        {
+            var self = $(parent);
+            if(self.index() == 0)
+                $("<div class='selected V'></div>").prependTo(self.parent());
+            else
+                $("<div class='selected V'></div>").appendTo(self.parent());
+            self.detach().appendTo($(".selected"));
+        }
+        else
+        {
+            highlight(parent.children[pending.pop()], pending);
+        }
+    }
+
+    function setValAndHighlight()
+    {
+        //evaluation.next();
+        if (!highlighted) {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            highlight(root, array);
+            highlighted = true;
+        }
+        else {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            setHTMLValueTest(root, array);
+            highlighted = false;
+        }
+    }
+
     function findInMap(root, varmap:VarMap)
     {
         var newMap = varmap;
@@ -373,28 +425,20 @@ module mkHTML {
         }
     }
 
-    function setHTMLValueTest(root, array)
+    function advance()
     {
-        if(array.length == 0)
+        //evaluation.next();
+        if(!highlighted)
         {
-            var self = $(root);
-            self.replaceWith("<div>23</div>");
-        }
-        else{
-            setHTMLValueTest(root.children[array.pop()], array);
-        }
-    }
-
-    function highlight(parent, pending:Array<number>)
-    {
-        if(pending.length == 0)
-        {
-            $("<div class='selected H'></div>").appendTo(parent);
-            parent.find($('.seqBox')).first().detach().appendTo($(".selected"));
+            var root = document.getElementById("vms").children[0];
+            var array = [0,0];
+            highlight(root, array);
         }
         else
         {
-            highlight(parent.children[pending.pop()], pending);
+            var root = document.getElementById("vms").children[0];
+            var array = [0,0];
+            setHTMLValueTest(root, array);
         }
     }
 
