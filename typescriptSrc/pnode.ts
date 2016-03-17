@@ -18,6 +18,7 @@ module pnode {
     import Stack = stack.Stack;
     import execStack = stack.execStack;
     import Value = value.Value;
+    import BuiltInV = value.BuiltInV;
     import varMap = stack.VarMap;
     import Field = value.Field;
     import ClosureV = value.ClosureV;
@@ -224,7 +225,7 @@ module pnode {
         return new cls(label, children);
     }
 
-    export function lookUp( varName : String, stack : execStack ) : Field {
+    export function lookUp( varName : string, stack : execStack ) : Field {
         if (stack == null){
             return null;
         }
@@ -609,7 +610,8 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
+            var newLabel = new VariableLabel(newString);
+            return new Some(newLabel);
         }
 
         nodeStep(node, evalu){
@@ -633,6 +635,55 @@ module pnode {
         public static fromJSON( json : any ) : VariableLabel {
             return new VariableLabel( json.name ) ; }
 
+    }
+
+    export class VarDeclLabel extends ExprLabel {
+        _val : string ;
+
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 3) return false ;
+            if( ! children[0].isExprNode()) return false ;
+            if( ! children[1].isTypeNode()) return false ;
+            return true;
+        }
+
+        strategy:lrStrategy;
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "vardecl";
+        }
+
+        /*private*/
+        constructor(name : string) {
+            super() ;
+            this._val = name;
+        }
+
+        changeValue (newString : string ) : Option<Label> {
+            var newLabel = new VarDeclLabel(newString);
+            return new Some(newLabel);
+        }
+
+        nodeStep(node, evalu){
+
+            //lValue = rValue;
+            // evalu.finishStep(lValue);
+        }
+
+        // Singleton
+        public static theVarDeclLabel = new VarDeclLabel("");
+
+        public toJSON() : any {
+            return { kind: "AssignLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : AssignLabel {
+            return AssignLabel.theAssignLabel ;
+        }
     }
 
     export class AssignLabel extends ExprLabel {
@@ -708,7 +759,12 @@ module pnode {
         }
 
         nodeStep(node, evalu){
-
+            if (evalu.getStack().inStack(this._val.toString()) ) {
+               var f = evalu.getStack().getField(this._val.toString());
+                if (f.getValue().isBuiltInV()){
+                   return (<BuiltInV> f.getValue()).step(node, evalu);
+               }
+            }
         }
 
         /*private*/
@@ -1138,6 +1194,9 @@ module pnode {
     //Loop and If Make
     export function mkIf(guard:ExprNode, thn:ExprSeqNode, els:ExprSeqNode):ExprNode {
         return <ExprNode> make(IfLabel.theIfLabel, [guard, thn, els]); }
+
+    export function mkWorldCall(left:ExprNode, right:ExprNode):ExprNode {
+        return <ExprNode> make(CallWorldLabel.theCallWorldLabel, [left, right]); }
 
     export function mkWhile(cond:ExprNode, seq:ExprSeqNode):ExprNode {
         return <ExprNode> make(WhileLabel.theWhileLabel, [cond, seq]); }
