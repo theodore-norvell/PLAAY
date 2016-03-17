@@ -191,6 +191,32 @@ module treeManager {
 
         }
 
+        private makeVarDeclNode(selection:Selection) : Option<Selection> {
+
+            var varNode = pnode.mkVar("");
+            var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
+            var val = pnode.mkStringLiteral("");
+
+            var ttype = typeNode.choose(
+                p => p,
+                () => {
+                    return null;
+                });
+
+            var opt = pnode.tryMake(pnode.VarDeclLabel.theVarDeclLabel, [varNode, ttype, val]);
+
+            var assignnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
+            return edit.applyEdit(selection);
+
+        }
+
         private makeWorldCallNode(selection:Selection) : Option<Selection> {
 
             var left = pnode.mkExprPH();

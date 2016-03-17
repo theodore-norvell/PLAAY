@@ -6,6 +6,7 @@ module stack {
 
     import Evaluation = evaluation.Evaluation;
     import Value = value.Value;
+    import Field = value.Field;
     import ObjectV = value.ObjectV;
 
     export class execStack {
@@ -30,7 +31,24 @@ module stack {
             return this.next;
         }
 
-        inStack(name : string) : boolean{
+        getField(name : String) : Field {
+            for(var i = 0; i < this.obj.numFields(); i++){
+//                if(name.match(this.obj.fields[i].getName().toString())){
+                if(name == this.obj.fields[i].getName()){
+                    return this.obj.fields[i];
+                }
+            }
+            if(this.next == null){
+                return null;
+            }
+            else{
+                var here = this.next.getField(name);
+                return here;
+            }
+        }
+
+
+        inStack(name : string) : boolean {
             for(var i = 0; i < this.obj.numFields(); i++){
 //                if(name.match(this.obj.fields[i].getName().toString())){
                 if(name == this.obj.fields[i].getName()){
