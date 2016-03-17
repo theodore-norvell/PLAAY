@@ -32,12 +32,18 @@ module stack {
 
         inStack(name : string) : boolean{
             for(var i = 0; i < this.obj.numFields(); i++){
-                if(name.match(this.obj.fields[i].getName().toString())){
+//                if(name.match(this.obj.fields[i].getName().toString())){
+                if(name == this.obj.fields[i].getName()){
                     return true;
                 }
             }
-            var here = this.next.inStack(name);
-            return here;
+            if(this.next == null){
+                return false;
+            }
+            else{
+                var here = this.next.inStack(name);
+                return here;
+            }
         }
 
     }

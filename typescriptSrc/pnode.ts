@@ -85,8 +85,12 @@ module pnode {
         //return the node at the path
         public get(path : Array<number>){
 
-            if(path.length <= 0){
+            if(path.length < 0){
             //error
+            }
+
+            if(path.length == 0){
+                return this;
             }
 
             if(path.length == 1){
@@ -281,7 +285,7 @@ module pnode {
                 var node = evalu.root.get(pending);
                 if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
-                    if (evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
+                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
                     else{evalu.ready = true;}
                 }
             }
@@ -524,7 +528,7 @@ module pnode {
             });
         }
 
-        strategy:nodeStrategy;
+        strategy:lrStrategy = new lrStrategy();
 
         getClass():PNodeClass {
             return ExprSeqNode;
@@ -586,7 +590,7 @@ module pnode {
 
     export class VariableLabel extends ExprLabel {
         _val : string;
-        strategy:varStrategy;
+        strategy:varStrategy = new varStrategy();
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;
@@ -639,7 +643,7 @@ module pnode {
             return true;
         }
 
-        strategy:lrStrategy;
+        strategy:lrStrategy = new lrStrategy();
 
         getClass():PNodeClass {
             return ExprNode;
@@ -803,7 +807,7 @@ module pnode {
 
     export class IfLabel extends ExprLabel {
 
-        strategy:ifStrategy;
+        strategy:ifStrategy = new ifStrategy();
 
         isValid(  children : Array<PNode> ) : boolean {
          if( children.length != 3 ) return false ;
@@ -855,7 +859,7 @@ module pnode {
 
     export class WhileLabel extends ExprLabel {
 
-        strategy:whileStrategy;
+        strategy:whileStrategy = new whileStrategy();
 
         isValid(  children : Array<PNode> ) : boolean {
          if( children.length != 2 ) return false ;

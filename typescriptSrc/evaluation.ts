@@ -96,7 +96,7 @@ module evaluation {
                     topNode.label().step( vms );
                 }
                 else{
-                    topNode.label().select( vms );//strategy.select
+                    topNode.label().strategy.select( vms );//strategy.select
                 }
             }
         }
