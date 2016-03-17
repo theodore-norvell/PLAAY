@@ -105,7 +105,7 @@ module value {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName().match(fieldName.toString())) {
+                if (this.fields[i].getName()== fieldName) {
                     this.fields.splice(i, 1);
                     return true;
                 }
@@ -116,7 +116,7 @@ module value {
 
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName().match(fieldName.toString())) {
+                if (this.fields[i].getName()== fieldName) {
                     return this.fields[i];
                 }
             }

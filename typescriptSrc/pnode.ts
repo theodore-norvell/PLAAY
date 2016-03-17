@@ -1195,6 +1195,9 @@ module pnode {
     export function mkIf(guard:ExprNode, thn:ExprSeqNode, els:ExprSeqNode):ExprNode {
         return <ExprNode> make(IfLabel.theIfLabel, [guard, thn, els]); }
 
+    export function mkWorldCall(left:ExprNode, right:ExprNode):ExprNode {
+        return <ExprNode> make(CallWorldLabel.theCallWorldLabel, [left, right]); }
+
     export function mkWhile(cond:ExprNode, seq:ExprSeqNode):ExprNode {
         return <ExprNode> make(WhileLabel.theWhileLabel, [cond, seq]); }
 

@@ -55,27 +55,32 @@ module world {
 
         //this.values = new ObjectV();
 
-        addField(field:Field) {
-
-            //check to see if the field with the same name already exist
-            var field = this.getField(field.getName());
-
-            assert.check(field == null,
-                "Field with that name already exists!");
-
-            this.addField(field);
+        public numFields():Number {
+            return this.fields.length;
         }
 
-        deleteField(name:String):boolean {
-            return this.deleteField(name);
+        public addField(field:Field) {
+            this.fields.push(field);
         }
 
-        getField(name:String):Field {
-            var field = this.getField(name);
-            assert.check(field != null,
-                "field does not exist!");
+        public deleteField(fieldName:string):boolean {
+            for (var i = 0; i < this.fields.length; i++) {
+                if (this.fields[i].getName()== fieldName) {
+                    this.fields.splice(i, 1);
+                    return true;
+                }
+            }
+
+            return false;
+        }
+
+        public getField(fieldName:string):Field {
+            for (var i = 0; i < this.fields.length; i++) {
+                if (this.fields[i].getName() == fieldName) {
+                    return this.fields[i];
+                }
+            }
             return null;
-            return field;
         }
     }
 
