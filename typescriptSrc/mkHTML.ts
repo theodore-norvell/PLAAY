@@ -41,6 +41,7 @@ module mkHTML {
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
+    var currentvms;
     currentSelection = select;
 
     export function onLoad() : void
@@ -324,7 +325,7 @@ module mkHTML {
         document.getElementById("advance").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        var vms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root());
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -383,45 +384,72 @@ module mkHTML {
         }
         else
         {
-            highlight(parent.children[pending.pop()], pending);
-        }
-    }
-
-    function setValAndHighlight()
-    {
-        //evaluation.next();
-        if (!highlighted) {
-            var root = document.getElementById("vms").children[0];
-            var array = [0, 0];
-            highlight(root, array);
-            highlighted = true;
-        }
-        else {
-            var root = document.getElementById("vms").children[0];
-            var array = [0, 0];
-            setHTMLValueTest(root, array);
-            highlighted = false;
+            var child = $(parent);
+            var index = child.find('div[data-childNumber="' + pending[0] + '"]').index();
+            var check = pending.shift();
+            if(index != check)
+                highlight(parent.children[index], pending);
+            else
+                highlight(parent.children[check], pending);
         }
     }
 
     function findInMap(root, varmap:VarMap)
     {
-        var newMap = varmap;
-        for(var i=0; i < newMap.size; i++)
+        for(var i=0; i < varmap.size; i++)
         {
-            setHTMLValue(root, newMap.entries[i]);
+            var path = Object.create(varmap.entries[i].getPath());
+            var value = Object.create(varmap.entries[i].getValue());
+            setHTMLValue(root, path, value);
         }
     }
 
-    function setHTMLValue(root, map:mapEntry)
+    function setHTMLValue(root, path, value)
     {
-        if(map.getPath().length == 0)
+        if(path.length == 0)
         {
             var self = $(root);
-            self.replaceWith("<div>23</div>");
+            self.replaceWith("<div class='inmap'>"+ value.getVal() +"</div>");
         }
         else{
-            setHTMLValue(root.children[map.getPath().pop()], map)
+            var child = $(root);
+            var index = child.find('div[data-childNumber="' + path[0] + '"]').index();
+            var check = path.shift();
+            if(index != check)
+                setHTMLValue(root.children[index], path, value);
+            else
+                setHTMLValue(root.children[check], path, value);
+        }
+    }
+
+    function setValAndHighlight()
+    {
+        currentvms = evaluation.next();
+        if (!highlighted && currentvms.getEval().ready) {
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            var root = document.getElementById("vms").children[0];
+            var array = Object.create(currentvms.getEval().getPending());
+            var map = Object.create(currentvms.getEval().getVarMap());
+            findInMap(root, map);
+            highlight(root, array);
+            highlighted = true;
+        }
+        else{
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            var root = document.getElementById("vms").children[0];
+            var map = Object.create(currentvms.getEval().getVarMap());
+            findInMap(root, map);
+            highlighted = false;
         }
     }
 
@@ -864,13 +892,9 @@ module mkHTML {
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(opval);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
-                WorldBox.appendChild(dropZone);
             }
             else if(node.label().getVal().length > 0)
             {
@@ -879,11 +903,8 @@ module mkHTML {
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(opval);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
-                WorldBox.appendChild(dropZone);
             }
             else
             {
