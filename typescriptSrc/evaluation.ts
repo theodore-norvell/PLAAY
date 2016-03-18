@@ -23,7 +23,7 @@ module evaluation {
     export class Evaluation {
         root : PNode;
         private stack : ExecStack;
-        pending : Array<number>;
+        private pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
 
@@ -32,6 +32,7 @@ module evaluation {
 
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
+            this.pending = new Array<number>();
             this.pending = [];
             this.ready = false;
             this.stack = new ExecStack(obj);
@@ -45,6 +46,14 @@ module evaluation {
 
         getNext(){
             return this.next;
+        }
+
+        getPending(){
+            return this.pending;
+        }
+
+        setPending(pending : Array<number>){
+            this.pending = pending;
         }
 
         getVarMap(){
@@ -61,7 +70,12 @@ module evaluation {
 
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
-                this.varmap.put( this.pending , v);
+
+                var pending2 = new Array<number>();
+                    for (var i = 0; i < this.pending.length ; i ++){
+                        pending2.push(this.pending[i]);
+                    }
+                this.varmap.put( pending2 , v);
                 if( this.pending.length == 0){
                     this.pending = null;
                 }
@@ -91,12 +105,14 @@ module evaluation {
 
         advance( vms : VMS ){
             if(!this.isDone()){
-                var topNode = this.root.get( this.pending );
+
+                var pending2 = Object.create(this.pending);
+                var topNode = this.root.get( pending2 );
                 if( this.ready ){
                     topNode.label().step( vms );
                 }
                 else{
-                    topNode.label().select( vms );//strategy.select
+                    topNode.label().strategy.select( vms,  topNode.label()  );//strategy.select
                 }
             }
         }
