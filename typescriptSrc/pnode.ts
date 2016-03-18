@@ -84,6 +84,7 @@ module pnode {
         }
 
         public child(i:number):PNode {
+            assert.check( 0 <= i && i < this.count() ) ;
             return this._children[i];
         }
 
@@ -92,25 +93,18 @@ module pnode {
         }
 
         //return the node at the path
-        public get(path : Array<number>){
-
-            if(path.length <= 0){
-            //error
-            }
-
-            if(path.length == 1){
-                var p = path.shift();
-                return this.child[p]
-            }
-
-            else {
-                var p = path.shift();
-                var childNode = this.child[p];
-                var node = childNode.get(path);
-                return node;
-            }
+        public get(path : collections.List<number> | Array<number> ) : PNode {
+             if( path instanceof Array ) 
+                 return this.listGet( collections.arrayToList( path ) ) ;
+             else if( path instanceof collections.List ) {
+                return this.listGet( path ) ; }
+             else { assert.check( false, "Unreachable") ; return null ; }
         }
 
+        private listGet(path : collections.List<number> ) : PNode {
+             if(path.isEmpty() ) return this ;
+             else return this.child( path.first() ).listGet( path.rest() ) ;
+         }
 
 
         /** Possibly return a copy of the node in which the children are replaced.
