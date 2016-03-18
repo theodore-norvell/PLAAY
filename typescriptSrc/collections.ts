@@ -16,6 +16,7 @@ module collections {
     export interface Option<A> extends Collection<A> {
         choose : <B>( f: (a:A) => B, g : () => B ) => B ;
         map : <B> (f : (a:A) => B ) => Option<B> ;
+        bind : <B> (f : (a:A) => Option<B> ) => Option<B> ;
     }
 
     export class Some<A> implements Option<A>{
@@ -35,6 +36,9 @@ module collections {
         map<B>(f : (a:A) => B ) : Option<B> {
             return new Some<B>( f( this._val ) ) ; }
     
+        bind<B>(f : (a:A) => Option<B> ) : Option<B> {
+            return f( this._val ) ; }
+
         toString() : string { return "Some(" + this._val.toString() + ")" ; }
     }
 
@@ -52,14 +56,18 @@ module collections {
         
         map<B>(f : (a:A) => B ) : Option<B> {
             return new None<B>() ; }
+
+        bind<B>(f : (a:A) => Option<B> ) : Option<B> {
+            return new None<B>() ; }
     
         toString() : string { return "None" ; }
     }
 
     export function some<A>( a : A ) : Option<A> {
-            return new Some<A>( a ) ; }
+        return new Some<A>( a ) ; }
             
-    export function none<A>() : Option<A> { return new None<A>() ; }
+    export function none<A>() : Option<A> {
+        return new None<A>() ; }
     
     /** Lisp-like lists */
     export abstract class List<A> implements Collection<A> {

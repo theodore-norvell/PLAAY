@@ -13,8 +13,8 @@ module stack {
         obj : ObjectV;
         next : execStack;
 
-        constructor(){
-            this.obj = null;
+        constructor(object : ObjectV){
+            this.obj = object;
             this.next = null;
         }
 
@@ -30,7 +30,7 @@ module stack {
             return this.next;
         }
 
-        inStack(name : String) : Boolean{
+        inStack(name : string) : boolean{
             for(var i = 0; i < this.obj.numFields(); i++){
                 if(name.match(this.obj.fields[i].getName().toString())){
                     return true;
@@ -47,12 +47,17 @@ module stack {
         head : Evaluation;
 
         constructor(){
-            this.head = new Evaluation();
+            this.head = null;
         }
 
         push(val : Evaluation ) {
-            val.next = this.head;
-            this.head = val;
+            if (this.notEmpty()) {
+                val.next = this.head;
+                this.head = val;
+            }
+            else {
+                this.head = val;
+            }
         }
 
         pop() : Evaluation{

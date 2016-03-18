@@ -77,5 +77,3 @@ describe( 'pnode.fromJSONToPNode', () => {
         assert.check( ite0a.count() == 3 ) ;
         var string0a = pnode.fromPNodeToJSON( ite0a ) ;
         assert.check( string0a == string0 ) ; } ) } ) ;
-
-
