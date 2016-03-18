@@ -8,16 +8,16 @@ import assert = require( './assert' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require( './pnodeEdits' ) ;
 
-var a : pnode.ExprNode = pnode.mkStringConst( "a" ) ;
+var a : pnode.ExprNode = pnode.mkStringLiteral( "a" ) ;
 console.log( a.toString() ) ;
 
-var b : pnode.ExprNode = pnode.mkStringConst( "b" ) ;
+var b : pnode.ExprNode = pnode.mkStringLiteral( "b" ) ;
 console.log( b.toString() ) ;
 
-var c : pnode.ExprNode = pnode.mkStringConst( "c" ) ;
+var c : pnode.ExprNode = pnode.mkStringLiteral( "c" ) ;
 console.log( c.toString() ) ;
 
-var d : pnode.ExprNode = pnode.mkStringConst( "d" ) ;
+var d : pnode.ExprNode = pnode.mkStringLiteral( "d" ) ;
 console.log( d.toString() ) ;
 
 var s0 : pnode.ExprSeqNode = pnode.mkExprSeq( [a,b] ) ;
@@ -47,6 +47,14 @@ console.log( opt2.toString() ) ;
 // Try to swap the guard and then parts of ite0
 var opt2 = ite0.tryModify( [s0, a], 0, 2 ) ;
 console.log( opt2.toString() ) ;
+
+// Convert to a JSON string.
+var string0 = pnode.fromPNodeToJSON( ite0 ) ;
+console.log( string0 ) ;
+
+// Convert back from a string
+var ite0a = pnode.fromJSONToPNode( string0 ) ;
+console.log( ite0a.toString() ) ;
 
 // Try to create a tree using edits.
 console.log( "Building a tree from the top down using edits" ) ;

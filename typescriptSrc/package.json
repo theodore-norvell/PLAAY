@@ -1,0 +1,12 @@
+{
+  "name": "plaay",
+  "version": "1.0.0",
+  "description": "The plaay web IDE.",
+  "main": "mkHTML.js",
+  "scripts": {
+    "pretest" : "tsc test/*.ts --module commonjs",
+    "test": "mocha"
+  },
+  "author": "",
+  "license": "Copyright of the developers"
+}

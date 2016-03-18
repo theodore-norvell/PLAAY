@@ -1,5 +1,6 @@
 import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
+import pnode = require('./pnode') ;
 
 
 module value {
@@ -7,6 +8,7 @@ module value {
     import Stack = stack.Stack;
     import list = collections.list;
     import List = collections.List;
+    import LambdaNode = pnode.LambdaNode;
 
     export class Field {
         name : String;
@@ -56,11 +58,14 @@ module value {
     }
 
     export abstract class Value {
-
+        abstract isClosureV() : boolean;
     }
 
     export class StringV extends Value {
         contents : String;
+        isClosureV(){
+            return false;
+        }
     }
 
     export class ObjectV extends Value {
@@ -71,11 +76,15 @@ module value {
             this.fields = new Array<Field>();
         }
 
-        addField(field : Field) {
+        public numFields() : Number {
+            return this.fields.length;
+        }
+
+        public addField(field : Field) {
             this.fields.push(field);
         }
 
-        deleteField(fieldName : String) {
+        public deleteField(fieldName : String) {
             for (var i = 0 ; i < this.fields.length ; i++){
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     this.fields.splice(i, 1);
@@ -83,7 +92,7 @@ module value {
             }
         }
 
-        getFieldValue(fieldName : String) : Value {
+        public getFieldValue(fieldName : String) : Value {
             for (var i = 0 ; i < this.fields.length ; i++){
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     return this.fields[i].getValue();
@@ -91,7 +100,7 @@ module value {
             }
         }
 
-        getFieldType(fieldName : String) : Value {
+        public getFieldType(fieldName : String) : Type {
             for (var i = 0 ; i < this.fields.length ; i++){
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     return this.fields[i].getType();
@@ -99,26 +108,38 @@ module value {
             }
         }
 
-        getFieldisConstant(fieldName : String) : Value {
+        public getFieldisConstant(fieldName : String) : Boolean {
             for (var i = 0 ; i < this.fields.length ; i++){
                 if (this.fields[i].getName().match(fieldName.toString())) {
                     return this.fields[i].getIsConstant();
                 }
             }
         }
+
+        isClosureV(){
+            return false;
+        }
     }
 
     export class ClosureV extends Value {
         //need function obj
+        public function : LambdaNode;
         context : Stack;
+        isClosureV(){
+            return true;
+        }
     }
     export class NullV extends Value {
-
+        isClosureV(){
+            return false;
+        }
 
     }
 
     export class DoneV extends Value {
-
+        isClosureV(){
+            return false;
+        }
     }
 
     export class BuiltInV extends Value {
@@ -126,7 +147,9 @@ module value {
         //constructor (  step : (vms : VMS) -> void ){
             //this.step = step;
         //}
-
+        isClosureV(){
+            return false;
+        }
     }
 
     export enum Type {

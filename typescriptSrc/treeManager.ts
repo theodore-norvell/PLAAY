@@ -2,6 +2,7 @@ import pnode = require( './pnode' ) ;
 import assert = require( './assert' )
 import pnodeEdits = require ('./pnodeEdits');
 import collections = require( './collections' ) ;
+import edits = require('./edits');
 
 module treeManager {
 
@@ -11,6 +12,7 @@ module treeManager {
     import Selection = pnodeEdits.Selection;
     import list = collections.list;
     import PNode = pnode.PNode;
+    import Edit = edits.Edit;
 
     export class TreeManager {
 
@@ -247,7 +249,7 @@ module treeManager {
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
 
-            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.CallWorldLabel.theCallWorldLabel, [left, right]);
 
             var worldcallnode = opt.choose(
                 p => p,
@@ -418,7 +420,7 @@ module treeManager {
             return sel;
         }
 
-        changeNodeString(selection : Selection, newString : string ) : Selection {
+        changeNodeString(selection:Selection, newString:string):Selection {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
             var editResult = edit.applyEdit(selection);
 
@@ -434,7 +436,7 @@ module treeManager {
 
         }
 
-        deleteNode(selection : Selection ) {
+        deleteNode(selection:Selection):Selection {
             var edit = new pnodeEdits.DeleteEdit();
             var editResult = edit.applyEdit(selection);
 
@@ -447,6 +449,81 @@ module treeManager {
 
             this.root = sel.root();
             return sel;
+        }
+
+        moveNode(oldSelection:Selection, newSelection:Selection):Selection {
+            var edit = new pnodeEdits.MoveNodeEdit(oldSelection);
+            var editResult = edit.applyEdit(newSelection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Error applying edit to node");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+        copyNode(oldSelection:Selection, newSelection:Selection):Selection {
+            var edit = new pnodeEdits.CopyNodeEdit(oldSelection);
+            var editResult = edit.applyEdit(newSelection);
+
+            var sel = editResult.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Error applying edit to node");
+                    return null;
+                });
+
+            this.root = sel.root();
+            return sel;
+        }
+
+
+        moveCopySwapEditList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Selection] > {
+
+            var selectionList : Array< [string, string, Selection] > = [];
+
+            var moveedit = new pnodeEdits.MoveNodeEdit(oldSelection);
+            if (moveedit.canApply(newSelection)) {
+                var sel = moveedit.applyEdit(newSelection).choose(
+                    p => p,
+                    () => {
+                        assert.check(false, "Error applying edit to node");
+                        return null;
+                    });
+
+                selectionList.push(["Moved", "Move", sel]);
+            }
+
+            var copyedit = new pnodeEdits.CopyNodeEdit(oldSelection);
+            if (copyedit.canApply(newSelection)) {
+                var sel = copyedit.applyEdit(newSelection).choose(
+                    p => p,
+                    () => {
+                        assert.check(false, "Error applying edit to node");
+                        return null;
+                    });
+
+                selectionList.push(['Copied', "Copy", sel]);
+            }
+
+           var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
+            if (swapedit.canApply()) {
+                var sel = swapedit.applyEdit().choose(
+                    p => p,
+                    () => {
+                        assert.check(false, "Error applying edit to node");
+                        return null;
+                    });
+
+                selectionList.push(['Swapped', "Swap", sel]);
+            }
+
+            return selectionList;
+
         }
     }
 }

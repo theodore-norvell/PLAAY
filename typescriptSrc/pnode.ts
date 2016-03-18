@@ -3,11 +3,31 @@
 
 import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import vms = require('./vms' ) ;
+import evaluation = require('./evaluation') ;
+import stack = require( './stackManager' ) ;
+import value = require('./value') ;
+
 
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
+    import VMS = vms.VMS;
+    import Evaluation = evaluation.Evaluation;
+    import Stack = stack.Stack;
+    import execStack = stack.execStack;
+    import Value = value.Value;
+    import varMap = stack.VarMap;
+    import Field = value.Field;
+    import ClosureV = value.ClosureV;
+    import StringV = value.StringV;
+
+
+    export interface nodeStrategy {
+        select( vms : VMS ) : void;
+        step( vms : VMS ) : void;
+    }
 
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
@@ -16,6 +36,8 @@ module pnode {
 
         getVal : () => string ;
         changeValue:(newString : string) => Option<Label> ;
+
+        toJSON : () => any ;
     }
 
     /**  Interface is to describe objects that are classes that are subclasses of PNode
@@ -27,6 +49,15 @@ module pnode {
     export abstract class PNode {
         private _label:Label;
         private _children:Array<PNode>;
+        strategy:nodeStrategy;
+
+        select(vms:VMS){
+            this.strategy.select(vms);
+        }
+
+        step(vms:VMS){
+            this.strategy.step(vms);
+        }
 
         /** Construct a PNode.
          *  Precondition: label.isValid( children )
@@ -59,6 +90,28 @@ module pnode {
         public label():Label {
             return this._label;
         }
+
+        //return the node at the path
+        public get(path : Array<number>){
+
+            if(path.length <= 0){
+            //error
+            }
+
+            if(path.length == 1){
+                var p = path.shift();
+                return this.child[p]
+            }
+
+            else {
+                var p = path.shift();
+                var childNode = this.child[p];
+                var node = childNode.get(path);
+                return node;
+            }
+        }
+
+
 
         /** Possibly return a copy of the node in which the children are replaced.
          * The result will have children
@@ -134,6 +187,25 @@ module pnode {
 
             return this._label.toString() + "(" + args + ")";
         }
+
+        /** Convert a node to a simple object that can be stringified with JSON */
+        toJSON () : any {
+            var result : any = {} ;
+            result.label = this._label.toJSON() ;
+            result.children = [] ;
+            var i ;
+            for( i = 0 ; i < this._children.length ; ++i )
+                result.children.push( this._children[i].toJSON() ) ;
+            return result ;
+        }
+
+        /** Convert a simple object created by toJSON to a PNode */
+        static fromJSON( json : any ) : PNode {
+             var label = fromJSONToLabel( json.label ) ;
+             var children = json.children.map( PNode.fromJSON ) ;
+             return make( label, children ) ;
+        }
+
     }
 
 
@@ -156,6 +228,234 @@ module pnode {
         const cls = label.getClass();
         return new cls(label, children);
     }
+
+    export function lookUp( varName : String, stack : execStack ) : Field {
+        if (stack == null){
+            return null;
+        }
+
+        else {
+            for (var i = 0; i < stack.top().fields.length; i++) {
+                if (stack.top().fields[i].name.match(varName.toString())) {
+                    return stack.top().fields[i];
+                }
+            }
+        }
+        return lookUp( varName, stack.next );
+    }
+
+    export class lrStrategy implements nodeStrategy {
+
+        select( vms : VMS ) : void{
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+
+            if(pending != null) {
+                var node = evalu.root.get(pending);
+
+                if(node.label() == this){
+
+
+                    var flag = true;
+
+                    for(var i = 0; i < node.count(); i++){
+                        var p = pending.concat([i]);
+                        if(!evalu.varmap.inMap(p)){
+                            flag = false;
+                        }
+                    }
+
+                    if (flag){
+                        evalu.ready = true;// Select this node.
+                    }
+
+                    else{
+
+                        var n;
+                        for(var i = 0; i < node.count(); i++){
+                            var p = pending.concat([i]);
+                            if(!evalu.varmap.inMap(p)){
+                                n = i;
+                                break;
+                            }
+                        }
+
+                        evalu.pending = pending.concat([n]);
+                        node.child[n].strategy.select(vms);
+                    }
+                }
+            }
+        }
+
+        step( vms : VMS ){
+            if(vms.stack.top().ready == true){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null) {
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.label() == this){
+                        /*     get the values mapped by the two children //TODO node specific stuff
+                         if(both represent numbers){//math functions
+                         var v = make a new number representing the sum//+ function
+                         eval.finishStep(v);*/
+                    }
+                    else{} //error!
+
+                }
+            }
+        }
+    }
+
+
+    export class varStrategy implements nodeStrategy {
+        select( vms:VMS ){
+            var evalu = vms.stack.top();
+            var pending = evalu.pending
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.label() == this){
+                  //TODO how to highlight  look up the variable in the stack and highlight it.
+//                    there is no variable in the stack with this name
+                   /* if (eval.stack.inStack()){} //error} //what name? Where is it stored
+                    else{eval.ready = true;}*/
+                }
+            }
+        }
+
+        step( vms:VMS  ){
+            if(vms.stack.top().ready){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null){
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.label() == this){
+                        var v = lookUp( name, evalu.stack).getValue(); //TODO not in pseudo code but would make sense to have this as a value
+      //TODO how                  remove highlight from f
+                        evalu.finishStep( v )
+                    }
+                }
+            }
+        }
+    }
+
+    export class ifStrategy implements nodeStrategy {
+        select( vms : VMS){
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.label() == this){
+                    var guardPath = pending.concat([0]);
+                    var thenPath = pending.concat([1]);
+                    var elsePath = pending.concat([2]);
+                    if (evalu.varmap.inMap(guardPath)){
+                        var string = <StringV>evalu.varmap.get(guardPath);
+                        if (string.contents.match("true")){
+                            if(evalu.varmap.inMap(thenPath)){
+                                evalu.ready = true;
+                            }
+                            else{
+                                evalu.pending = thenPath;
+                                node.children(1).getLabel.select( vms );
+                            }
+                        }
+
+                        else if(string.contents.match("false")){
+                            if (evalu.varmap.inMap(elsePath)){
+                                evalu.ready = true;
+                            }
+
+                            else{
+                                evalu.pending = elsePath;
+                                node.children(2).label().select( vms );
+                            }
+                        }
+
+                        else{}//error
+                    }
+
+                    else{
+                        evalu.pending = guardPath;
+                        node.children(0).getLabel().select( vms );
+                    }
+                }
+            }
+        }
+
+        step(vms:VMS){
+            if(vms.stack.top().ready){
+                var evalu = vms.stack.top();
+                if(evalu.pending != null){
+                    var node = evalu.root.get(evalu.pending);
+                    if(node.getLabel() == this){
+                        var guardPath = evalu.pending.concat([0]);
+                        var thenPath = evalu.pending.concat([1]);
+                        var elsePath = evalu.pending.concat([2]);
+                        var v : Value;
+                        var string = <StringV>evalu.varmap.get(guardPath);
+                        if( string.contents.match("true")){
+                            v = evalu.varmap.get( thenPath );
+                        }
+
+                        else{
+                            v = evalu.varmap.get( elsePath );
+                            evalu.finishStep( v );
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+   /* export class callStrategy implements nodeStrategy{
+        select(){}
+
+        step( vms : VMS ){
+            if( vms.stack.top().ready){
+                var eval = vms.stack.top();
+                if(eval.pending != null){
+                    var node = eval.root.get(eval.pending);
+                    if( node.getLabel() == this ){
+                        var functionPath = eval.pending ^ [0];
+                        var c = eval.varmap.get( functionPath );
+                        if (!c.isClosureV()){}//  error!
+                        var c1 = <ClosureV>c;
+                        var f : LambdaNode = c1.function;
+
+                        argList : Array<PNode>;
+
+                        for(var i = 0; i <)
+                        var argList = [eval.varmap.get( eval.pending ^ [1] ),
+                            eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
+
+                        if( the length of arglist not= the length of f.params.children){} //error!
+                        if (any argument has a value not compatible with the corresponding parameter type){}
+                        // error!
+                        var params = f.params.children; //TODO make params
+                        var arFields := [ new Field( params[0].name, argList[0] ),
+                            new Field( params[1].name, argList[1] ),
+                            .. ] //for all f.params.children
+                        var activationRecord = new ObjectV( arFields );
+                        var stack = new Stack( activationRecord, cl.context );
+
+                        var newEval = new Evaluation();
+                        newEval.root = f.body; //TODO what is the body
+                        newEval.stack = stack;
+                        newEval.varmap = new varMap();
+                        newEval.pending = [];
+                        newEval.ready = false;
+
+                        vms.stack.push( newEval );
+                    }
+                }
+            }
+        }
+    }
+*/
+
+
+
+
+
+
 
     //Node Declarations
 
@@ -228,13 +528,10 @@ module pnode {
 
     }
 
-
     //Node Labels
     export abstract class ExprLabel implements Label {
 
-        isValid(children:Array<PNode>) {
-            return true;
-        }
+        abstract isValid(children:Array<PNode>) ;
 
         getClass():PNodeClass {
             return ExprNode;
@@ -247,10 +544,15 @@ module pnode {
         changeValue (newString : string) : Option<Label> {
             return new None<Label>();
         }
-        getVal : () => string ;
+
+        getVal() : string {
+            return null ;
+        }
 
         // Singleton
         //public static theExprLabel = new ExprLabel();
+
+        abstract toJSON() : any ;
     }
 
 
@@ -283,9 +585,15 @@ module pnode {
 
         // Singleton
         public static theExprSeqLabel = new ExprSeqLabel();
+
+        public toJSON() : any {
+            return { kind:  "ExprSeqLabel" } ; }
+
+        public static fromJSON( json : any ) : ExprSeqLabel {
+            return ExprSeqLabel.theExprSeqLabel ; }
     }
 
-    export class TypeLabel implements Label {
+    export abstract class TypeLabel implements Label {
         isValid:(children:Array<PNode>) => boolean;
 
         getClass():PNodeClass {
@@ -304,17 +612,16 @@ module pnode {
             return null;
         }
 
-        // Singleton
-        public static theTypeLabel = new TypeLabel();
+        public abstract toJSON() : any ;
     }
 
     //Variable
 
-    export class VariableLabel implements ExprLabel {
+    export class VariableLabel extends ExprLabel {
         _val : string;
 
         isValid(children:Array<PNode>):boolean {
-            if (children.length != 0) return false;
+            return children.length == 0;
         }
 
         getClass():PNodeClass {
@@ -335,16 +642,22 @@ module pnode {
 
         /*private*/
         constructor(name : string) {
+            super() ;
             this._val = name;
         }
 
         public static theVariableLabel = new VariableLabel("");
+
+        public toJSON() : any {
+            return { kind : "VariableLabel", name : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : VariableLabel {
+            return new VariableLabel( json.name ) ; }
+
     }
 
     export class AssignLabel extends ExprLabel {
-        _val : string;
-        con : boolean;
-
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
             if( ! children[0].isExprNode()) return false ;
@@ -366,21 +679,24 @@ module pnode {
         }
 
         changeValue (newString : string ) : Option<Label> {
-            if (this.con = false) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
             return new None<Label>();
         }
 
         // Singleton
         public static theAssignLabel = new AssignLabel();
+
+        public toJSON() : any {
+            return { kind: "AssignLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : AssignLabel {
+            return AssignLabel.theAssignLabel ;
+        }
     }
 
 
     //Arithmetic Labels
-    export class callWorldLabel implements ExprLabel {
+    export class CallWorldLabel extends ExprLabel {
 
         _val : string;//the operation
 
@@ -401,21 +717,25 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-
-            if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
-                var newLabel = new callWorldLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
+            var newLabel = new CallWorldLabel(newString);
+            return new Some(newLabel);
         }
 
         /*private*/
         constructor(name : string) {
+            super() ;
             this._val = name;
         }
 
-        public static theCallWorldLabel = new callWorldLabel("");
+        public static theCallWorldLabel = new CallWorldLabel("");
+
+        public toJSON() : any {
+            return { kind: "CallWorldLabel" , name: this._val } ;
+        }
+
+        public static fromJSON( json : any ) : CallWorldLabel {
+            return new CallWorldLabel( json.name ) ;
+        }
     }
 
     //Placeholder Labels
@@ -442,6 +762,14 @@ module pnode {
 
         // Singleton
         public static theExprPHLabel = new ExprPHLabel();
+
+        public toJSON() : any {
+            return { kind: "ExprPHLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : ExprPHLabel {
+            return ExprPHLabel.theExprPHLabel ;
+        }
     }
 
     export class LambdaLabel extends ExprLabel {
@@ -455,7 +783,11 @@ module pnode {
          }
 
         getClass():PNodeClass {
-            return TypeNode;
+            return ExprNode;
+        }
+
+        toString():string {
+            return "lambda";
         }
 
         /*private*/
@@ -465,11 +797,21 @@ module pnode {
 
         // Singleton
         public static theLambdaLabel = new LambdaLabel();
+
+        public toJSON() : any {
+            return { kind: "LambdaLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : LambdaLabel {
+            return LambdaLabel.theLambdaLabel ;
+        }
     }
 
     //While and If Labels
 
     export class IfLabel extends ExprLabel {
+
+        strategy:ifStrategy;
 
         isValid(  children : Array<PNode> ) : boolean {
          if( children.length != 3 ) return false ;
@@ -493,6 +835,14 @@ module pnode {
 
         // Singleton
         public static theIfLabel = new IfLabel();
+
+        public toJSON() : any {
+            return { kind: "IfLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : IfLabel {
+            return IfLabel.theIfLabel ;
+        }
     }
 
     export class WhileLabel extends ExprLabel {
@@ -518,129 +868,14 @@ module pnode {
 
         // Singleton
         public static theWhileLabel = new WhileLabel();
-    }
 
-    //Const Labels
-
-    export class StringConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
+        public toJSON() : any {
+            return { kind: "WhileLabel" } ;
         }
 
-        getVal():string {
-            return this._val;
+        public static fromJSON( json : any ) : WhileLabel {
+            return WhileLabel.theWhileLabel ;
         }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }
-    }
-
-    export class NumberConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
-        }
-
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        getVal() : string {
-            return this._val;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-    }
-
-    export class BooleanConstLabel implements ExprLabel {
-        _val:string;
-
-        constructor(val:string) {
-            this._val = val;
-        }
-
-        getVal():string {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
-    }
-
-    export class AnyConstLabel implements ExprLabel {
-        _val:any;
-
-        constructor(val:any) {
-            this._val = val;
-        }
-
-        val():any {
-            return this._val;
-        }
-
-        isValid(children:Array<PNode>) {
-            return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        //constant can't be changed
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        getVal() : string {
-            return this._val;
-        }
-
-        toString():string {
-            return "string[" + this._val + "]";
-        }//will this work in TS?
     }
 
     //Type Labels
@@ -671,14 +906,22 @@ module pnode {
 
         // Singleton
         public static theNoTypeLabel = new NoTypeLabel();
+
+        public toJSON() : any {
+            return { kind: "NoTypeLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : NoTypeLabel {
+            return NoTypeLabel.theNoTypeLabel ;
+        }
     }
 
      //Literal Labels
 
-     export class StringLiteralLabel implements ExprLabel {
+     export class StringLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
@@ -697,15 +940,23 @@ module pnode {
              return this._val;
          }
 
-        toString() : string { return "string"  ; }
+        toString() : string { return "string[" + this._val + "]"  ; }
 
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "StringLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : StringLiteralLabel {
+            return new StringLiteralLabel( json.val )  ;
+        }
      }
 
-    export class NumberLiteralLabel implements StringLiteralLabel {
+    export class NumberLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
@@ -715,52 +966,38 @@ module pnode {
         }
 
         changeValue (newString : string) : Option<Label> {
-
-            var valid = true;
-            for (var i = 0; i < newString.length; i++) {
-                var character = newString.charAt(i);
-                if (!(character.match("0") || character.match("1") ||
-                    character.match("2") || character.match("3") ||
-                    character.match("4") || character.match("5") ||
-                    character.match("6") || character.match("7") ||
-                    character.match("8") || character.match("9") ||
-                    character.match("."))) {
-                    valid = false;
-                }
-            }
-
-            if (valid == true) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-
-            return new None<Label>();
+            var newLabel = new NumberLiteralLabel(newString);
+            return new Some(newLabel);
         }
 
         getVal() : string {
-            return null;
+            return this._val ;
         }
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "number[" + this._val + "]"  ; }
         public static theNumberLiteralLabel = new NumberLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "NumberLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : NumberLiteralLabel {
+            return new NumberLiteralLabel( json.val )  ;
+        }
     }
 
-    export class BooleanLiteralLabel implements StringLiteralLabel {
+    export class BooleanLiteralLabel extends ExprLabel {
         _val : string ;
 
-        constructor( val : string) { this._val = val ; }
+        constructor( val : string) { super() ; this._val = val ; }
 
         val() : string { return this._val ; }
 
         changeValue (newString : string) : Option<Label> {
-            if (newString.match("true") || newString.match ("false")) {
                 var newLabel = new BooleanLiteralLabel(newString);
                 return new Some(newLabel);
-            }
-
-            return new None<Label>();
         }
 
         isValid( children : Array<PNode> ) {
@@ -775,67 +1012,43 @@ module pnode {
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        toString() : string { return "boolean[" + this._val + "]"  ; }
+
+        // The following line makes no sense.
         public static theBooleanLiteralLabel = new BooleanLiteralLabel( "" );
+
+        public toJSON() : any {
+            return { kind: "BooleanLiteralLabel", val : this._val } ;
+        }
+
+        public static fromJSON( json : any ) : BooleanLiteralLabel {
+            return new BooleanLiteralLabel( json.val )  ;
+        }
     }
 
 
-    export class NullLiteralLabel implements ExprLabel {
-        _val : string;
-        constructor() { this._val = "null" ; }
-
-        val() : string { return null }
+    export class NullLiteralLabel extends ExprLabel {
+        constructor() { super() ; }
 
         isValid( children : Array<PNode> ) {
             return children.length == 0;}
 
         getClass() : PNodeClass { return ExprNode ; }
 
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
+        toString() : string { return "null"  ; }
 
-        getVal() : string {
-            return "null";
-        }
-
-        toString() : string { return "string[" + this._val + "]"  ; }
         public static theNullLiteralLabel = new NullLiteralLabel();
+
+        public toJSON() : any {
+            return { kind: "NullLiteralLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : NullLiteralLabel {
+            return  NullLiteralLabel.theNullLiteralLabel ;
+        }
     }
 
-    export class MethodLabel implements ExprLabel { //TODO should this be type?
-        isValid(children:Array<PNode>) {
-            return children.every(function (c:PNode) {
-                return c.isTypeNode()
-            });
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
-        toString():string {
-            return "method";
-        }
-
-        changeValue (newString : string) : Option<Label> {
-            return new None<Label>();
-        }
-
-        getVal() : string {
-            return null;
-        }
-
-        /*private*/
-        constructor() {
-        }
-
-        // Singleton
-        public static theMethodLabel = new MethodLabel();
-    }
-
-    export class CallLabel implements ExprLabel {
-        _id : string ;
+    export class CallLabel extends ExprLabel {
 
         isValid(children:Array<PNode>) {
             //TODO check if child 0 is a method
@@ -857,16 +1070,26 @@ module pnode {
         }
 
         getVal() : string {
-            return this._id;
+            return null;
         }
 
         /*private*/
         constructor() {
+            super() ;
         }
 
         // Singleton
         public static theCallLabel = new CallLabel();
+
+        public toJSON() : any {
+            return { kind: "CallLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : CallLabel {
+            return CallLabel.theCallLabel ;
+        }
     }
+
 
     //Placeholder Make
     export function mkExprPH():ExprNode {
@@ -884,18 +1107,47 @@ module pnode {
         return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
     //Const Make
-    export function mkStringConst( val : string ) : ExprNode{
-        return <ExprNode> make( new StringConstLabel(val),[] ) ; }
+    export function mkStringLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new StringLiteralLabel(val),[] ) ; }
 
-    export function mkNumberConst( val : string ) : ExprNode{
-        return <ExprNode> make( new NumberConstLabel(val),[] ) ; }  //
+    export function mkNumberLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new NumberLiteralLabel(val),[] ) ; }
 
-    export function mkBooleanConst( val : string ) : ExprNode{
-        return <ExprNode> make( new BooleanConstLabel(val),[] ) ; }
+    export function mkBooleanLiteral( val : string ) : ExprNode{
+        return <ExprNode> make( new BooleanLiteralLabel(val),[] ) ; }
 
-    export function mkAnyConst( val : any ) : ExprNode{
-        return <ExprNode> make( new AnyConstLabel(val),[] ) ; }
+    // JSON support
 
+    export function fromPNodeToJSON( p : PNode ) : string {
+        var json = p.toJSON() ;
+        return JSON.stringify( json ) ; }
+
+    export function fromJSONToPNode( s : string ) : PNode {
+        var json = JSON.parse( s ) ;
+        return PNode.fromJSON( json ) ; }
+
+    function fromJSONToLabel( json : any ) : Label {
+         // There is probably a reflective way to do this
+         //   Perhaps
+         //       var labelClass = pnode[json.kind] ;
+         //       check that labelClass is not undefined
+         //       var  fromJSON : any => Label = labelClass["fromJSON"] ;
+         //       check that fromJSON is not undefined
+         //       return fromJSON( json ) ;
+         var labelClass = pnode[json.kind] ; // This line relies on
+             //  (a) the json.kind field being the name of the concrete label class.
+             //  (b) that all the concrete label classes are exported from the pnode module.
+         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
+         var  fromJSON : (json : any) => Label = labelClass["fromJSON"] ; //
+         assert.check( fromJSON !== undefined ) // check that fromJSON is not undefined
+         return fromJSON( json ) ;
+         // If the code above doesn't work, then make a big ugly switch like this:
+         // switch( json.kind ) {
+             // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
+             // // and so on.
+             // default : assert.check(false ) ;
+         // }
+    }
 }
 
 export = pnode ;
