@@ -1042,7 +1042,7 @@ module pnode {
          public static theStringLiteralLabel = new StringLiteralLabel( "" );
 
          nodeStep(node, evalu){
-             evalu.finishStep( this._val );
+             evalu.finishStep( new StringV(this._val) );
          }
 
         public toJSON() : any {

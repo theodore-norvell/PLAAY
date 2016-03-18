@@ -39,8 +39,36 @@ module world {
                 var ls = <StringV>evalu.varmap.get(leftside);
                 var rs = <StringV>evalu.varmap.get(rightside);
 
-                var v = new StringV(String(Number(ls) + Number(rs)));
-                evalu.finishStep( v );
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v = new StringV(String(Number(ls.getVal()) + Number(rs.getVal())));
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
             }
 
             var plus = new BuiltInV(addstep);
@@ -48,7 +76,415 @@ module world {
 
             this.fields.push(addf);
 
-            //TODO add subtract, multiply, divide, etc.
+            function substep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v = new StringV(String(Number(ls.getVal()) - Number(rs.getVal())));
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var sub = new BuiltInV(substep);
+            var subf = new Field("-", sub, Type.NUMBER, true);
+
+            this.fields.push(subf);
+
+            function multstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v = new StringV(String(Number(ls.getVal()) * Number(rs.getVal())));
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var mult = new BuiltInV(multstep);
+            var multf = new Field("*", mult, Type.NUMBER, true);
+
+            this.fields.push(multf);
+
+            function divstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v = new StringV(String(Number(ls.getVal()) / Number(rs.getVal())));
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var div = new BuiltInV(divstep);
+            var divf = new Field("/", div, Type.NUMBER, true);
+
+            this.fields.push(divf);
+
+            function greaterthanstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v;
+                    if (Number(ls.getVal()) > Number(rs.getVal())) {
+                        v = new StringV("true");
+                    }
+                    else {
+                        v = new StringV("false");
+                    }
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var greaterthan = new BuiltInV(greaterthanstep);
+            var greaterf = new Field(">", greaterthan, Type.BOOL, true);
+
+            this.fields.push(greaterf);
+
+            function greaterthanequalstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v;
+                    if (Number(ls.getVal()) >= Number(rs.getVal())) {
+                        v = new StringV("true");
+                    }
+                    else {
+                        v = new StringV("false");
+                    }
+                    evalu.finishStep(v);
+                } else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var greaterthanequal = new BuiltInV(greaterthanequalstep);
+            var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
+
+            this.fields.push(greaterequalf);
+
+            function lessthanstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v;
+                    if (Number(ls.getVal()) < Number(rs.getVal())) {
+                        v = new StringV("true");
+                    }
+                    else {
+                        v = new StringV("false");
+                    }
+                    evalu.finishStep(v);
+                }
+                else {
+                    //TODO throw error, cannot evaluate non-number
+                }
+            }
+
+            var lessthan = new BuiltInV(lessthanstep);
+            var lessf = new Field("<", lessthan, Type.BOOL, true);
+
+            this.fields.push(lessf);
+
+            function lessthanequalstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+                var isNum = true;
+                //need to check if each character is a digit before continuing
+                for (var i = 0; i < ls.getVal().length ; i ++){
+                    //first check left side
+                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                        || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
+                        || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
+                        || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
+                        || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
+                        || ls.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+
+                    //then check right side
+                    if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
+                        || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
+                        || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
+                        || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
+                        || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
+                        || rs.getVal().charAt(i) == ".")){
+                        isNum = false;
+                    }
+                }
+
+                if (isNum) {
+                    var v;
+                    if (Number(ls.getVal()) <= Number(rs.getVal())) {
+                        v = new StringV("true");
+                    }
+                    else {
+                        v = new StringV("false");
+                    }
+                    evalu.finishStep(v);
+                }
+                else {
+                    //TODO throw error, cannot compare a non-number
+
+                }
+            }
+
+            var lessequalthan = new BuiltInV(lessthanequalstep);
+            var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
+
+            this.fields.push(lessequalf);
+
+            function equalstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+
+                var v;
+
+                if (ls.getVal() == rs.getVal()) {
+                    v = new StringV("true");
+                }
+                else {
+                    v = new StringV("false");
+                }
+
+                evalu.finishStep( v );
+            }
+
+            var equal = new BuiltInV(equalstep);
+            var equalf = new Field("==", equal, Type.BOOL, true);
+
+            this.fields.push(equalf);
+
+            function andstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+
+                var v;
+
+                if (ls.getVal() == "true" && rs.getVal() == "true") {
+                    v = new StringV("true");
+                }
+                else {
+                    v = new StringV("false");
+                }
+
+                evalu.finishStep( v );
+            }
+
+            var and = new BuiltInV(andstep);
+            var andf = new Field("&", and, Type.BOOL, true);
+
+            this.fields.push(andf);
+
+            function orstep(node : PNode, evalu : Evaluation ){
+                var leftside = evalu.getPending().concat([0]);
+                var rightside = evalu.getPending().concat([1]);
+
+                var ls = <StringV>evalu.varmap.get(leftside);
+                var rs = <StringV>evalu.varmap.get(rightside);
+
+
+                var v;
+
+                if (ls.getVal() == "true" || rs.getVal() == "true") {
+                    v = new StringV("true");
+                }
+                else {
+                    v = new StringV("false");
+                }
+
+                evalu.finishStep( v );
+            }
+
+            var or = new BuiltInV(orstep);
+            var orf = new Field("|", or, Type.BOOL, true);
+
+            this.fields.push(orf);
         }
 
 
