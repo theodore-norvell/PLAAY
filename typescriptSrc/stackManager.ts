@@ -121,6 +121,7 @@ module stack {
 
         constructor(){
             this.entries = new Array<mapEntry>();
+            this.size = 0;
         }
 
         samePath(a : Array<number>, b : Array<number>){
@@ -133,13 +134,14 @@ module stack {
             return flag;
         }
 
-        get(p : Array<number>) : Value{
+        get(p : Array<number>) : Value {
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    return this.entries[i].getValue();
+                }
             }
-            if(this.samePath(tmp, p)){
-                return this.entries[i].getValue();
-            }
+            return null;
         }
 
         put(p : Array<number>, v : Value){

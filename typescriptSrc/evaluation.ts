@@ -71,7 +71,10 @@ module evaluation {
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
 
-                var pending2 = Object.create(this.pending);
+                var pending2 = new Array<number>();
+                    for (var i = 0; i < this.pending.length ; i ++){
+                        pending2.push(this.pending[i]);
+                    }
                 this.varmap.put( pending2 , v);
                 if( this.pending.length == 0){
                     this.pending = null;
