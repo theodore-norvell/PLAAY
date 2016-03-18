@@ -31,18 +31,18 @@ module stack {
         }
 
         inStack(name : string) : boolean{
-            for(var i = 0; i < this.obj.numFields(); i++){
-//                if(name.match(this.obj.fields[i].getName().toString())){
-                if(name == this.obj.fields[i].getName()){
-                    return true;
+
+                for(var i = 0; i < this.obj.numFields(); i++){
+                    if(name == this.obj.fields[i].getName()){
+                        return true;
+                    }
                 }
-            }
+
             if(this.next == null){
                 return false;
             }
             else{
-                var here = this.next.inStack(name);
-                return here;
+                 return this.next.inStack(name);
             }
         }
 
@@ -129,6 +129,10 @@ module stack {
     export class VarMap {
         size : number ;
         entries : Array<mapEntry>;
+
+        constructor(){
+            this.entries = [];
+        }
 
         samePath(a : Array<number>, b : Array<number>){
             var flag = true;

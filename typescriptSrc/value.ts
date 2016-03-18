@@ -86,7 +86,7 @@ module value {
 
         constructor() {
             super();
-            this.fields = new Array<Field>();
+            this.fields = [];
         }
 
         public numFields():Number {
@@ -99,12 +99,11 @@ module value {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName().match(fieldName.toString())) {
+                if (this.fields[i].getName() == fieldName){
                     this.fields.splice(i, 1);
                     return true;
                 }
             }
-
             return false;
         }
 

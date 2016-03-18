@@ -231,7 +231,7 @@ module pnode {
 
         else {
             for (var i = 0; i < stack.top().fields.length; i++) {
-                if (stack.top().fields[i].name.match(varName.toString())) {
+                if (stack.top().fields[i].name == varName) {
                     return stack.top().fields[i];
                 }
             }

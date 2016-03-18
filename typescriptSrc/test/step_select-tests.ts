@@ -31,6 +31,7 @@ var ms : VMS = new VMS(b, wrd);
 var str = new value.StringV("");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
 var xStack : execStack = new execStack(wrd);
+var eva : Evaluation = new Evaluation(a, wrd);
 
 describe( 'varNode', () => {
     it('should be initialized properly', () => {
@@ -83,7 +84,7 @@ describe( 'VMS', () => {
         assert.check(ms.canAdvance());
         assert.check(ms.getWorld() == wrd);
         assert.check(ms.getEval().getRoot() == b);
-        assert.check(ms.getEval().pending == []);
+        assert.check(ms.getEval().pending.length == 0);
     } );
 
     it('Should be able to select properly', () => {
@@ -100,28 +101,50 @@ describe( 'Execution Stack ', () => {
 
     it('Should be able to add values', () => {
         xStack.top().addField(f);
-        assert.check();
+        assert.check(xStack.top().numFields() != 0);
+    } );
+
+    it('Should not find values not in the stack', () => {
+        assert.check(xStack.inStack("not in stack"));
     } );
 
     it('Should be able to look up values', () => {
-        var boo = xStack.inStack(f.getName());
-        assert.check(boo==true);
+        assert.check(xStack.inStack(f.getName()));
     } );
 
-    it('', () => {
 
+    it('Should be able to delete values', () => {
+
+        assert.check(xStack.top().deleteField(f.getName()));
+        assert.check(xStack.inStack(f.getName()) == false);
     } );
+
 
 
 } ) ;
 
-/*
- describe( '', () => {
- it('', () => {
 
- } );
+ describe( 'Evaluation', () => {
+     it('Should be initialized properly', () => {
+        assert.check(eva.getRoot() == a);
+         assert.check(eva.getStack().obj == wrd);
+         assert.check(eva.pending.length == 0);
+         assert.check(eva.ready == false);
+        assert.check(eva.varmap.entries.length == 0);
+     } );
+
+     it('', () => {
+
+     } );
+
+     it('', () => {
+
+     } );
+
+
  } ) ;
 
+/*
  describe( '', () => {
  it('', () => {
 
