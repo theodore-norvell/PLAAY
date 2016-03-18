@@ -159,7 +159,7 @@ module world {
                 }
             }
 
-            var mult = new BuiltInV(addstep);
+            var mult = new BuiltInV(multstep);
             var multf = new Field("*", mult, Type.NUMBER, true);
 
             this.fields.push(multf);
