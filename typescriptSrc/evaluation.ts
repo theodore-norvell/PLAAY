@@ -7,37 +7,61 @@ import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import value = require('./value') ;
+import world = require('./world');
 
 module evaluation {
 
-    import execStack = stack.execStack;
-    import ExprNode = pnode.ExprNode;
+    import ExecStack = stack.execStack;
+    import PNode = pnode.PNode;
     import VMS = vms.VMS;
     import VarMap = stack.VarMap;
     import Value = value.Value;
     import ClosureV = value.ClosureV;
+    import World = world.World;
+    import ObjectV = value.ObjectV;
 
     export class Evaluation {
-        root : ExprNode;
-        stack : execStack;
-        pending : Array<number>;
+        root : PNode;
+        private stack : ExecStack;
+        private pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
 
         next : Evaluation;
 
 
-        constructor (){//path : Array<Number>, value : Value) {
-            //this.varmap = new VarMap();
-            //this.varmap.put(path, value);
+        constructor (root : PNode, obj: ObjectV) {
+            this.root = root;
+            this.pending = new Array<number>();
+            this.pending = [];
+            this.ready = false;
+            this.stack = new ExecStack(obj);
+            this.varmap = new VarMap();
+        }
+
+        getRoot()
+        {
+            return this.root;
         }
 
         getNext(){
             return this.next;
         }
 
+        getPending(){
+            return this.pending;
+        }
+
+        setPending(pending : Array<number>){
+            this.pending = pending;
+        }
+
         getVarMap(){
             return this.varmap;
+        }
+
+        getStack(){
+            return this.stack;
         }
 
         setNext(next : Evaluation){
@@ -46,7 +70,13 @@ module evaluation {
 
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
-                this.varmap.put( this.pending , v);
+
+                var pending2 = new Array<number>();
+                for (var i = 0; i < this.pending.length ; i ++){
+                    pending2.push(this.pending[i]);
+                }
+
+                this.varmap.put( pending2 , v);
                 if( this.pending.length == 0){
                     this.pending = null;
                 }
@@ -76,12 +106,14 @@ module evaluation {
 
         advance( vms : VMS ){
             if(!this.isDone()){
-                var topNode = this.root.get( this.pending );
+
+                var pending2 = Object.create(this.pending);
+                var topNode = this.root.get( pending2 );
                 if( this.ready ){
                     topNode.label().step( vms );
                 }
                 else{
-                    topNode.label().select( vms );//strategy.select
+                    topNode.label().strategy.select( vms,  topNode.label()  );//strategy.select
                 }
             }
         }

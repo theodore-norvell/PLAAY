@@ -3,6 +3,8 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
+/// <reference path="evaluationManager.ts" />
+/// <reference path="vms.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
@@ -11,6 +13,9 @@ import assert = require( './assert' );
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
+import evaluationManager = require('./evaluationManager');
+import stack = require( './stackManager' ) ;
+import vms = require('./vms');
 
 module mkHTML {
     import list = collections.list;
@@ -19,6 +24,10 @@ module mkHTML {
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
     import fromJSONToPNode = pnode.fromJSONToPNode;
+    import EvaluationManager = evaluationManager.EvaluationManager;
+    import VarMap = stack.VarMap;
+    import mapEntry = stack.mapEntry;
+    import VMS = vms.VMS;
 
     var undostack = [];
     var redostack = [];
@@ -29,11 +38,26 @@ module mkHTML {
     var root = pnode.mkExprSeq([]);
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
+    var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
+    var highlighted = false;
+    var currentvms;
     currentSelection = select;
 
     export function onLoad() : void
     {
+        //creates side bar
+        const sidebar = document.createElement("div");
+        sidebar.setAttribute("id","sidebar");
+        sidebar.setAttribute("class","sidebar");
+        document.getElementById("body").appendChild(sidebar);
+
+        const stackbar = document.createElement("div");
+        stackbar.setAttribute("id", "stackbar");
+        stackbar.setAttribute("class", "stack");
+        document.getElementById("body").appendChild(stackbar);
+        document.getElementById("stackbar").style.visibility = "hidden";
+
         //creates undo/redo buttons
         const undoblock = document.createElement("div");
         undoblock.setAttribute("id", "undo");
@@ -80,9 +104,21 @@ module mkHTML {
         var play = document.getElementById("play");
         play.onclick = function play()
         {
-            //localStorage.setItem("currentSelection", serialize(currentSelection));
-            window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
+            evaluate();
         };
+
+        const editorbutton = document.createElement("div");
+        editorbutton.setAttribute("id", "edit");
+        editorbutton.setAttribute("class", "edit");
+        editorbutton.setAttribute("onclick", "edit()");
+        editorbutton.textContent = "Edit";
+        document.getElementById("body").appendChild(editorbutton);
+        var edit = document.getElementById("edit");
+        edit.onclick = function edit()
+        {
+            editor();
+        };
+        document.getElementById("edit").style.visibility = "hidden";
 
         const trash = document.createElement("div");
         trash.setAttribute("id","trash");
@@ -90,18 +126,24 @@ module mkHTML {
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
 
-        //creates side bar
-        const sidebar = document.createElement("div");
-        sidebar.setAttribute("id","sidebar");
-        sidebar.setAttribute("class","sidebar");
-        document.getElementById("body").appendChild(sidebar);
+        const advancebutton = document.createElement("div");
+        advancebutton.setAttribute("id", "advance");
+        advancebutton.setAttribute("class","advance");
+        advancebutton.setAttribute("onclick", "advance()");
+        advancebutton.textContent = "Next";
+        document.getElementById("body").appendChild(advancebutton);
+        var advance = document.getElementById("advance");
+        advance.onclick = function advance()
+        {
+            setValAndHighlight();
+        };
+        document.getElementById("advance").style.visibility = "hidden";
 
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
         ifblock.setAttribute("class","block V palette");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
-
 
         const whileblock = document.createElement("div");
         whileblock.setAttribute("id", "while");
@@ -161,7 +203,6 @@ module mkHTML {
         optionmul.value = "*";
         var optiondiv = document.createElement("option");
         optiondiv.value = "/";
-
         var optiongreater = document.createElement("option");
         optiongreater.value = ">";
         var optionless = document.createElement("option");
@@ -170,7 +211,6 @@ module mkHTML {
         optioneq.value = "==";
         var optiongreatereq = document.createElement("option");
         optiongreatereq.value = ">=";
-
         var optionlesseq = document.createElement("option");
         optionlesseq.value = "<=";
         var optionand = document.createElement("option");
@@ -196,6 +236,12 @@ module mkHTML {
         container.setAttribute("id","container");
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
+
+        const vms = document.createElement("div");
+        vms.setAttribute("id","vms");
+        vms.setAttribute("class", "vms");
+        document.getElementById("body").appendChild(vms);
+        document.getElementById("vms").style.visibility = "hidden";
 
         const seq = document.createElement("div");
         seq.setAttribute("id", "seq");
@@ -227,14 +273,19 @@ module mkHTML {
             tolerance: "pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-
-                //createDialog($(this), ui.draggable.attr("id"));
-
                 currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
-                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var selection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                selection.choose(
+                    sel => {
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
             }
         });
 
@@ -244,17 +295,179 @@ module mkHTML {
             tolerance:'pointer',
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
-                currentSelection = tree.deleteNode(currentSelection);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var selection = tree.deleteNode(currentSelection);
+                selection.choose(
+                    sel => {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
             }
         });
-        //$(".droppable" ).hover(function(e) {
-        //    $(this).addClass("hover");
-        //}, function (e) {
-        //    $(this).removeClass("hover");
-        //});
         enterBox();
+    }
+
+    function evaluate()
+    {
+        document.getElementById("trash").style.visibility = "hidden";
+        document.getElementById("redo").style.visibility = "hidden";
+        document.getElementById("undo").style.visibility = "hidden";
+        document.getElementById("sidebar").style.visibility = "hidden";
+        document.getElementById("container").style.visibility = "hidden";
+        document.getElementById("play").style.visibility = "hidden";
+        document.getElementById("vms").style.visibility = "visible";
+        document.getElementById("stackbar").style.visibility = "visible";
+        document.getElementById("advance").style.visibility = "visible";
+        document.getElementById("edit").style.visibility = "visible";
+
+        currentvms = evaluation.PLAAY(currentSelection.root());
+        var children = document.getElementById("vms");
+        while (children.firstChild) {
+            children.removeChild(children.firstChild);
+        }
+
+        children.appendChild(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true));//vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+        $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        $(".dropZone").hide();
+        $(".dropZoneSmall").hide();
+
+        //highlight($(".vms"), vms.getEval().pending);
+        //var root = document.getElementById("vms").children[0];
+        //var array = [0,0];
+        //setValueHTMLTest(root, array);
+    }
+
+    function editor()
+    {
+        document.getElementById("trash").style.visibility = "visible";
+        document.getElementById("redo").style.visibility = "visible";
+        document.getElementById("undo").style.visibility = "visible";
+        document.getElementById("sidebar").style.visibility = "visible";
+        document.getElementById("container").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
+        document.getElementById("vms").style.visibility = "hidden";
+        document.getElementById("stackbar").style.visibility = "hidden";
+        document.getElementById("advance").style.visibility = "hidden";
+        document.getElementById("edit").style.visibility = "hidden";
+
+        $(".dropZone").show();
+        $(".dropZoneSmall").show();
+    }
+
+    function setHTMLValueTest(root, array)
+    {
+        if(array.length == 0)
+        {
+            var self = $(root);
+            self.replaceWith("<div>23</div>");
+        }
+        else{
+            setHTMLValueTest(root.children[array.pop()], array);
+        }
+    }
+
+    function highlight(parent, pending:Array<number>)
+    {
+        if(pending.length == 0)
+        {
+            var self = $(parent);
+            if(self.index() == 0)
+                $("<div class='selected V'></div>").prependTo(self.parent());
+            else
+                $("<div class='selected V'></div>").appendTo(self.parent());
+            self.detach().appendTo($(".selected"));
+        }
+        else
+        {
+            var child = $(parent);
+            var index = child.find('div[data-childNumber="' + pending[0] + '"]').index();
+            var check = pending.shift();
+            if(index != check)
+                highlight(parent.children[index], pending);
+            else
+                highlight(parent.children[check], pending);
+        }
+    }
+
+    function findInMap(root, varmap:VarMap)
+    {
+        for(var i=0; i < varmap.size; i++)
+        {
+            var path = Object.create(varmap.entries[i].getPath());
+            var value = Object.create(varmap.entries[i].getValue());
+            setHTMLValue(root, path, value);
+        }
+    }
+
+    function setHTMLValue(root, path, value)
+    {
+        if(path.length == 0)
+        {
+            var self = $(root);
+            self.replaceWith("<div class='inmap'>"+ value.getVal() +"</div>");
+        }
+        else{
+            var child = $(root);
+            var index = child.find('div[data-childNumber="' + path[0] + '"]').index();
+            var check = path.shift();
+            if(index != check)
+                setHTMLValue(root.children[index], path, value);
+            else
+                setHTMLValue(root.children[check], path, value);
+        }
+    }
+
+    function setValAndHighlight()
+    {
+        currentvms = evaluation.next();
+        if (!highlighted && currentvms.getEval().ready) {
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            var root = document.getElementById("vms").children[0];
+            var array = Object.create(currentvms.getEval().getPending());
+            var map = Object.create(currentvms.getEval().getVarMap());
+            findInMap(root, map);
+            highlight(root, array);
+            highlighted = true;
+        }
+        else{
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            var root = document.getElementById("vms").children[0];
+            var map = Object.create(currentvms.getEval().getVarMap());
+            findInMap(root, map);
+            highlighted = false;
+        }
+    }
+
+    function advance()
+    {
+        //evaluation.next();
+        if(!highlighted)
+        {
+            var root = document.getElementById("vms").children[0];
+            var array = [0,0];
+            highlight(root, array);
+        }
+        else
+        {
+            var root = document.getElementById("vms").children[0];
+            var array = [0,0];
+            setHTMLValueTest(root, array);
+        }
     }
 
     function createCopyDialog(selectionArray) {
@@ -272,13 +485,23 @@ module mkHTML {
 
                     setTimeout(function() {
                         $('.ui-dialog-content').dialog('destroy');
-                    },3000);
+                    },2000);
                 },
                 buttons: {
                     "Copy": function()
                     {
-                        generateHTML(selectionArray[1][2]);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        selectionArray[1][2].choose(
+                            sel =>{
+                                undostack.push(currentSelection);
+                                currentSelection = sel;
+                                generateHTML(currentSelection);
+                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            },
+                            () =>{
+                                generateHTML(currentSelection);
+                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            }
+                        );
                         $( this ).dialog( "destroy" );
                     }
                 }
@@ -293,21 +516,28 @@ module mkHTML {
                 modal: true,
                 height: 75,
                 width: 75,
+                open: function (event, ui) {
+                    var markup = selectionArray[0][0];
+                    $(this).html(markup);
+                    setTimeout(function () {
+                        $('.ui-dialog-content').dialog('destroy');
+                    }, 2000);
+                },
                 buttons: {
-                    "Move": function()
-                    {
-                        var markup = selectionArray[0][0];
-                        $(this).html(markup);
-
-                        setTimeout(function() {
-                            $('.ui-dialog-content').dialog('destroy');
-                        },3000);
-                    },
-                    "Swap": function()
-                    {
-                        generateHTML(selectionArray[2][2]);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        $( this ).dialog( "destroy" );
+                    "Swap": function () {
+                        selectionArray[2][2].choose(
+                            sel =>{
+                                undostack.push(currentSelection);
+                                currentSelection = sel;
+                                generateHTML(currentSelection);
+                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            },
+                        () =>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        }
+                        );
+                        $(this).dialog("destroy");
                     }
                 }
             });
@@ -320,7 +550,7 @@ module mkHTML {
         while (children.firstChild) {
             children.removeChild(children.firstChild);
         }
-        children.appendChild(traverseAndBuild(select.root(), select.root().count()));
+        children.appendChild(traverseAndBuild(select.root(), select.root().count(), false));
 
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -338,26 +568,52 @@ module mkHTML {
                     || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
                 {
                     selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
-                    generateHTML(selectionArray[0][2]);
-                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    createSwapDialog(selectionArray);
+                    selectionArray[0][2].choose(
+                        sel => {
+                            undostack.push(currentSelection);
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            createSwapDialog(selectionArray);
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
                 }
                 else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
                     || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
                     || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
                 {
                     selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
-                    generateHTML(selectionArray[0][2]);
-                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    createCopyDialog(selectionArray);
+                    selectionArray[0][2].choose(
+                        sel => {
+                            undostack.push(currentSelection);
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            createCopyDialog(selectionArray);
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
                 }
                 else
                 {
                     console.log(ui.draggable.attr("id"));
                     undostack.push(currentSelection);
-                    currentSelection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
-                    generateHTML(currentSelection);
-                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    var selection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
+                    selection.choose(
+                        sel => {
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
                 }
             }
         });
@@ -369,9 +625,18 @@ module mkHTML {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
-                currentSelection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                var selection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                selection.choose(
+                    sel => {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
                 var label = $(this).attr("class");
                 if (/var/i.test(label)) {
                     $(this).replaceWith('<div class="var H click">' + text + '</div>');
@@ -497,21 +762,19 @@ module mkHTML {
         var path = list<number>();
         var newSelection = new Selection(fromJSONToPNode(string),path,0,0)
         return newSelection;
-
-
     }
 
-    function traverseAndBuild(node:PNode, childNumber: number ) : HTMLElement
+    function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
     {
         var children = new Array<HTMLElement>() ;
         for(var i = 0; i < node.count(); i++)
         {
-            children.push( traverseAndBuild(node.child(i), i) ) ;
+            children.push( traverseAndBuild(node.child(i), i, evaluating) ) ;
         }
-        return buildHTML(node, children, childNumber);
+        return buildHTML(node, children, childNumber, evaluating);
     }
 
-    function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number) : HTMLElement
+    function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
     {
         var label = node.label().toString();
         if(label.match('if'))
@@ -540,39 +803,53 @@ module mkHTML {
         }
         else if(label.match("seq"))
         {
-            var seqBox = document.createElement("div");
-            seqBox.setAttribute( "class", "seqBox V" ) ;
-            seqBox.setAttribute("data-childNumber", childNumber.toString());
-            seqBox["childNumber"] = childNumber ;
-
-            for( var i=0 ; true ; ++i )
+            if(evaluating)
             {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                seqBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                seqBox.appendChild( children[i] ) ;
-            }
+                var seqBox = document.createElement("div");
+                seqBox.setAttribute("class", "seqBox V");
+                seqBox.setAttribute("data-childNumber", childNumber.toString());
 
-            return seqBox ;
+                for (var i = 0; true; ++i) {
+                    if (i == children.length) break;
+                    seqBox.appendChild(children[i]);
+                }
+
+                return seqBox;
+            }
+            else {
+
+                var seqBox = document.createElement("div");
+                seqBox.setAttribute("class", "seqBox V");
+                seqBox.setAttribute("data-childNumber", childNumber.toString());
+                seqBox["childNumber"] = childNumber;
+
+                for (var i = 0; true; ++i) {
+                    var dropZone = document.createElement("div");
+                    dropZone.setAttribute("class", "dropZone H droppable");
+                    seqBox.appendChild(dropZone);
+                    if (i == children.length) break;
+                    seqBox.appendChild(children[i]);
+                }
+
+                return seqBox;
+            }
         }
         else if(label.match("expPH"))
         {
             var PHBox = document.createElement("div");
-            PHBox.setAttribute( "class", "placeHolder V" ) ;
+            PHBox.setAttribute("class", "placeHolder V");
             PHBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
-            for( var i=0 ; true ; ++i )
-            {
+            for (var i = 0; true; ++i) {
                 var dropZone = document.createElement("div");
                 dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                PHBox.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                PHBox.appendChild( children[i] ) ;
+                PHBox.appendChild(dropZone);
+                if (i == children.length) break;
+                PHBox.appendChild(children[i]);
             }
 
-            return PHBox ;
+            return PHBox;
         }
         else if(label.match("while"))
         {
@@ -692,14 +969,14 @@ module mkHTML {
             if (node.label().getVal().length > 0)
             {
                 VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click");
+                VarBox.setAttribute("class", "var H click canDrag");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.textContent = node.label().getVal();
             }
             else
             {
                 VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input");
+                VarBox.setAttribute("class", "var H input canDrag");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
@@ -712,14 +989,14 @@ module mkHTML {
             if (node.label().getVal().length > 0)
             {
                 StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.textContent = node.label().getVal();
             }
             else
             {
                 StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input");
+                StringBox.setAttribute("class", "stringLiteral H input canDrag");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
