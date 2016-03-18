@@ -15,6 +15,10 @@ module evaluationManager {
         private _vms : VMS;
         private workspace : Workspace;
 
+        constructor(){
+            this.workspace = new Workspace();
+        }
+
         PLAAY(root : PNode) : VMS {
             this._vms = new VMS(root, this.workspace.getWorld());
             return this._vms;

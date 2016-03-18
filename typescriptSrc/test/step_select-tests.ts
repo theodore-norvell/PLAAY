@@ -133,20 +133,79 @@ describe( 'Execution Stack ', () => {
         assert.check(eva.varmap.entries.length == 0);
      } );
 
-     it('', () => {
+    it('', () => {
 
-     } );
-
-     it('', () => {
-
-     } );
+    } );
+} ) ;
 
 
- } ) ;
+
+describe( 'World', () => {
+    it('Should be able to have fields added to it', () => {
+        wrd.addField(f);
+        assert.check(wrd.fields[0] == f);
+        assert.check(wrd.numFields() == 1);
+    } );
+
+    it('Should be able to search for fields', () => {
+        assert.check(wrd.getField(f.getName()) == f);
+    } );
+
+    it('Should be able to have fields removed from it', () => {
+        wrd.deleteField(f.getName());
+        assert.check(wrd.numFields() == 0);
+    } );
+
+} ) ;
+
+
+describe( 'VMS', () => {
+    it('Should be initialized properly', () => {
+       wrd.addField(f);
+        assert.check(ms.canAdvance());
+        assert.check(ms.getWorld() == wrd);
+        assert.check(ms.getEval().getRoot() == b);
+        assert.check(ms.getEval().pending == []);
+    } );
+
+    it('Should be able to select properly', () => {
+        ms.getWorld().addField(f);
+        ms.advance();
+        assert.check(ms.getEval().ready == true);
+    } );
+
+
+} ) ;
+
+
+describe( 'Execution Stack ', () => {
+
+    it('Should be able to add values', () => {
+        xStack.top().addField(f);
+        assert.check();
+    } );
+
+    it('Should be able to look up values', () => {
+        var boo = xStack.inStack(f.getName());
+        assert.check(boo==true);
+    } );
+
+    it('', () => {
+
+    } );
+
+
+} ) ;
 
 /*
  describe( '', () => {
  it('', () => {
+
+    } );
+} ) ;
+
+describe( '', () => {
+    it('', () => {
 
  } );
  } ) ;

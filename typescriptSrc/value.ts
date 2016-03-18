@@ -1,14 +1,18 @@
 import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
-
+import vms = require('./vms') ;
+import evaluation = require('./evaluation');
 
 module value {
 
+    import PNode = pnode.PNode;
     import Stack = stack.Stack;
     import list = collections.list;
     import List = collections.List;
     import LambdaNode = pnode.LambdaNode;
+    import VMS  = vms.VMS;
+    import Evaluation = evaluation.Evaluation;
 
     export class Field {
         name : string;
@@ -57,8 +61,9 @@ module value {
         }
     }
 
-    export abstract class Value {
-        abstract isClosureV() : boolean;//possibly not needed and can be checked another way?
+    export interface Value {
+        isClosureV : () => boolean ;
+        isBuiltInV : () => boolean ;
     }
 
     export class StringV extends Value {
@@ -79,14 +84,17 @@ module value {
         isClosureV(){
             return false;
         }
+        isBuiltInV(){
+            return false;
+        }
     }
 
-    export class ObjectV extends Value {
+    export class ObjectV implements Value {
         fields:Array<Field>;
 
         constructor() {
             super();
-            this.fields = [];
+            this.fields = new Array<Field>();
         }
 
         public numFields():Number {
@@ -99,7 +107,7 @@ module value {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() == fieldName){
+                if (this.fields[i].getName()== fieldName) {
                     this.fields.splice(i, 1);
                     return true;
                 }
@@ -109,7 +117,7 @@ module value {
 
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName().match(fieldName.toString())) {
+                if (this.fields[i].getName()== fieldName) {
                     return this.fields[i];
                 }
             }
@@ -120,36 +128,54 @@ module value {
         isClosureV(){
             return false;
         }
+        isBuiltInV(){
+            return false;
+        }
     }
 
-    export class ClosureV extends Value {
+    export class ClosureV implements Value {
         //need function obj
         public function : LambdaNode;
         context : Stack;
         isClosureV(){
             return true;
         }
+        isBuiltInV(){
+        return false;
     }
-    export class NullV extends Value {
+    }
+    export class NullV implements Value {
         isClosureV(){
+            return false;
+        }
+        isBuiltInV(){
             return false;
         }
 
     }
 
-    export class DoneV extends Value {
+    export class DoneV implements Value {
         isClosureV(){
+            return false;
+        }
+        isBuiltInV(){
             return false;
         }
     }
 
-    export class BuiltInV extends Value {
-        //var step : (vms : VMS) -> void;
-        //constructor (  step : (vms : VMS) -> void ){
-            //this.step = step;
-        //}
+    export class BuiltInV implements Value {
+        step : (node : PNode, evalu : Evaluation) => void;
+
+        constructor ( step : (node : PNode, evalu : Evaluation)=>void ){
+            this.step = step;
+        }
+
         isClosureV(){
             return false;
+        }
+
+        isBuiltInV(){
+            return true;
         }
     }
 
