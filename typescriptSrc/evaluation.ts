@@ -29,7 +29,6 @@ module evaluation {
 
         next : Evaluation;
 
-
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
             this.pending = new Array<number>();

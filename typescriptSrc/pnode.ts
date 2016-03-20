@@ -23,6 +23,8 @@ module pnode {
     import Field = value.Field;
     import ClosureV = value.ClosureV;
     import StringV = value.StringV;
+    import arrayToList = collections.arrayToList;
+
 
 
     export interface nodeStrategy {
@@ -31,6 +33,8 @@ module pnode {
 
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
+        strategy:nodeStrategy;
+        step : (vms:VMS) => void;
         /** Returns the class that uses this sort of label */
         getClass : () => PNodeClass ;
 
@@ -49,7 +53,6 @@ module pnode {
     export abstract class PNode {
         private _label:Label;
         private _children:Array<PNode>;
-        strategy:nodeStrategy;
 
         /** Construct a PNode.
          *  Precondition: label.isValid( children )
@@ -236,9 +239,7 @@ module pnode {
             var pending = evalu.getPending();
 
             if(pending != null) {
-
-                var pending2 = Object.create(pending); //Javascript passes by reference, this is the only way I could figure out how to keep the path
-                var node = evalu.root.get(pending2);
+                var node = evalu.root.get(arrayToList(pending));
 
                 if(node.label() == label){
                     var flag = true;
@@ -273,8 +274,7 @@ module pnode {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
             if(pending != null){
-                var pending2 = Object.create(pending);
-                var node = evalu.root.get(pending2);
+                var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
                     if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
@@ -289,8 +289,7 @@ module pnode {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
             if (pending != null) {
-                var pending2 = Object.create(pending);
-                var node = evalu.root.get(pending2);
+                var node = evalu.root.get(arrayToList(pending));
                 if (node.label() == label) {
 
                 }
@@ -303,8 +302,7 @@ module pnode {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
             if(pending != null){
-                var pending2 = Object.create(pending);
-                var node = evalu.root.get(pending2);
+                var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
                     vms.stack.top().ready = true;
                 }
@@ -332,7 +330,7 @@ module pnode {
                             }
                             else{
                                 evalu.setPending(thenPath);
-                                node.children(1).label.select( vms );
+                                node.child(1).label().strategy.select( vms, node.child(1).label() );
                             }
                         }
 
@@ -343,7 +341,7 @@ module pnode {
 
                             else{
                                 evalu.setPending(elsePath);
-                                node.children(2).label().select( vms );
+                                node.child(2).label().strategy.select( vms, node.child(2).label() );
                             }
                         }
 
@@ -352,7 +350,7 @@ module pnode {
 
                     else{
                         evalu.setPending(guardPath);
-                        node.children(0).label().select( vms );
+                        node.child(0).label().strategy.select( vms, node.child(0).label() );
                     }
                 }
             }
@@ -515,9 +513,9 @@ module pnode {
         step(vms:VMS){
             if(vms.stack.top().ready == true){
                 var evalu = vms.stack.top();
-                if(evalu.getPending() != null) {
-                    var pending2 = Object.create(evalu.getPending());
-                    var node = evalu.root.get(pending2);
+                var pending = evalu.getPending();
+                if(pending != null) {
+                    var node = evalu.root.get(arrayToList(pending));
                     this.nodeStep(node, evalu);
                 }
                 else{}//error
@@ -539,6 +537,19 @@ module pnode {
         }
 
         strategy : lrStrategy = new lrStrategy();
+
+        step(vms:VMS) {
+
+            var pending = vms.getEval().getPending();
+
+            var thisNode = vms.getEval().getRoot().get(arrayToList(pending));
+            var valpath = pending.concat([thisNode.count() - 1]);
+
+            var v = vms.getEval().varmap.get( valpath );
+
+            vms.getEval().finishStep( v );
+
+        }
 
         getClass():PNodeClass {
             return ExprSeqNode;
@@ -577,6 +588,8 @@ module pnode {
     export abstract class TypeLabel implements Label {
         isValid:(children:Array<PNode>) => boolean;
 
+        strategy : nodeStrategy;
+
         getClass():PNodeClass {
             return TypeNode;
         }
@@ -591,6 +604,10 @@ module pnode {
 
         getVal() : string {
             return null;
+        }
+
+        step( vms : VMS) {
+            //TODO not sure yet
         }
 
         public abstract toJSON() : any ;
@@ -966,6 +983,8 @@ module pnode {
     //Type Labels
 
     export class NoTypeLabel implements TypeLabel {
+        strategy : nodeStrategy;
+
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;}
 
@@ -975,6 +994,11 @@ module pnode {
 
         toString():string {
             return "noType";
+        }
+
+        step ( vms : VMS ) {
+
+
         }
 
         changeValue (newString : string) : Option<Label> {
