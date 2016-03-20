@@ -734,7 +734,7 @@ module pnode {
         }
 
         toString():string {
-            return "vardecl";
+            return "vdecl";
         }
 
         /*private*/
