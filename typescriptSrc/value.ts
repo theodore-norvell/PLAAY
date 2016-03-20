@@ -66,11 +66,10 @@ module value {
         isBuiltInV : () => boolean ;
     }
 
-    export class StringV extends Value {
+    export class StringV implements Value {
         contents : string;
 
         constructor(val : string){
-            super();
             this.contents = val;
         }
 
@@ -93,7 +92,6 @@ module value {
         fields:Array<Field>;
 
         constructor() {
-            super();
             this.fields = new Array<Field>();
         }
 

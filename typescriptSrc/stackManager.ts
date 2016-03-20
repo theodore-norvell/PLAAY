@@ -31,12 +31,8 @@ module stack {
             return this.next;
         }
 
-        inStack(name : string) : boolean{
 
-                for(var i = 0; i < this.obj.numFields(); i++){
-                    if(name == this.obj.fields[i].getName()){
-                        return true;
-                    }
+
         getField(name : String) : Field {
             for(var i = 0; i < this.obj.numFields(); i++){
 //                if(name.match(this.obj.fields[i].getName().toString())){
@@ -53,22 +49,26 @@ module stack {
             }
         }
 
-
         inStack(name : string) : boolean {
-            for(var i = 0; i < this.obj.numFields(); i++){
+            for (var i = 0; i < this.obj.numFields(); i++) {
 //                if(name.match(this.obj.fields[i].getName().toString())){
-                if(name == this.obj.fields[i].getName()){
+                if (name == this.obj.fields[i].getName()) {
                     return true;
                 }
 
-            if(this.next == null){
-                return false;
-            }
-            else{
-                 return this.next.inStack(name);
+            /*    var reg = new RegExp(this.obj.fields[i].getName());
+                if(name.match(reg)){
+                    return true;
+                }*/
+
+                if (this.getNext() == null) {
+                    return false;
+                }
+                else {
+                    return this.next.inStack(name);
+                }
             }
         }
-
     }
 
     export class Stack {
@@ -190,9 +190,6 @@ module stack {
             return false;
         }
     }
-
-
-
 }
 
 export = stack;

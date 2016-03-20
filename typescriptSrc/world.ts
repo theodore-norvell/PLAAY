@@ -31,6 +31,7 @@ module world {
 
         constructor() {
             super();
+            console.log("World's fields array is length: " + this.fields.length);
 
             function addstep(node : PNode, evalu : Evaluation ){
                 var leftside = evalu.getPending().concat([0]);
@@ -501,7 +502,7 @@ module world {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     this.fields.splice(i, 1);
                     return true;
                 }
@@ -512,7 +513,7 @@ module world {
 
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() == fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     return this.fields[i];
                 }
             }

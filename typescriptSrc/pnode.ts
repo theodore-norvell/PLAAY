@@ -287,7 +287,7 @@ module pnode {
                 var node = evalu.root.get(pending2);
                 if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
-                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
+                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
                     else{evalu.ready = true;}
                 }
             }

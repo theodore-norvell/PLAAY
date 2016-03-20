@@ -33,10 +33,11 @@ module evaluation {
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
             this.pending = new Array<number>();
-            this.pending = [];
+          //  this.pending = [];
             this.ready = false;
             this.stack = new ExecStack(obj);
             this.varmap = new VarMap();
+            console.log("Evaluation Pending is: " + this.pending);
         }
 
         getRoot()
