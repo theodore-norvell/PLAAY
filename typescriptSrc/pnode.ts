@@ -768,7 +768,15 @@ module pnode {
             var lNode = evalu.getRoot().get(leftside);
             //make sure left side is var
             if(lNode.label() == VariableLabel){
-                lNode.label().changeValue(rs);
+                //if in stack
+                if(evalu.getStack().inStack(lNode.label().getVal())){
+                    evalu.getStack().setField(lNode.label().getVal(), rs);
+                }
+                    //else add to stack
+                else{
+                    var f : Field = new Field(lNode.label().getVal(), rs, lNode.label().getType(), lNode.label().getConstant());
+                    evalu.getStack().top().addField(f);
+                }
                 evalu.finishStep(rs);
 
             }

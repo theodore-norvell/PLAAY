@@ -31,9 +31,25 @@ module stack {
             return this.next;
         }
 
+        //Return true if value was correctly set
+        setField(name : string, val : Value) : boolean{
+            for(var i = 0; i < this.obj.numFields(); i++){
+                if(name == this.obj.fields[i].getName()){
+                    this.obj.fields[i].setValue(val);
+                    return true
+                }
+            }
+            if(this.next == null){
+                return false;
+            }
+            else{
+                var here = this.next.setField(name);
+                return here;
+            }
 
+        }
 
-        getField(name : String) : Field {
+        getField(name : string) : Field {
             for(var i = 0; i < this.obj.numFields(); i++){
 //                if(name.match(this.obj.fields[i].getName().toString())){
                 if(name == this.obj.fields[i].getName()){
@@ -61,7 +77,7 @@ module stack {
                     return true;
                 }*/
 
-                if (this.getNext() == null) {
+                if (this.next == null) {
                     return false;
                 }
                 else {

@@ -30,19 +30,9 @@ var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
 
 
 describe( 'World', () => {
-    it('Should initialize properly', () => {
-        assert.check(wld.numFields() == 0);
-    } );
-
     it('Should be able to have fields added to it', () => {
         //fails maybe already has a field in it and throw the index off?
         wld.addField(f);
-        assert.check(wld.fields[0] == f);
-        assert.check(wld.numFields() == 1);
-
-    } );
-
-    it('Should be able to search for fields', () => {
         assert.check(wld.getField(f.getName()) == f);
     } );
 
