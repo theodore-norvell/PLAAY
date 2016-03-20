@@ -780,11 +780,11 @@ module pnode {
         public static theVarDeclLabel = new VarDeclLabel("");
 
         public toJSON() : any {
-            return { kind: "AssignLabel" } ;
+            return { kind: "VarDeclLabel" } ;
         }
 
-        public static fromJSON( json : any ) : AssignLabel {
-            return AssignLabel.theAssignLabel ;
+        public static fromJSON( json : any ) : VarDeclLabel {
+            return VarDeclLabel.theVarDeclLabel ;
         }
     }
 
@@ -822,7 +822,7 @@ module pnode {
 
             var lNode = evalu.getRoot().get(leftside);
             //make sure left side is var
-            if(lNode.label() == VariableLabel){
+            if(lNode.label().toString() == VariableLabel.toString()){
                 //if in stack
                 if(evalu.getStack().inStack(lNode.label().getVal())){
                     evalu.getStack().setField(lNode.label().getVal(), rs);

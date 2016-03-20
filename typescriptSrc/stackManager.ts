@@ -36,14 +36,14 @@ module stack {
             for(var i = 0; i < this.obj.numFields(); i++){
                 if(name == this.obj.fields[i].getName()){
                     this.obj.fields[i].setValue(val);
-                    return true
+                    return true;
                 }
             }
             if(this.next == null){
                 return false;
             }
             else{
-                var here = this.next.setField(name);
+                var here = this.next.setField(name, val);
                 return here;
             }
 
