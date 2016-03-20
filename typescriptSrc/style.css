@@ -438,6 +438,19 @@ div.stringLiteral{
     margin: 1px 2px 1px 2px ;
 }
 
+div.inmap{
+    border: thin solid rgb(135,206,250);
+    border-radius: 5px ;
+    font-family:"Lucida Console", monospace;
+    font-weight: normal ;
+    font-size: medium ;
+    color: rgb(255,0,0);
+    max-width: 200px ;
+    white-space: pre-wrap ;
+    word-wrap: break-word ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
 
 
 div.nullLiteral {
