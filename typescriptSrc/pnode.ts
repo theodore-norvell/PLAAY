@@ -790,7 +790,7 @@ module pnode {
             if (evalu.getStack().inStack(this._val.toString()) ) {
                var f = evalu.getStack().getField(this._val.toString());
                 if (f.getValue().isBuiltInV()){
-                   return (<BuiltInV> f.getValue()).step(node, evalu);
+                     return  (<BuiltInV> f.getValue()).step(node, evalu);
                }
             }
         }
