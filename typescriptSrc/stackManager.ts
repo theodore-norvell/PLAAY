@@ -31,7 +31,25 @@ module stack {
             return this.next;
         }
 
-        getField(name : String) : Field {
+        //Return true if value was correctly set
+        setField(name : string, val : Value) : boolean{
+            for(var i = 0; i < this.obj.numFields(); i++){
+                if(name == this.obj.fields[i].getName()){
+                    this.obj.fields[i].setValue(val);
+                    return true;
+                }
+            }
+            if(this.next == null){
+                return false;
+            }
+            else{
+                var here = this.next.setField(name, val);
+                return here;
+            }
+
+        }
+
+        getField(name : string) : Field {
             for(var i = 0; i < this.obj.numFields(); i++){
 //                if(name.match(this.obj.fields[i].getName().toString())){
                 if(name == this.obj.fields[i].getName()){
@@ -47,23 +65,26 @@ module stack {
             }
         }
 
-
         inStack(name : string) : boolean {
-            for(var i = 0; i < this.obj.numFields(); i++){
+            for (var i = 0; i < this.obj.numFields(); i++) {
 //                if(name.match(this.obj.fields[i].getName().toString())){
-                if(name == this.obj.fields[i].getName()){
+                if (name == this.obj.fields[i].getName()) {
                     return true;
                 }
-            }
-            if(this.next == null){
-                return false;
-            }
-            else{
-                var here = this.next.inStack(name);
-                return here;
+
+            /*    var reg = new RegExp(this.obj.fields[i].getName());
+                if(name.match(reg)){
+                    return true;
+                }*/
+
+                if (this.next == null) {
+                    return false;
+                }
+                else {
+                    return this.next.inStack(name);
+                }
             }
         }
-
     }
 
     export class Stack {
@@ -185,9 +206,6 @@ module stack {
             return false;
         }
     }
-
-
-
 }
 
 export = stack;

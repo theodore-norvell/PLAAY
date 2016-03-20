@@ -31,6 +31,7 @@ module world {
 
         constructor() {
             super();
+            console.log("World's fields array is length: " + this.fields.length);
 
             function addstep(node : PNode, evalu : Evaluation ){
                 var leftside = evalu.getPending().concat([0]);
@@ -41,17 +42,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -85,17 +87,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -129,17 +132,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -173,17 +177,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -217,17 +222,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -267,17 +273,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -317,17 +324,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -368,17 +376,18 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
@@ -515,7 +524,7 @@ module world {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     this.fields.splice(i, 1);
                     return true;
                 }
@@ -526,7 +535,7 @@ module world {
 
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() == fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     return this.fields[i];
                 }
             }

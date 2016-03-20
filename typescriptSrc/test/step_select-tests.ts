@@ -25,12 +25,14 @@ import execStack = stack.execStack;
 
 
 var wrd : World = new World();
+var wrld : World = new World();
 var a : pnode.ExprNode = pnode.mkVar("a");
 var b : pnode.ExprNode = pnode.mkVar("interesting");
 var ms : VMS = new VMS(b, wrd);
 var str = new value.StringV("");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
-var xStack : execStack = new execStack(wrd);
+var xStack : execStack = new execStack(wrld);
+var eva : Evaluation = new Evaluation(a, wrld);
 
 describe( 'varNode', () => {
     it('should be initialized properly', () => {
@@ -56,74 +58,42 @@ describe( 'Fields', () => {
         } );
     } ) ;
 
-
-
-describe( 'World', () => {
-    it('Should be able to have fields added to it', () => {
-        wrd.addField(f);
-        assert.check(wrd.fields[0] == f);
-        assert.check(wrd.numFields() == 1);
-    } );
-
-    it('Should be able to search for fields', () => {
-        assert.check(wrd.getField(f.getName()) == f);
-    } );
-
-    it('Should be able to have fields removed from it', () => {
-        wrd.deleteField(f.getName());
-        assert.check(wrd.numFields() == 0);
-    } );
-
-} ) ;
-
-
 describe( 'VMS', () => {
     it('Should be initialized properly', () => {
        wrd.addField(f);
         assert.check(ms.canAdvance());
         assert.check(ms.getWorld() == wrd);
         assert.check(ms.getEval().getRoot() == b);
-        assert.check(ms.getEval().pending == []);
+        assert.check(ms.getEval().getPending().length == 0);
     } );
 
     it('Should be able to select properly', () => {
+        //fails
         ms.getWorld().addField(f);
         ms.advance();
         assert.check(ms.getEval().ready == true);
     } );
-
-
 } ) ;
 
-
-describe( 'Execution Stack ', () => {
-
-    it('Should be able to add values', () => {
-        xStack.top().addField(f);
-        assert.check();
-    } );
-
-    it('Should be able to look up values', () => {
-        var boo = xStack.inStack(f.getName());
-        assert.check(boo==true);
-    } );
-
-    it('', () => {
-
-    } );
-
-
+ describe( 'Evaluation', () => {
+     it('Should be initialized properly', () => {
+        assert.check(eva.getRoot() == a);
+         assert.check(eva.getStack().obj == wrld);
+         assert.check(eva.getPending().length == 0);
+         assert.check(eva.ready == false);
+        assert.check(eva.varmap.entries.length == 0);
+     } );
 } ) ;
 
 /*
  describe( '', () => {
  it('', () => {
 
- } );
- } ) ;
+    } );
+} ) ;
 
- describe( '', () => {
- it('', () => {
+describe( '', () => {
+    it('', () => {
 
  } );
  } ) ;

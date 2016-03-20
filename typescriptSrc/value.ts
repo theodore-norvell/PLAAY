@@ -110,7 +110,6 @@ module value {
                     return true;
                 }
             }
-
             return false;
         }
 

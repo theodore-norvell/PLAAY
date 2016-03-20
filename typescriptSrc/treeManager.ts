@@ -62,19 +62,11 @@ module treeManager {
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);
 
-                //constants
-                case "stringconstant":
-                    break;
-                case "numberconstant":
-                    break;
-                case "booleanconstant":
-                    break;
-                case "nullconstant":
-                    break;
-
                 //variables & variable manipulation
                 case "var":
                     return this.makeVarNode(selection);
+                case "vardecl":
+                    return this.makeVarDeclNode(selection);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
@@ -193,9 +185,9 @@ module treeManager {
 
         private makeVarDeclNode(selection:Selection) : Option<Selection> {
 
-            var varNode = pnode.mkVar("");
+            var varNode = pnode.mkStringLiteral("");
             var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-            var val = pnode.mkStringLiteral("");
+            var val = pnode.mkExprOpt();
 
             var ttype = typeNode.choose(
                 p => p,
@@ -205,14 +197,14 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.VarDeclLabel.theVarDeclLabel, [varNode, ttype, val]);
 
-            var assignnode = opt.choose(
+            var vardeclnode = opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
                 });
 
-            var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
+            var edit = new pnodeEdits.InsertChildrenEdit([vardeclnode]);
             return edit.applyEdit(selection);
 
         }

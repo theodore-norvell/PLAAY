@@ -24,6 +24,7 @@ module pnode {
     import ClosureV = value.ClosureV;
     import StringV = value.StringV;
     import arrayToList = collections.arrayToList;
+    import Type = value.Type;
 
 
 
@@ -225,7 +226,7 @@ module pnode {
 
         else {
             for (var i = 0; i < stack.top().fields.length; i++) {
-                if (stack.top().fields[i].name.match(varName.toString())) {
+                if (stack.top().fields[i].name == varName) {
                     return stack.top().fields[i];
                 }
             }
@@ -277,7 +278,7 @@ module pnode {
                 var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
                   //TODO how to highlight  look up the variable in the stack and highlight it.
-                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name
+                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
                     else{evalu.ready = true;}
                 }
             }
@@ -297,6 +298,27 @@ module pnode {
         }
     }
 
+    export class assignStrategy implements nodeStrategy {
+        select(vms:VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+                if (node.label() == label) {
+                    var p = pending.concat([1]);
+                    if(!evalu.varmap.inMap(p)){
+                        vms.stack.top().setPending(p);
+                        node.child(1).label().strategy.select(vms, node.child(1).label());
+                    }
+
+                    else{
+                        evalu.ready = true;// Select this node.
+                    }
+                }
+            }
+        }
+    }
+
     export class LiteralStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
             var evalu = vms.stack.top();
@@ -308,8 +330,6 @@ module pnode {
                 }
             }
         }
-
-
     }
 
      export class ifStrategy implements nodeStrategy {
@@ -345,12 +365,46 @@ module pnode {
                             }
                         }
 
-                        else{}//error
+                        else{
+                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
+                        }
                     }
 
                     else{
                         evalu.setPending(guardPath);
                         node.child(0).label().strategy.select( vms, node.child(0).label() );
+                    }
+                }
+            }
+        }
+    }
+
+    export class varDeclStrategy implements nodeStrategy {
+        select( vms : VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var nameofVar = pending.concat([0]);
+                    var valueofVar = pending.concat([2]);
+                    if (evalu.varmap.inMap(nameofVar)) {
+                        var name = <StringV> evalu.varmap.get(nameofVar);
+                        if(! lookUp(name.getVal(), evalu.getStack())) {
+                            if (evalu.varmap.inMap(valueofVar)) {
+                                evalu.ready = true;
+                            } else {
+                                evalu.setPending(valueofVar);
+                                node.child(2).label().strategy.select(vms, node.child(2).label());
+                            }
+                        }
+                        else {
+                            throw new Error("Variable name already exists!");
+                        }
+                    }
+                    else {
+                        evalu.setPending(nameofVar);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
                     }
                 }
             }
@@ -695,20 +749,42 @@ module pnode {
         }
 
         nodeStep(node, evalu){
+            var varNamePath = evalu.getPending().concat([0]);
+            var typePath = evalu.getPending().concat([1]);
+            var varValuePath = evalu.getPending().concat([2]);
 
-            //lValue = rValue;
-            // evalu.finishStep(lValue);
+            var name = <StringV> evalu.varmap.get( varNamePath );
+            var value = evalu.varmap.get( varValuePath );
+            var typelabel = evalu.getRoot().get(arrayToList(typePath)).label();
+
+            var type = Type.NULL;
+            if (typelabel.toString() == "noType") {
+                type = Type.ANY;
+            }
+
+            var isConst = false; //TODO false for now for testing purposes
+            if (this._val == "true"){
+                isConst = true;
+            } else {
+                isConst = false;
+            }
+
+            var v = new Field(name.getVal(), value, type, isConst);
+
+            evalu.getStack().top().addField( v );
+
+            evalu.finishStep( v );
         }
 
         // Singleton
         public static theVarDeclLabel = new VarDeclLabel("");
 
         public toJSON() : any {
-            return { kind: "AssignLabel" } ;
+            return { kind: "VarDeclLabel" } ;
         }
 
-        public static fromJSON( json : any ) : AssignLabel {
-            return AssignLabel.theAssignLabel ;
+        public static fromJSON( json : any ) : VarDeclLabel {
+            return VarDeclLabel.theVarDeclLabel ;
         }
     }
 
@@ -720,7 +796,7 @@ module pnode {
             return true;
         }
 
-        strategy:lrStrategy = new lrStrategy();
+        strategy:assignStrategy = new assignStrategy();
 
         getClass():PNodeClass {
             return ExprNode;
@@ -740,9 +816,28 @@ module pnode {
         }
 
         nodeStep(node, evalu){
+            var leftside = evalu.getPending().concat([0]);
+            var rightside = evalu.getPending().concat([1]);
+            var rs = <StringV>evalu.varmap.get(rightside);
 
-            //lValue = rValue;
-           // evalu.finishStep(lValue);
+            var lNode = evalu.getRoot().get(leftside);
+            //make sure left side is var
+            if(lNode.label().toString() == VariableLabel.toString()){
+                //if in stack
+                if(evalu.getStack().inStack(lNode.label().getVal())){
+                    evalu.getStack().setField(lNode.label().getVal(), rs);
+                }
+                    //else add to stack
+                else{
+                    var f : Field = new Field(lNode.label().getVal(), rs, lNode.label().getType(), lNode.label().getConstant());
+                    evalu.getStack().top().addField(f);
+                }
+                evalu.finishStep(rs);
+
+            }
+            else{
+                //invalid node
+            }
         }
 
         // Singleton
@@ -845,6 +940,47 @@ module pnode {
 
         public static fromJSON( json : any ) : ExprPHLabel {
             return ExprPHLabel.theExprPHLabel ;
+        }
+    }
+
+    export class ExprOptLabel extends ExprLabel {
+
+        strategy : LiteralStrategy = new LiteralStrategy();
+
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 0) return false ;
+            return true;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "expOpt";
+        }
+
+        /*private*/
+        constructor() {
+            super();
+        }
+
+        nodeStep(node, evalu){
+            //add in a null value to signify that it is null to signify that
+            var v = new value.NullV();
+            evalu.finishStep( v );
+
+        }
+
+        // Singleton
+        public static theExprOptLabel = new ExprOptLabel();
+
+        public toJSON() : any {
+            return { kind: "ExprOptLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : ExprOptLabel {
+            return ExprOptLabel.theExprOptLabel ;
         }
     }
 
@@ -997,7 +1133,6 @@ module pnode {
         }
 
         step ( vms : VMS ) {
-
 
         }
 
@@ -1226,6 +1361,10 @@ module pnode {
     //Placeholder Make
     export function mkExprPH():ExprNode {
         return <ExprNode> make(ExprPHLabel.theExprPHLabel, []);
+    }
+
+    export function mkExprOpt():ExprNode {
+        return <ExprNode> make(ExprOptLabel.theExprOptLabel, []);
     }
 
     //Loop and If Make
