@@ -24,6 +24,7 @@ module pnode {
     import ClosureV = value.ClosureV;
     import StringV = value.StringV;
     import arrayToList = collections.arrayToList;
+    import Type = value.Type;
 
 
 
@@ -329,8 +330,6 @@ module pnode {
                 }
             }
         }
-
-
     }
 
      export class ifStrategy implements nodeStrategy {
@@ -366,12 +365,46 @@ module pnode {
                             }
                         }
 
-                        else{}//error
+                        else{
+                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
+                        }
                     }
 
                     else{
                         evalu.setPending(guardPath);
                         node.child(0).label().strategy.select( vms, node.child(0).label() );
+                    }
+                }
+            }
+        }
+    }
+
+    export class varDeclStrategy implements nodeStrategy {
+        select( vms : VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var nameofVar = pending.concat([0]);
+                    var valueofVar = pending.concat([2]);
+                    if (evalu.varmap.inMap(nameofVar)) {
+                        var name = <StringV> evalu.varmap.get(nameofVar);
+                        if(! lookUp(name.getVal(), evalu.getStack())) {
+                            if (evalu.varmap.inMap(valueofVar)) {
+                                evalu.ready = true;
+                            } else {
+                                evalu.setPending(valueofVar);
+                                node.child(2).label().strategy.select(vms, node.child(2).label());
+                            }
+                        }
+                        else {
+                            throw new Error("Variable name already exists!");
+                        }
+                    }
+                    else {
+                        evalu.setPending(nameofVar);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
                     }
                 }
             }
@@ -716,9 +749,31 @@ module pnode {
         }
 
         nodeStep(node, evalu){
+            var varNamePath = evalu.getPending().concat([0]);
+            var typePath = evalu.getPending().concat([1]);
+            var varValuePath = evalu.getPending().concat([2]);
 
-            //lValue = rValue;
-            // evalu.finishStep(lValue);
+            var name = <StringV> evalu.varmap.get( varNamePath );
+            var value = evalu.varmap.get( varValuePath );
+            var typelabel = evalu.getRoot().get(arrayToList(typePath)).label();
+
+            var type = Type.NULL;
+            if (typelabel.toString() == "noType") {
+                type = Type.ANY;
+            }
+
+            var isConst = false; //TODO false for now for testing purposes
+            if (this._val == "true"){
+                isConst = true;
+            } else {
+                isConst = false;
+            }
+
+            var v = new Field(name.getVal(), value, type, isConst);
+
+            evalu.getStack().top().addField( v );
+
+            evalu.finishStep( v );
         }
 
         // Singleton
@@ -888,6 +943,47 @@ module pnode {
         }
     }
 
+    export class ExprOptLabel extends ExprLabel {
+
+        strategy : LiteralStrategy = new LiteralStrategy();
+
+        isValid( children : Array<PNode> ) : boolean {
+            if( children.length != 0) return false ;
+            return true;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "expOpt";
+        }
+
+        /*private*/
+        constructor() {
+            super();
+        }
+
+        nodeStep(node, evalu){
+            //add in a null value to signify that it is null to signify that
+            var v = new value.NullV();
+            evalu.finishStep( v );
+
+        }
+
+        // Singleton
+        public static theExprOptLabel = new ExprOptLabel();
+
+        public toJSON() : any {
+            return { kind: "ExprOptLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : ExprOptLabel {
+            return ExprOptLabel.theExprOptLabel ;
+        }
+    }
+
     export class LambdaLabel extends ExprLabel {
 
          isValid( children : Array<PNode> ) {
@@ -1037,7 +1133,6 @@ module pnode {
         }
 
         step ( vms : VMS ) {
-
 
         }
 
@@ -1266,6 +1361,10 @@ module pnode {
     //Placeholder Make
     export function mkExprPH():ExprNode {
         return <ExprNode> make(ExprPHLabel.theExprPHLabel, []);
+    }
+
+    export function mkExprOpt():ExprNode {
+        return <ExprNode> make(ExprOptLabel.theExprOptLabel, []);
     }
 
     //Loop and If Make
