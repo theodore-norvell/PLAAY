@@ -150,10 +150,21 @@ module collections {
         return acc ;
     }
 
+    export function arrayToList<A>( a : Array<A> ) : List<A> {
+        return list( ...a ) ; }
+
     export function cons<A>( head : A, rest : List<A> ) : List<A> {
             return new Cons<A>( head, rest ) ; }
             
     export function nil<A>() : List<A> { return new Nil<A>() ; }
+
+    export function snoc<A>( xs : List<A>, x : A ) : List<A> {
+        return xs.fold( (y, ys) => cons(y,ys), () => cons(x, nil<A>() ) ) ; } 
+
+    export function butLast<A>( xs : List<A> ) : List<A>{
+        if( xs.rest().isEmpty() ) return nil<A>() ;
+        else return cons( xs.first(), butLast( xs.rest() ) ) ;
+    }
     
 }
 

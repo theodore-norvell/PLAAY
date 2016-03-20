@@ -139,14 +139,14 @@ OptExp --&gt; noExp | Exp</pre>
 <p class="centre">T &or; S = canonicalize( T &cup; S ) .</p>
 <p>The subtype relation can be extended to types:</p>
 <p class="centre">T &lt;: S iff T &or; S = S .</p>
-<p>Note that {&perp;} <span class="centre">&or; <em>T</em></span> = {&perp;} for ever <em>T</em> and therefore <em>T</em> &lt;: {&perp;} for any type <em>T</em>. We use {&perp;} to indicate errors. When something is given the type {&perp;}, it should be because there is compile time error somewhere in the program.</p>
+<p>Note that {&perp;} <span class="centre">&or; <em>T</em></span> = {&perp;} for every <em>T</em> and therefore <em>T</em> &lt;: {&perp;} for any type <em>T</em>. We use {&perp;} to indicate errors. When something is given the type {&perp;}, it should be because there is compile time error somewhere in the program.</p>
 <p>To avoid circularity, we require that the types involved in method type atoms don't involve the type atom itself. For example there is no type atom x such that</p>
 <p class="centre">x = method( {x} )</p>
 <p>The typing rules of the language should ensure that such type atoms never need to be created.</p>
 <p>Variable come in two constnesses C = {con, var}.</p>
 <h2>Pass 0 algorithm</h2>
 <p>Pass 0 computes a mapping from AST nodes to types. At the end of pass 0, each varDecl and conDecl node within a class should be mapped to some element of <em>Type</em>.</p>
-<p>To keep track of the types of identifiers, we use a symbol table <em>st</em>, which is represents a map from<em> I</em>&times;{this, local, world} to <em>C&times;Type</em>. Operations on symbol table include</p>
+<p>To keep track of the types of identifiers, we use a symbol table <em>st</em>, which represents a map from<em> I</em>&times;{this, local, world} to <em>C&times;Type</em>. Operations on symbol table include</p>
 <p>st.hasEntry(<em>i</em> : <em>I</em>, <em>k</em> : <em>K</em>) : Boolean -- returns true if the identifier has an entry</p>
 <p>(TBD Explain this better.) </p>
 <p>st.get(<em>i</em> : <em>I</em>, <em>k</em> : <em>K</em>) : <em>T </em>-- Precondition st.hasEntre( <em>i</em>, <em>k</em> ). Gives the type of i.</p>
