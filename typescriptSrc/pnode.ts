@@ -297,6 +297,27 @@ module pnode {
         }
     }
 
+    export class assignStrategy implements nodeStrategy {
+        select(vms:VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+                if (node.label() == label) {
+                    var p = pending.concat([1]);
+                    if(!evalu.varmap.inMap(p)){
+                        vms.stack.top().setPending(p);
+                        node.child(1).label().strategy.select(vms, node.child(1).label());
+                    }
+
+                    else{
+                        evalu.ready = true;// Select this node.
+                    }
+                }
+            }
+        }
+    }
+
     export class LiteralStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
             var evalu = vms.stack.top();
@@ -720,7 +741,7 @@ module pnode {
             return true;
         }
 
-        strategy:lrStrategy = new lrStrategy();
+        strategy:assignStrategy = new assignStrategy();
 
         getClass():PNodeClass {
             return ExprNode;
@@ -740,9 +761,20 @@ module pnode {
         }
 
         nodeStep(node, evalu){
+            var leftside = evalu.getPending().concat([0]);
+            var rightside = evalu.getPending().concat([1]);
+            var rs = <StringV>evalu.varmap.get(rightside);
 
-            //lValue = rValue;
-           // evalu.finishStep(lValue);
+            var lNode = evalu.getRoot().get(leftside);
+            //make sure left side is var
+            if(lNode.label() == VariableLabel){
+                lNode.label().changeValue(rs);
+                evalu.finishStep(rs);
+
+            }
+            else{
+                //invalid node
+            }
         }
 
         // Singleton
