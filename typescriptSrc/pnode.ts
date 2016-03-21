@@ -813,14 +813,11 @@ module pnode {
             //make sure left side is var
             if(lNode.label().toString() == VariableLabel.theVariableLabel.toString()){
                 //if in stack
-                if(evalu.getStack().inStack(lNode.label().getVal())){
+                if(evalu.getStack().inStack(lNode.label().getVal())) {
                     evalu.getStack().setField(lNode.label().getVal(), rs);
                 }
-                    //else add to stack
                 else{
-                    //TODO throw error? Need to look at this, right now there is no access to the type
-                    //var f : Field = new Field(lNode.label().getVal(), rs, lNode.label().getType(), lNode.label().getConstant());
-                    //evalu.getStack().top().addField(f);
+                    throw new Error("Variable is not in map! Declare it first!");
                 }
                 evalu.finishStep(rs);
 

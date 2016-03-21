@@ -201,12 +201,6 @@ module mkHTML {
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
 
-        const selectionblock = document.createElement("div");
-        selectionblock.setAttribute("id", "selection");
-        selectionblock.setAttribute("class", "block V palette");
-        selectionblock.textContent = "Selection";
-        document.getElementById("sidebar").appendChild(selectionblock);
-
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
         var optionplus = document.createElement("option");
@@ -378,7 +372,7 @@ module mkHTML {
             if(self.index() == 0)
                 $("<div class='selected V'></div>").prependTo(self.parent());
             else
-                $("<div class='selected V'></div>").appendTo(self.parent());
+                $("<div class='selected V'></div>").insertBefore(self);
             self.detach().appendTo($(".selected"));
         }
         else
@@ -476,10 +470,10 @@ module mkHTML {
         children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
         $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         var root = document.getElementById("vms").children[0];
-        var array = Object.create(currentvms.getEval().getPending());
+        var list = arrayToList(currentvms.getEval().getPath());
         var map = Object.create(currentvms.getEval().getVarMap());
         findInMap(root, map);
-        highlight(root, array);
+        highlight(root, list);
     }
 
     function createCopyDialog(selectionArray) {
