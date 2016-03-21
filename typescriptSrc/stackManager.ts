@@ -60,8 +60,7 @@ module stack {
                 return null;
             }
             else{
-                var here = this.next.getField(name);
-                return here;
+                return this.next.getField(name);
             }
         }
 
