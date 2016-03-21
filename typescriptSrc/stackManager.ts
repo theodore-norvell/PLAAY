@@ -70,18 +70,12 @@ module stack {
                 if (name == this.obj.fields[i].getName()) {
                     return true;
                 }
-
-            /*    var reg = new RegExp(this.obj.fields[i].getName());
-                if(name.match(reg)){
-                    return true;
-                }*/
-
-                if (this.next == null) {
-                    return false;
-                }
-                else {
-                    return this.next.inStack(name);
-                }
+            }
+            if (this.next == null) {
+                return false;
+            }
+            else {
+                return this.next.inStack(name);
             }
         }
     }
