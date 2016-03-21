@@ -220,18 +220,7 @@ module pnode {
     }
 
     export function lookUp( varName : string, stack : execStack ) : Field {
-        if (stack == null){
-            return null;
-        }
-
-        else {
-            for (var i = 0; i < stack.top().fields.length; i++) {
-                if (stack.top().fields[i].name == varName) {
-                    return stack.top().fields[i];
-                }
-            }
-        }
-        return lookUp( varName, stack.next );
+        return stack.getField(varName);
     }
 
     export class lrStrategy implements nodeStrategy {
@@ -695,8 +684,8 @@ module pnode {
         }
 
         nodeStep(node, evalu){
-            var v = lookUp( name, evalu.stack).getValue(); //TODO not in pseudo code but would make sense to have this as a value
-            //TODO how remove highlight from f
+            var v = lookUp( this._val, evalu.stack).getValue();
+
             evalu.finishStep( v )
         }
 
@@ -727,7 +716,7 @@ module pnode {
             return true;
         }
 
-        strategy:lrStrategy;
+        strategy : varDeclStrategy = new varDeclStrategy();
 
         getClass():PNodeClass {
             return ExprNode;
@@ -773,7 +762,7 @@ module pnode {
 
             evalu.getStack().top().addField( v );
 
-            evalu.finishStep( v );
+            evalu.finishStep( v.getValue() );
         }
 
         // Singleton
@@ -822,15 +811,16 @@ module pnode {
 
             var lNode = evalu.getRoot().get(leftside);
             //make sure left side is var
-            if(lNode.label().toString() == VariableLabel.toString()){
+            if(lNode.label().toString() == VariableLabel.theVariableLabel.toString()){
                 //if in stack
                 if(evalu.getStack().inStack(lNode.label().getVal())){
                     evalu.getStack().setField(lNode.label().getVal(), rs);
                 }
                     //else add to stack
                 else{
-                    var f : Field = new Field(lNode.label().getVal(), rs, lNode.label().getType(), lNode.label().getConstant());
-                    evalu.getStack().top().addField(f);
+                    //TODO throw error? Need to look at this, right now there is no access to the type
+                    //var f : Field = new Field(lNode.label().getVal(), rs, lNode.label().getType(), lNode.label().getConstant());
+                    //evalu.getStack().top().addField(f);
                 }
                 evalu.finishStep(rs);
 
@@ -967,7 +957,7 @@ module pnode {
 
         nodeStep(node, evalu){
             //add in a null value to signify that it is null to signify that
-            var v = new value.NullV();
+            var v = new StringV("null");
             evalu.finishStep( v );
 
         }

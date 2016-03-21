@@ -31,10 +31,11 @@ module evaluation {
 
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
-            this.pending = new Array<number>();
-          //  this.pending = [];
+            this.pending = new Array();
             this.ready = false;
-            this.stack = new ExecStack(obj);
+            var evalObj = new ObjectV();
+            this.stack = new ExecStack(evalObj);
+            this.stack.setNext(new ExecStack(obj));
             this.varmap = new VarMap();
             console.log("Evaluation Pending is: " + this.pending);
         }
