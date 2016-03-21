@@ -709,7 +709,7 @@ module mkHTML {
             var place = index - num;
 
             var label = parent.attr("class");
-            if (/placeHolder/i.test(label) || /expOpt/i.test(label))
+            if (/placeHolder/i.test(label) || /expOp/i.test(label))
             {
                 anchor = child;
                 focus = anchor + 1;
