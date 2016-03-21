@@ -29,14 +29,15 @@ module evaluation {
 
         next : Evaluation;
 
-
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
-            this.pending = new Array<number>();
-            this.pending = [];
+            this.pending = new Array();
             this.ready = false;
-            this.stack = new ExecStack(obj);
+            var evalObj = new ObjectV();
+            this.stack = new ExecStack(evalObj);
+            this.stack.setNext(new ExecStack(obj));
             this.varmap = new VarMap();
+            console.log("Evaluation Pending is: " + this.pending);
         }
 
         getRoot()
@@ -110,16 +111,13 @@ module evaluation {
                 var pending2 = Object.create(this.pending);
                 var topNode = this.root.get( pending2 );
                 if( this.ready ){
-                    topNode.label().step( vms );
+                    topNode.label().step(vms);
                 }
                 else{
-                    topNode.label().strategy.select( vms,  topNode.label()  );//strategy.select
+                    topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
                 }
             }
         }
-
-
-
     }
 }
 export = evaluation;

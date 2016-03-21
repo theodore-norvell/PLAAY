@@ -92,6 +92,15 @@ div.advance
     position:fixed;
 }
 
+div.multistep
+{
+    width:90px;
+    bottom:4px; left: 100px;
+    height:calc(4%);
+    background-color: royalblue;
+    position:fixed;
+}
+
 div.trash
 {
     width: 50px;
@@ -385,12 +394,41 @@ div.placeHolder {
     border-radius: 5px ;
 }
 
+div.expOp {
+    border: thin solid ghostwhite ;
+    margin: 2px 0px 2px 0px ;
+    min-width: 2ex ;
+    min-height: 10px ;
+    width: auto ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ;
+    border-radius: 5px ;
+}
+
 div.hCont, div.var, div.assign {
     border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
     font-size: medium ;
     color: rgb(244, 140, 0) ; /* Orange */
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.vardecl:before { content: "Var" ;
+    display: inline ;
+    vertical-align: top ;
+    color: ghostwhite ;
+    font-size: large ;
+}
+
+div.vardecl{
+    border: thin solid ghostwhite ; /* Orange */
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ; /* Orange */
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }

@@ -31,6 +31,7 @@ module world {
 
         constructor() {
             super();
+            console.log("World's fields array is length: " + this.fields.length);
 
             function addstep(node : PNode, evalu : Evaluation ){
                 var leftside = evalu.getPending().concat([0]);
@@ -41,24 +42,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -67,7 +69,7 @@ module world {
                     var v = new StringV(String(Number(ls.getVal()) + Number(rs.getVal())));
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " + " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -85,24 +87,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -111,7 +114,7 @@ module world {
                     var v = new StringV(String(Number(ls.getVal()) - Number(rs.getVal())));
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " - " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -129,24 +132,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -155,7 +159,7 @@ module world {
                     var v = new StringV(String(Number(ls.getVal()) * Number(rs.getVal())));
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " * " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -173,24 +177,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -199,7 +204,7 @@ module world {
                     var v = new StringV(String(Number(ls.getVal()) / Number(rs.getVal())));
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " / " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -217,24 +222,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -249,7 +255,7 @@ module world {
                     }
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " > " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -267,24 +273,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -299,7 +306,7 @@ module world {
                     }
                     evalu.finishStep(v);
                 } else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " >= " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -317,24 +324,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -350,7 +358,7 @@ module world {
                     evalu.finishStep(v);
                 }
                 else {
-                    //TODO throw error, cannot evaluate non-number
+                    throw new Error("Error evaulating " + ls.getVal() + " < " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -368,24 +376,25 @@ module world {
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
-                for (var i = 0; i < ls.getVal().length ; i ++){
+                for (var i = 0; i < ls.getVal().length ; i ++) {
                     //first check left side
-                    if (! (ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
+                    if (!(ls.getVal().charAt(i) == "0" || ls.getVal().charAt(i) == "1"
                         || ls.getVal().charAt(i) == "2" || ls.getVal().charAt(i) == "3"
                         || ls.getVal().charAt(i) == "4" || ls.getVal().charAt(i) == "5"
                         || ls.getVal().charAt(i) == "6" || ls.getVal().charAt(i) == "7"
                         || ls.getVal().charAt(i) == "8" || ls.getVal().charAt(i) == "9"
-                        || ls.getVal().charAt(i) == ".")){
+                        || ls.getVal().charAt(i) == "." || ls.getVal().charAt(0) == "-" )) {
                         isNum = false;
                     }
-
+                }
+                for (var i = 0; i < rs.getVal().length ; i ++) {
                     //then check right side
                     if (! (rs.getVal().charAt(i) == "0" || rs.getVal().charAt(i) == "1"
                         || rs.getVal().charAt(i) == "2" || rs.getVal().charAt(i) == "3"
                         || rs.getVal().charAt(i) == "4" || rs.getVal().charAt(i) == "5"
                         || rs.getVal().charAt(i) == "6" || rs.getVal().charAt(i) == "7"
                         || rs.getVal().charAt(i) == "8" || rs.getVal().charAt(i) == "9"
-                        || rs.getVal().charAt(i) == ".")){
+                        || rs.getVal().charAt(i) == "." || rs.getVal().charAt(0) == "-")){
                         isNum = false;
                     }
                 }
@@ -401,8 +410,7 @@ module world {
                     evalu.finishStep(v);
                 }
                 else {
-                    //TODO throw error, cannot compare a non-number
-
+                    throw new Error("Error evaulating " + ls.getVal() + " <= " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -436,7 +444,7 @@ module world {
 
             this.fields.push(equalf);
 
-            function andstep(node : PNode, evalu : Evaluation ){
+            function andstep(node : PNode, evalu : Evaluation ) {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
@@ -445,6 +453,14 @@ module world {
 
 
                 var v;
+
+                if (ls.getVal() != ("true" || "false") ) {
+                    throw new Error("Error evaulating " + ls.getVal() + " as a logical value!");
+                }
+
+                if (rs.getVal() != ("true" || "false") ) {
+                    throw new Error("Error evaulating " + rs.getVal() + " as a logical value!");
+                }
 
                 if (ls.getVal() == "true" && rs.getVal() == "true") {
                     v = new StringV("true");
@@ -468,6 +484,13 @@ module world {
                 var ls = <StringV>evalu.varmap.get(leftside);
                 var rs = <StringV>evalu.varmap.get(rightside);
 
+                if (ls.getVal() != ("true" || "false") ) {
+                    throw new Error("Error evaulating " + ls.getVal() + " as a logical value!");
+                }
+
+                if (rs.getVal() != ("true" || "false") ) {
+                    throw new Error("Error evaulating " + rs.getVal() + " as a logical value!");
+                }
 
                 var v;
 
@@ -501,7 +524,7 @@ module world {
 
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     this.fields.splice(i, 1);
                     return true;
                 }
@@ -512,7 +535,7 @@ module world {
 
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() == fieldName) {
+                if (this.fields[i].getName() === fieldName) {
                     return this.fields[i];
                 }
             }

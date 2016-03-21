@@ -77,7 +77,7 @@ module pnodeEdits {
     
     /** Checks the invariant of Selection.  See the documentation of Selection. */
     export function checkSelection( tree : PNode, path : List<number>,
-                    anchor : number, focus : number ) { 
+                    anchor : number, focus : number ) : boolean { 
         if( path.isEmpty() ) {
             var start, end ;
             if( anchor < focus ) { start = anchor ; end = focus ; }
