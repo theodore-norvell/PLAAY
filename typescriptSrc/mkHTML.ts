@@ -262,10 +262,22 @@ module mkHTML {
         $('#saveProgram').click(function() {
             $('body').append("<div id='dimScreen'></div>");
             $('#dimScreen').append("<div id='getProgramList'>" +
-                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='get'>" +
+                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
                 "Program Name: <input type='text' name='programname'><br>" +
                 "<input type='submit' value='Submit Program'>" +
-                "</form></div>");
+                "</form><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            //mkHTML.getPrograms();
+        });
+
+        $('#loadProgram').click(function() {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
             mkHTML.getPrograms();
         });
         const nullblock = document.createElement("div");
@@ -747,21 +759,42 @@ module mkHTML {
     export function getPrograms()
     {
         var currentUser = $('#userSettings :input').val();
-        var response = $.get("/SavePrograms",{username:currentUser},
-            function(){
-                console.log(response.responseText);
-            });
+        var response = $.post("/ProgramList",{username:currentUser}, function() {
+            mkHTML.buildPage(response.responseText);
+        });
         return false;
+    }
+
+    export function buildPage(json)
+    {
+        var result = $.parseJSON(json).programList;
+        result.forEach(function(entry){
+            $('#getProgramList').append("<div>" + entry +
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button></div>");
+        });
+    }
+
+    export function loadProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
+            $("#dimScreen").remove();
+            currentSelection = unserialize(response.responseText);
+            generateHTML(currentSelection);
+            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        });
     }
 
     export function savePrograms()
     {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        var currentSel = currentSelection;
+        var currentSel = serialize(currentSelection);
         var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
             function(){
                 console.log(response.responseText);
+                $('#dimScreen').remove();
             });
         return false;
     }

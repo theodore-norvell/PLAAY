@@ -33,17 +33,12 @@ public class SaveRequest extends HttpServlet
 
         String registerRequest = new SavePrograms().saveProgram(username,program,programName);
         String result = "";
-        if (registerRequest.equals("Success"))
+        if (registerRequest.equals("SUCCESS"))
         {
             result = "{\"username\": \""+username+"\",\n" +
                     "\"result\": \"SUCCESS\"}";
         }
-        else if (registerRequest.equals("NameTaken"))
-        {
-            result = "{\"username\": \"null\",\n" +
-                    "\"result\": \"NAMETAKEN\"}";
-        }
-        else if (registerRequest.equals("Error"))
+        else if (registerRequest.equals("ERROR"))
         {
             result = "{\"username\": \"null\",\n" +
                     "\"result\": \"ERROR\"}";

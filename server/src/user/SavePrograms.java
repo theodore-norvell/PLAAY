@@ -1,10 +1,11 @@
 package user;
 
-
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDB;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.ScanSpec;
+import com.amazonaws.services.dynamodbv2.document.spec.UpdateItemSpec;
 import com.amazonaws.services.dynamodbv2.document.utils.NameMap;
 import com.amazonaws.services.dynamodbv2.document.utils.ValueMap;
 import com.amazonaws.services.dynamodbv2.model.*;
@@ -13,14 +14,15 @@ import com.amazonaws.services.dynamodbv2.util.Tables;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
+import java.util.List;
 
 public class SavePrograms {
 
     public String saveProgram(String usr, String program, String programName)
     {
         AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000");
-
+                .withEndpoint("http://localhost:8000"); //FOR LOCAL
+                //.withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
         String tableName = usr;
@@ -28,12 +30,31 @@ public class SavePrograms {
 
 
         try {
-            TableDescription table = dynamoDBClient.describeTable(new DescribeTableRequest(tableName))
-                    .getTable();
-            if (!TableStatus.ACTIVE.toString().equals(table.getTableStatus()))
-            {
-                //Table does not exist
+            List<String> tables = dynamoDBClient.listTables().getTableNames();
 
+            boolean hasTable = false;
+
+            for (String temp : tables) {
+                if (tableName.equals(temp)) {
+                    hasTable = true;
+                }
+            }
+
+            if (hasTable) {
+                Table table2 = dynamoDB.getTable(tableName);
+
+                UpdateItemSpec updateItemSpec = new UpdateItemSpec()
+                        .withPrimaryKey("programname", programName)
+                        .withUpdateExpression("set program=:p")
+                        .withValueMap(new ValueMap()
+                                .withString(":p", program));
+
+                UpdateItemOutcome updateItemOutcome = table2.updateItem(updateItemSpec);
+                System.out.println("Update succeeded");
+                return "SUCCESS";
+            }
+            else //Table doesn't exist
+            {
                 System.out.println("Attempting to create table; please wait...");
                 Table table2 = dynamoDB.createTable(tableName,
                         Arrays.asList(
@@ -47,41 +68,35 @@ public class SavePrograms {
                 PutItemOutcome outcome = table2.putItem(new Item()
                         .withPrimaryKey("programname", programName)
                         .withString("program", program));
-//                ArrayList<AttributeDefinition> attributeDefinitions= new ArrayList<AttributeDefinition>();
-//                attributeDefinitions.add(new AttributeDefinition().withAttributeName("programname").withAttributeType("S"));
-//
-//                ArrayList<KeySchemaElement> keySchema = new ArrayList<KeySchemaElement>();
-//                keySchema.add(new KeySchemaElement().withAttributeName("programname").withKeyType(KeyType.HASH));
-//
-//                CreateTableRequest request = new CreateTableRequest()
-//                        .withTableName(tableName)
-//                        .withKeySchema(keySchema)
-//                        .withAttributeDefinitions(attributeDefinitions)
-//                        .withProvisionedThroughput(new ProvisionedThroughput()
-//                                .withReadCapacityUnits(1L)
-//                                .withWriteCapacityUnits(1L));
-//
-//                Table newTable = dynamoDB.createTable(request);
-//
-//                newTable.waitForActive();
-            }
-            else
-            {
-                Table table2 = dynamoDB.getTable(usr);
 
-                PutItemOutcome outcome = table2.putItem(new Item()
-                        .withPrimaryKey("programname", programName)
-                        .withString("program", program));
+                System.out.println("PutItem succeeded:\n" + outcome.getPutItemResult());
+                return "SUCCESS";
             }
-            return "";
-        } catch (ResourceNotFoundException rnfe) {
-            // This means the table doesn't exist in the account yet
-            return "";
+
+//
         }
-        catch (InterruptedException e)
+        catch (InterruptedException e1)
         {
-            return "";
+            e1.printStackTrace();
+            return "ERROR";
         }
+//        else
+//            {
+//                Table table2 = dynamoDB.getTable(usr);
+//
+//                PutItemOutcome outcome = table2.putItem(new Item()
+//                        .withPrimaryKey("programname", programName)
+//                        .withString("program", program));
+//            }
+//            return "";
+//        } catch (ResourceNotFoundException rnfe) {
+//            // This means the table doesn't exist in the account yet
+//            return "";
+//        }
+//        catch (InterruptedException e)
+//        {
+//            return "";
+//        }
 
     }
 
@@ -102,7 +117,7 @@ public class SavePrograms {
             {
                 //Table doesn't exist
                 System.out.println("Table does not exist");
-                return "";
+                return "ERROR";
             }
             else
             {
@@ -123,7 +138,7 @@ public class SavePrograms {
 
         } catch (Exception e)
         {
-            return "";
+            return "ERROR";
         }
     }
 }

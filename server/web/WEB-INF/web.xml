@@ -34,13 +34,23 @@
         </servlet-mapping>
 
         <servlet>
-            <servlet-name>LoadPrograms</servlet-name>
+            <servlet-name>LoadProgram</servlet-name>
             <servlet-class>user.LoadRequest</servlet-class>
         </servlet>
 
         <servlet-mapping>
-            <servlet-name>LoadPrograms</servlet-name>
-            <url-pattern>/LoadPrograms</url-pattern>
+            <servlet-name>LoadProgram</servlet-name>
+            <url-pattern>/LoadProgram</url-pattern>
+        </servlet-mapping>
+    
+        <servlet>
+            <servlet-name>ProgramList</servlet-name>
+            <servlet-class>user.ProgramListRequest</servlet-class>
+        </servlet>
+    
+        <servlet-mapping>
+            <servlet-name>ProgramList</servlet-name>
+            <url-pattern>/ProgramList</url-pattern>
         </servlet-mapping>
 
         <servlet>

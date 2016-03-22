@@ -33,6 +33,9 @@ var collections;
         Some.prototype.map = function (f) {
             return new Some(f(this._val));
         };
+        Some.prototype.bind = function (f) {
+            return f(this._val);
+        };
         Some.prototype.toString = function () { return "Some(" + this._val.toString() + ")"; };
         return Some;
     })();
@@ -49,6 +52,9 @@ var collections;
         None.prototype.map = function (f) {
             return new None();
         };
+        None.prototype.bind = function (f) {
+            return new None();
+        };
         None.prototype.toString = function () { return "None"; };
         return None;
     })();
@@ -57,7 +63,9 @@ var collections;
         return new Some(a);
     }
     collections.some = some;
-    function none() { return new None(); }
+    function none() {
+        return new None();
+    }
     collections.none = none;
     /** Lisp-like lists */
     var List = (function () {
@@ -235,11 +243,109 @@ var edits;
 module.exports = edits;
 
 },{"./collections":2}],4:[function(require,module,exports){
+/**
+ * Created by Jessica on 2/22/2016.
+ */
+var stack = require('./stackManager');
+var evaluation;
+(function (evaluation) {
+    var ExecStack = stack.execStack;
+    var VarMap = stack.VarMap;
+    var Evaluation = (function () {
+        function Evaluation(root, obj) {
+            this.root = root;
+            this.pending = [];
+            this.ready = false;
+            this.stack = new ExecStack(obj);
+            this.varmap = new VarMap();
+        }
+        Evaluation.prototype.getRoot = function () {
+            return this.root;
+        };
+        Evaluation.prototype.getNext = function () {
+            return this.next;
+        };
+        Evaluation.prototype.getVarMap = function () {
+            return this.varmap;
+        };
+        Evaluation.prototype.getStack = function () {
+            return this.stack;
+        };
+        Evaluation.prototype.setNext = function (next) {
+            this.next = next;
+        };
+        Evaluation.prototype.finishStep = function (v) {
+            if (this.pending != null && this.ready) {
+                this.varmap.put(this.pending, v);
+                if (this.pending.length == 0) {
+                    this.pending = null;
+                }
+                else {
+                    this.pending.pop();
+                }
+                this.ready = false;
+            }
+        };
+        Evaluation.prototype.setResult = function (value) {
+            var node = this.root.get(this.pending);
+            var closurePath = this.pending.concat([0]);
+            var closure = this.varmap.get(closurePath);
+            var lambda = closure.function;
+            this.finishStep(value);
+        };
+        Evaluation.prototype.setVarMap = function (map) {
+            this.varmap = map;
+        };
+        Evaluation.prototype.isDone = function () {
+            return this.pending == null; //check if pending is null
+        };
+        Evaluation.prototype.advance = function (vms) {
+            if (!this.isDone()) {
+                var topNode = this.root.get(this.pending);
+                if (this.ready) {
+                    topNode.label().step(vms);
+                }
+                else {
+                    topNode.label().select(vms); //strategy.select
+                }
+            }
+        };
+        return Evaluation;
+    })();
+    evaluation.Evaluation = Evaluation;
+})(evaluation || (evaluation = {}));
+module.exports = evaluation;
+
+},{"./stackManager":9}],5:[function(require,module,exports){
+var vms = require('./vms');
+var evaluationManager;
+(function (evaluationManager) {
+    var VMS = vms.VMS;
+    var EvaluationManager = (function () {
+        function EvaluationManager() {
+        }
+        EvaluationManager.prototype.PLAAY = function (root) {
+            this._vms = new VMS(root, this.workspace.getWorld());
+            return this._vms;
+        };
+        EvaluationManager.prototype.next = function () {
+            this._vms.advance();
+            return this._vms;
+        };
+        return EvaluationManager;
+    })();
+    evaluationManager.EvaluationManager = EvaluationManager;
+})(evaluationManager || (evaluationManager = {}));
+module.exports = evaluationManager;
+
+},{"./vms":11}],6:[function(require,module,exports){
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
+/// <reference path="evaluationManager.ts" />
+/// <reference path="vms.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 var collections = require('./collections');
@@ -247,20 +353,37 @@ var assert = require('./assert');
 var pnode = require('./pnode');
 var pnodeEdits = require('./pnodeEdits');
 var treeManager = require('./treeManager');
+var evaluationManager = require('./evaluationManager');
 var mkHTML;
 (function (mkHTML) {
     var list = collections.list;
     var TreeManager = treeManager.TreeManager;
+    var Selection = pnodeEdits.Selection;
+    var fromJSONToPNode = pnode.fromJSONToPNode;
+    var EvaluationManager = evaluationManager.EvaluationManager;
     var undostack = [];
     var redostack = [];
     var currentSelection;
+    var draggedSelection;
+    var draggedObject;
     var root = pnode.mkExprSeq([]);
     var path = list;
     var tree = new TreeManager();
+    var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root, path(), 0, 0);
-    var replace = 1;
+    var highlighted = false;
     currentSelection = select;
     function onLoad() {
+        //creates side bar
+        var sidebar = document.createElement("div");
+        sidebar.setAttribute("id", "sidebar");
+        sidebar.setAttribute("class", "sidebar");
+        document.getElementById("body").appendChild(sidebar);
+        var stackbar = document.createElement("div");
+        stackbar.setAttribute("id", "stackbar");
+        stackbar.setAttribute("class", "stack");
+        document.getElementById("body").appendChild(stackbar);
+        document.getElementById("stackbar").style.visibility = "hidden";
         //creates undo/redo buttons
         var undoblock = document.createElement("div");
         undoblock.setAttribute("id", "undo");
@@ -274,6 +397,7 @@ var mkHTML;
                 redostack.push(currentSelection);
                 currentSelection = undostack.pop();
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
         };
         var redoblock = document.createElement("div");
@@ -288,6 +412,7 @@ var mkHTML;
                 undostack.push(currentSelection);
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
+                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
         };
         var playbutton = document.createElement("div");
@@ -298,18 +423,35 @@ var mkHTML;
         document.getElementById("body").appendChild(playbutton);
         var play = document.getElementById("play");
         play.onclick = function play() {
-            window.location.href = "http://localhost:63342/PLAAY/typescriptSrc/playground.html";
+            evaluate();
         };
+        var editorbutton = document.createElement("div");
+        editorbutton.setAttribute("id", "edit");
+        editorbutton.setAttribute("class", "edit");
+        editorbutton.setAttribute("onclick", "edit()");
+        editorbutton.textContent = "Edit";
+        document.getElementById("body").appendChild(editorbutton);
+        var edit = document.getElementById("edit");
+        edit.onclick = function edit() {
+            editor();
+        };
+        document.getElementById("edit").style.visibility = "hidden";
         var trash = document.createElement("div");
         trash.setAttribute("id", "trash");
         trash.setAttribute("class", "trash");
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
-        //creates side bar
-        var sidebar = document.createElement("div");
-        sidebar.setAttribute("id", "sidebar");
-        sidebar.setAttribute("class", "sidebar");
-        document.getElementById("body").appendChild(sidebar);
+        var advancebutton = document.createElement("div");
+        advancebutton.setAttribute("id", "advance");
+        advancebutton.setAttribute("class", "advance");
+        advancebutton.setAttribute("onclick", "advance()");
+        advancebutton.textContent = "Next";
+        document.getElementById("body").appendChild(advancebutton);
+        var advance = document.getElementById("advance");
+        advance.onclick = function advance() {
+            setValAndHighlight();
+        };
+        document.getElementById("advance").style.visibility = "hidden";
         var ifblock = document.createElement("div");
         ifblock.setAttribute("id", "if");
         ifblock.setAttribute("class", "block V palette");
@@ -320,6 +462,16 @@ var mkHTML;
         whileblock.setAttribute("class", "block V palette");
         whileblock.textContent = "While";
         document.getElementById("sidebar").appendChild(whileblock);
+        var varblock = document.createElement("div");
+        varblock.setAttribute("id", "var");
+        varblock.setAttribute("class", "block V palette");
+        varblock.textContent = "Var";
+        document.getElementById("sidebar").appendChild(varblock);
+        var stringlitblock = document.createElement("div");
+        stringlitblock.setAttribute("id", "stringliteral");
+        stringlitblock.setAttribute("class", "block V palette");
+        stringlitblock.textContent = "String Literal";
+        document.getElementById("sidebar").appendChild(stringlitblock);
         var worldblock = document.createElement("div");
         worldblock.setAttribute("id", "worldcall");
         worldblock.setAttribute("class", "block V palette");
@@ -412,10 +564,21 @@ var mkHTML;
         $('#saveProgram').click(function () {
             $('body').append("<div id='dimScreen'></div>");
             $('#dimScreen').append("<div id='getProgramList'>" +
-                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='get'>" +
+                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
                 "Program Name: <input type='text' name='programname'><br>" +
                 "<input type='submit' value='Submit Program'>" +
-                "</form></div>");
+                "</form><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            //mkHTML.getPrograms();
+        });
+        $('#loadProgram').click(function () {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
             mkHTML.getPrograms();
         });
         var nullblock = document.createElement("div");
@@ -433,11 +596,6 @@ var mkHTML;
         selectionblock.setAttribute("class", "block V palette");
         selectionblock.textContent = "Selection";
         document.getElementById("sidebar").appendChild(selectionblock);
-        var stringlitblock = document.createElement("div");
-        stringlitblock.setAttribute("id", "stringliteral");
-        stringlitblock.setAttribute("class", "block V palette");
-        stringlitblock.textContent = "String Literal";
-        document.getElementById("sidebar").appendChild(stringlitblock);
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
         var optionplus = document.createElement("option");
@@ -445,19 +603,45 @@ var mkHTML;
         var optionminus = document.createElement("option");
         optionminus.value = "-";
         var optionmul = document.createElement("option");
-        optionmul.value = "x";
+        optionmul.value = "*";
         var optiondiv = document.createElement("option");
         optiondiv.value = "/";
+        var optiongreater = document.createElement("option");
+        optiongreater.value = ">";
+        var optionless = document.createElement("option");
+        optionless.value = "<";
+        var optioneq = document.createElement("option");
+        optioneq.value = "==";
+        var optiongreatereq = document.createElement("option");
+        optiongreatereq.value = ">=";
+        var optionlesseq = document.createElement("option");
+        optionlesseq.value = "<=";
+        var optionand = document.createElement("option");
+        optionand.value = "&";
+        var optionor = document.createElement("option");
+        optionor.value = "|";
         list.appendChild(optionplus);
         list.appendChild(optionminus);
         list.appendChild(optionmul);
         list.appendChild(optiondiv);
+        list.appendChild(optiongreater);
+        list.appendChild(optiongreatereq);
+        list.appendChild(optionless);
+        list.appendChild(optionlesseq);
+        list.appendChild(optioneq);
+        list.appendChild(optionand);
+        list.appendChild(optionor);
         document.getElementById("body").appendChild(list);
         //creates container for code
         var container = document.createElement("div");
         container.setAttribute("id", "container");
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
+        var vms = document.createElement("div");
+        vms.setAttribute("id", "vms");
+        vms.setAttribute("class", "vms");
+        document.getElementById("body").appendChild(vms);
+        document.getElementById("vms").style.visibility = "hidden";
         var seq = document.createElement("div");
         seq.setAttribute("id", "seq");
         seq.setAttribute("data-childNumber", "-1");
@@ -469,6 +653,14 @@ var mkHTML;
         document.getElementById("seq").appendChild(div);
         $(".palette").draggable({
             helper: "clone",
+            start: function (event, ui) {
+                ui.helper.animate({
+                    width: 40,
+                    height: 40
+                });
+                draggedObject = $(this).attr("class");
+            },
+            cursorAt: { left: 20, top: 20 },
             appendTo: "body"
         });
         $(".droppable").droppable({
@@ -479,10 +671,15 @@ var mkHTML;
                 console.log(ui.draggable.attr("id"));
                 currentSelection = getPathToNode(currentSelection, $(this));
                 undostack.push(currentSelection);
-                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                //$(ui.draggable).clone().appendTo($(this));
+                var selection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                selection.choose(function (sel) {
+                    currentSelection = sel;
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                }, function () {
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                });
             }
         });
         $(".trash").droppable({
@@ -490,18 +687,188 @@ var mkHTML;
             hoverClass: "hover",
             tolerance: 'pointer',
             drop: function (event, ui) {
-                ui.draggable.remove();
+                currentSelection = getPathToNode(currentSelection, ui.draggable);
+                var selection = tree.deleteNode(currentSelection);
+                selection.choose(function (sel) {
+                    undostack.push(currentSelection);
+                    currentSelection = sel;
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                }, function () {
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                });
             }
         });
-        //$(".droppable" ).hover(function(e) {
-        //    $(this).addClass("hover");
-        //}, function (e) {
-        //    $(this).removeClass("hover");
-        //});
-        //clickDiv();
-        enterList();
+        enterBox();
     }
     mkHTML.onLoad = onLoad;
+    function evaluate() {
+        document.getElementById("trash").style.visibility = "hidden";
+        document.getElementById("redo").style.visibility = "hidden";
+        document.getElementById("undo").style.visibility = "hidden";
+        document.getElementById("sidebar").style.visibility = "hidden";
+        document.getElementById("container").style.visibility = "hidden";
+        document.getElementById("play").style.visibility = "hidden";
+        document.getElementById("vms").style.visibility = "visible";
+        document.getElementById("stackbar").style.visibility = "visible";
+        document.getElementById("advance").style.visibility = "visible";
+        document.getElementById("edit").style.visibility = "visible";
+        //var vms = evaluation.PLAAY(currentSelection.root());
+        var children = document.getElementById("vms");
+        while (children.firstChild) {
+            children.removeChild(children.firstChild);
+        }
+        children.appendChild(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+        $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        $(".dropZone").hide();
+        $(".dropZoneSmall").hide();
+        //highlight($(".vms"), vms.getEval().pending);
+        //var root = document.getElementById("vms").children[0];
+        //var array = [0,0];
+        //setValueHTMLTest(root, array);
+    }
+    function editor() {
+        document.getElementById("trash").style.visibility = "visible";
+        document.getElementById("redo").style.visibility = "visible";
+        document.getElementById("undo").style.visibility = "visible";
+        document.getElementById("sidebar").style.visibility = "visible";
+        document.getElementById("container").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
+        document.getElementById("vms").style.visibility = "hidden";
+        document.getElementById("stackbar").style.visibility = "hidden";
+        document.getElementById("advance").style.visibility = "hidden";
+        document.getElementById("edit").style.visibility = "hidden";
+        $(".dropZone").show();
+        $(".dropZoneSmall").show();
+    }
+    function setHTMLValueTest(root, array) {
+        if (array.length == 0) {
+            var self = $(root);
+            self.replaceWith("<div>23</div>");
+        }
+        else {
+            setHTMLValueTest(root.children[array.pop()], array);
+        }
+    }
+    function highlight(parent, pending) {
+        if (pending.length == 0) {
+            var self = $(parent);
+            if (self.index() == 0)
+                $("<div class='selected V'></div>").prependTo(self.parent());
+            else
+                $("<div class='selected V'></div>").appendTo(self.parent());
+            self.detach().appendTo($(".selected"));
+        }
+        else {
+            highlight(parent.children[pending.pop()], pending);
+        }
+    }
+    function setValAndHighlight() {
+        //evaluation.next();
+        if (!highlighted) {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            highlight(root, array);
+            highlighted = true;
+        }
+        else {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            setHTMLValueTest(root, array);
+            highlighted = false;
+        }
+    }
+    function findInMap(root, varmap) {
+        var newMap = varmap;
+        for (var i = 0; i < newMap.size; i++) {
+            setHTMLValue(root, newMap.entries[i]);
+        }
+    }
+    function setHTMLValue(root, map) {
+        if (map.getPath().length == 0) {
+            var self = $(root);
+            self.replaceWith("<div>23</div>");
+        }
+        else {
+            setHTMLValue(root.children[map.getPath().pop()], map);
+        }
+    }
+    function advance() {
+        //evaluation.next();
+        if (!highlighted) {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            highlight(root, array);
+        }
+        else {
+            var root = document.getElementById("vms").children[0];
+            var array = [0, 0];
+            setHTMLValueTest(root, array);
+        }
+    }
+    function createCopyDialog(selectionArray) {
+        return $("<div></div>")
+            .dialog({
+            resizable: false,
+            dialogClass: 'no-close success-dialog',
+            modal: true,
+            height: 75,
+            width: 75,
+            open: function (event, ui) {
+                var markup = selectionArray[0][0];
+                $(this).html(markup);
+                setTimeout(function () {
+                    $('.ui-dialog-content').dialog('destroy');
+                }, 2000);
+            },
+            buttons: {
+                "Copy": function () {
+                    selectionArray[1][2].choose(function (sel) {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    }, function () {
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+                    $(this).dialog("destroy");
+                }
+            }
+        });
+    }
+    function createSwapDialog(selectionArray) {
+        return $("<div></div>")
+            .dialog({
+            resizable: false,
+            dialogClass: 'no-close success-dialog',
+            modal: true,
+            height: 75,
+            width: 75,
+            open: function (event, ui) {
+                var markup = selectionArray[0][0];
+                $(this).html(markup);
+                setTimeout(function () {
+                    $('.ui-dialog-content').dialog('destroy');
+                }, 2000);
+            },
+            buttons: {
+                "Swap": function () {
+                    selectionArray[2][2].choose(function (sel) {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    }, function () {
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+                    $(this).dialog("destroy");
+                }
+            }
+        });
+    }
     function loginUser() {
         console.log('login');
         var inputs = $('form[name="loginUser"] :input');
@@ -614,16 +981,35 @@ var mkHTML;
     mkHTML.editUser = editUser;
     function getPrograms() {
         var currentUser = $('#userSettings :input').val();
-        var response = $.get("/SavePrograms", { username: currentUser }, function () {
-            console.log(response.responseText);
+        var response = $.post("/ProgramList", { username: currentUser }, function () {
+            mkHTML.buildPage(response.responseText);
         });
         return false;
     }
     mkHTML.getPrograms = getPrograms;
+    function buildPage(json) {
+        var result = $.parseJSON(json).programList;
+        result.forEach(function (entry) {
+            $('#getProgramList').append("<div>" + entry +
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button></div>");
+        });
+    }
+    mkHTML.buildPage = buildPage;
+    function loadProgram(name) {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function () {
+            $("#dimScreen").remove();
+            currentSelection = unserialize(response.responseText);
+            generateHTML(currentSelection);
+            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        });
+    }
+    mkHTML.loadProgram = loadProgram;
     function savePrograms() {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        var currentSel = currentSelection;
+        var currentSel = serialize(currentSelection);
         var response = $.post("/SavePrograms", { username: currentUser, programname: programName, program: currentSel }, function () {
             console.log(response.responseText);
         });
@@ -636,77 +1022,120 @@ var mkHTML;
         while (children.firstChild) {
             children.removeChild(children.firstChild);
         }
-        children.appendChild(traverseAndBuild(select.root(), select.root().count()));
+        children.appendChild(traverseAndBuild(select.root(), select.root().count(), false));
         $(".droppable").droppable({
             //accept: ".ifBox", //potentially only accept after function call?
+            greedy: true,
             hoverClass: "hover",
             tolerance: "pointer",
             drop: function (event, ui) {
-                console.log(ui.draggable.attr("id"));
+                var selectionArray = [];
                 currentSelection = getPathToNode(currentSelection, $(this));
-                undostack.push(currentSelection);
-                currentSelection = tree.createNode(ui.draggable.attr("id"), currentSelection);
-                generateHTML(currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                //$(ui.draggable).clone().appendTo($(this));
+                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
+                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
+                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class"))))) {
+                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    selectionArray[0][2].choose(function (sel) {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        createSwapDialog(selectionArray);
+                    }, function () {
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+                }
+                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class")))) {
+                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    selectionArray[0][2].choose(function (sel) {
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        createCopyDialog(selectionArray);
+                    }, function () {
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+                }
+                else {
+                    console.log(ui.draggable.attr("id"));
+                    undostack.push(currentSelection);
+                    var selection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
+                    selection.choose(function (sel) {
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    }, function () {
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+                }
             }
         });
-        //clickDiv();
-        enterList();
+        enterBox();
     }
     mkHTML.generateHTML = generateHTML;
-    function enterList() {
+    function enterBox() {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
-                getPathToNode(currentSelection, $(this));
-                $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                var selection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
+                selection.choose(function (sel) {
+                    undostack.push(currentSelection);
+                    currentSelection = sel;
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                }, function () {
+                    generateHTML(currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                });
+                var label = $(this).attr("class");
+                if (/var/i.test(label)) {
+                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                }
+                else if (/stringLiteral/i.test(label)) {
+                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
+                }
+                else if (/op/i.test(label)) {
+                    $(this).replaceWith('<div class="op H click">' + text + '</div>');
+                }
                 $(".click").click(function () {
-                    $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
-                    enterList();
+                    var label = $(this).attr("class");
+                    var val = $(this).attr("data-childNumber");
+                    if (/var/i.test(label)) {
+                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
+                    }
+                    else if (/stringLiteral/i.test(label)) {
+                        $(this).replaceWith('<input type="text" class="stringLiteral H input"' + 'data-childNumber="' + val + '">');
+                    }
+                    else if (/op/i.test(label)) {
+                        $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
+                    }
+                    enterBox();
+                    //enterList();
                 });
             }
         });
         $(".canDrag").draggable({
             //helper:'clone',
             //appendTo:'body',
-            revert: 'invalid'
+            revert: 'invalid',
+            start: function (event, ui) {
+                draggedObject = $(this).attr("class");
+                draggedSelection = getPathToNode(currentSelection, $(this));
+            }
         });
     }
-    /*function clickDiv()
-    {
-        //var self = $(this);
-        $(".click").click(function () {
-            var label = $(this).attr("class");
-            if (/var/i.test(label)) {
-                $(this).replaceWith('<input type="text" class="var H input">');
-                $(".click").keyup(function (e) {
-                    if (e.keyCode == 13) {
-                        var text = $(this).val();
-                        $(this).replaceWith('<div class="var H click">' + text + '</div>');
-                        clickDiv();
-                        getPathToNode(currentSelection, $(this));
-                    }
-                });
-            }
-            else if (/stringLiteral/i.test(label)) {
-                $(this).replaceWith('<input type="text" class="stringLiteral H input">');
-                $(".input").keyup(function (e) {
-                    if (e.keyCode == 13) {
-                        var text = $(this).val();
-                        $(this).replaceWith('<div class="stringLiteral H clickstring">' + text + '</div>');
-                        clickDiv();
-                        getPathToNode(currentSelection, $(this));
-                    }
-                });
-            }
-        });
-    }*/
     function getPathToNode(select, self) {
         var array = [];
         var anchor;
         var focus;
-        console.log(self.attr("data-childNumber"));
         var parent = $(self);
         var child = Number(parent.attr("data-childNumber"));
         if (isNaN(child)) {
@@ -715,8 +1144,37 @@ var mkHTML;
             var num = parent.children().eq(index).prevAll(".dropZone").length;
             child = Number(parent.attr("data-childNumber"));
             var place = index - num;
-            anchor = place;
-            focus = anchor;
+            var label = parent.attr("class");
+            if (/placeHolder/i.test(label)) {
+                anchor = child;
+                focus = anchor + 1;
+                parent = parent.parent();
+                child = Number(parent.attr("data-childNumber"));
+            }
+            else {
+                anchor = place;
+                focus = anchor;
+            }
+        }
+        else {
+            if (/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class"))) {
+                anchor = 0;
+                focus = anchor;
+            }
+            else {
+                if ((/ifBox/i.test(parent.attr("class"))) || (/lambdaBox/i.test(parent.attr("class"))) ||
+                    (/whileBox/i.test(parent.attr("class"))) || (/callWorld/i.test(parent.attr("class")))
+                    || (/assign/i.test(parent.attr("class")))) {
+                    anchor = child;
+                    focus = child + 1;
+                    parent = parent.parent();
+                    child = Number(parent.attr("data-childNumber"));
+                }
+                else {
+                    anchor = child;
+                    focus = anchor;
+                }
+            }
         }
         while (child != -1) {
             if (!isNaN(child)) {
@@ -732,14 +1190,23 @@ var mkHTML;
             path = collections.cons(array[i], path);
         return new pnodeEdits.Selection(tree, path, anchor, focus);
     }
-    function traverseAndBuild(node, childNumber) {
+    function serialize(select) {
+        var json = pnode.fromPNodeToJSON(currentSelection.root());
+        return json;
+    }
+    function unserialize(string) {
+        var path = list();
+        var newSelection = new Selection(fromJSONToPNode(string), path, 0, 0);
+        return newSelection;
+    }
+    function traverseAndBuild(node, childNumber, evaluating) {
         var children = new Array();
         for (var i = 0; i < node.count(); i++) {
-            children.push(traverseAndBuild(node.child(i), i));
+            children.push(traverseAndBuild(node.child(i), i, evaluating));
         }
-        return buildHTML(node, children, childNumber);
+        return buildHTML(node, children, childNumber, evaluating);
     }
-    function buildHTML(node, children, childNumber) {
+    function buildHTML(node, children, childNumber, evaluating) {
         var label = node.label().toString();
         if (label.match('if')) {
             assert.check(children.length == 3);
@@ -754,31 +1221,44 @@ var mkHTML;
             elsebox.appendChild(children[2]);
             var ifbox = document.createElement("div");
             ifbox.setAttribute("data-childNumber", childNumber.toString());
-            ifbox.setAttribute("class", "ifBox V workplace canDrag");
+            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
             return ifbox;
         }
         else if (label.match("seq")) {
-            var seqBox = document.createElement("div");
-            seqBox.setAttribute("class", "seqBox V");
-            seqBox.setAttribute("data-childNumber", childNumber.toString());
-            seqBox["childNumber"] = childNumber;
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
-                seqBox.appendChild(dropZone);
-                if (i == children.length)
-                    break;
-                seqBox.appendChild(children[i]);
+            if (evaluating) {
+                var seqBox = document.createElement("div");
+                seqBox.setAttribute("class", "seqBox V");
+                seqBox.setAttribute("data-childNumber", childNumber.toString());
+                for (var i = 0; true; ++i) {
+                    if (i == children.length)
+                        break;
+                    seqBox.appendChild(children[i]);
+                }
+                return seqBox;
             }
-            return seqBox;
+            else {
+                var seqBox = document.createElement("div");
+                seqBox.setAttribute("class", "seqBox V");
+                seqBox.setAttribute("data-childNumber", childNumber.toString());
+                seqBox["childNumber"] = childNumber;
+                for (var i = 0; true; ++i) {
+                    var dropZone = document.createElement("div");
+                    dropZone.setAttribute("class", "dropZone H droppable");
+                    seqBox.appendChild(dropZone);
+                    if (i == children.length)
+                        break;
+                    seqBox.appendChild(children[i]);
+                }
+                return seqBox;
+            }
         }
         else if (label.match("expPH")) {
             var PHBox = document.createElement("div");
             PHBox.setAttribute("class", "placeHolder V");
-            //PHBox.setAttribute("data-childNumber", childNumber.toString());
+            PHBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
             for (var i = 0; true; ++i) {
                 var dropZone = document.createElement("div");
@@ -800,33 +1280,64 @@ var mkHTML;
             thenbox.appendChild(children[1]);
             var whileBox = document.createElement("div");
             whileBox.setAttribute("data-childNumber", childNumber.toString());
-            whileBox.setAttribute("class", "whileBox V workplace canDrag");
+            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
             return whileBox;
         }
         else if (label.match("callWorld")) {
             var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "callWorld H canDrag");
+            WorldBox.setAttribute("class", "callWorld H canDrag droppable");
             WorldBox.setAttribute("data-childNumber", childNumber.toString());
             WorldBox.setAttribute("type", "text");
             WorldBox.setAttribute("list", "oplist");
-            var op = document.createElement("input");
-            op.setAttribute("class", "var H input");
-            op.setAttribute("type", "text");
-            op.setAttribute("list", "oplist");
-            WorldBox.appendChild(children[0]);
-            WorldBox.appendChild(op);
-            WorldBox.appendChild(children[1]);
+            var dropZone = document.createElement("div");
+            dropZone.setAttribute("class", "dropZoneSmall H droppable");
+            if ((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
+                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
+                || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
+                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)))
+                && node.label().getVal().length > 0) {
+                var opval = document.createElement("div");
+                opval.setAttribute("class", "op H click");
+                opval.textContent = node.label().getVal();
+                WorldBox.appendChild(dropZone);
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(dropZone);
+                WorldBox.appendChild(opval);
+                WorldBox.appendChild(dropZone);
+                WorldBox.appendChild(children[1]);
+                WorldBox.appendChild(dropZone);
+            }
+            else if (node.label().getVal().length > 0) {
+                var opval = document.createElement("div");
+                opval.setAttribute("class", "op H click");
+                opval.textContent = node.label().getVal();
+                WorldBox.appendChild(opval);
+                WorldBox.appendChild(dropZone);
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(dropZone);
+                WorldBox.appendChild(children[1]);
+                WorldBox.appendChild(dropZone);
+            }
+            else {
+                var op = document.createElement("input");
+                op.setAttribute("class", "op H input");
+                op.setAttribute("type", "text");
+                op.setAttribute("list", "oplist");
+                op.textContent = "";
+                WorldBox.appendChild(children[0]);
+                WorldBox.appendChild(op);
+                WorldBox.appendChild(children[1]);
+            }
             return WorldBox;
         }
         else if (label.match("assign")) {
             var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "assign H canDrag");
+            AssignBox.setAttribute("class", "assign H canDrag droppable");
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
-            AssignBox.textContent = ":=";
             var equals = document.createElement("div");
-            equals.setAttribute("class", "var H");
+            equals.setAttribute("class", "op H");
             equals.textContent = ":=";
             AssignBox.appendChild(children[0]);
             AssignBox.appendChild(equals);
@@ -835,38 +1346,77 @@ var mkHTML;
         }
         else if (label.match("lambda")) {
             var lambdahead = document.createElement("div");
-            lambdahead.setAttribute("class", "lambdaHeader V");
+            lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild(children[0]);
             var doBox = document.createElement("div");
             doBox.setAttribute("class", "doBox");
             doBox.appendChild(children[1]);
             var LambdaBox = document.createElement("div");
-            LambdaBox.setAttribute("class", "lambdaBox V");
+            LambdaBox.setAttribute("class", "lambdaBox V droppable");
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
             return LambdaBox;
         }
         else if (label.match("null")) {
             var NullBox = document.createElement("div");
-            NullBox.setAttribute("class", "nullLiteral H");
+            NullBox.setAttribute("class", "nullLiteral H droppable");
             NullBox.textContent = "-";
             return NullBox;
         }
         else if (label.match("var")) {
-            var VarBox = document.createElement("div");
-            VarBox.setAttribute("class", "var H input");
+            var VarBox;
+            if (node.label().getVal().length > 0) {
+                VarBox = document.createElement("div");
+                VarBox.setAttribute("class", "var H click canDrag");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.textContent = node.label().getVal();
+            }
+            else {
+                VarBox = document.createElement("input");
+                VarBox.setAttribute("class", "var H input canDrag");
+                VarBox.setAttribute("data-childNumber", childNumber.toString());
+                VarBox.setAttribute("type", "text");
+                VarBox.textContent = "";
+            }
             return VarBox;
         }
-        else if (label.match("stringLiteral")) {
-            var StringBox = document.createElement("div");
-            StringBox.setAttribute("class", "stringLiteral H input");
+        else if (label.match("string")) {
+            var StringBox;
+            if (node.label().getVal().length > 0) {
+                StringBox = document.createElement("div");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.textContent = node.label().getVal();
+            }
+            else {
+                StringBox = document.createElement("input");
+                StringBox.setAttribute("class", "stringLiteral H input canDrag");
+                StringBox.setAttribute("data-childNumber", childNumber.toString());
+                StringBox.setAttribute("type", "text");
+                StringBox.textContent = "";
+            }
             return StringBox;
+        }
+        else if (label.match("noType")) {
+            var noType = document.createElement("div");
+            noType.setAttribute("class", "noReturnType V");
+            noType.setAttribute("data-childNumber", childNumber.toString());
+            noType["childNumber"] = childNumber;
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZone H droppable");
+                noType.appendChild(dropZone);
+                if (i == children.length)
+                    break;
+                noType.appendChild(children[i]);
+            }
+            return noType;
         }
     }
 })(mkHTML || (mkHTML = {}));
 module.exports = mkHTML;
 
-},{"./assert":1,"./collections":2,"./pnode":5,"./pnodeEdits":6,"./treeManager":7}],5:[function(require,module,exports){
+},{"./assert":1,"./collections":2,"./evaluationManager":5,"./pnode":7,"./pnodeEdits":8,"./treeManager":10}],7:[function(require,module,exports){
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 var __extends = (this && this.__extends) || function (d, b) {
@@ -908,6 +1458,21 @@ var pnode;
         };
         PNode.prototype.label = function () {
             return this._label;
+        };
+        //return the node at the path
+        PNode.prototype.get = function (path) {
+            if (path.length <= 0) {
+            }
+            if (path.length == 1) {
+                var p = path.shift();
+                return this.child[p];
+            }
+            else {
+                var p = path.shift();
+                var childNode = this.child[p];
+                var node = childNode.get(path);
+                return node;
+            }
         };
         /** Possibly return a copy of the node in which the children are replaced.
          * The result will have children
@@ -968,6 +1533,22 @@ var pnode;
             var args = strs.reduce(function (a, p) { return a + " " + p.toString(); }, "");
             return this._label.toString() + "(" + args + ")";
         };
+        /** Convert a node to a simple object that can be stringified with JSON */
+        PNode.prototype.toJSON = function () {
+            var result = {};
+            result.label = this._label.toJSON();
+            result.children = [];
+            var i;
+            for (i = 0; i < this._children.length; ++i)
+                result.children.push(this._children[i].toJSON());
+            return result;
+        };
+        /** Convert a simple object created by toJSON to a PNode */
+        PNode.fromJSON = function (json) {
+            var label = fromJSONToLabel(json.label);
+            var children = json.children.map(PNode.fromJSON);
+            return make(label, children);
+        };
         return PNode;
     })();
     pnode.PNode = PNode;
@@ -991,6 +1572,181 @@ var pnode;
         return new cls(label, children);
     }
     pnode.make = make;
+    function lookUp(varName, stack) {
+        if (stack == null) {
+            return null;
+        }
+        else {
+            for (var i = 0; i < stack.top().fields.length; i++) {
+                if (stack.top().fields[i].name.match(varName.toString())) {
+                    return stack.top().fields[i];
+                }
+            }
+        }
+        return lookUp(varName, stack.next);
+    }
+    pnode.lookUp = lookUp;
+    var lrStrategy = (function () {
+        function lrStrategy() {
+        }
+        lrStrategy.prototype.select = function (vms, label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var flag = true;
+                    for (var i = 0; i < node.count(); i++) {
+                        var p = pending.concat([i]);
+                        if (!evalu.varmap.inMap(p)) {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        evalu.ready = true; // Select this node.
+                    }
+                    else {
+                        var n;
+                        for (var i = 0; i < node.count(); i++) {
+                            var p = pending.concat([i]);
+                            if (!evalu.varmap.inMap(p)) {
+                                n = i;
+                                break;
+                            }
+                        }
+                        evalu.pending = pending.concat([n]);
+                        node.child[n].strategy.select(vms);
+                    }
+                }
+            }
+        };
+        return lrStrategy;
+    })();
+    pnode.lrStrategy = lrStrategy;
+    var varStrategy = (function () {
+        function varStrategy() {
+        }
+        varStrategy.prototype.select = function (vms, label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    //TODO how to highlight  look up the variable in the stack and highlight it.
+                    if (evalu.getStack().inStack(label.getVal())) { } //error} //there is no variable in the stack with this name
+                    else {
+                        evalu.ready = true;
+                    }
+                }
+            }
+        };
+        return varStrategy;
+    })();
+    pnode.varStrategy = varStrategy;
+    var whileStrategy = (function () {
+        function whileStrategy() {
+        }
+        whileStrategy.prototype.select = function (vms, label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                }
+            }
+        };
+        return whileStrategy;
+    })();
+    pnode.whileStrategy = whileStrategy;
+    var ifStrategy = (function () {
+        function ifStrategy() {
+        }
+        ifStrategy.prototype.select = function (vms, label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.pending;
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var guardPath = pending.concat([0]);
+                    var thenPath = pending.concat([1]);
+                    var elsePath = pending.concat([2]);
+                    if (evalu.varmap.inMap(guardPath)) {
+                        var string = evalu.varmap.get(guardPath);
+                        if (string.contents.match("true")) {
+                            if (evalu.varmap.inMap(thenPath)) {
+                                evalu.ready = true;
+                            }
+                            else {
+                                evalu.pending = thenPath;
+                                node.children(1).label.select(vms);
+                            }
+                        }
+                        else if (string.contents.match("false")) {
+                            if (evalu.varmap.inMap(elsePath)) {
+                                evalu.ready = true;
+                            }
+                            else {
+                                evalu.pending = elsePath;
+                                node.children(2).label().select(vms);
+                            }
+                        }
+                        else { } //error
+                    }
+                    else {
+                        evalu.pending = guardPath;
+                        node.children(0).label().select(vms);
+                    }
+                }
+            }
+        };
+        return ifStrategy;
+    })();
+    pnode.ifStrategy = ifStrategy;
+    /* export class callStrategy implements nodeStrategy{
+         select(){}
+ 
+         step( vms : VMS, label : Label ){
+             if( vms.stack.top().ready){
+                 var eval = vms.stack.top();
+                 if(eval.pending != null){
+                     var node = eval.root.get(eval.pending);
+                     if( node.label() == label ){
+                         var functionPath = eval.pending ^ [0];
+                         var c = eval.varmap.get( functionPath );
+                         if (!c.isClosureV()){}//  error!
+                         var c1 = <ClosureV>c;
+                         var f : LambdaNode = c1.function;
+ 
+                         argList : Array<PNode>;
+ 
+                         for(var i = 0; i <)
+                         var argList = [eval.varmap.get( eval.pending ^ [1] ),
+                             eval.varmap.get( eval.pending ^ [2],.. ]//for all arguments TODO
+ 
+                         if( the length of arglist not= the length of f.params.children){} //error!
+                         if (any argument has a value not compatible with the corresponding parameter type){}
+                         // error!
+                         var params = f.params.children; //TODO make params
+                         var arFields := [ new Field( params[0].name, argList[0] ),
+                             new Field( params[1].name, argList[1] ),
+                             .. ] //for all f.params.children
+                         var activationRecord = new ObjectV( arFields );
+                         var stack = new Stack( activationRecord, cl.context );
+ 
+                         var newEval = new Evaluation();
+                         newEval.root = f.body; //TODO what is the body
+                         newEval.stack = stack;
+                         newEval.varmap = new varMap();
+                         newEval.pending = [];
+                         newEval.ready = false;
+ 
+                         vms.stack.push( newEval );
+                     }
+                 }
+             }
+         }
+     }
+ */
     //Node Declarations
     var ExprNode = (function (_super) {
         __extends(ExprNode, _super);
@@ -1059,14 +1815,28 @@ var pnode;
         /*private*/
         function ExprLabel() {
         }
-        ExprLabel.prototype.isValid = function (children) {
-            return true;
-        };
         ExprLabel.prototype.getClass = function () {
             return ExprNode;
         };
         ExprLabel.prototype.changeValue = function (newString) {
             return new None();
+        };
+        ExprLabel.prototype.getVal = function () {
+            return null;
+        };
+        ExprLabel.prototype.select = function (vms) {
+            this.strategy.select(vms, this);
+        };
+        //Template
+        ExprLabel.prototype.step = function (vms) {
+            if (vms.stack.top().ready == true) {
+                var evalu = vms.stack.top();
+                if (evalu.pending != null) {
+                    var node = evalu.root.get(evalu.pending);
+                    this.nodeStep(node, evalu);
+                }
+                else { } //error
+            }
         };
         return ExprLabel;
     })();
@@ -1092,6 +1862,15 @@ var pnode;
         ExprSeqLabel.prototype.getVal = function () {
             return null;
         };
+        ExprSeqLabel.prototype.select = function (vms) {
+            this.strategy.select(vms, this);
+        };
+        ExprSeqLabel.prototype.toJSON = function () {
+            return { kind: "ExprSeqLabel" };
+        };
+        ExprSeqLabel.fromJSON = function (json) {
+            return ExprSeqLabel.theExprSeqLabel;
+        };
         // Singleton
         ExprSeqLabel.theExprSeqLabel = new ExprSeqLabel();
         return ExprSeqLabel;
@@ -1110,20 +1889,19 @@ var pnode;
         TypeLabel.prototype.getVal = function () {
             return null;
         };
-        // Singleton
-        TypeLabel.theTypeLabel = new TypeLabel();
         return TypeLabel;
     })();
     pnode.TypeLabel = TypeLabel;
     //Variable
-    var VariableLabel = (function () {
+    var VariableLabel = (function (_super) {
+        __extends(VariableLabel, _super);
         /*private*/
         function VariableLabel(name) {
+            _super.call(this);
             this._val = name;
         }
         VariableLabel.prototype.isValid = function (children) {
-            if (children.length != 0)
-                return false;
+            return children.length == 0;
         };
         VariableLabel.prototype.getClass = function () {
             return ExprNode;
@@ -1137,9 +1915,20 @@ var pnode;
         VariableLabel.prototype.changeValue = function (newString) {
             return new None();
         };
+        VariableLabel.prototype.nodeStep = function (node, evalu) {
+            var v = lookUp(name, evalu.stack).getValue(); //TODO not in pseudo code but would make sense to have this as a value
+            //TODO how remove highlight from f
+            evalu.finishStep(v);
+        };
+        VariableLabel.prototype.toJSON = function () {
+            return { kind: "VariableLabel", name: this._val };
+        };
+        VariableLabel.fromJSON = function (json) {
+            return new VariableLabel(json.name);
+        };
         VariableLabel.theVariableLabel = new VariableLabel("");
         return VariableLabel;
-    })();
+    })(ExprLabel);
     pnode.VariableLabel = VariableLabel;
     var AssignLabel = (function (_super) {
         __extends(AssignLabel, _super);
@@ -1163,11 +1952,17 @@ var pnode;
             return "assign";
         };
         AssignLabel.prototype.changeValue = function (newString) {
-            if (this.con = false) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
             return new None();
+        };
+        AssignLabel.prototype.nodeStep = function (node, evalu) {
+            //lValue = rValue;
+            // evalu.finishStep(lValue);
+        };
+        AssignLabel.prototype.toJSON = function () {
+            return { kind: "AssignLabel" };
+        };
+        AssignLabel.fromJSON = function (json) {
+            return AssignLabel.theAssignLabel;
         };
         // Singleton
         AssignLabel.theAssignLabel = new AssignLabel();
@@ -1175,34 +1970,41 @@ var pnode;
     })(ExprLabel);
     pnode.AssignLabel = AssignLabel;
     //Arithmetic Labels
-    var callWorldLabel = (function () {
+    var CallWorldLabel = (function (_super) {
+        __extends(CallWorldLabel, _super);
         /*private*/
-        function callWorldLabel(name) {
+        function CallWorldLabel(name) {
+            _super.call(this);
             this._val = name;
         }
-        callWorldLabel.prototype.isValid = function (children) {
+        CallWorldLabel.prototype.isValid = function (children) {
             return children.every(function (c) { return c.isExprNode(); });
         };
-        callWorldLabel.prototype.getClass = function () {
+        CallWorldLabel.prototype.getClass = function () {
             return ExprNode;
         };
-        callWorldLabel.prototype.toString = function () {
+        CallWorldLabel.prototype.toString = function () {
             return "callWorld";
         };
-        callWorldLabel.prototype.getVal = function () {
+        CallWorldLabel.prototype.getVal = function () {
             return this._val;
         };
-        callWorldLabel.prototype.changeValue = function (newString) {
-            if (newString.match("+") || newString.match("*") || newString.match("-") || newString.match("/")) {
-                var newLabel = new callWorldLabel(newString);
-                return new Some(newLabel);
-            }
-            return new None();
+        CallWorldLabel.prototype.changeValue = function (newString) {
+            var newLabel = new CallWorldLabel(newString);
+            return new Some(newLabel);
         };
-        callWorldLabel.theCallWorldLabel = new callWorldLabel("");
-        return callWorldLabel;
-    })();
-    pnode.callWorldLabel = callWorldLabel;
+        CallWorldLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        CallWorldLabel.prototype.toJSON = function () {
+            return { kind: "CallWorldLabel", name: this._val };
+        };
+        CallWorldLabel.fromJSON = function (json) {
+            return new CallWorldLabel(json.name);
+        };
+        CallWorldLabel.theCallWorldLabel = new CallWorldLabel("");
+        return CallWorldLabel;
+    })(ExprLabel);
+    pnode.CallWorldLabel = CallWorldLabel;
     //Placeholder Labels
     var ExprPHLabel = (function (_super) {
         __extends(ExprPHLabel, _super);
@@ -1220,6 +2022,13 @@ var pnode;
         };
         ExprPHLabel.prototype.toString = function () {
             return "expPH";
+        };
+        ExprPHLabel.prototype.nodeStep = function (node, evalu) { }; //Placeholders don't need to to step
+        ExprPHLabel.prototype.toJSON = function () {
+            return { kind: "ExprPHLabel" };
+        };
+        ExprPHLabel.fromJSON = function (json) {
+            return ExprPHLabel.theExprPHLabel;
         };
         // Singleton
         ExprPHLabel.theExprPHLabel = new ExprPHLabel();
@@ -1244,7 +2053,18 @@ var pnode;
             return true;
         };
         LambdaLabel.prototype.getClass = function () {
-            return TypeNode;
+            return ExprNode;
+        };
+        LambdaLabel.prototype.toString = function () {
+            return "lambda";
+        };
+        LambdaLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        LambdaLabel.prototype.toJSON = function () {
+            return { kind: "LambdaLabel" };
+        };
+        LambdaLabel.fromJSON = function (json) {
+            return LambdaLabel.theLambdaLabel;
         };
         // Singleton
         LambdaLabel.theLambdaLabel = new LambdaLabel();
@@ -1275,6 +2095,26 @@ var pnode;
         IfLabel.prototype.toString = function () {
             return "if";
         };
+        IfLabel.prototype.nodeStep = function (node, evalu) {
+            var guardPath = evalu.pending.concat([0]);
+            var thenPath = evalu.pending.concat([1]);
+            var elsePath = evalu.pending.concat([2]);
+            var v;
+            var string = evalu.varmap.get(guardPath);
+            if (string.contents.match("true")) {
+                v = evalu.varmap.get(thenPath);
+            }
+            else {
+                v = evalu.varmap.get(elsePath);
+            }
+            evalu.finishStep(v);
+        };
+        IfLabel.prototype.toJSON = function () {
+            return { kind: "IfLabel" };
+        };
+        IfLabel.fromJSON = function (json) {
+            return IfLabel.theIfLabel;
+        };
         // Singleton
         IfLabel.theIfLabel = new IfLabel();
         return IfLabel;
@@ -1301,107 +2141,19 @@ var pnode;
         WhileLabel.prototype.toString = function () {
             return "while";
         };
+        WhileLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        WhileLabel.prototype.toJSON = function () {
+            return { kind: "WhileLabel" };
+        };
+        WhileLabel.fromJSON = function (json) {
+            return WhileLabel.theWhileLabel;
+        };
         // Singleton
         WhileLabel.theWhileLabel = new WhileLabel();
         return WhileLabel;
     })(ExprLabel);
     pnode.WhileLabel = WhileLabel;
-    //Const Labels
-    var StringConstLabel = (function () {
-        function StringConstLabel(val) {
-            this._val = val;
-        }
-        StringConstLabel.prototype.getVal = function () {
-            return this._val;
-        };
-        StringConstLabel.prototype.isValid = function (children) {
-            return children.length == 0;
-        };
-        StringConstLabel.prototype.getClass = function () {
-            return ExprNode;
-        };
-        //constant can't be changed
-        StringConstLabel.prototype.changeValue = function (newString) {
-            return new None();
-        };
-        StringConstLabel.prototype.toString = function () {
-            return "string[" + this._val + "]";
-        };
-        return StringConstLabel;
-    })();
-    pnode.StringConstLabel = StringConstLabel;
-    var NumberConstLabel = (function () {
-        function NumberConstLabel(val) {
-            this._val = val;
-        }
-        NumberConstLabel.prototype.isValid = function (children) {
-            return children.length == 0;
-        };
-        NumberConstLabel.prototype.getClass = function () {
-            return ExprNode;
-        };
-        NumberConstLabel.prototype.getVal = function () {
-            return this._val;
-        };
-        //constant can't be changed
-        NumberConstLabel.prototype.changeValue = function (newString) {
-            return new None();
-        };
-        NumberConstLabel.prototype.toString = function () {
-            return "string[" + this._val + "]";
-        }; //will this work in TS?
-        return NumberConstLabel;
-    })();
-    pnode.NumberConstLabel = NumberConstLabel;
-    var BooleanConstLabel = (function () {
-        function BooleanConstLabel(val) {
-            this._val = val;
-        }
-        BooleanConstLabel.prototype.getVal = function () {
-            return this._val;
-        };
-        BooleanConstLabel.prototype.isValid = function (children) {
-            return children.length == 0;
-        };
-        BooleanConstLabel.prototype.getClass = function () {
-            return ExprNode;
-        };
-        //constant can't be changed
-        BooleanConstLabel.prototype.changeValue = function (newString) {
-            return new None();
-        };
-        BooleanConstLabel.prototype.toString = function () {
-            return "string[" + this._val + "]";
-        }; //will this work in TS?
-        return BooleanConstLabel;
-    })();
-    pnode.BooleanConstLabel = BooleanConstLabel;
-    var AnyConstLabel = (function () {
-        function AnyConstLabel(val) {
-            this._val = val;
-        }
-        AnyConstLabel.prototype.val = function () {
-            return this._val;
-        };
-        AnyConstLabel.prototype.isValid = function (children) {
-            return children.length == 0;
-        };
-        AnyConstLabel.prototype.getClass = function () {
-            return ExprNode;
-        };
-        //constant can't be changed
-        AnyConstLabel.prototype.changeValue = function (newString) {
-            return new None();
-        };
-        AnyConstLabel.prototype.getVal = function () {
-            return this._val;
-        };
-        AnyConstLabel.prototype.toString = function () {
-            return "string[" + this._val + "]";
-        }; //will this work in TS?
-        return AnyConstLabel;
-    })();
-    pnode.AnyConstLabel = AnyConstLabel;
     //Type Labels
     var NoTypeLabel = (function () {
         /*private*/
@@ -1422,14 +2174,22 @@ var pnode;
         NoTypeLabel.prototype.getVal = function () {
             return null;
         };
+        NoTypeLabel.prototype.toJSON = function () {
+            return { kind: "NoTypeLabel" };
+        };
+        NoTypeLabel.fromJSON = function (json) {
+            return NoTypeLabel.theNoTypeLabel;
+        };
         // Singleton
         NoTypeLabel.theNoTypeLabel = new NoTypeLabel();
         return NoTypeLabel;
     })();
     pnode.NoTypeLabel = NoTypeLabel;
     //Literal Labels
-    var StringLiteralLabel = (function () {
+    var StringLiteralLabel = (function (_super) {
+        __extends(StringLiteralLabel, _super);
         function StringLiteralLabel(val) {
+            _super.call(this);
             this._val = val;
         }
         StringLiteralLabel.prototype.val = function () { return this._val; };
@@ -1444,13 +2204,23 @@ var pnode;
         StringLiteralLabel.prototype.getVal = function () {
             return this._val;
         };
-        StringLiteralLabel.prototype.toString = function () { return "string"; };
+        StringLiteralLabel.prototype.toString = function () { return "string[" + this._val + "]"; };
+        StringLiteralLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        StringLiteralLabel.prototype.toJSON = function () {
+            return { kind: "StringLiteralLabel", val: this._val };
+        };
+        StringLiteralLabel.fromJSON = function (json) {
+            return new StringLiteralLabel(json.val);
+        };
         StringLiteralLabel.theStringLiteralLabel = new StringLiteralLabel("");
         return StringLiteralLabel;
-    })();
+    })(ExprLabel);
     pnode.StringLiteralLabel = StringLiteralLabel;
-    var NumberLiteralLabel = (function () {
+    var NumberLiteralLabel = (function (_super) {
+        __extends(NumberLiteralLabel, _super);
         function NumberLiteralLabel(val) {
+            _super.call(this);
             this._val = val;
         }
         NumberLiteralLabel.prototype.val = function () { return this._val; };
@@ -1459,44 +2229,36 @@ var pnode;
             //TODO logic to make sure this is a number
         };
         NumberLiteralLabel.prototype.changeValue = function (newString) {
-            var valid = true;
-            for (var i = 0; i < newString.length; i++) {
-                var character = newString.charAt(i);
-                if (!(character.match("0") || character.match("1") ||
-                    character.match("2") || character.match("3") ||
-                    character.match("4") || character.match("5") ||
-                    character.match("6") || character.match("7") ||
-                    character.match("8") || character.match("9") ||
-                    character.match("."))) {
-                    valid = false;
-                }
-            }
-            if (valid == true) {
-                var newLabel = new NumberLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-            return new None();
+            var newLabel = new NumberLiteralLabel(newString);
+            return new Some(newLabel);
         };
         NumberLiteralLabel.prototype.getVal = function () {
-            return null;
+            return this._val;
         };
         NumberLiteralLabel.prototype.getClass = function () { return ExprNode; };
-        NumberLiteralLabel.prototype.toString = function () { return "string[" + this._val + "]"; };
+        NumberLiteralLabel.prototype.toString = function () { return "number[" + this._val + "]"; };
+        NumberLiteralLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        NumberLiteralLabel.prototype.toJSON = function () {
+            return { kind: "NumberLiteralLabel", val: this._val };
+        };
+        NumberLiteralLabel.fromJSON = function (json) {
+            return new NumberLiteralLabel(json.val);
+        };
         NumberLiteralLabel.theNumberLiteralLabel = new NumberLiteralLabel("");
         return NumberLiteralLabel;
-    })();
+    })(ExprLabel);
     pnode.NumberLiteralLabel = NumberLiteralLabel;
-    var BooleanLiteralLabel = (function () {
+    var BooleanLiteralLabel = (function (_super) {
+        __extends(BooleanLiteralLabel, _super);
         function BooleanLiteralLabel(val) {
+            _super.call(this);
             this._val = val;
         }
         BooleanLiteralLabel.prototype.val = function () { return this._val; };
         BooleanLiteralLabel.prototype.changeValue = function (newString) {
-            if (newString.match("true") || newString.match("false")) {
-                var newLabel = new BooleanLiteralLabel(newString);
-                return new Some(newLabel);
-            }
-            return new None();
+            var newLabel = new BooleanLiteralLabel(newString);
+            return new Some(newLabel);
         };
         BooleanLiteralLabel.prototype.isValid = function (children) {
             if (children.length != 0) {
@@ -1511,60 +2273,47 @@ var pnode;
             return this._val;
         };
         BooleanLiteralLabel.prototype.getClass = function () { return ExprNode; };
-        BooleanLiteralLabel.prototype.toString = function () { return "string[" + this._val + "]"; };
+        BooleanLiteralLabel.prototype.toString = function () { return "boolean[" + this._val + "]"; };
+        BooleanLiteralLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        BooleanLiteralLabel.prototype.toJSON = function () {
+            return { kind: "BooleanLiteralLabel", val: this._val };
+        };
+        BooleanLiteralLabel.fromJSON = function (json) {
+            return new BooleanLiteralLabel(json.val);
+        };
+        // The following line makes no sense.
         BooleanLiteralLabel.theBooleanLiteralLabel = new BooleanLiteralLabel("");
         return BooleanLiteralLabel;
-    })();
+    })(ExprLabel);
     pnode.BooleanLiteralLabel = BooleanLiteralLabel;
-    var NullLiteralLabel = (function () {
+    var NullLiteralLabel = (function (_super) {
+        __extends(NullLiteralLabel, _super);
         function NullLiteralLabel() {
-            this._val = "null";
+            _super.call(this);
         }
-        NullLiteralLabel.prototype.val = function () { return null; };
         NullLiteralLabel.prototype.isValid = function (children) {
             return children.length == 0;
         };
         NullLiteralLabel.prototype.getClass = function () { return ExprNode; };
-        NullLiteralLabel.prototype.changeValue = function (newString) {
-            return new None();
+        NullLiteralLabel.prototype.toString = function () { return "null"; };
+        NullLiteralLabel.prototype.nodeStep = function (node, evalu) {
         };
-        NullLiteralLabel.prototype.getVal = function () {
-            return "null";
+        NullLiteralLabel.prototype.toJSON = function () {
+            return { kind: "NullLiteralLabel" };
         };
-        NullLiteralLabel.prototype.toString = function () { return "string[" + this._val + "]"; };
+        NullLiteralLabel.fromJSON = function (json) {
+            return NullLiteralLabel.theNullLiteralLabel;
+        };
         NullLiteralLabel.theNullLiteralLabel = new NullLiteralLabel();
         return NullLiteralLabel;
-    })();
+    })(ExprLabel);
     pnode.NullLiteralLabel = NullLiteralLabel;
-    var MethodLabel = (function () {
-        /*private*/
-        function MethodLabel() {
-        }
-        MethodLabel.prototype.isValid = function (children) {
-            return children.every(function (c) {
-                return c.isTypeNode();
-            });
-        };
-        MethodLabel.prototype.getClass = function () {
-            return ExprNode;
-        };
-        MethodLabel.prototype.toString = function () {
-            return "method";
-        };
-        MethodLabel.prototype.changeValue = function (newString) {
-            return new None();
-        };
-        MethodLabel.prototype.getVal = function () {
-            return null;
-        };
-        // Singleton
-        MethodLabel.theMethodLabel = new MethodLabel();
-        return MethodLabel;
-    })();
-    pnode.MethodLabel = MethodLabel;
-    var CallLabel = (function () {
+    var CallLabel = (function (_super) {
+        __extends(CallLabel, _super);
         /*private*/
         function CallLabel() {
+            _super.call(this);
         }
         CallLabel.prototype.isValid = function (children) {
             //TODO check if child 0 is a method
@@ -1582,12 +2331,20 @@ var pnode;
             return new None();
         };
         CallLabel.prototype.getVal = function () {
-            return this._id;
+            return null;
+        };
+        CallLabel.prototype.nodeStep = function (node, evalu) {
+        };
+        CallLabel.prototype.toJSON = function () {
+            return { kind: "CallLabel" };
+        };
+        CallLabel.fromJSON = function (json) {
+            return CallLabel.theCallLabel;
         };
         // Singleton
         CallLabel.theCallLabel = new CallLabel();
         return CallLabel;
-    })();
+    })(ExprLabel);
     pnode.CallLabel = CallLabel;
     //Placeholder Make
     function mkExprPH() {
@@ -1608,26 +2365,59 @@ var pnode;
     }
     pnode.mkExprSeq = mkExprSeq;
     //Const Make
-    function mkStringConst(val) {
-        return make(new StringConstLabel(val), []);
+    function mkStringLiteral(val) {
+        return make(new StringLiteralLabel(val), []);
     }
-    pnode.mkStringConst = mkStringConst;
-    function mkNumberConst(val) {
-        return make(new NumberConstLabel(val), []);
+    pnode.mkStringLiteral = mkStringLiteral;
+    function mkNumberLiteral(val) {
+        return make(new NumberLiteralLabel(val), []);
     }
-    pnode.mkNumberConst = mkNumberConst; //
-    function mkBooleanConst(val) {
-        return make(new BooleanConstLabel(val), []);
+    pnode.mkNumberLiteral = mkNumberLiteral;
+    function mkBooleanLiteral(val) {
+        return make(new BooleanLiteralLabel(val), []);
     }
-    pnode.mkBooleanConst = mkBooleanConst;
-    function mkAnyConst(val) {
-        return make(new AnyConstLabel(val), []);
+    pnode.mkBooleanLiteral = mkBooleanLiteral;
+    function mkVar(val) {
+        return make(new VariableLabel(val), []);
     }
-    pnode.mkAnyConst = mkAnyConst;
+    pnode.mkVar = mkVar;
+    // JSON support
+    function fromPNodeToJSON(p) {
+        var json = p.toJSON();
+        return JSON.stringify(json);
+    }
+    pnode.fromPNodeToJSON = fromPNodeToJSON;
+    function fromJSONToPNode(s) {
+        var json = JSON.parse(s);
+        return PNode.fromJSON(json);
+    }
+    pnode.fromJSONToPNode = fromJSONToPNode;
+    function fromJSONToLabel(json) {
+        // There is probably a reflective way to do this
+        //   Perhaps
+        //       var labelClass = pnode[json.kind] ;
+        //       check that labelClass is not undefined
+        //       var  fromJSON : any => Label = labelClass["fromJSON"] ;
+        //       check that fromJSON is not undefined
+        //       return fromJSON( json ) ;
+        var labelClass = pnode[json.kind]; // This line relies on
+        //  (a) the json.kind field being the name of the concrete label class.
+        //  (b) that all the concrete label classes are exported from the pnode module.
+        assert.check(labelClass !== undefined); //check that labelClass is not undefined
+        var fromJSON = labelClass["fromJSON"]; //
+        assert.check(fromJSON !== undefined); // check that fromJSON is not undefined
+        return fromJSON(json);
+        // If the code above doesn't work, then make a big ugly switch like this:
+        // switch( json.kind ) {
+        // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
+        // // and so on.
+        // default : assert.check(false ) ;
+        // }
+    }
 })(pnode || (pnode = {}));
 module.exports = pnode;
 
-},{"./assert":1,"./collections":2}],6:[function(require,module,exports){
+},{"./assert":1,"./collections":2}],8:[function(require,module,exports){
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
@@ -1639,6 +2429,7 @@ var __extends = (this && this.__extends) || function (d, b) {
 };
 var collections = require('./collections');
 var assert = require('./assert');
+var pnode = require('./pnode');
 var edits = require('./edits');
 var pnodeEdits;
 (function (pnodeEdits) {
@@ -1715,6 +2506,7 @@ var pnodeEdits;
                 && checkSelection(tree.child(head), path.rest(), anchor, focus);
         }
     }
+    pnodeEdits.checkSelection = checkSelection;
     var InsertChildrenEdit = (function (_super) {
         __extends(InsertChildrenEdit, _super);
         function InsertChildrenEdit(newNodes) {
@@ -1772,8 +2564,10 @@ var pnodeEdits;
             _super.call(this);
         }
         DeleteEdit.prototype.applyEdit = function (selection) {
-            var edit = new pnodeEdits.InsertChildrenEdit([]);
-            return edit.applyEdit(selection);
+            var noPH = new pnodeEdits.InsertChildrenEdit([]);
+            var withPH = new pnodeEdits.InsertChildrenEdit([pnode.mkExprPH()]);
+            var alt = edits.alt(noPH, withPH);
+            return alt.applyEdit(selection);
         };
         return DeleteEdit;
     })(AbstractEdit);
@@ -1835,10 +2629,311 @@ var pnodeEdits;
         return ChangeLabelEdit;
     })(AbstractEdit);
     pnodeEdits.ChangeLabelEdit = ChangeLabelEdit;
+    var CopyNodeEdit = (function (_super) {
+        __extends(CopyNodeEdit, _super);
+        function CopyNodeEdit(selection) {
+            var _this = this;
+            _super.call(this);
+            var loop = function (node, path, start, end) {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    _this._newNodes = node.children(start, end);
+                }
+                else {
+                    var k = path.first();
+                    var len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    loop(node.child(k), path.rest(), start, end);
+                }
+            };
+            // Determine the start and end
+            var start;
+            var end;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            loop(selection.root(), selection.path(), start, end);
+        }
+        CopyNodeEdit.prototype.applyEdit = function (selection) {
+            var edit = new pnodeEdits.InsertChildrenEdit(this._newNodes);
+            return edit.applyEdit(selection);
+        };
+        return CopyNodeEdit;
+    })(AbstractEdit);
+    pnodeEdits.CopyNodeEdit = CopyNodeEdit;
+    var MoveNodeEdit = (function (_super) {
+        __extends(MoveNodeEdit, _super);
+        function MoveNodeEdit(selection) {
+            var _this = this;
+            _super.call(this);
+            var loop = function (node, path, start, end) {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    _this._newNodes = node.children(start, end);
+                }
+                else {
+                    var k = path.first();
+                    var len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    loop(node.child(k), path.rest(), start, end);
+                }
+            };
+            // Determine the start and end
+            var start;
+            var end;
+            this._oldSelection = selection;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            loop(selection.root(), selection.path(), start, end);
+        }
+        MoveNodeEdit.prototype.applyEdit = function (selection) {
+            var edit = new InsertChildrenEdit(this._newNodes);
+            var selwithchildren = edit.applyEdit(selection).choose(function (p) { return p; }, function () {
+                assert.check(false, "Error applying edit to node");
+                return null;
+            });
+            var newSel = new Selection(selwithchildren.root(), this._oldSelection.path(), this._oldSelection.anchor(), this._oldSelection.focus());
+            var edit2 = new DeleteEdit();
+            return edit2.applyEdit(newSel);
+        };
+        return MoveNodeEdit;
+    })(AbstractEdit);
+    pnodeEdits.MoveNodeEdit = MoveNodeEdit;
+    var SwapNodeEdit = (function (_super) {
+        __extends(SwapNodeEdit, _super);
+        function SwapNodeEdit(firstSelection, secondSelection) {
+            _super.call(this);
+            this._firstSelection = firstSelection;
+            this._secondSelection = secondSelection;
+            this._newNode1 = this.getChildrenToSwap(firstSelection);
+            this._newNode2 = this.getChildrenToSwap(secondSelection);
+        }
+        SwapNodeEdit.prototype.canApply = function () {
+            return this.applyEdit().choose(function (a) { return true; }, function () { return false; });
+        };
+        SwapNodeEdit.prototype.getChildrenToSwap = function (selection) {
+            var loop = function (node, path, start, end) {
+                if (path.isEmpty()) {
+                    //console.log("this._newNodes is " + this._newNodes ) ;
+                    return node.children(start, end);
+                }
+                else {
+                    var k = path.first();
+                    var len = node.count();
+                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
+                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    loop(node.child(k), path.rest(), start, end);
+                }
+            };
+            // Determine the start and end
+            var start;
+            var end;
+            if (selection.anchor() <= selection.focus()) {
+                start = selection.anchor();
+                end = selection.focus();
+            }
+            else {
+                start = selection.focus();
+                end = selection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            var node = loop(selection.root(), selection.path(), start, end);
+            return node;
+        };
+        SwapNodeEdit.prototype.applyEdit = function () {
+            var edit1 = new pnodeEdits.InsertChildrenEdit(this._newNode1);
+            var firstSel = edit1.applyEdit(this._secondSelection).choose(function (p) { return p; }, function () {
+                assert.check(false, "Error applying edit to node");
+                return null;
+            });
+            var sel = new Selection(firstSel._root, this._firstSelection.path(), this._firstSelection.anchor(), this._firstSelection.focus());
+            var edit2 = new pnodeEdits.InsertChildrenEdit(this._newNode2);
+            return edit2.applyEdit(sel);
+        };
+        return SwapNodeEdit;
+    })(AbstractEdit);
+    pnodeEdits.SwapNodeEdit = SwapNodeEdit;
 })(pnodeEdits || (pnodeEdits = {}));
 module.exports = pnodeEdits;
 
-},{"./assert":1,"./collections":2,"./edits":3}],7:[function(require,module,exports){
+},{"./assert":1,"./collections":2,"./edits":3,"./pnode":7}],9:[function(require,module,exports){
+var stack;
+(function (stack_1) {
+    var execStack = (function () {
+        function execStack(object) {
+            this.obj = object;
+            this.next = null;
+        }
+        execStack.prototype.setNext = function (stack) {
+            this.next = stack;
+        };
+        execStack.prototype.top = function () {
+            return this.obj;
+        };
+        execStack.prototype.getNext = function () {
+            return this.next;
+        };
+        execStack.prototype.inStack = function (name) {
+            for (var i = 0; i < this.obj.numFields(); i++) {
+                if (name.match(this.obj.fields[i].getName().toString())) {
+                    return true;
+                }
+            }
+            var here = this.next.inStack(name);
+            return here;
+        };
+        return execStack;
+    })();
+    stack_1.execStack = execStack;
+    var Stack = (function () {
+        function Stack() {
+            this.head = null;
+        }
+        Stack.prototype.push = function (val) {
+            if (this.notEmpty()) {
+                val.next = this.head;
+                this.head = val;
+            }
+            else {
+                this.head = val;
+            }
+        };
+        Stack.prototype.pop = function () {
+            var it = this.head;
+            this.head = this.head.getNext();
+            return it;
+        };
+        Stack.prototype.top = function () {
+            return this.head;
+        };
+        Stack.prototype.notEmpty = function () {
+            if (this.head == null) {
+                return false;
+            }
+            else {
+                return true;
+            }
+        };
+        return Stack;
+    })();
+    stack_1.Stack = Stack;
+    /*   export class StackObject {
+           next : StackObject;
+           varmap : VarMap;
+   
+           constructor (name : String, value : String) {
+               this.varmap = new VarMap();
+               this.varmap.setName(name);
+               this.varmap.setValue(value);
+           }
+   
+   
+           getNext(){
+               return this.next;
+           }
+   
+           getVarMap(){
+               return this.varmap;
+           }
+   
+           setNext(next : StackObject){
+               this.next = next;
+           }
+           setVarMap(map : VarMap){
+               this.varmap = map;
+           }
+       }
+   */
+    var mapEntry = (function () {
+        function mapEntry(key, value) {
+            this.path = key;
+            this.val = value;
+        }
+        mapEntry.prototype.getPath = function () { return this.path; };
+        mapEntry.prototype.getValue = function () { return this.val; };
+        mapEntry.prototype.setValue = function (v) { this.val = v; };
+        return mapEntry;
+    })();
+    stack_1.mapEntry = mapEntry;
+    var VarMap = (function () {
+        function VarMap() {
+        }
+        VarMap.prototype.samePath = function (a, b) {
+            var flag = true;
+            for (var p = 0; p < Math.max(a.length, b.length); p++) {
+                if (a[p] != b[p]) {
+                    flag = false;
+                }
+            }
+            return flag;
+        };
+        VarMap.prototype.get = function (p) {
+            for (var i = 0; i < this.size; i++) {
+                var tmp = this.entries[i].getPath();
+            }
+            if (this.samePath(tmp, p)) {
+                return this.entries[i].getValue();
+            }
+        };
+        VarMap.prototype.put = function (p, v) {
+            var notIn = true;
+            for (var i = 0; i < this.size; i++) {
+                var tmp = this.entries[i].getPath();
+                if (this.samePath(tmp, p)) {
+                    this.entries[i].setValue(v);
+                    notIn = false;
+                }
+            }
+            if (notIn) {
+                //                this.entries[this.size++] = new mapEntry(p, v); //would this go out of bounds for the array?
+                this.entries.push(new mapEntry(p, v));
+                this.size++;
+            }
+        };
+        VarMap.prototype.remove = function (p) {
+            for (var i = 0; i < this.size; i++) {
+                var tmp = this.entries[i].getPath();
+                if (this.samePath(tmp, p)) {
+                    this.size--;
+                    var j = i;
+                    for (; j < this.size; j++) {
+                        this.entries[j] = this.entries[j + 1]; //move all values down by one
+                    }
+                    this.entries[j] = null; //don't think this is necessary
+                }
+            }
+        };
+        VarMap.prototype.inMap = function (p) {
+            for (var i = 0; i < this.size; i++) {
+                var tmp = this.entries[i].getPath();
+                if (this.samePath(tmp, p)) {
+                    return true;
+                }
+            }
+            return false;
+        };
+        return VarMap;
+    })();
+    stack_1.VarMap = VarMap;
+})(stack || (stack = {}));
+module.exports = stack;
+
+},{}],10:[function(require,module,exports){
 var pnode = require('./pnode');
 var assert = require('./assert');
 var pnodeEdits = require('./pnodeEdits');
@@ -1863,12 +2958,7 @@ var treeManager;
             var placeholder = pnode.mkExprPH();
             var sel = new Selection(this.root, collections.list(0), 0, 1);
             var edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
-            var editResult = edit.applyEdit(sel);
-            this.root = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            }).root();
-            return this.root;
+            return edit.applyEdit(sel);
         };
         TreeManager.prototype.createNode = function (label, selection) {
             switch (label) {
@@ -1920,13 +3010,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([varnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         // Loop and If Nodes
         TreeManager.prototype.makeWhileNode = function (selection) {
@@ -1938,13 +3022,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeIfNode = function (selection) {
             var guard = pnode.mkExprPH();
@@ -1956,13 +3034,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeLambdaNode = function (selection) {
             var header = pnode.mkExprSeq([]);
@@ -1977,13 +3049,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         //Arithmetic Nodes
         TreeManager.prototype.makeAssignNode = function (selection) {
@@ -1995,30 +3061,18 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeWorldCallNode = function (selection) {
             var left = pnode.mkExprPH();
             var right = pnode.mkExprPH();
-            var opt = pnode.tryMake(pnode.callWorldLabel.theCallWorldLabel, [left, right]);
+            var opt = pnode.tryMake(pnode.CallWorldLabel.theCallWorldLabel, [left, right]);
             var worldcallnode = opt.choose(function (p) { return p; }, function () {
                 assert.check(false, "Precondition violation on PNode.modify");
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeCallNode = function (selection) {
             var opt = pnode.tryMake(pnode.CallLabel.theCallLabel, []);
@@ -2027,13 +3081,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([callnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeTypeNode = function (selection) {
             var opt = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
@@ -2042,13 +3090,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([typenode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeStringLiteralNode = function (selection) {
             var opt = pnode.tryMake(pnode.StringLiteralLabel.theStringLiteralLabel, []);
@@ -2057,13 +3099,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeNumberLiteralNode = function (selection) {
             var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
@@ -2072,13 +3108,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeBooleanLiteralNode = function (selection) {
             var opt = pnode.tryMake(pnode.BooleanLiteralLabel.theBooleanLiteralLabel, []);
@@ -2087,13 +3117,7 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.makeNullLiteralNode = function (selection) {
             var opt = pnode.tryMake(pnode.NullLiteralLabel.theNullLiteralLabel, []);
@@ -2102,33 +3126,34 @@ var treeManager;
                 return null;
             });
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Precondition violation on PNode.modify");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.changeNodeString = function (selection, newString) {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Error applying edit to node");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
         };
         TreeManager.prototype.deleteNode = function (selection) {
             var edit = new pnodeEdits.DeleteEdit();
-            var editResult = edit.applyEdit(selection);
-            var sel = editResult.choose(function (p) { return p; }, function () {
-                assert.check(false, "Error applying edit to node");
-                return null;
-            });
-            this.root = sel.root();
-            return sel;
+            return edit.applyEdit(selection);
+        };
+        TreeManager.prototype.moveCopySwapEditList = function (oldSelection, newSelection) {
+            var selectionList = [];
+            var moveedit = new pnodeEdits.MoveNodeEdit(oldSelection);
+            if (moveedit.canApply(newSelection)) {
+                var sel = moveedit.applyEdit(newSelection);
+                selectionList.push(["Moved", "Move", sel]);
+            }
+            var copyedit = new pnodeEdits.CopyNodeEdit(oldSelection);
+            if (copyedit.canApply(newSelection)) {
+                var sel = copyedit.applyEdit(newSelection);
+                selectionList.push(['Copied', "Copy", sel]);
+            }
+            var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
+            if (swapedit.canApply()) {
+                var sel = swapedit.applyEdit();
+                selectionList.push(['Swapped', "Swap", sel]);
+            }
+            return selectionList;
         };
         return TreeManager;
     })();
@@ -2136,5 +3161,51 @@ var treeManager;
 })(treeManager || (treeManager = {}));
 module.exports = treeManager;
 
-},{"./assert":1,"./collections":2,"./pnode":5,"./pnodeEdits":6}]},{},[4])(4)
+},{"./assert":1,"./collections":2,"./pnode":7,"./pnodeEdits":8}],11:[function(require,module,exports){
+/**
+ * Created by Ryne on 24/02/2016.
+ */
+var stack = require('./stackManager');
+var evaluation = require('./evaluation');
+var vms;
+(function (vms) {
+    var Stack = stack.Stack;
+    var Evaluation = evaluation.Evaluation;
+    var VMS = (function () {
+        function VMS(root, world) {
+            this.evalu = new Evaluation(root, world);
+            this.stack = new Stack();
+            this.stack.push(this.evalu);
+            this.world = world;
+        }
+        VMS.prototype.canAdvance = function () {
+            return this.stack.notEmpty(); //TODO add notEmpty to stack why can't this file see members?
+        };
+        VMS.prototype.getEval = function () {
+            return this.evalu;
+        };
+        VMS.prototype.getWorld = function () {
+            return this.world;
+        };
+        VMS.prototype.advance = function () {
+            if (this.canAdvance()) {
+                if (this.stack.top().isDone()) {
+                    // eval = stack.top();
+                    var value = this.stack.pop().getVarMap().get([]); //TODO get value from evaluation?
+                    if (this.stack.notEmpty()) {
+                        this.stack.top().setResult(value);
+                    }
+                }
+                else {
+                    this.stack.top().advance(this);
+                }
+            }
+        };
+        return VMS;
+    })();
+    vms.VMS = VMS;
+})(vms || (vms = {}));
+module.exports = vms;
+
+},{"./evaluation":4,"./stackManager":9}]},{},[6])(6)
 });
