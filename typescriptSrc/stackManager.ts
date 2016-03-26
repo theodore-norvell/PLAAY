@@ -180,13 +180,12 @@ module stack {
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
                     this.size--;
-                    var j = i;
-                    for(; j < this.size; j++){
-                        this.entries[j] = this.entries[j+1];//move all values down by one
-                    }
-                    this.entries[j] = null;//don't think this is necessary
+                    const firstPart = this.entries.slice(0, i);
+                    const lastPart = this.entries.slice(i+1, this.entries.length);
+                    this.entries = firstPart.concat(lastPart);
                 }
             }
+            return;
         }
 
         inMap(p : Array<number>){

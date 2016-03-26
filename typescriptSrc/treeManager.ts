@@ -139,7 +139,7 @@ module treeManager {
 
         private makeLambdaNode(selection:Selection) : Option<Selection> {
 
-            var header = pnode.mkExprSeq([]);
+            var header = pnode.mkParameterList([]);
             var lambdatype = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
             var dothis = pnode.mkExprSeq([]);
 
