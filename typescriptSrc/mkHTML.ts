@@ -28,10 +28,13 @@ module mkHTML {
     import VarMap = stack.VarMap;
     import mapEntry = stack.mapEntry;
     import VMS = vms.VMS;
+    import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
+    //import Evaluation = evaluation.Evaluation;
 
     var undostack = [];
     var redostack = [];
+    var trashArray = [];
     var currentSelection;
     var draggedSelection;
     var draggedObject;
@@ -123,9 +126,14 @@ module mkHTML {
 
         const trash = document.createElement("div");
         trash.setAttribute("id","trash");
-        trash.setAttribute("class", "trash");
+        trash.setAttribute("class", "trash clicktrash");
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
+        var garbage = document.getElementById("trash");
+        garbage.onclick = function opendialog()
+        {
+            visualizeTrash();
+        };
 
         const advancebutton = document.createElement("div");
         advancebutton.setAttribute("id", "advance");
@@ -200,12 +208,6 @@ module mkHTML {
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
-
-        const selectionblock = document.createElement("div");
-        selectionblock.setAttribute("id", "selection");
-        selectionblock.setAttribute("class", "block V palette");
-        selectionblock.textContent = "Selection";
-        document.getElementById("sidebar").appendChild(selectionblock);
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -313,6 +315,7 @@ module mkHTML {
                 selection.choose(
                     sel => {
                         undostack.push(currentSelection);
+                        trashArray.push(currentSelection);
                         currentSelection = sel;
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
@@ -370,6 +373,55 @@ module mkHTML {
         $(".dropZoneSmall").show();
     }
 
+    function visualizeStack(evalstack:ExecStack)
+    {
+        for(var i = 0; i < evalstack.obj.numFields(); i++)
+        {
+            $("<h3>Object" + i + "</h3>").appendTo($(".stack"));
+            $("<div>" + evalstack.top().fields[i].getName() +
+                evalstack.top().fields[i].getType() + evalstack.top().fields[i].getValue() + "</div>").appendTo($(".stack"));
+        }
+        if(evalstack.getNext() == null)
+        {
+            return;
+        }
+        else
+        {
+            visualizeStack(evalstack.getNext());
+        }
+
+        $(function() {
+            $("#stackbar").accordion(
+                {
+                    header: "h3",
+                    collapsible: true,
+                    active: false
+                }
+            );
+        });
+    }
+
+    function visualizeTrash() {
+        var dialogDiv = $('#trashDialog');
+
+        if (dialogDiv.length == 0) {
+            dialogDiv = $("<div id='dialogDiv'><div/>").appendTo('body');
+            for(var i = 0; i < trashArray.length; i++) {
+                var trashdiv = document.createElement("div");
+                trashdiv.setAttribute("class", "trashitem");
+                trashdiv.setAttribute("data-trashitem", i.toString());
+                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
+                $(trashdiv).appendTo(dialogDiv);
+            }
+            dialogDiv.dialog({
+                modal : true,
+                dialogClass: 'no-close success-dialog',
+            });
+        }else{
+            dialogDiv.dialog("open");
+        }
+}
+
     function highlight(parent, pending)
     {
         if(pending.isEmpty())
@@ -378,7 +430,7 @@ module mkHTML {
             if(self.index() == 0)
                 $("<div class='selected V'></div>").prependTo(self.parent());
             else
-                $("<div class='selected V'></div>").appendTo(self.parent());
+                $("<div class='selected V'></div>").insertBefore(self);
             self.detach().appendTo($(".selected"));
         }
         else
@@ -443,12 +495,17 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackbar");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = true;
         }
         else{
@@ -456,10 +513,15 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackbar");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             findInMap(root, currentvms.getEval().getVarMap());
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
     }
@@ -476,10 +538,10 @@ module mkHTML {
         children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
         $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         var root = document.getElementById("vms").children[0];
-        var array = Object.create(currentvms.getEval().getPending());
+        var list = arrayToList(currentvms.getEval().getPath());
         var map = Object.create(currentvms.getEval().getVarMap());
         findInMap(root, map);
-        highlight(root, array);
+        highlight(root, list);
     }
 
     function createCopyDialog(selectionArray) {

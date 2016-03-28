@@ -10,7 +10,13 @@
 }
 
 div.selected {
-    border: thin solid rgb(255,0,0) ;
+     border: thin solid rgb(255,0,0) ;
+     padding: 2px ;
+     margin: 2px ;
+}
+
+div.trashitem {
+    border: thin solid ghostwhite;
     padding: 2px ;
     margin: 2px ;
 }
@@ -190,9 +196,7 @@ div.block {
     border-radius: 10px;
     box-shadow: 0px 0px 3px;
     color:purple;
-    text-align:center;
 }
-
 
 /*actual visualization*/
 div.ifBox {
@@ -525,7 +529,9 @@ div.selection {
 }
 
 .ui-widget-content.success-dialog {
-    background: #F9F9F9;
+    background: black;
+    overflow: auto;
+    position: fixed;
     border: 1px solid purple;
     color: #222222;
 }
