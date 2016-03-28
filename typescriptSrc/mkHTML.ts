@@ -28,6 +28,7 @@ module mkHTML {
     import VarMap = stack.VarMap;
     import mapEntry = stack.mapEntry;
     import VMS = vms.VMS;
+    import arrayToList = collections.arrayToList;
 
     var undostack = [];
     var redostack = [];
@@ -41,6 +42,7 @@ module mkHTML {
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
+    var currentvms;
     currentSelection = select;
 
     export function onLoad() : void
@@ -133,6 +135,19 @@ module mkHTML {
             setValAndHighlight();
         };
         document.getElementById("advance").style.visibility = "hidden";
+
+        const multistepbutton = document.createElement("div");
+        multistepbutton.setAttribute("id", "multistep");
+        multistepbutton.setAttribute("class","multistep");
+        multistepbutton.setAttribute("onclick", "multistep()");
+        multistepbutton.textContent = "Next Function";
+        document.getElementById("body").appendChild(multistepbutton);
+        var multistep = document.getElementById("multistep");
+        multistep.onclick = function multistep()
+        {
+            stepTillDone();
+        };
+        document.getElementById("multistep").style.visibility = "hidden";
 
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id", "if");
@@ -280,23 +295,18 @@ module mkHTML {
             });
             mkHTML.getPrograms();
         });
-        const nullblock = document.createElement("div");
-        nullblock.setAttribute("id", "null");
-        nullblock.setAttribute("class", "block V palette");
-        nullblock.textContent = "Null";
-        document.getElementById("sidebar").appendChild(nullblock);
+
+        const vardecblock = document.createElement("div");
+        vardecblock.setAttribute("id", "vardecl");
+        vardecblock.setAttribute("class", "block V palette");
+        vardecblock.textContent = "Var Declaration";
+        document.getElementById("sidebar").appendChild(vardecblock);
 
         const lambdablock = document.createElement("div");
         lambdablock.setAttribute("id", "lambda");
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
-
-        const selectionblock = document.createElement("div");
-        selectionblock.setAttribute("id", "selection");
-        selectionblock.setAttribute("class", "block V palette");
-        selectionblock.textContent = "Selection";
-        document.getElementById("sidebar").appendChild(selectionblock);
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -428,9 +438,10 @@ module mkHTML {
         document.getElementById("vms").style.visibility = "visible";
         document.getElementById("stackbar").style.visibility = "visible";
         document.getElementById("advance").style.visibility = "visible";
+        document.getElementById("multistep").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        //var vms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root());
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -440,11 +451,6 @@ module mkHTML {
         $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
-
-        //highlight($(".vms"), vms.getEval().pending);
-        //var root = document.getElementById("vms").children[0];
-        //var array = [0,0];
-        //setValueHTMLTest(root, array);
     }
 
     function editor()
@@ -458,94 +464,123 @@ module mkHTML {
         document.getElementById("vms").style.visibility = "hidden";
         document.getElementById("stackbar").style.visibility = "hidden";
         document.getElementById("advance").style.visibility = "hidden";
+        document.getElementById("multistep").style.visibility = "hidden";
         document.getElementById("edit").style.visibility = "hidden";
 
         $(".dropZone").show();
         $(".dropZoneSmall").show();
     }
 
-    function setHTMLValueTest(root, array)
+    function highlight(parent, pending)
     {
-        if(array.length == 0)
-        {
-            var self = $(root);
-            self.replaceWith("<div>23</div>");
-        }
-        else{
-            setHTMLValueTest(root.children[array.pop()], array);
-        }
-    }
-
-    function highlight(parent, pending:Array<number>)
-    {
-        if(pending.length == 0)
+        if(pending.isEmpty())
         {
             var self = $(parent);
             if(self.index() == 0)
                 $("<div class='selected V'></div>").prependTo(self.parent());
             else
-                $("<div class='selected V'></div>").appendTo(self.parent());
+                $("<div class='selected V'></div>").insertBefore(self);
             self.detach().appendTo($(".selected"));
         }
         else
         {
-            highlight(parent.children[pending.pop()], pending);
-        }
-    }
-
-    function setValAndHighlight()
-    {
-        //evaluation.next();
-        if (!highlighted) {
-            var root = document.getElementById("vms").children[0];
-            var array = [0, 0];
-            highlight(root, array);
-            highlighted = true;
-        }
-        else {
-            var root = document.getElementById("vms").children[0];
-            var array = [0, 0];
-            setHTMLValueTest(root, array);
-            highlighted = false;
+            var child = $(parent);
+            if ( child.children('div[data-childNumber="' + pending.first() + '"]').length > 0 )
+            {
+                var index = child.find('div[data-childNumber="' + pending.first() + '"]').index();
+                var check = pending.first();
+                if(index != check)
+                    highlight(parent.children[index], pending.rest());
+                else
+                    highlight(parent.children[check], pending.rest());
+            }
+            else
+            {
+                highlight(parent.children[pending.first()], pending);
+            }
         }
     }
 
     function findInMap(root, varmap:VarMap)
     {
-        var newMap = varmap;
-        for(var i=0; i < newMap.size; i++)
+        for(var i=0; i < varmap.size; i++)
         {
-            setHTMLValue(root, newMap.entries[i]);
+            var list = arrayToList(varmap.entries[i].getPath())
+            var value = Object.create(varmap.entries[i].getValue());
+            setHTMLValue(root, list, value);
         }
     }
 
-    function setHTMLValue(root, map:mapEntry)
+    function setHTMLValue(root, path:List<number>, value)
     {
-        if(map.getPath().length == 0)
+        if(path.isEmpty())
         {
             var self = $(root);
-            self.replaceWith("<div>23</div>");
+            self.replaceWith("<div class='inmap'>"+ value.getVal() +"</div>");
         }
         else{
-            setHTMLValue(root.children[map.getPath().pop()], map)
+            var child = $(root);
+            if ( child.children('div[data-childNumber="' + path.first() + '"]').length > 0 )
+            {
+                var index = child.find('div[data-childNumber="' + path.first() + '"]').index();
+                var check = path.first();
+                if(index != check)
+                    setHTMLValue(root.children[index], path.rest(), value);
+                else
+                    setHTMLValue(root.children[check], path.rest(), value);
+            }
+            else
+            {
+                setHTMLValue(root.children[path.first()], path, value);
+            }
         }
     }
 
-    function advance()
+    function setValAndHighlight()
     {
-        //evaluation.next();
-        if(!highlighted)
-        {
+        currentvms = evaluation.next();
+        if (!highlighted && currentvms.getEval().ready) {
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
-            var array = [0,0];
-            highlight(root, array);
+            var list = arrayToList(currentvms.getEval().getPending());
+            findInMap(root, currentvms.getEval().getVarMap());
+            highlight(root, list);
+            highlighted = true;
         }
-        else
-        {
+        else{
+            var children = document.getElementById("vms");
+            while (children.firstChild) {
+                children.removeChild(children.firstChild);
+            }
+            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
-            var array = [0,0];
-            setHTMLValueTest(root, array);
+            findInMap(root, currentvms.getEval().getVarMap());
+            highlighted = false;
         }
+    }
+
+    function stepTillDone()
+    {
+        currentvms = evaluation.next();
+        while(!currentvms.getEval().isDone())
+            currentvms = evaluation.next();
+        var children = document.getElementById("vms");
+        while (children.firstChild) {
+            children.removeChild(children.firstChild);
+        }
+        children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
+        $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        var root = document.getElementById("vms").children[0];
+        var list = arrayToList(currentvms.getEval().getPath());
+        var map = Object.create(currentvms.getEval().getVarMap());
+        findInMap(root, map);
+        highlight(root, list);
     }
 
     function createCopyDialog(selectionArray) {
@@ -953,7 +988,7 @@ module mkHTML {
             var place = index - num;
 
             var label = parent.attr("class");
-            if (/placeHolder/i.test(label))
+            if (/placeHolder/i.test(label) || /expOp/i.test(label))
             {
                 anchor = child;
                 focus = anchor + 1;
@@ -1148,13 +1183,9 @@ module mkHTML {
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(opval);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
-                WorldBox.appendChild(dropZone);
             }
             else if(node.label().getVal().length > 0)
             {
@@ -1163,11 +1194,8 @@ module mkHTML {
                 opval.textContent = node.label().getVal();
 
                 WorldBox.appendChild(opval);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(dropZone);
                 WorldBox.appendChild(children[1]);
-                WorldBox.appendChild(dropZone);
             }
             else
             {
@@ -1276,7 +1304,7 @@ module mkHTML {
             for( var i=0 ; true ; ++i )
             {
                 var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZone H droppable");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
                 noType.appendChild( dropZone ) ;
                 if( i == children.length ) break ;
                 noType.appendChild( children[i] ) ;
@@ -1284,6 +1312,43 @@ module mkHTML {
 
             return noType ;
         }
+        else if(label.match("expOpt"))
+        {
+            var OptType = document.createElement("div");
+            OptType.setAttribute("class", "expOp V");
+            OptType.setAttribute("data-childNumber", childNumber.toString());
+
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
+                OptType.appendChild(dropZone);
+                if (i == children.length) break;
+                OptType.appendChild(children[i]);
+            }
+
+            return OptType;
+        }
+        else if(label.match("vdecl"))
+        {
+            var VarDeclBox = document.createElement("div");
+            VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
+            VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
+
+            var type = document.createElement("div");
+            type.textContent = ":";
+
+            var equals = document.createElement("div");
+            equals.textContent = ":=";
+
+            VarDeclBox.appendChild(children[0]);
+            VarDeclBox.appendChild(type);
+            VarDeclBox.appendChild(children[1]);
+            VarDeclBox.appendChild(equals);
+            VarDeclBox.appendChild(children[2]);
+
+            return VarDeclBox;
+        }
+
     }
 }
 

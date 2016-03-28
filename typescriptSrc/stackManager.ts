@@ -6,6 +6,7 @@ module stack {
 
     import Evaluation = evaluation.Evaluation;
     import Value = value.Value;
+    import Field = value.Field;
     import ObjectV = value.ObjectV;
 
     export class execStack {
@@ -30,16 +31,53 @@ module stack {
             return this.next;
         }
 
-        inStack(name : string) : boolean{
+        //Return true if value was correctly set
+        setField(name : string, val : Value) : boolean{
             for(var i = 0; i < this.obj.numFields(); i++){
-                if(name.match(this.obj.fields[i].getName().toString())){
+                if(name == this.obj.fields[i].getName()){
+                    this.obj.fields[i].setValue(val);
                     return true;
                 }
             }
-            var here = this.next.inStack(name);
-            return here;
+            if(this.next == null){
+                return false;
+            }
+            else{
+                var here = this.next.setField(name, val);
+                return here;
+            }
+
         }
 
+        getField(name : string) : Field {
+            for(var i = 0; i < this.obj.numFields(); i++){
+//                if(name.match(this.obj.fields[i].getName().toString())){
+                if(name == this.obj.fields[i].getName()){
+                    return this.obj.fields[i];
+                }
+            }
+            if(this.next == null){
+                return null;
+            }
+            else{
+                return this.next.getField(name);
+            }
+        }
+
+        inStack(name : string) : boolean {
+            for (var i = 0; i < this.obj.numFields(); i++) {
+//                if(name.match(this.obj.fields[i].getName().toString())){
+                if (name == this.obj.fields[i].getName()) {
+                    return true;
+                }
+            }
+            if (this.next == null) {
+                return false;
+            }
+            else {
+                return this.next.inStack(name);
+            }
+        }
     }
 
     export class Stack {
@@ -76,34 +114,6 @@ module stack {
         }
     }
 
- /*   export class StackObject {
-        next : StackObject;
-        varmap : VarMap;
-
-        constructor (name : String, value : String) {
-            this.varmap = new VarMap();
-            this.varmap.setName(name);
-            this.varmap.setValue(value);
-        }
-
-
-        getNext(){
-            return this.next;
-        }
-
-        getVarMap(){
-            return this.varmap;
-        }
-
-        setNext(next : StackObject){
-            this.next = next;
-        }
-        setVarMap(map : VarMap){
-            this.varmap = map;
-        }
-    }
-*/
-
     export class mapEntry{
         path : Array<number>;
         val : Value;
@@ -117,12 +127,16 @@ module stack {
         getValue(){return this.val;}
         setValue(v : Value ){this.val = v;}
 
-
     }
 
     export class VarMap {
         size : number ;
         entries : Array<mapEntry>;
+
+        constructor(){
+            this.entries = new Array<mapEntry>();
+            this.size = 0;
+        }
 
         samePath(a : Array<number>, b : Array<number>){
             var flag = true;
@@ -134,13 +148,14 @@ module stack {
             return flag;
         }
 
-        get(p : Array<number>) : Value{
+        get(p : Array<number>) : Value {
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    return this.entries[i].getValue();
+                }
             }
-            if(this.samePath(tmp, p)){
-                return this.entries[i].getValue();
-            }
+            return null;
         }
 
         put(p : Array<number>, v : Value){
@@ -153,8 +168,9 @@ module stack {
                 }
             }
             if(notIn){
-//                this.entries[this.size++] = new mapEntry(p, v); //would this go out of bounds for the array?
-                this.entries.push(new mapEntry(p, v));
+
+                var me = new mapEntry(p, v);
+                this.entries.push(me);
                 this.size++;
             }
         }
@@ -183,9 +199,6 @@ module stack {
             return false;
         }
     }
-
-
-
 }
 
 export = stack;

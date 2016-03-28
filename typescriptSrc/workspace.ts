@@ -9,6 +9,10 @@ module workspace {
     export class Workspace {
         private world : World;
 
+        constructor(){
+            this.world = new World();
+        }
+
         getWorld(){
             return this.world;
         }

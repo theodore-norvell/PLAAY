@@ -54,7 +54,7 @@ module vms{
                }
 
                else{
-                   this.stack.top().advance( this );
+                   this.stack.top().advance(this);
                }
             }
         }
