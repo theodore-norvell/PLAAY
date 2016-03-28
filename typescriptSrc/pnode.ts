@@ -275,13 +275,72 @@ module pnode {
    }
 
     export class whileStrategy implements nodeStrategy {
+
+        deletefromMap(vms:VMS, path : Array<number>){
+            for (var i = 0; i < vms.getEval().getRoot().get(path).count(); i++) {
+                var childPath = path.concat([i]);
+                this.deletefromMap(vms, childPath);
+            }
+            vms.getEval().getVarMap().remove(path);
+
+        }
+
         select(vms:VMS, label:Label) {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
-            if (pending != null) {
-                var node = evalu.root.get(arrayToList(pending));
-                if (node.label() == label) {
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.label() == label){
+                    var guardPath = pending.concat([0]);
+                    var loopPath = pending.concat([1]);
+                    if (evalu.varmap.inMap(guardPath)){
+                        var string = <StringV>evalu.varmap.get(guardPath);
+                        if (string.contents.match("true")){
+                            if(evalu.varmap.inMap(loopPath)){
+                                evalu.popfromStack();
+                                this.deletefromMap(vms, loopPath);
+                            }
+                            this.deletefromMap(vms, guardPath);
+                            evalu.addToStack();
+                            evalu.setPending(loopPath);
+                            node.child(1).label().strategy.select( vms, node.child(1).label() );
+                        }
 
+                        else if(string.contents.match("false")){
+                                evalu.ready = true;
+                        }
+
+                        else{
+                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
+                        }
+                    }
+
+                    else{
+                        evalu.setPending(guardPath);
+                        node.child(0).label().strategy.select( vms, node.child(0).label() );
+                    }
+                }
+            }
+        }
+    }
+
+    export class lambdaStrategy implements nodeStrategy {
+
+        select(vms:VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if(pending != null){
+                var node = evalu.root.get(pending);
+                if(node.label() == label){
+                    var paramPath = pending.concat([0]);
+                    if(!evalu.varmap.inMap(paramPath)){
+                        vms.stack.top().setPending(paramPath);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                    else {
+                        //if parameters are in the map, then we are ready to evaluate
+                        evalu.ready = true;
+                    }
                 }
             }
         }
@@ -626,6 +685,53 @@ module pnode {
 
         public static fromJSON( json : any ) : ExprSeqLabel {
             return ExprSeqLabel.theExprSeqLabel ; }
+    }
+
+    export class ParameterListLabel implements Label {
+        isValid(children:Array<PNode>) {
+            return children.every(function (c:PNode) {
+                return c.isExprNode()
+            });
+        }
+
+        strategy : lrStrategy = new lrStrategy();
+
+        step(vms:VMS) {
+            //TODO should the parameter list do anything? I don't think it does - JH
+        }
+
+        getClass():PNodeClass {
+            return ExprSeqNode;
+        }
+
+        toString():string {
+            return "param";
+        }
+
+        /*private*/
+        constructor() {
+        }
+
+        changeValue (newString : string) : Option<Label> {
+            return new None<Label>();
+        }
+
+        getVal() : string {
+            return null;
+        }
+
+        select(vms:VMS){
+            this.strategy.select(vms, this);
+        }
+
+        // Singleton
+        public static theParameterListLabel = new ParameterListLabel();
+
+        public toJSON() : any {
+            return { kind:  "ParamLabel" } ; }
+
+        public static fromJSON( json : any ) : ParameterListLabel {
+            return ParameterListLabel.theParameterListLabel ; }
     }
 
     export abstract class TypeLabel implements Label {
@@ -994,7 +1100,17 @@ module pnode {
             super();
         }
 
-        nodeStep(node, evalu){
+        nodeStep(node, evalu) {
+            var paramPath = evalu.getPending().concat([0]);
+            var functionPath = evalu.getPending().concat([2]);
+
+            var paramNode = evalu.getRoot().get(arrayToList(paramPath));
+            var argList = new Array();
+            for (var i = 0; i < paramNode.count(); i++){
+                argList.push(evalu.getVarMap().get(paramPath.concat([i])));
+            }
+
+
 
         }
 
@@ -1088,7 +1204,9 @@ module pnode {
         }
 
         nodeStep(node, evalu){
-
+            var loopPath = evalu.getPending().concat([1]);
+            var v = evalu.varmap.get( loopPath );
+            evalu.finishStep( v );
         }
 
         // Singleton
@@ -1366,6 +1484,8 @@ module pnode {
 
     export function mkExprSeq( exprs : Array<ExprNode> ) : ExprSeqNode {
         return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
+    export function mkParameterList( exprs : Array<ExprNode> ) : ExprSeqNode {
+        return <ExprSeqNode> make( ParameterListLabel.theParameterListLabel, exprs ) ; }
 
     //Const Make
     export function mkStringLiteral( val : string ) : ExprNode{

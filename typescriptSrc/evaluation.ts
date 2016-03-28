@@ -37,7 +37,17 @@ module evaluation {
             this.stack = new ExecStack(evalObj);
             this.stack.setNext(new ExecStack(obj));
             this.varmap = new VarMap();
-            console.log("Evaluation Pending is: " + this.pending);
+        }
+
+        addToStack(){
+            var evalObj = new ObjectV();
+            var newstack = new ExecStack(evalObj);
+            newstack.next=this.stack;
+            this.stack = newstack;
+        }
+
+        popfromStack() {
+            this.stack = this.stack.getNext()
         }
 
         getRoot()
