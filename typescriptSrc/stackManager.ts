@@ -9,7 +9,8 @@ module stack {
     import Field = value.Field;
     import ObjectV = value.ObjectV;
 
-    export class execStack {
+
+    export class execStack { // TODO Rename as FrameStack or something.
 
         obj : ObjectV;
         next : execStack;
@@ -80,7 +81,7 @@ module stack {
         }
     }
 
-    export class Stack {
+    export class Stack { // TODO rename as EvalStack or something
 
         head : Evaluation;
 

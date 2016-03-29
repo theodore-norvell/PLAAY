@@ -27,7 +27,7 @@ module evaluation {
         ready : Boolean;
         varmap : VarMap;
 
-        next : Evaluation;
+        next : Evaluation; // TODO eliminate this field.
 
         constructor (root : PNode, obj: ObjectV) {
             this.root = root;
@@ -75,9 +75,9 @@ module evaluation {
             return this.stack;
         }
 
-        setNext(next : Evaluation){
-            this.next = next;
-        }
+        //setNext(next : Evaluation){
+            //this.next = next;
+        //}
 
         finishStep( v : Value ){
             if(this.pending != null && this.ready){
