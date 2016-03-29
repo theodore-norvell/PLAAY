@@ -513,8 +513,6 @@ module world {
             this.fields.push(orf);
         }
 
-
-
         //this.values = new ObjectV();
 
         public numFields():Number {
@@ -547,7 +545,7 @@ module world {
     }
 
 
-    export class TurtleWorld extends ObjectV{
+    export class TurtleWorld extends ObjectV {
         // Defining the world to view mapping
         private zoom : number = 1 ;
         private worldWidth : number = 100 ;
@@ -579,9 +577,11 @@ module world {
 
                 if (val.getVal() == "true") {
                     this.penDown();
+                    evalu.finishStep(val);
                 }
                 else if (val.getVal() == "false" ) {
                     this.penUp();
+                    evalu.finishStep(val);
                 }
                 else {
                     throw new Error("Error evaulating " + val.getVal() + " as a logical value!");
@@ -611,8 +611,8 @@ module world {
                 }
 
                 if (isNum) {
-                   this.forward(val.getVal());
-
+                    this.forward(val.getVal());
+                    evalu.finishStep(val);
                 }
                 else {
                     throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
@@ -644,6 +644,7 @@ module world {
 
                 if (isNum) {
                     this.right(val.getVal());
+                    evalu.finishStep(val);
 
                 }
                 else {
@@ -676,6 +677,7 @@ module world {
 
                 if (isNum) {
                     this.left(val.getVal());
+                    evalu.finishStep(val);
 
                 }
                 else {
