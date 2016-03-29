@@ -29,13 +29,23 @@ module evaluation {
 
         next : Evaluation;
 
-        constructor (root : PNode, obj: ObjectV) {
+        constructor (root : PNode, obj : ObjectV, stack : ExecStack) {
             this.root = root;
             this.pending = new Array();
             this.ready = false;
-            var evalObj = new ObjectV();
-            this.stack = new ExecStack(evalObj);
-            this.stack.setNext(new ExecStack(obj));
+            if(stack == null){
+                var evalObj = new ObjectV();
+                this.stack = new ExecStack(evalObj);
+            }
+
+            else{
+                this.stack = stack;
+            }
+
+            if(obj != null){
+                this.stack.setNext(new ExecStack(obj));
+            }
+
             this.varmap = new VarMap();
         }
 
@@ -103,6 +113,7 @@ module evaluation {
             var closurePath = this.pending.concat([0]);
             var closure = <ClosureV>this.varmap.get( closurePath );
             var lambda = closure.function;
+            //TODO check if lambda has return type and make sure it is the same as value's type
             this.finishStep( value );
         }
 
