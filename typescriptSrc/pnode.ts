@@ -1462,6 +1462,161 @@ module pnode {
         }
     }
 
+    export class PenLabel extends ExprLabel {
+        _val:string; //either up or down
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new PenLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "pen";
+        }
+
+        nodeStep(node, evalu) {
+
+        }
+
+        // Singleton
+        public static thePenLabel = new PenLabel("");
+
+        public toJSON() : any {
+            return { kind: "PenLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : PenLabel {
+            return PenLabel.thePenLabel ;
+        }
+    }
+
+    export class ForwardLabel extends ExprLabel {
+        _val:string; //
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new ForwardLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false;
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "forward";
+        }
+
+        nodeStep(node, evalu) {
+
+        }
+
+        // Singleton
+        public static theForwardLabel = new ForwardLabel("");
+
+        public toJSON() : any {
+            return { kind: "forward" } ;
+        }
+
+        public static fromJSON( json : any ) : ForwardLabel {
+            return ForwardLabel.theForwardLabel ;
+        }
+    }
+
+    export class RightLabel extends ExprLabel {
+        _val:string; //either left or right, depending on the sign of the value
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new RightLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "right";
+        }
+
+        nodeStep(node, evalu) {
+
+        }
+
+        // Singleton
+        public static theRightLabel = new RightLabel("");
+
+        public toJSON() : any {
+            return { kind: "RightLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : RightLabel {
+            return RightLabel.theRightLabel ;
+        }
+    }
 
     //Placeholder Make
     export function mkExprPH():ExprNode {

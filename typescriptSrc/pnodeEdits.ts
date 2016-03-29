@@ -13,7 +13,7 @@ module pnodeEdits {
     import None = collections.None;
     import Some = collections.Some;
     import List = collections.List
-    import arrayToList = collections.arrayToList;;
+    import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;

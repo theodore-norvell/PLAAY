@@ -81,6 +81,15 @@ module treeManager {
                     break;
                 case "type":
                     return this.makeTypeNode(selection);
+
+                //turtleworldfunctions
+                case "pen":
+                    return this.makePenNode(selection);
+                case "forward":
+                    return this.makeForwardNode(selection);
+                case "right":
+                    return this.makeRightNode(selection);
+
             }
         }
 
@@ -315,6 +324,57 @@ module treeManager {
                 });
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makePenNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.PenLabel.thePenLabel, [val]);
+
+            var pennode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([pennode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeForwardNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.ForwardLabel.theForwardLabel, [val]);
+
+            var forwardnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([forwardnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeRightNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.RightLabel.theRightLabel, [val]);
+
+            var rightnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([rightnode]);
             return edit.applyEdit(selection);
         }
 
