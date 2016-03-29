@@ -294,7 +294,7 @@ div.doBox { /*Used with both whiles and lambdas */
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.lambdaBox:before { content: "\03bb";
+div.lambdaBox { content: "\03bb";
     border-top: medium solid rgb(135,206,250) ;
     border-bottom: medium solid rgb(135,206,250) ;
     border-left: 10px solid rgb(135,206,250) ;
