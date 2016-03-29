@@ -175,6 +175,11 @@ module value {
         isBuiltInV(){
             return true;
         }
+
+        getVal()
+        {
+            return "BuiltInV";
+        }
     }
 
     export enum Type {
