@@ -81,6 +81,11 @@ module seymour {
                  ctx.lineTo( p1v.x(), p1v.y() ) ;
                  ctx.stroke() ;
              }
+             /*var base_image = new Image();
+             base_image.src = 'turtle1.png';
+             base_image.height = 25;
+             base_image.width = 25;
+             ctx.drawImage(base_image, this.posn.x(), this.posn.y());*/
              if( this.visible ) {
                  // Draw a little triangle
                  const theta = this.orientation / 180.0 * Math.PI ;
@@ -101,6 +106,7 @@ module seymour {
                  ctx.lineTo(p2v.x(),p2v.y()) ;
                  ctx.lineTo(p0v.x(),p0v.y()) ;
                  ctx.stroke() ;
+
              }
          }
          

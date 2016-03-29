@@ -9,6 +9,13 @@
     background-color:black ;
 }
 
+.canv
+{
+    background-color: white;
+    position: absolute;
+    right: 20px;
+}
+
 div.selected {
      border: thin solid rgb(255,0,0) ;
      padding: 2px ;
@@ -114,6 +121,15 @@ div.trash
     background-color: grey;
     position:fixed;
     bottom:4px; left: 100px;
+}
+
+div.turtle
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
 }
 
 div.play
@@ -437,6 +453,22 @@ div.vardecl{
     margin: 1px 2px 1px 2px ;
 }
 
+div.turtleFunc:before {
+    content:url('turtle1.png');
+    display: inline ;
+    vertical-align: top ;
+}
+
+div.turtleFunc{
+    border: thin solid green ;
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
 div.type {
     border: thin solid #999 ;
     border-radius: 5px ;
@@ -530,7 +562,7 @@ div.selection {
 
 .ui-widget-content.success-dialog {
     background: black;
-    overflow: auto;
+    overflow:visible;
     position: fixed;
     border: 1px solid purple;
     color: #222222;
@@ -564,4 +596,47 @@ div.selection {
     padding: 0.1em .5em;
     position: relative;
     font-size: 1em;
+}
+
+table
+{
+    border: 2px solid red;
+    color: black;
+    font-weight: bold;
+}
+
+/* rows */
+tr
+{
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* columns */
+td
+{
+    padding: 10px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* resets */
+tr:first-child
+{
+    border-top: none;
+}
+
+tr:last-child
+{
+    border-bottom: none;
+}
+
+td:first-child
+{
+    border-left: none;
+}
+
+td:last-child
+{
+    border-right: none;
 }

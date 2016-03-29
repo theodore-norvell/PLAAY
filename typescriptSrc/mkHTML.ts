@@ -5,6 +5,7 @@
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="vms.ts" />
+/// <reference path="value.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
@@ -16,6 +17,8 @@ import treeManager = require('./treeManager');
 import evaluationManager = require('./evaluationManager');
 import stack = require( './stackManager' ) ;
 import vms = require('./vms');
+import value = require('./value');
+import seymour = require( './seymour' ) ;
 
 module mkHTML {
     import list = collections.list;
@@ -30,7 +33,8 @@ module mkHTML {
     import VMS = vms.VMS;
     import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
-    //import Evaluation = evaluation.Evaluation;
+    import StringV = value.StringV;
+    import BuiltInV = value.BuiltInV;
 
     var undostack = [];
     var redostack = [];
@@ -40,12 +44,14 @@ module mkHTML {
     var draggedObject;
 
     var root = pnode.mkExprSeq([]);
+    const turtleWorld = new seymour.TurtleWorld();
     var path : (  ...args : Array<number> ) => List<number> = list;
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
+    var penUp = true;
     currentSelection = select;
 
     export function onLoad() : void
@@ -60,6 +66,11 @@ module mkHTML {
         stackbar.setAttribute("id", "stackbar");
         stackbar.setAttribute("class", "stack");
         document.getElementById("body").appendChild(stackbar);
+        const table = document.createElement("table");
+        table.setAttribute("id", "stackVal");
+        document.getElementById("stackbar").appendChild(table);
+        document.getElementById("stackVal").style.border = "thin solid black";
+        document.getElementById("stackVal");
         document.getElementById("stackbar").style.visibility = "hidden";
 
         //creates undo/redo buttons
@@ -109,6 +120,18 @@ module mkHTML {
         play.onclick = function play()
         {
             evaluate();
+        };
+
+        const turtlebutton = document.createElement("div");
+        turtlebutton.setAttribute("id", "turtle");
+        turtlebutton.setAttribute("class", "turtle");
+        turtlebutton.setAttribute("onclick", "turtle()");
+        turtlebutton.textContent = "Turtle World";
+        document.getElementById("body").appendChild(turtlebutton);
+        var turtleworld = document.getElementById("turtle");
+        turtleworld.onclick = function turtle()
+        {
+            turtleGraphics();
         };
 
         const editorbutton = document.createElement("div");
@@ -208,6 +231,27 @@ module mkHTML {
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
+
+        const forwardblock = document.createElement("div");
+        forwardblock.setAttribute("id", "forward");
+        forwardblock.setAttribute("class", "block V palette");
+        forwardblock.textContent = "Forward";
+        document.getElementById("sidebar").appendChild(forwardblock);
+        document.getElementById("forward").style.visibility = "hidden";
+
+        const rightblock = document.createElement("div");
+        rightblock.setAttribute("id", "right");
+        rightblock.setAttribute("class", "block V palette");
+        rightblock.textContent = "Right";
+        document.getElementById("sidebar").appendChild(rightblock);
+        document.getElementById("right").style.visibility = "hidden";
+
+        const penblock = document.createElement("div");
+        penblock.setAttribute("id", "pen");
+        penblock.setAttribute("class", "block V palette");
+        penblock.textContent = "Pen";
+        document.getElementById("sidebar").appendChild(penblock);
+        document.getElementById("pen").style.visibility = "hidden";
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -309,14 +353,15 @@ module mkHTML {
             accept:".canDrag",
             hoverClass: "hover",
             tolerance:'pointer',
+            greedy: true,
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
                 var selection = tree.deleteNode(currentSelection);
                 selection.choose(
                     sel => {
                         undostack.push(currentSelection);
-                        trashArray.push(currentSelection);
                         currentSelection = sel;
+                        trashArray.push(currentSelection);
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
@@ -329,6 +374,80 @@ module mkHTML {
         enterBox();
     }
 
+    function turtleGraphics()
+    {
+        document.getElementById("forward").style.visibility = "visible";
+        document.getElementById("right").style.visibility = "visible";
+        document.getElementById("pen").style.visibility = "visible";
+
+        const body = document.getElementById('container') ;
+        const canv = turtleWorld.getCanvas();
+        canv.setAttribute("class", "canv");
+        canv.setAttribute('width','1024') ;
+        canv.setAttribute('height','768') ;
+        body.appendChild( canv ) ;
+
+        $(document).keydown(function(e) {
+            switch(e.which) {
+                case 37: // left
+                    leftturn();
+                    break;
+
+                case 38: // up
+                    forwardmarch();
+                    break;
+
+                case 39: // right
+                    rightturn();
+                    break;
+
+                case 40: // down
+                    backward();
+                    break;
+                case 80:
+                    penDown();
+                    break;
+
+                default: return; // exit this handler for other keys
+            }
+            e.preventDefault(); // prevent the default action (scroll / move caret)
+        });
+    }
+
+    function penDown()
+    {
+        if(penUp)
+        {
+            turtleWorld.penDown();
+            penUp = false;
+        }
+        else
+        {
+            turtleWorld.penUp();
+            penUp = true;
+        }
+    }
+
+    function rightturn()
+    {
+        turtleWorld.right(10);
+    }
+
+    function leftturn()
+    {
+        turtleWorld.right(-10);
+    }
+
+    function forwardmarch()
+    {
+        turtleWorld.forward(10);
+    }
+
+    function backward()
+    {
+        turtleWorld.forward(-10);
+    }
+    
     function evaluate()
     {
         document.getElementById("trash").style.visibility = "hidden";
@@ -377,9 +496,24 @@ module mkHTML {
     {
         for(var i = 0; i < evalstack.obj.numFields(); i++)
         {
-            $("<h3>Object" + i + "</h3>").appendTo($(".stack"));
-            $("<div>" + evalstack.top().fields[i].getName() +
-                evalstack.top().fields[i].getType() + evalstack.top().fields[i].getValue() + "</div>").appendTo($(".stack"));
+            if(evalstack.top().fields[i].getName().match(/\+/gi) || evalstack.top().fields[i].getName().match(/\-/gi)
+            || evalstack.top().fields[i].getName().match(/\*/gi) || evalstack.top().fields[i].getName().match(/\//gi)
+            || evalstack.top().fields[i].getName().match(/>/gi) || evalstack.top().fields[i].getName().match(/</gi)
+            || evalstack.top().fields[i].getName().match(/==/gi) || evalstack.top().fields[i].getName().match(/>=/gi)
+            || evalstack.top().fields[i].getName().match(/<=/gi) || evalstack.top().fields[i].getName().match(/&/gi)
+            || evalstack.top().fields[i].getName().match(/\|/gi))
+            {
+                var builtInV = <BuiltInV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + builtInV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+            else
+            {
+                var stringV = <StringV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + stringV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+
         }
         if(evalstack.getNext() == null)
         {
@@ -389,37 +523,40 @@ module mkHTML {
         {
             visualizeStack(evalstack.getNext());
         }
-
-        $(function() {
-            $("#stackbar").accordion(
-                {
-                    header: "h3",
-                    collapsible: true,
-                    active: false
-                }
-            );
-        });
     }
 
     function visualizeTrash() {
         var dialogDiv = $('#trashDialog');
 
         if (dialogDiv.length == 0) {
-            dialogDiv = $("<div id='dialogDiv'><div/>").appendTo('body');
+            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
             for(var i = 0; i < trashArray.length; i++) {
                 var trashdiv = document.createElement("div");
                 trashdiv.setAttribute("class", "trashitem");
                 trashdiv.setAttribute("data-trashitem", i.toString());
                 $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
                 $(trashdiv).appendTo(dialogDiv);
+                $(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
             dialogDiv.dialog({
                 modal : true,
                 dialogClass: 'no-close success-dialog',
             });
         }else{
-            dialogDiv.dialog("open");
+            dialogDiv.dialog("destroy");
         }
+
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid',
+            appendTo: '#container',
+            containment: false,
+            start: function(event,ui){
+                draggedObject = $(this).attr("class");
+                draggedSelection = getPathToNode(currentSelection, $(this));
+            }
+        });
 }
 
     function highlight(parent, pending)
@@ -495,7 +632,7 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
-            var remove = document.getElementById("stackbar");
+            var remove = document.getElementById("stackVal");
             while (remove.firstChild) {
                 remove.removeChild(remove.firstChild);
             }
@@ -513,7 +650,7 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
-            var remove = document.getElementById("stackbar");
+            var remove = document.getElementById("stackVal");
             while (remove.firstChild) {
                 remove.removeChild(remove.firstChild);
             }
@@ -1130,6 +1267,33 @@ module mkHTML {
             VarDeclBox.appendChild(children[2]);
 
             return VarDeclBox;
+        }
+        else if(label.match("forward"))
+        {
+            var forwardElement = document.createElement("div");
+            forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
+            forwardElement.setAttribute("data-childNumber", childNumber.toString());
+            forwardElement.appendChild(children[0]);
+
+            return forwardElement;
+        }
+        else if(label.match("right"))
+        {
+            var rightElement = document.createElement("div");
+            rightElement.setAttribute("class", "turtleFunc canDrag droppable");
+            rightElement.setAttribute("data-childNumber", childNumber.toString());
+            rightElement.appendChild(children[0]);
+
+            return rightElement;
+        }
+        else if(label.match("pen"))
+        {
+            var penElement = document.createElement("div");
+            penElement.setAttribute("class", "turtleFunc canDrag droppable");
+            penElement.setAttribute("data-childNumber", childNumber.toString());
+            penElement.appendChild(children[0]);
+
+            return penElement;
         }
 
     }
