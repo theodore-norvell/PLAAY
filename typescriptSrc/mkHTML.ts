@@ -46,12 +46,14 @@ module mkHTML {
     var root = pnode.mkExprSeq([]);
     const turtleWorld = new seymour.TurtleWorld();
     var path : (  ...args : Array<number> ) => List<number> = list;
+    var pathToTrash = list<number>();
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
     var penUp = true;
+    var turtle = "";
     currentSelection = select;
 
     export function onLoad() : void
@@ -364,11 +366,12 @@ module mkHTML {
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
                 var selection = tree.deleteNode(currentSelection);
-                selection.choose(
+                selection[1].choose(
                     sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
                         undostack.push(currentSelection);
                         currentSelection = sel;
-                        trashArray.push(currentSelection);
+                        trashArray.push(trashselect);
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
@@ -384,15 +387,18 @@ module mkHTML {
     function turtleGraphics()
     {
         document.getElementById("forward").style.visibility = "visible";
+        document.getElementById("left").style.visibility = "visible";
         document.getElementById("right").style.visibility = "visible";
         document.getElementById("pen").style.visibility = "visible";
 
-        const body = document.getElementById('container') ;
+        turtle = "turtle";
+        const body = document.getElementById('body') ;
         const canv = turtleWorld.getCanvas();
         canv.setAttribute("class", "canv");
         canv.setAttribute('width','1024') ;
         canv.setAttribute('height','768') ;
-        body.appendChild( canv ) ;
+        $(body).prepend(canv);
+        
 
         $(document).keydown(function(e) {
             switch(e.which) {
@@ -469,7 +475,7 @@ module mkHTML {
         document.getElementById("multistep").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root(), "");
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -544,7 +550,7 @@ module mkHTML {
                 trashdiv.setAttribute("data-trashitem", i.toString());
                 $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
                 $(trashdiv).appendTo(dialogDiv);
-                $(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                //$(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
             dialogDiv.dialog({
                 modal : true,
@@ -561,8 +567,8 @@ module mkHTML {
             appendTo: '#container',
             containment: false,
             start: function(event,ui){
-                draggedObject = $(this).attr("class");
-                draggedSelection = getPathToNode(currentSelection, $(this));
+                draggedObject = $(this).parent().attr("class");
+                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
             }
         });
 }
