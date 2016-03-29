@@ -627,7 +627,7 @@ module world {
             this.segments = segments;
         }
 
-        private world2View( p : Point, viewWidth : number, viewHeight : number ) {
+        world2View( p : Point, viewWidth : number, viewHeight : number ) {
             const hscale = viewWidth / this.worldWidth * this.zoom ;
             const vscale = viewHeight / this.worldHeight * this.zoom ;
             const x = p.x() * hscale + viewWidth/2 ;
