@@ -35,6 +35,7 @@ module mkHTML {
     import arrayToList = collections.arrayToList;
     import StringV = value.StringV;
     import BuiltInV = value.BuiltInV;
+    import Point = seymour.Point;
 
     var undostack = [];
     var redostack = [];
@@ -55,6 +56,13 @@ module mkHTML {
     var penUp = true;
     var turtle = "";
     currentSelection = select;
+
+    const canv = document.createElement('canvas');
+    const body = document.getElementById('body') ;
+    canv.setAttribute("class", "canv");
+    canv.setAttribute('width','1024') ;
+    canv.setAttribute('height','768') ;
+    $(body).prepend(canv);
 
     export function onLoad() : void
     {
@@ -384,6 +392,48 @@ module mkHTML {
         enterBox();
     }
 
+    function redraw(vms:VMS) {
+        const ctx = canv.getContext("2d");
+        const w = canv.width;
+        const h = canv.height;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
+            const p0v = this.world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
+            const p1v = this.world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.stroke();
+        }
+        /*var base_image = new Image();
+         base_image.src = 'turtle1.png';
+         base_image.height = 25;
+         base_image.width = 25;
+         ctx.drawImage(base_image, this.posn.x(), this.posn.y());*/
+        if (vms.getEval().getTurtleFields().getVisible()) {
+            // Draw a little triangle
+            const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
+            const x = vms.getEval().getTurtleFields().getPosn().x();
+            const y = vms.getEval().getTurtleFields().getPosn().y();
+            const p0x = x + 4 * Math.cos(theta);
+            const p0y = y + 4 * Math.sin(theta);
+            const p1x = x + 5 * Math.cos(theta + 2.5);
+            const p1y = y + 5 * Math.sin(theta + 2.5);
+            const p2x = x + 5 * Math.cos(theta - 2.5);
+            const p2y = y + 5 * Math.sin(theta - 2.5);
+            const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
+            const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.lineTo(p2v.x(), p2v.y());
+            ctx.lineTo(p0v.x(), p0v.y());
+            ctx.stroke();
+
+        }
+    }
+
     function turtleGraphics()
     {
         document.getElementById("forward").style.visibility = "visible";
@@ -392,14 +442,6 @@ module mkHTML {
         document.getElementById("pen").style.visibility = "visible";
 
         turtle = "turtle";
-        const body = document.getElementById('body') ;
-        const canv = turtleWorld.getCanvas();
-        canv.setAttribute("class", "canv");
-        canv.setAttribute('width','1024') ;
-        canv.setAttribute('height','768') ;
-        $(body).prepend(canv);
-        
-
         $(document).keydown(function(e) {
             switch(e.which) {
                 case 37: // left
@@ -675,6 +717,10 @@ module mkHTML {
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
+        if(turtle.match("turtle"))
+        {
+            redraw(currentvms);
+        }
     }
 
     function stepTillDone()
@@ -818,6 +864,21 @@ module mkHTML {
                             generateHTML(currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             createCopyDialog(selectionArray);
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
+                }
+                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
+                {
+                    undostack.push(currentSelection);
+                    var selection = tree.appendChild(draggedSelection, currentSelection);
+                    selection.choose(
+                        sel => {
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         },
                         ()=>{
                             generateHTML(currentSelection);
