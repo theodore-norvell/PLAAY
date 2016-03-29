@@ -7,7 +7,7 @@
 /// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
 
-import collections = require( '../collections' ) ;
+/*import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
 import vms = require( '../vms' ) ;
