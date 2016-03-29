@@ -19,6 +19,7 @@ module evaluation {
     import ClosureV = value.ClosureV;
     import World = world.World;
     import ObjectV = value.ObjectV;
+    import TurtleFields = world.TurtleFields;
 
     export class Evaluation {
         root : PNode;
@@ -26,11 +27,13 @@ module evaluation {
         private pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
+        private turtleFields : TurtleFields;
 
         next : Evaluation;
 
         constructor (root : PNode, obj: Array<ObjectV>) {
             this.root = root;
+            this.turtleFields = new TurtleFields();
             this.pending = new Array();
             this.ready = false;
             for (var i = 0; i < obj.length; i++){
@@ -58,6 +61,10 @@ module evaluation {
 
         popfromStack() {
             this.stack = this.stack.getNext()
+        }
+
+        getTurtleFields(){
+            return this.turtleFields;
         }
 
         getRoot()
