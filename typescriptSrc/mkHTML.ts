@@ -239,6 +239,13 @@ module mkHTML {
         document.getElementById("sidebar").appendChild(forwardblock);
         document.getElementById("forward").style.visibility = "hidden";
 
+        const leftblock = document.createElement("div");
+        leftblock.setAttribute("id", "left");
+        leftblock.setAttribute("class", "block V palette");
+        leftblock.textContent = "Left";
+        document.getElementById("sidebar").appendChild(leftblock);
+        document.getElementById("left").style.visibility = "hidden";
+
         const rightblock = document.createElement("div");
         rightblock.setAttribute("id", "right");
         rightblock.setAttribute("class", "block V palette");
@@ -1286,6 +1293,15 @@ module mkHTML {
             rightElement.appendChild(children[0]);
 
             return rightElement;
+        }
+        else if(label.match("left"))
+        {
+            var leftElement = document.createElement("div");
+            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
+            leftElement.setAttribute("data-childNumber", childNumber.toString());
+            leftElement.appendChild(children[0]);
+
+            return leftElement;
         }
         else if(label.match("pen"))
         {
