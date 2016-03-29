@@ -797,48 +797,6 @@ module world {
             evalu.getTurtleFields().setVisible(true);
             evalu.finishStep( new StringV(""));
         }
-
-        redraw() {
-            const ctx = this.canv.getContext("2d") ;
-            const w = this.canv.width ;
-            const h = this.canv.height ;
-            ctx.clearRect(0, 0, w, h);
-            for( let i = 0 ; i < this.segments.length ; ++i ) {
-                const p0v = this.world2View( this.segments[i].p0, w, h ) ;
-                const p1v = this.world2View( this.segments[i].p1, w, h ) ;
-                ctx.beginPath() ;
-                ctx.moveTo( p0v.x(), p0v.y() ) ;
-                ctx.lineTo( p1v.x(), p1v.y() ) ;
-                ctx.stroke() ;
-            }
-            /*var base_image = new Image();
-             base_image.src = 'turtle1.png';
-             base_image.height = 25;
-             base_image.width = 25;
-             ctx.drawImage(base_image, this.posn.x(), this.posn.y());*/
-            if( this.visible ) {
-                // Draw a little triangle
-                const theta = this.orientation / 180.0 * Math.PI ;
-                const x = this.posn.x() ;
-                const y = this.posn.y() ;
-                const p0x = x + 4 *  Math.cos(theta) ;
-                const p0y = y + 4 *  Math.sin(theta) ;
-                const p1x = x + 5 * Math.cos(theta+2.5) ;
-                const p1y = y + 5 * Math.sin(theta+2.5) ;
-                const p2x = x + 5 * Math.cos(theta-2.5) ;
-                const p2y = y + 5 * Math.sin(theta-2.5) ;
-                const p0v = this.world2View( new Point(p0x,p0y), w, h ) ;
-                const p1v = this.world2View( new Point(p1x,p1y), w, h ) ;
-                const p2v = this.world2View( new Point(p2x,p2y), w, h ) ;
-                ctx.beginPath() ;
-                ctx.moveTo(p0v.x(),p0v.y()) ;
-                ctx.lineTo(p1v.x(),p1v.y()) ;
-                ctx.lineTo(p2v.x(),p2v.y()) ;
-                ctx.lineTo(p0v.x(),p0v.y()) ;
-                ctx.stroke() ;
-
-            }
-        }
     }
 }
 

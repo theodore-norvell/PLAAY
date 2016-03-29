@@ -58,11 +58,6 @@ module mkHTML {
     currentSelection = select;
 
     const canv = document.createElement('canvas');
-    const body = document.getElementById('body') ;
-    canv.setAttribute("class", "canv");
-    canv.setAttribute('width','1024') ;
-    canv.setAttribute('height','768') ;
-    $(body).prepend(canv);
 
     export function onLoad() : void
     {
@@ -440,6 +435,12 @@ module mkHTML {
         document.getElementById("left").style.visibility = "visible";
         document.getElementById("right").style.visibility = "visible";
         document.getElementById("pen").style.visibility = "visible";
+
+        const body = document.getElementById('body') ;
+        canv.setAttribute("class", "canv");
+        canv.setAttribute('width','1024') ;
+        canv.setAttribute('height','768') ;
+        body.appendChild(canv);
 
         turtle = "turtle";
         $(document).keydown(function(e) {
