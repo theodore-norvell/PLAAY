@@ -329,27 +329,25 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        moveCopySwapEditList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Option<Selection>] > {
+        moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
 
             var selectionList : Array< [string, string, Option<Selection>] > = [];
 
-            var moveedit = new pnodeEdits.MoveNodeEdit(oldSelection);
-            if (moveedit.canApply(newSelection)) {
-                var sel = moveedit.applyEdit(newSelection);
+            var moveedit = new pnodeEdits.MoveNodeEdit(srcSelection);
+            if (moveedit.canApply(trgSelection)) {
+                var sel = moveedit.applyEdit(trgSelection);
                 selectionList.push(["Moved", "Move", sel]);
             }
 
-            var copyedit = new pnodeEdits.CopyNodeEdit(oldSelection);
-            if (copyedit.canApply(newSelection)) {
-                var sel = copyedit.applyEdit(newSelection)
-
+            var copyedit = new pnodeEdits.CopyNodeEdit(srcSelection);
+            if (copyedit.canApply(trgSelection)) {
+                var sel = copyedit.applyEdit(trgSelection);
                 selectionList.push(['Copied', "Copy", sel]);
             }
 
-           var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
+           var swapedit = new pnodeEdits.SwapEdit(srcSelection, trgSelection);
             if (swapedit.canApply()) {
-                var sel = swapedit.applyEdit()
-
+                var sel = swapedit.applyEdit();
                 selectionList.push(['Swapped', "Swap", sel]);
             }
 

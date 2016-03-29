@@ -133,7 +133,7 @@ module value {
 
     export class ClosureV implements Value {
         //need function obj
-        public function : LambdaNode;
+        public functionn : LambdaNode;
         context : Stack;
         isClosureV(){
             return true;

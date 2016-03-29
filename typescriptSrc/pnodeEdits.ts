@@ -12,7 +12,8 @@ module pnodeEdits {
     import Option = collections.Option;
     import None = collections.None;
     import Some = collections.Some;
-    import List = collections.List;
+    import List = collections.List
+    import arrayToList = collections.arrayToList;;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
@@ -260,6 +261,7 @@ module pnodeEdits {
         }
 
         applyEdit(selection:Selection):Option<Selection> {
+
             var edit = new pnodeEdits.InsertChildrenEdit(this._newNodes);
             return edit.applyEdit(selection);
         }
@@ -304,6 +306,10 @@ module pnodeEdits {
         }
 
         applyEdit(selection:Selection):Option<Selection> {
+            if (selection.root().get(selection.path()).children(selection.anchor(), selection.focus()).length != 0){
+                //if you are moving to an occupied space, you cannot move
+                return new None<Selection>();
+            }
             var edit = new InsertChildrenEdit(this._newNodes);
             var selwithchildren = edit.applyEdit(selection).choose(
                 p => p,
@@ -318,31 +324,38 @@ module pnodeEdits {
         }
     }
 
-    export class SwapNodeEdit extends AbstractEdit<Selection> {
-        _newNode1 : Array<PNode> ;
-        _newNode2 : Array<PNode> ;
-        _firstSelection : Selection;
-        _secondSelection : Selection;
+    export class SwapEdit extends AbstractEdit<Selection> {
+        _srcNodes:Array<PNode>;
+        _trgNodes:Array<PNode>;
+        _srcSelection:Selection;
+        _trgSelection:Selection;
 
-        constructor(firstSelection:Selection, secondSelection:Selection) {
+        constructor(srcSelection:Selection, trgSelection:Selection) {
             super();
 
-            this._firstSelection = firstSelection;
-            this._secondSelection = secondSelection;
+            this._srcSelection = srcSelection;
+            this._trgSelection = trgSelection;
+            this._srcNodes = this.getChildrenToSwap(srcSelection);
+            this._trgNodes = this.getChildrenToSwap(trgSelection);
 
-            this._newNode1 = this.getChildrenToSwap(firstSelection);
-            this._newNode2 = this.getChildrenToSwap(secondSelection);
+            if (this._srcNodes == null) {
+                this._srcNodes = []; //TODO why would this ever be a thing??? It's been happening
+            }
+            if (this._trgNodes == null) {
+                this._trgNodes = [];
+            }
+
         }
 
-        canApply() : boolean {
+        canApply():boolean {
             return this.applyEdit().choose(
                 a => true,
-                () => false ) ;
+                () => false);
         }
 
-        getChildrenToSwap(selection : Selection) : Array<PNode> {
+        getChildrenToSwap(selection:Selection):Array<PNode> {
             const loop = (node:PNode, path:List<number>,
-                          start:number, end:number) : Array<PNode> => {
+                          start:number, end:number):Array<PNode> => {
                 if (path.isEmpty()) {
                     //console.log("this._newNodes is " + this._newNodes ) ;
                     return node.children(start, end);
@@ -368,27 +381,214 @@ module pnodeEdits {
                 end = selection.anchor();
             }
             // Loop down to find and modify the selections target node.
-            var node = loop(selection.root(), selection.path(), start, end);
-            return node;
+            return loop(selection.root(), selection.path(), start, end);
         }
 
         applyEdit():Option<Selection> {
-            var edit1 = new pnodeEdits.InsertChildrenEdit(this._newNode1);
+            // The following function dives down the tree following the path
+            // until it reaches the node to be changed.
+            // As it climbs back out of the recursion it generates new
+            // nodes along the path it followed.
+            const loop = (srcnode:PNode, srcpath:List<number>, trgpath:List<number>,
+                          srcstart:number, srcend:number, trgstart:number, trgend:number):Option<PNode> => {
+                if (srcpath.isEmpty() && trgpath.isEmpty()) {
+                    if (srcend <= trgstart) {
+                        var newchildren = srcnode.children(0, srcstart).concat(this._srcNodes).concat(
+                            srcnode.children(srcend, trgstart)).concat(this._trgNodes).concat(
+                            srcnode.children(trgend, srcnode.count()));
 
-            var firstSel = edit1.applyEdit(this._secondSelection).choose(
-                p => p,
-                () => {
-                    assert.check(false, "Error applying edit to node");
-                    return null;
+                        return srcnode.tryModify(newchildren, 0, srcnode.count());
+                    }
+                    else if (trgstart <= srcend) {
+                        var newchildren = srcnode.children(0, trgstart).concat(this._srcNodes).concat(
+                            srcnode.children(trgend, srcstart)).concat(this._trgNodes).concat(
+                            srcnode.children(srcend, srcnode.count()));
+
+                        return srcnode.tryModify(newchildren, 0, srcnode.count());
+                    }
+                    else {
+                        //they overlap, fail
+                        return new None<PNode>();
+                    }
+                }
+                else if (srcpath.isEmpty() && !trgpath.isEmpty()) {
+                    if (trgpath.first() < srcstart) {
+                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
+                        var sel = new Selection(srcnode.child(trgpath.first()), trgpath.rest(), trgstart, trgend);
+                        var opt = singleReplaceTest.applyEdit(sel);
+
+                        var sel1 = opt.choose(
+                            p => p,
+                            () => {
+                                return null;
+                            });
+
+                        if (sel1 != null) {
+                            var newchildren = srcnode.children(0, trgpath.first()).concat(sel1.root()).concat(
+                                srcnode.children(trgpath.first() + 1, srcstart)).concat(this._srcNodes).concat(
+                                srcnode.children(srcend, srcnode.count()));
+
+                            return srcnode.tryModify(newchildren, 0, srcnode.count());
+                        }
+
+                    } else if (srcend <= trgpath.first()) {
+
+                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
+                        var sel = new Selection(srcnode.child(trgpath.first()), trgpath.rest(), trgstart, trgend);
+                        var opt = singleReplaceTest.applyEdit(sel);
+
+                        var sel1 = opt.choose(
+                            p => p,
+                            () => {
+                                return null;
+                            });
+
+                        if (sel1 != null) {
+                            var newchildren = srcnode.children(0, srcstart).concat(this._srcNodes).concat(
+                                srcnode.children(srcend, trgpath.first())).concat(sel1.root()).concat(
+                                srcnode.children(trgpath.first() + 1, srcnode.count()));
+
+                            return srcnode.tryModify(newchildren, 0, srcnode.count());
+                        }
+                    }
+                    else {
+                        // srcstart <= trgpath.first() and trgpath.first() < srcend
+                        return new None<PNode>();
+                    }
+                }
+                else if (!srcpath.isEmpty() && trgpath.isEmpty()) {
+                    if (srcpath.first() < trgstart) {
+                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
+                        var sel = new Selection(srcnode.child(srcpath.first()), srcpath.rest(), srcstart, srcend);
+                        var opt = singleReplaceTest.applyEdit(sel);
+
+                        var sel1 = opt.choose(
+                            p => p,
+                            () => {
+                                return null;
+                            });
+
+                        if (sel1 != null) {
+                            var newchildren = srcnode.children(0, srcpath.first()).concat(sel1.root()).concat(
+                                srcnode.children(srcpath.first() + 1, trgstart)).concat(this._srcNodes).concat(
+                                srcnode.children(trgend, srcnode.count()));
+
+                            return srcnode.tryModify(newchildren, 0, srcnode.count());
+                        }
+
+                    } else if (trgend <= srcpath.first()) {
+
+                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
+                        var sel = new Selection(srcnode.child(srcpath.first()), srcpath.rest(), srcstart, srcend);
+                        var opt = singleReplaceTest.applyEdit(sel);
+
+                        var sel1 = opt.choose(
+                            p => p,
+                            () => {
+                                return null;
+                            });
+
+                        if (sel1 != null) {
+                            var newchildren = srcnode.children(0, trgstart).concat(this._srcNodes).concat(
+                                srcnode.children(trgend, srcpath.first())).concat(sel1.root()).concat(
+                                srcnode.children(srcpath.first() + 1, srcnode.count()));
+
+                            return srcnode.tryModify(newchildren, 0, srcnode.count());
+                        }
+                        else {
+                            // trgstart <= src.first() and src.first() < trgend
+                            return new None<PNode>();
+                        }
+                    }
+                else if (srcpath.first() != trgpath.first()) {
+                        var singleReplaceTest = new InsertChildrenEdit(this._srcNodes);
+                        var sel = new Selection(srcnode.child(srcpath.first()), trgpath.rest(), trgstart, trgend);
+                        var opt = singleReplaceTest.applyEdit(sel);
+
+                        var sel1 = opt.choose(
+                            p => p,
+                            () => {
+                                return null;
+                            });
+
+                        if (sel1 != null) {
+                            var replace2 = new InsertChildrenEdit(this._trgNodes);
+                            var sel2 = new Selection(sel1.root(), srcpath.rest(), srcstart, srcend);
+                            var opt2 = singleReplaceTest.applyEdit(sel2);
+
+                            var sel3 = opt2.choose(
+                                p => p,
+                                () => {
+                                    return null;
+                                });
+
+                            if (sel3 != null) {
+                                return new Some(sel3);
+                            }
+                        }
+                        return new None<PNode>();
+                    }
+                }
+                else {
+                    const srck = srcpath.first();
+                    const srclen = srcnode.count();
+                    const trgk = trgpath.first();
+
+                    assert.check(0 <= srck && 0 <= trgk, "Bad Path. k < 0 in applyEdit");
+                    assert.check(srck < srclen && trgk < srclen, "Bad Path. k >= len in applyEdit");
+                    const opt = loop(srcnode.child(srck), srcpath.rest(), trgpath.rest(), srcstart, srcend, trgstart, trgend);
+                    return opt.choose(
+                        (newChild:PNode):Option<PNode> => {
+                            return srcnode.tryModify([newChild], trgk, trgk + 1);
+                        },
+                        () => {
+                            return new None<PNode>();
+                        });
+                }
+            };
+
+            if (this._trgNodes.length == 0){
+                //if the space you are moving to is unoccupied, then you can't swap
+                return new None<Selection>();
+            }
+
+            // Determine the start and end
+            var srcstart:number;
+            var srcend:number;
+            var trgstart:number;
+            var trgend:number;
+            if (this._srcSelection.anchor() <= this._srcSelection.focus()) {
+                srcstart = this. _srcSelection.anchor();
+                srcend = this._srcSelection.focus();
+            }
+            else {
+                srcstart = this. _srcSelection.focus();
+                srcend = this._srcSelection.anchor();
+            }
+            if (this._trgSelection.anchor() <= this._trgSelection.focus()) {
+                trgstart = this. _trgSelection.anchor();
+                trgend = this._trgSelection.focus();
+            }
+            else {
+                trgstart = this. _trgSelection.focus();
+                trgend = this._trgSelection.anchor();
+            }
+            // Loop down to find and modify the selections target node.
+            const opt = loop(this._srcSelection.root(), this._srcSelection.path(), this._trgSelection.path(), srcstart, srcend, trgstart, trgend);
+            // If successful, build a new Selection object.
+            return opt.choose(
+                (newRoot:PNode):Option<Selection> => {
+                    const f = srcstart;
+                    const newSelection = new Selection(newRoot,
+                        this._srcSelection.path(),
+                        f, f);
+                    return new Some(newSelection);
+                },
+                ():Option<Selection> => {
+                    return new None<Selection>();
                 });
-
-            var sel =  new Selection(firstSel._root, this._firstSelection.path(), this._firstSelection.anchor(), this._firstSelection.focus() );
-            var edit2 = new pnodeEdits.InsertChildrenEdit(this._newNode2);
-            return edit2.applyEdit(sel);
-
         }
     }
-
 }
 
 export = pnodeEdits ;

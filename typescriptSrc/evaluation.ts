@@ -102,7 +102,7 @@ module evaluation {
             var node = this.root.get( this.pending );
             var closurePath = this.pending.concat([0]);
             var closure = <ClosureV>this.varmap.get( closurePath );
-            var lambda = closure.function;
+            var lambda = closure.functionn;
             this.finishStep( value );
         }
 
