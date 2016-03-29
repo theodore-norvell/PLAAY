@@ -83,12 +83,14 @@ module treeManager {
                     return this.makeTypeNode(selection);
 
                 //turtleworldfunctions
-                case "pen":
+                case "penup":
                     return this.makePenNode(selection);
                 case "forward":
                     return this.makeForwardNode(selection);
                 case "right":
                     return this.makeRightNode(selection);
+                case "left":
+                    return this.makeLeftNode(selection);
 
             }
         }
@@ -375,6 +377,23 @@ module treeManager {
                 });
 
             var edit = new pnodeEdits.InsertChildrenEdit([rightnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeLeftNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.LeftLabel.theLeftLabel, [val]);
+
+            var leftnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([leftnode]);
             return edit.applyEdit(selection);
         }
 
