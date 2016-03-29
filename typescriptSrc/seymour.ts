@@ -1,7 +1,7 @@
 
 
 module seymour {
-    class Point {   
+    export class Point {
         private _x : number = 0 ;
         private _y : number = 0 ;
         constructor( x : number, y : number) { this._x = x ; this._y = y ; }
@@ -9,7 +9,7 @@ module seymour {
         public x() { return this._x ; }
         public y() { return this._y ; }
     }
-    interface Segment {   
+    export interface Segment {
         p0 : Point ;
         p1 : Point ;
     }

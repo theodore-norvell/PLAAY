@@ -403,9 +403,10 @@ module treeManager {
 
         }
 
-        deleteNode(selection:Selection) : Option<Selection> {
+        deleteNode(selection:Selection) : [Array<PNode>, Option<Selection>] {
+            var deletedNode = selection.root().get(selection.path()).children(selection.anchor(), selection.focus());
             var edit = new pnodeEdits.DeleteEdit();
-            return edit.applyEdit(selection);
+            return [deletedNode, edit.applyEdit(selection)];
         }
 
         moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
