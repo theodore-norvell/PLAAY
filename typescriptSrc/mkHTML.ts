@@ -1076,6 +1076,23 @@ module mkHTML {
 
             return PHBox;
         }
+        else if(label.match("param"))
+        {
+            var paramBox = document.createElement("div");
+            paramBox.setAttribute("class", "paramlistOuter H");
+            paramBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
+
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
+                paramBox.appendChild(dropZone);
+                if (i == children.length) break;
+                paramBox.appendChild(children[i]);
+            }
+
+            return paramBox;
+        }
         else if(label.match("while"))
         {
             assert.check( children.length == 2 ) ;
@@ -1167,14 +1184,15 @@ module mkHTML {
             var lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
+            lambdahead.appendChild(children[1]);
 
             var doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox");
-            doBox.appendChild( children[1] ) ;
+            doBox.setAttribute("class", "doBox H");
+            doBox.appendChild( children[2] ) ;
 
             var LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
-
+            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
