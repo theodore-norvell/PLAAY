@@ -459,6 +459,26 @@ module pnode {
         }
     }
 
+    export class TurtleStrategy implements nodeStrategy {
+        select( vms : VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var value = pending.concat([0]);
+                    if (evalu.varmap.inMap(value)) {
+                        evalu.ready = true;
+                    }
+                    else {
+                        evalu.setPending(value);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                }
+            }
+        }
+    }
+
    /* export class callStrategy implements nodeStrategy{
         select(){}
 
@@ -573,6 +593,7 @@ module pnode {
         isTypeNode():boolean {
             return true;
         }
+
     }
 
     export class LambdaNode extends ExprNode {
@@ -1464,6 +1485,7 @@ module pnode {
 
     export class PenLabel extends ExprLabel {
         _val:string; //either up or down
+        strategy : TurtleStrategy = new TurtleStrategy();
 
         constructor(val:string) {
             super();
@@ -1521,6 +1543,7 @@ module pnode {
 
     export class ForwardLabel extends ExprLabel {
         _val:string; //
+        strategy : TurtleStrategy = new TurtleStrategy();
 
         constructor(val:string) {
             super();
@@ -1578,6 +1601,7 @@ module pnode {
 
     export class RightLabel extends ExprLabel {
         _val:string; //either left or right, depending on the sign of the value
+        strategy : TurtleStrategy = new TurtleStrategy();
 
         constructor(val:string) {
             super();
@@ -1635,6 +1659,7 @@ module pnode {
 
     export class LeftLabel extends ExprLabel {
         _val:string; //either left or right, depending on the sign of the value
+        strategy : TurtleStrategy = new TurtleStrategy();
 
         constructor(val:string) {
             super();

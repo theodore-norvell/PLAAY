@@ -24,11 +24,11 @@ module vms{
         val : String ;
         private world : World;
 
-        constructor(root : PNode, world: World) {
-            this.evalu = new Evaluation(root, world);
+        constructor(root : PNode, worlds: Array<World>) {
+            this.evalu = new Evaluation(root, worlds);
             this.stack = new Stack();
             this.stack.push(this.evalu);
-            this.world = world;
+            this.world = worlds[0];
         }
 
         canAdvance() : boolean {

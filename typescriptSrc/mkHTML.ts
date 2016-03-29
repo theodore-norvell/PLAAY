@@ -462,7 +462,7 @@ module mkHTML {
         document.getElementById("multistep").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root(), "");
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -481,6 +481,7 @@ module mkHTML {
         document.getElementById("undo").style.visibility = "visible";
         document.getElementById("sidebar").style.visibility = "visible";
         document.getElementById("container").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
         document.getElementById("play").style.visibility = "visible";
         document.getElementById("vms").style.visibility = "hidden";
         document.getElementById("stackbar").style.visibility = "hidden";
