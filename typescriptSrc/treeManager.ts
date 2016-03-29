@@ -95,6 +95,12 @@ module treeManager {
             }
         }
 
+        appendChild(srcSelection:Selection, trgSelection:Selection) {
+            var edit = new pnodeEdits.InsertChildrenEdit([srcSelection.root()]);
+            return edit.applyEdit(trgSelection);
+
+        }
+
         private makeVarNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.VariableLabel.theVariableLabel, []);
