@@ -1495,11 +1495,16 @@ module pnode {
         }
 
         toString():string {
-            return "pen";
+            return "penup";
         }
 
         nodeStep(node, evalu) {
-
+            if (evalu.getStack().inStack("penup") ) {
+                var f = evalu.getStack().getField("penup");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
         }
 
         // Singleton
@@ -1551,7 +1556,12 @@ module pnode {
         }
 
         nodeStep(node, evalu) {
-
+            if (evalu.getStack().inStack("forward") ) {
+                var f = evalu.getStack().getField("forward");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
         }
 
         // Singleton
@@ -1603,7 +1613,12 @@ module pnode {
         }
 
         nodeStep(node, evalu) {
-
+            if (evalu.getStack().inStack("right") ) {
+                var f = evalu.getStack().getField("right");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
         }
 
         // Singleton
@@ -1615,6 +1630,63 @@ module pnode {
 
         public static fromJSON( json : any ) : RightLabel {
             return RightLabel.theRightLabel ;
+        }
+    }
+
+    export class LeftLabel extends ExprLabel {
+        _val:string; //either left or right, depending on the sign of the value
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new LeftLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "left";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("left") ) {
+                var f = evalu.getStack().getField("left");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theLeftLabel = new LeftLabel("");
+
+        public toJSON() : any {
+            return { kind: "LeftLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : LeftLabel {
+            return LeftLabel.theLeftLabel ;
         }
     }
 
