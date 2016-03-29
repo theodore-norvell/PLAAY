@@ -5,6 +5,7 @@
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="vms.ts" />
+/// <reference path="value.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
@@ -16,6 +17,8 @@ import treeManager = require('./treeManager');
 import evaluationManager = require('./evaluationManager');
 import stack = require( './stackManager' ) ;
 import vms = require('./vms');
+import value = require('./value');
+import seymour = require( './seymour' ) ;
 
 module mkHTML {
     import list = collections.list;
@@ -28,21 +31,29 @@ module mkHTML {
     import VarMap = stack.VarMap;
     import mapEntry = stack.mapEntry;
     import VMS = vms.VMS;
+    import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
+    import StringV = value.StringV;
+    import BuiltInV = value.BuiltInV;
 
     var undostack = [];
     var redostack = [];
+    var trashArray = [];
     var currentSelection;
     var draggedSelection;
     var draggedObject;
 
     var root = pnode.mkExprSeq([]);
+    const turtleWorld = new seymour.TurtleWorld();
     var path : (  ...args : Array<number> ) => List<number> = list;
+    var pathToTrash = list<number>();
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
+    var penUp = true;
+    var turtle = "";
     currentSelection = select;
 
     export function onLoad() : void
@@ -57,6 +68,11 @@ module mkHTML {
         stackbar.setAttribute("id", "stackbar");
         stackbar.setAttribute("class", "stack");
         document.getElementById("body").appendChild(stackbar);
+        const table = document.createElement("table");
+        table.setAttribute("id", "stackVal");
+        document.getElementById("stackbar").appendChild(table);
+        document.getElementById("stackVal").style.border = "thin solid black";
+        document.getElementById("stackVal");
         document.getElementById("stackbar").style.visibility = "hidden";
 
         //creates undo/redo buttons
@@ -108,6 +124,18 @@ module mkHTML {
             evaluate();
         };
 
+        const turtlebutton = document.createElement("div");
+        turtlebutton.setAttribute("id", "turtle");
+        turtlebutton.setAttribute("class", "turtle");
+        turtlebutton.setAttribute("onclick", "turtle()");
+        turtlebutton.textContent = "Turtle World";
+        document.getElementById("body").appendChild(turtlebutton);
+        var turtleworld = document.getElementById("turtle");
+        turtleworld.onclick = function turtle()
+        {
+            turtleGraphics();
+        };
+
         const editorbutton = document.createElement("div");
         editorbutton.setAttribute("id", "edit");
         editorbutton.setAttribute("class", "edit");
@@ -123,9 +151,14 @@ module mkHTML {
 
         const trash = document.createElement("div");
         trash.setAttribute("id","trash");
-        trash.setAttribute("class", "trash");
+        trash.setAttribute("class", "trash clicktrash");
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
+        var garbage = document.getElementById("trash");
+        garbage.onclick = function opendialog()
+        {
+            visualizeTrash();
+        };
 
         const advancebutton = document.createElement("div");
         advancebutton.setAttribute("id", "advance");
@@ -200,6 +233,34 @@ module mkHTML {
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
+
+        const forwardblock = document.createElement("div");
+        forwardblock.setAttribute("id", "forward");
+        forwardblock.setAttribute("class", "block V palette");
+        forwardblock.textContent = "Forward";
+        document.getElementById("sidebar").appendChild(forwardblock);
+        document.getElementById("forward").style.visibility = "hidden";
+
+        const leftblock = document.createElement("div");
+        leftblock.setAttribute("id", "left");
+        leftblock.setAttribute("class", "block V palette");
+        leftblock.textContent = "Left";
+        document.getElementById("sidebar").appendChild(leftblock);
+        document.getElementById("left").style.visibility = "hidden";
+
+        const rightblock = document.createElement("div");
+        rightblock.setAttribute("id", "right");
+        rightblock.setAttribute("class", "block V palette");
+        rightblock.textContent = "Right";
+        document.getElementById("sidebar").appendChild(rightblock);
+        document.getElementById("right").style.visibility = "hidden";
+
+        const penblock = document.createElement("div");
+        penblock.setAttribute("id", "pen");
+        penblock.setAttribute("class", "block V palette");
+        penblock.textContent = "Pen";
+        document.getElementById("sidebar").appendChild(penblock);
+        document.getElementById("pen").style.visibility = "hidden";
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -301,13 +362,16 @@ module mkHTML {
             accept:".canDrag",
             hoverClass: "hover",
             tolerance:'pointer',
+            greedy: true,
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
                 var selection = tree.deleteNode(currentSelection);
-                selection.choose(
+                selection[1].choose(
                     sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
                         undostack.push(currentSelection);
                         currentSelection = sel;
+                        trashArray.push(trashselect);
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
@@ -320,6 +384,83 @@ module mkHTML {
         enterBox();
     }
 
+    function turtleGraphics()
+    {
+        document.getElementById("forward").style.visibility = "visible";
+        document.getElementById("left").style.visibility = "visible";
+        document.getElementById("right").style.visibility = "visible";
+        document.getElementById("pen").style.visibility = "visible";
+
+        turtle = "turtle";
+        const body = document.getElementById('body') ;
+        const canv = turtleWorld.getCanvas();
+        canv.setAttribute("class", "canv");
+        canv.setAttribute('width','1024') ;
+        canv.setAttribute('height','768') ;
+        $(body).prepend(canv);
+        
+
+        $(document).keydown(function(e) {
+            switch(e.which) {
+                case 37: // left
+                    leftturn();
+                    break;
+
+                case 38: // up
+                    forwardmarch();
+                    break;
+
+                case 39: // right
+                    rightturn();
+                    break;
+
+                case 40: // down
+                    backward();
+                    break;
+                case 80:
+                    penDown();
+                    break;
+
+                default: return; // exit this handler for other keys
+            }
+            e.preventDefault(); // prevent the default action (scroll / move caret)
+        });
+    }
+
+    function penDown()
+    {
+        if(penUp)
+        {
+            turtleWorld.penDown();
+            penUp = false;
+        }
+        else
+        {
+            turtleWorld.penUp();
+            penUp = true;
+        }
+    }
+
+    function rightturn()
+    {
+        turtleWorld.right(10);
+    }
+
+    function leftturn()
+    {
+        turtleWorld.right(-10);
+    }
+
+    function forwardmarch()
+    {
+        turtleWorld.forward(10);
+    }
+
+    function backward()
+    {
+        turtleWorld.forward(-10);
+    }
+    
     function evaluate()
     {
         document.getElementById("trash").style.visibility = "hidden";
@@ -334,7 +475,7 @@ module mkHTML {
         document.getElementById("multistep").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -354,6 +495,7 @@ module mkHTML {
         document.getElementById("sidebar").style.visibility = "visible";
         document.getElementById("container").style.visibility = "visible";
         document.getElementById("play").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
         document.getElementById("vms").style.visibility = "hidden";
         document.getElementById("stackbar").style.visibility = "hidden";
         document.getElementById("advance").style.visibility = "hidden";
@@ -363,6 +505,73 @@ module mkHTML {
         $(".dropZone").show();
         $(".dropZoneSmall").show();
     }
+
+    function visualizeStack(evalstack:ExecStack)
+    {
+        for(var i = 0; i < evalstack.obj.numFields(); i++)
+        {
+            if(evalstack.top().fields[i].getName().match(/\+/gi) || evalstack.top().fields[i].getName().match(/\-/gi)
+            || evalstack.top().fields[i].getName().match(/\*/gi) || evalstack.top().fields[i].getName().match(/\//gi)
+            || evalstack.top().fields[i].getName().match(/>/gi) || evalstack.top().fields[i].getName().match(/</gi)
+            || evalstack.top().fields[i].getName().match(/==/gi) || evalstack.top().fields[i].getName().match(/>=/gi)
+            || evalstack.top().fields[i].getName().match(/<=/gi) || evalstack.top().fields[i].getName().match(/&/gi)
+            || evalstack.top().fields[i].getName().match(/\|/gi))
+            {
+                var builtInV = <BuiltInV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + builtInV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+            else
+            {
+                var stringV = <StringV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + stringV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+
+        }
+        if(evalstack.getNext() == null)
+        {
+            return;
+        }
+        else
+        {
+            visualizeStack(evalstack.getNext());
+        }
+    }
+
+    function visualizeTrash() {
+        var dialogDiv = $('#trashDialog');
+
+        if (dialogDiv.length == 0) {
+            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
+            for(var i = 0; i < trashArray.length; i++) {
+                var trashdiv = document.createElement("div");
+                trashdiv.setAttribute("class", "trashitem");
+                trashdiv.setAttribute("data-trashitem", i.toString());
+                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
+                $(trashdiv).appendTo(dialogDiv);
+                //$(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            }
+            dialogDiv.dialog({
+                modal : true,
+                dialogClass: 'no-close success-dialog',
+            });
+        }else{
+            dialogDiv.dialog("destroy");
+        }
+
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid',
+            appendTo: '#container',
+            containment: false,
+            start: function(event,ui){
+                draggedObject = $(this).parent().attr("class");
+                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
+            }
+        });
+}
 
     function highlight(parent, pending)
     {
@@ -437,12 +646,17 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackVal");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = true;
         }
         else{
@@ -450,10 +664,15 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackVal");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             findInMap(root, currentvms.getEval().getVarMap());
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
     }
@@ -857,6 +1076,23 @@ module mkHTML {
 
             return PHBox;
         }
+        else if(label.match("param"))
+        {
+            var paramBox = document.createElement("div");
+            paramBox.setAttribute("class", "paramlistOuter H");
+            paramBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
+
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
+                paramBox.appendChild(dropZone);
+                if (i == children.length) break;
+                paramBox.appendChild(children[i]);
+            }
+
+            return paramBox;
+        }
         else if(label.match("while"))
         {
             assert.check( children.length == 2 ) ;
@@ -948,14 +1184,15 @@ module mkHTML {
             var lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
+            lambdahead.appendChild(children[1]);
 
             var doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox");
-            doBox.appendChild( children[1] ) ;
+            doBox.setAttribute("class", "doBox H");
+            doBox.appendChild( children[2] ) ;
 
             var LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
-
+            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
@@ -1062,6 +1299,42 @@ module mkHTML {
             VarDeclBox.appendChild(children[2]);
 
             return VarDeclBox;
+        }
+        else if(label.match("forward"))
+        {
+            var forwardElement = document.createElement("div");
+            forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
+            forwardElement.setAttribute("data-childNumber", childNumber.toString());
+            forwardElement.appendChild(children[0]);
+
+            return forwardElement;
+        }
+        else if(label.match("right"))
+        {
+            var rightElement = document.createElement("div");
+            rightElement.setAttribute("class", "turtleFunc canDrag droppable");
+            rightElement.setAttribute("data-childNumber", childNumber.toString());
+            rightElement.appendChild(children[0]);
+
+            return rightElement;
+        }
+        else if(label.match("left"))
+        {
+            var leftElement = document.createElement("div");
+            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
+            leftElement.setAttribute("data-childNumber", childNumber.toString());
+            leftElement.appendChild(children[0]);
+
+            return leftElement;
+        }
+        else if(label.match("pen"))
+        {
+            var penElement = document.createElement("div");
+            penElement.setAttribute("class", "turtleFunc canDrag droppable");
+            penElement.setAttribute("data-childNumber", childNumber.toString());
+            penElement.appendChild(children[0]);
+
+            return penElement;
         }
 
     }

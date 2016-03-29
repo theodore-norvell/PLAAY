@@ -452,6 +452,78 @@ module pnode {
         }
     }
 
+    export class TurtleStrategy implements nodeStrategy {
+        select( vms : VMS, label:Label) {
+            var evalu = vms.stack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var value = pending.concat([0]);
+                    if (evalu.varmap.inMap(value)) {
+                        evalu.ready = true;
+                    }
+                    else {
+                        evalu.setPending(value);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                }
+            }
+        }
+    }
+
+   /* export class callStrategy implements nodeStrategy{
+        select(){}
+
+        step( vms : VMS, label : Label ){
+            if( vms.stack.top().ready){
+                var eval = vms.stack.top();
+                if(eval.getPending() != null){
+                    var node = eval.root.get(eval.getPending());
+                    if( node.label() == label ){
+                        var functionPath = eval.getPending() ^ [0];
+                        var c = eval.varmap.get( functionPath );
+                        if (!c.isClosureV()){}//  error!
+                        var c1 = <ClosureV>c;
+                        var f : LambdaNode = c1.function;
+
+                        argList : Array<PNode>;
+
+                        for(var i = 0; i <)
+                        var argList = [eval.varmap.get( eval.getPending() ^ [1] ),
+                            eval.varmap.get( eval.getPending() ^ [2],.. ]//for all arguments TODO
+
+                        if( the length of arglist not= the length of f.params.children){} //error!
+                        if (any argument has a value not compatible with the corresponding parameter type){}
+                        // error!
+                        var params = f.params.children; //TODO make params
+                        var arFields := [ new Field( params[0].name, argList[0] ),
+                            new Field( params[1].name, argList[1] ),
+                            .. ] //for all f.params.children
+                        var activationRecord = new ObjectV( arFields );
+                        var stack = new Stack( activationRecord, cl.context );
+
+                        var newEval = new Evaluation();
+                        newEval.root = f.body; //TODO what is the body
+                        newEval.stack = stack;
+                        newEval.varmap = new varMap();
+                        newEval.getPending() = [];
+                        newEval.ready = false;
+
+                        vms.stack.push( newEval );
+                    }
+                }
+            }
+        }
+    }
+*/
+
+
+
+
+
+
+
     //Node Declarations
 
     export class ExprNode extends PNode {
@@ -1462,6 +1534,237 @@ module pnode {
         }
     }
 
+    export class PenLabel extends ExprLabel {
+        _val:string; //either up or down
+        strategy : TurtleStrategy = new TurtleStrategy();
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new PenLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "penup";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("penup") ) {
+                var f = evalu.getStack().getField("penup");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static thePenLabel = new PenLabel("");
+
+        public toJSON() : any {
+            return { kind: "PenLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : PenLabel {
+            return PenLabel.thePenLabel ;
+        }
+    }
+
+    export class ForwardLabel extends ExprLabel {
+        _val:string; //
+        strategy : TurtleStrategy = new TurtleStrategy();
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new ForwardLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false;
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "forward";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("forward") ) {
+                var f = evalu.getStack().getField("forward");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theForwardLabel = new ForwardLabel("");
+
+        public toJSON() : any {
+            return { kind: "forward" } ;
+        }
+
+        public static fromJSON( json : any ) : ForwardLabel {
+            return ForwardLabel.theForwardLabel ;
+        }
+    }
+
+    export class RightLabel extends ExprLabel {
+        _val:string; //either left or right, depending on the sign of the value
+        strategy : TurtleStrategy = new TurtleStrategy();
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new RightLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "right";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("right") ) {
+                var f = evalu.getStack().getField("right");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theRightLabel = new RightLabel("");
+
+        public toJSON() : any {
+            return { kind: "RightLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : RightLabel {
+            return RightLabel.theRightLabel ;
+        }
+    }
+
+    export class LeftLabel extends ExprLabel {
+        _val:string; //either left or right, depending on the sign of the value
+        strategy : TurtleStrategy = new TurtleStrategy();
+
+        constructor(val:string) {
+            super();
+            this._val = val;
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            var newLabel = new LeftLabel(newString);
+            return new Some(newLabel);
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "left";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("left") ) {
+                var f = evalu.getStack().getField("left");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theLeftLabel = new LeftLabel("");
+
+        public toJSON() : any {
+            return { kind: "LeftLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : LeftLabel {
+            return LeftLabel.theLeftLabel ;
+        }
+    }
 
     //Placeholder Make
     export function mkExprPH():ExprNode {

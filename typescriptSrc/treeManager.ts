@@ -81,7 +81,24 @@ module treeManager {
                     break;
                 case "type":
                     return this.makeTypeNode(selection);
+
+                //turtleworldfunctions
+                case "penup":
+                    return this.makePenNode(selection);
+                case "forward":
+                    return this.makeForwardNode(selection);
+                case "right":
+                    return this.makeRightNode(selection);
+                case "left":
+                    return this.makeLeftNode(selection);
+
             }
+        }
+
+        appendChild(srcSelection:Selection, trgSelection:Selection) {
+            var edit = new pnodeEdits.InsertChildrenEdit([srcSelection.root()]);
+            return edit.applyEdit(trgSelection);
+
         }
 
         private makeVarNode(selection:Selection) : Option<Selection> {
@@ -318,38 +335,105 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        private makePenNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.PenLabel.thePenLabel, [val]);
+
+            var pennode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([pennode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeForwardNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.ForwardLabel.theForwardLabel, [val]);
+
+            var forwardnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([forwardnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeRightNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.RightLabel.theRightLabel, [val]);
+
+            var rightnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([rightnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeLeftNode(selection:Selection) : Option<Selection> {
+
+            var val = pnode.mkExprPH();
+
+            var opt = pnode.tryMake(pnode.LeftLabel.theLeftLabel, [val]);
+
+            var leftnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([leftnode]);
+            return edit.applyEdit(selection);
+        }
+
         changeNodeString(selection:Selection, newString:string) : Option<Selection> {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
             return edit.applyEdit(selection);
 
         }
 
-        deleteNode(selection:Selection) : Option<Selection> {
+        deleteNode(selection:Selection) : [Array<PNode>, Option<Selection>] {
+            var deletedNode = selection.root().get(selection.path()).children(selection.anchor(), selection.focus());
             var edit = new pnodeEdits.DeleteEdit();
-            return edit.applyEdit(selection);
+            return [deletedNode, edit.applyEdit(selection)];
         }
 
-        moveCopySwapEditList (oldSelection : Selection, newSelection : Selection) : Array< [string, string, Option<Selection>] > {
+        moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
 
             var selectionList : Array< [string, string, Option<Selection>] > = [];
 
-            var moveedit = new pnodeEdits.MoveNodeEdit(oldSelection);
-            if (moveedit.canApply(newSelection)) {
-                var sel = moveedit.applyEdit(newSelection);
+            var moveedit = new pnodeEdits.MoveNodeEdit(srcSelection);
+            if (moveedit.canApply(trgSelection)) {
+                var sel = moveedit.applyEdit(trgSelection);
                 selectionList.push(["Moved", "Move", sel]);
             }
 
-            var copyedit = new pnodeEdits.CopyNodeEdit(oldSelection);
-            if (copyedit.canApply(newSelection)) {
-                var sel = copyedit.applyEdit(newSelection)
-
+            var copyedit = new pnodeEdits.CopyNodeEdit(srcSelection);
+            if (copyedit.canApply(trgSelection)) {
+                var sel = copyedit.applyEdit(trgSelection);
                 selectionList.push(['Copied', "Copy", sel]);
             }
 
-           var swapedit = new pnodeEdits.SwapNodeEdit(oldSelection, newSelection);
+           var swapedit = new pnodeEdits.SwapEdit(srcSelection, trgSelection);
             if (swapedit.canApply()) {
-                var sel = swapedit.applyEdit()
-
+                var sel = swapedit.applyEdit();
                 selectionList.push(['Swapped', "Swap", sel]);
             }
 

@@ -29,21 +29,43 @@ module evaluation {
 
         next : Evaluation;
 
-        constructor (root : PNode, obj : ObjectV, stack : ExecStack) {
+        constructor (root : PNode, obj: Array<ObjectV>, stack : ExecStack) {
             this.root = root;
             this.pending = new Array();
             this.ready = false;
+
+            for (var i = 0; i < obj.length; i++){
+                var stackpiece = new ExecStack(obj[i]);
+                if (this.stack == null) {
+                    this.stack = stackpiece;
+                } else {
+                    stackpiece.setNext(this.stack);
+                    this.stack = stackpiece;
+                }
+            }
+
             if(stack == null){
                 var evalObj = new ObjectV();
-                this.stack = new ExecStack(evalObj);
+                var s = new ExecStack(evalObj);
+                s.setNext(this.stack);
+                this.stack = s;
             }
 
             else{
+                if(stack.getNext() == null){
+                    stack.setNext(this.stack);
+                }
+
+                else{
+                    stack.getNext().setNext(this.stack);
+                }
                 this.stack = stack;
             }
 
             if(obj != null){
-                this.stack.setNext(new ExecStack(obj));
+                var st = new ExecStack(obj)
+                st.setNext(this.stack.setNext());
+                this.stack.setNext(st);
             }
 
             this.varmap = new VarMap();
