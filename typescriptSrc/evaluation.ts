@@ -61,12 +61,14 @@ module evaluation {
                 }
                 this.stack = stack;
             }
+/*
 
             if(obj != null){
                 var st = new ExecStack(obj)
                 st.setNext(this.stack.setNext());
                 this.stack.setNext(st);
             }
+*/
 
             this.varmap = new VarMap();
         }
