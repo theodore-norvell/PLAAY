@@ -91,7 +91,12 @@ module treeManager {
                     return this.makeRightNode(selection);
                 case "left":
                     return this.makeLeftNode(selection);
-
+                case "hide":
+                    return this.makeHideNode(selection);
+                case "show":
+                    return this.makeShowNode(selection);
+                case "clear":
+                    return this.makeClearNode(selection);
             }
         }
 
@@ -400,6 +405,51 @@ module treeManager {
                 });
 
             var edit = new pnodeEdits.InsertChildrenEdit([leftnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeHideNode(selection:Selection) : Option<Selection> {
+
+            var opt = pnode.tryMake(pnode.HideLabel.theHideLabel, []);
+
+            var hidenode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([hidenode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeShowNode(selection:Selection) : Option<Selection> {
+
+            var opt = pnode.tryMake(pnode.ShowLabel.theShowLabel, []);
+
+            var showLabelnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([showLabelnode]);
+            return edit.applyEdit(selection);
+        }
+
+        private makeClearNode(selection:Selection) : Option<Selection> {
+
+            var opt = pnode.tryMake(pnode.ClearLabel.theClearLabel, []);
+
+            var clearnode = opt.choose(
+                p => p,
+                () => {
+                    assert.check(false, "Precondition violation on PNode.modify");
+                    return null;
+                });
+
+            var edit = new pnodeEdits.InsertChildrenEdit([clearnode]);
             return edit.applyEdit(selection);
         }
 

@@ -1192,9 +1192,7 @@ module pnode {
             for (var i = 0; i < paramNode.count(); i++){
                 argList.push(evalu.getVarMap().get(paramPath.concat([i])));
             }
-
 */
-
         }
 
         // Singleton
@@ -1717,6 +1715,174 @@ module pnode {
 
         public static fromJSON( json : any ) : RightLabel {
             return RightLabel.theRightLabel ;
+        }
+    }
+
+    export class ClearLabel extends ExprLabel {
+        _val:string;
+        strategy : LiteralStrategy = new LiteralStrategy();
+
+        constructor() {
+            super();
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            return new None<Label>();
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "clear";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("clear") ) {
+                var f = evalu.getStack().getField("clear");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theClearLabel = new ClearLabel();
+
+        public toJSON() : any {
+            return { kind: "ClearLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : ClearLabel {
+            return ClearLabel.theClearLabel ;
+        }
+    }
+
+    export class HideLabel extends ExprLabel {
+        _val:string;
+        strategy : LiteralStrategy = new LiteralStrategy();
+
+        constructor() {
+            super();
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            return new None<Label>();
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "hide";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("hide") ) {
+                var f = evalu.getStack().getField("hide");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theHideLabel = new HideLabel();
+
+        public toJSON() : any {
+            return { kind: "HideLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : HideLabel {
+            return HideLabel.theHideLabel ;
+        }
+    }
+
+    export class ShowLabel extends ExprLabel {
+        _val:string;
+        strategy : LiteralStrategy = new LiteralStrategy();
+
+        constructor() {
+            super();
+        }
+
+        val():string {
+            return this._val;
+        }
+
+        changeValue(newString:string):Option<Label> {
+            return new None<Label>();
+        }
+
+        isValid(children:Array<PNode>) {
+            if (children.length != 1) {
+                return false
+            }
+            return true;
+        }
+
+        getVal():string {
+            return this._val;
+        }
+
+        getClass():PNodeClass {
+            return ExprNode;
+        }
+
+        toString():string {
+            return "show";
+        }
+
+        nodeStep(node, evalu) {
+            if (evalu.getStack().inStack("show") ) {
+                var f = evalu.getStack().getField("show");
+                if (f.getValue().isBuiltInV()){
+                    return  (<BuiltInV> f.getValue()).step(node, evalu);
+                }
+            }
+        }
+
+        // Singleton
+        public static theShowLabel = new ShowLabel();
+
+        public toJSON() : any {
+            return { kind: "ShowLabel" } ;
+        }
+
+        public static fromJSON( json : any ) : HideLabel {
+            return ShowLabel.theShowLabel ;
         }
     }
 
