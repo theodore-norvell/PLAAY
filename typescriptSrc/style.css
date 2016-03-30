@@ -99,20 +99,29 @@ div.redo
 
 div.advance
 {
-    width:90px;
+    width:40px;
     bottom:4px; left: 0px;
     height:calc(4%);
     background-color: royalblue;
-    position:fixed;
+    position:absolute;
 }
 
 div.multistep
 {
-    width:90px;
+    width:40px;
+    bottom:4px; left: 50px;
+    height:calc(4%);
+    background-color: royalblue;
+    position:absolute;
+}
+
+div.run
+{
+    width:40px;
     bottom:4px; left: 100px;
     height:calc(4%);
     background-color: royalblue;
-    position:fixed;
+    position:absolute;
 }
 
 div.trash
