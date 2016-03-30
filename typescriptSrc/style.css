@@ -165,7 +165,7 @@ div.stack
     position:fixed;
     top:4px; left:4px;
     height:calc(80% - 8px);
-    width:20%;
+    width:150px;
     background-color:grey;
     overflow:auto;
 }
