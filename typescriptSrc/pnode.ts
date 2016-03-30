@@ -1137,6 +1137,7 @@ module pnode {
 
     export class LambdaLabel extends ExprLabel {
 
+        _val : string;
         strategy : lambdaStrategy = new lambdaStrategy();
 
         isValid( children : Array<PNode> ) {
@@ -1155,9 +1156,14 @@ module pnode {
             return "lambda";
         }
 
+        getVal() : string {
+            return this._val;
+        }
+
         /*private*/
-        constructor() {
+        constructor(val : string) {
             super();
+            this._val = val;
         }
 
         nodeStep(node, evalu) {
@@ -1802,6 +1808,10 @@ module pnode {
 
     export function mkVar( val :string) : ExprNode{
         return <ExprNode> make (new VariableLabel(val), []) ;}
+
+    export function mkLambda( val :string, param:ExprSeqNode, type:TypeNode, func : ExprSeqNode) : ExprNode{
+        return <ExprNode> make (new LambdaLabel(val), [param, type, func]) ;}
+
 
     // JSON support
 
