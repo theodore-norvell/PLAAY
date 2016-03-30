@@ -400,11 +400,6 @@ module mkHTML {
             ctx.lineTo(p1v.x(), p1v.y());
             ctx.stroke();
         }
-        /*var base_image = new Image();
-         base_image.src = 'turtle1.png';
-         base_image.height = 25;
-         base_image.width = 25;
-         ctx.drawImage(base_image, this.posn.x(), this.posn.y());*/
         if (vms.getEval().getTurtleFields().getVisible()) {
             // Draw a little triangle
             const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
@@ -419,6 +414,15 @@ module mkHTML {
             const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
             const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
             const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
+            var base_image = new Image();
+            base_image.src = "turtle1.png";
+            base_image.width = 25;
+            base_image.height = 25;
+            const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
+            const vscale = canv.height / vms.getEval().getTurtleFields().getWorldHeight() * vms.getEval().getTurtleFields().getZoom() ;
+            const newx = vms.getEval().getTurtleFields().getPosn().x() * hscale + canv.width/2 -12.5;
+            const newy = vms.getEval().getTurtleFields().getPosn().y() * vscale + canv.height/2 - 12.5;
+            ctx.drawImage(base_image, newx, newy);
             ctx.beginPath();
             ctx.moveTo(p0v.x(), p0v.y());
             ctx.lineTo(p1v.x(), p1v.y());
