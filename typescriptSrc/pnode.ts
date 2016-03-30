@@ -1156,6 +1156,12 @@ module pnode {
             return "lambda";
         }
 
+
+        changeValue (newString : string) : Option<Label> {
+            var newLabel = new LambdaLabel(newString);
+            return new Some(newLabel);
+        }
+
         getVal() : string {
             return this._val;
         }
@@ -1192,7 +1198,7 @@ module pnode {
         }
 
         // Singleton
-        public static theLambdaLabel = new LambdaLabel();
+        public static theLambdaLabel = new LambdaLabel("");
 
         public toJSON() : any {
             return { kind: "LambdaLabel" } ;
