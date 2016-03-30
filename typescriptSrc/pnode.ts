@@ -1736,7 +1736,7 @@ module pnode {
         }
 
         isValid(children:Array<PNode>) {
-            if (children.length = 0) {
+            if (children.length != 0) {
                 return false
             }
             return true;
@@ -1792,7 +1792,7 @@ module pnode {
         }
 
         isValid(children:Array<PNode>) {
-            if (children.length = 0) {
+            if (children.length != 0) {
                 return false
             }
             return true;
@@ -1848,7 +1848,7 @@ module pnode {
         }
 
         isValid(children:Array<PNode>) {
-            if (children.length != 1) {
+            if (children.length != 0) {
                 return false
             }
             return true;
