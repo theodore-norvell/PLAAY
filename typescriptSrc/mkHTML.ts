@@ -1252,9 +1252,25 @@ module mkHTML {
             doBox.setAttribute("class", "doBox H");
             doBox.appendChild( children[2] ) ;
 
+            var string;
+
+            if (node.label().getVal().length > 0)
+            {
+                string = document.createElement("div");
+                string.setAttribute("class", "stringLiteral H click canDrag");
+                string.textContent = node.label().getVal();
+            }
+            else
+            {
+                string = document.createElement("input");
+                string.setAttribute("class", "stringLiteral H input canDrag");
+                string.setAttribute("type", "text");
+            }
+
             var LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
             LambdaBox.setAttribute("data-childNumber", childNumber.toString());
+            LambdaBox.appendChild(string);
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
