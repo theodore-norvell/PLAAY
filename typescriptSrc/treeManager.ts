@@ -83,7 +83,7 @@ module treeManager {
                     return this.makeTypeNode(selection);
 
                 //turtleworldfunctions
-                case "penup":
+                case "pen":
                     return this.makePenNode(selection);
                 case "forward":
                     return this.makeForwardNode(selection);

@@ -31,11 +31,12 @@ module evaluation {
 
         next : Evaluation;
 
-        constructor (root : PNode, obj: Array<ObjectV>) {
+        constructor (root : PNode, obj: Array<ObjectV>, stack : ExecStack) {
             this.root = root;
             this.turtleFields = new TurtleFields();
             this.pending = new Array();
             this.ready = false;
+
             for (var i = 0; i < obj.length; i++){
                 var stackpiece = new ExecStack(obj[i]);
                 if (this.stack == null) {
@@ -45,10 +46,33 @@ module evaluation {
                     this.stack = stackpiece;
                 }
             }
-            var evalObj = new ObjectV();
-            var evalstack = new ExecStack(evalObj);
-            evalstack.setNext(this.stack);
-            this.stack = evalstack;
+
+            if(stack == null){
+                var evalObj = new ObjectV();
+                var s = new ExecStack(evalObj);
+                s.setNext(this.stack);
+                this.stack = s;
+            }
+
+            else{
+                if(stack.getNext() == null){
+                    stack.setNext(this.stack);
+                }
+
+                else{
+                    stack.getNext().setNext(this.stack);
+                }
+                this.stack = stack;
+            }
+/*
+
+            if(obj != null){
+                var st = new ExecStack(obj)
+                st.setNext(this.stack.setNext());
+                this.stack.setNext(st);
+            }
+*/
+
             this.varmap = new VarMap();
         }
 
@@ -119,7 +143,8 @@ module evaluation {
             var node = this.root.get( this.pending );
             var closurePath = this.pending.concat([0]);
             var closure = <ClosureV>this.varmap.get( closurePath );
-            var lambda = closure.functionn;
+            var lambda = closure.function;
+            //TODO check if lambda has return type and make sure it is the same as value's type
             this.finishStep( value );
         }
 

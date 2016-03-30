@@ -7,7 +7,7 @@ import evaluation = require('./evaluation');
 module value {
 
     import PNode = pnode.PNode;
-    import Stack = stack.Stack;
+    import execStack = stack.execStack;
     import list = collections.list;
     import List = collections.List;
     import LambdaNode = pnode.LambdaNode;
@@ -133,14 +133,14 @@ module value {
 
     export class ClosureV implements Value {
         //need function obj
-        public functionn : LambdaNode;
-        context : Stack;
+        public function : LambdaNode;
+        context : execStack;
         isClosureV(){
             return true;
         }
         isBuiltInV(){
-        return false;
-    }
+            return false;
+         }
     }
     export class NullV implements Value {
         isClosureV(){

@@ -25,6 +25,7 @@ module pnode {
     import StringV = value.StringV;
     import arrayToList = collections.arrayToList;
     import Type = value.Type;
+    import ObjectV = value.ObjectV;
 
 
 
@@ -332,15 +333,7 @@ module pnode {
             if(pending != null){
                 var node = evalu.root.get(pending);
                 if(node.label() == label){
-                    var paramPath = pending.concat([0]);
-                    if(!evalu.varmap.inMap(paramPath)){
-                        vms.stack.top().setPending(paramPath);
-                        node.child(0).label().strategy.select(vms, node.child(0).label());
-                    }
-                    else {
-                        //if parameters are in the map, then we are ready to evaluate
                         evalu.ready = true;
-                    }
                 }
             }
         }
@@ -593,7 +586,6 @@ module pnode {
         isTypeNode():boolean {
             return true;
         }
-
     }
 
     export class LambdaNode extends ExprNode {
@@ -608,7 +600,7 @@ module pnode {
 
         abstract isValid(children:Array<PNode>) ;
 
-        abstract nodeStep(node:PNode, evalu:Evaluation);
+        abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS);
 
         strategy:nodeStrategy;
 
@@ -639,7 +631,7 @@ module pnode {
                 var pending = evalu.getPending();
                 if(pending != null) {
                     var node = evalu.root.get(arrayToList(pending));
-                    this.nodeStep(node, evalu);
+                    this.nodeStep(node, evalu, vms);
                 }
                 else{}//error
             }
@@ -995,12 +987,57 @@ module pnode {
             return new Some(newLabel);
         }
 
-        nodeStep(node, evalu){
+        nodeStep(node, evalu, vms){
             if (evalu.getStack().inStack(this._val.toString()) ) {
-               var f = evalu.getStack().getField(this._val.toString());
-                if (f.getValue().isBuiltInV()){
-                     return  (<BuiltInV> f.getValue()).step(node, evalu);
+               var field = evalu.getStack().getField(this._val.toString());
+                if (field.getValue().isBuiltInV()){
+                     return  (<BuiltInV> field.getValue()).step(node, evalu);
                }
+
+                else{
+
+                        var c = field.getValue;
+                        if (!c.isClosureV()){}//  error!
+                        var c1 = <ClosureV>c;
+                        var f : LambdaNode = c1.function;
+
+                        //a bunch of pNodes(non parameter children)
+                        var argList : Array<Value>;
+
+                        var i = 0;
+                        while(evalu.varmap.get(evalu.getPending().concat(i)) != null){
+                            argList.push(evalu.varmap.get(evalu.getPending().concat(i)));
+                            i++;
+                        }
+
+                        if(argList.length != f.child(0).count()){}//error
+                        //		if (any argument has a value not compatible with the corresponding parameter type){}
+                        // error!
+
+                        //list of parameters (I think)
+                        var param = f.child(0).children; //TODO
+
+                        var arFields : Array<Field>;//fields to go in the stack
+
+                        for(var j = 0; j < f.child(0).count(); j++){
+                            //name, val, type, isConst
+                            var fields = new Field(param[j].name, argList[j], Type.ANY, false);//TODO, what should argList be giving? Values?
+                            //Also, do we even know the values? Do we look them up?
+                            arFields.push(fields);
+                        }
+
+                        var activationRecord = new ObjectV();
+                        for(var k = 0; k < arFields.length; k++){
+                            activationRecord.addField(arFields[k]);
+                        }
+
+                        var stack = new execStack(activationRecord);//might have to take a look at how execution stack is made
+                        stack.setNext(c1.context);
+
+                        var newEval = new Evaluation(f, null, stack);
+                        newEval.setPending([]);
+                        vms.stack.push( newEval );
+                    }
             }
         }
 
@@ -1100,7 +1137,10 @@ module pnode {
 
     export class LambdaLabel extends ExprLabel {
 
-         isValid( children : Array<PNode> ) {
+        _val : string;
+        strategy : lambdaStrategy = new lambdaStrategy();
+
+        isValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
              if ( ! children[0].isExprSeqNode() ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
@@ -1116,13 +1156,35 @@ module pnode {
             return "lambda";
         }
 
+
+        changeValue (newString : string) : Option<Label> {
+            var newLabel = new LambdaLabel(newString);
+            return new Some(newLabel);
+        }
+
+        getVal() : string {
+            return this._val;
+        }
+
         /*private*/
-        constructor() {
+        constructor(val : string) {
             super();
+            this._val = val;
         }
 
         nodeStep(node, evalu) {
-            var paramPath = evalu.getPending().concat([0]);
+            var clo = new ClosureV();
+            clo.context = evalu.getStack();//TODO this is the correct stack?
+            clo.function = <LambdaNode> node;
+
+            var name = <StringV> node.label().getVal;
+            var v = new Field(name.getVal(), clo, Type.ANY, true);
+            evalu.getStack().top().addField( v );
+
+            evalu.finishStep(clo);
+            //TODO should there be anything about creating a new stack in here, or is this for call?
+
+           /* var paramPath = evalu.getPending().concat([0]);
             var functionPath = evalu.getPending().concat([2]);
 
             var paramNode = evalu.getRoot().get(arrayToList(paramPath));
@@ -1131,12 +1193,12 @@ module pnode {
                 argList.push(evalu.getVarMap().get(paramPath.concat([i])));
             }
 
-
+*/
 
         }
 
         // Singleton
-        public static theLambdaLabel = new LambdaLabel();
+        public static theLambdaLabel = new LambdaLabel("");
 
         public toJSON() : any {
             return { kind: "LambdaLabel" } ;
@@ -1439,6 +1501,9 @@ module pnode {
 
     export class CallLabel extends ExprLabel {
 
+        strategy : lrStrategy = new lrStrategy();
+
+
         isValid(children:Array<PNode>) {
             //TODO check if child 0 is a method
             return children.every(function (c:PNode) {
@@ -1467,9 +1532,7 @@ module pnode {
             super() ;
         }
 
-        nodeStep(node, evalu){
-
-        }
+        nodeStep(node, evalu, vms){}
 
         // Singleton
         public static theCallLabel = new CallLabel();
@@ -1751,6 +1814,10 @@ module pnode {
 
     export function mkVar( val :string) : ExprNode{
         return <ExprNode> make (new VariableLabel(val), []) ;}
+
+    export function mkLambda( val :string, param:ExprSeqNode, type:TypeNode, func : ExprSeqNode) : ExprNode{
+        return <ExprNode> make (new LambdaLabel(val), [param, type, func]) ;}
+
 
     // JSON support
 
