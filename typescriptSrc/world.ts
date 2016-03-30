@@ -776,11 +776,11 @@ module world {
             var valuepath = evalu.getPending().concat([0]);
             var val = <StringV>evalu.varmap.get(valuepath);
 
-            if (val.getVal() == "true") {
+            if (val.getVal() == "down") {
                 evalu.getTurtleFields().setpenIsDown(true);
                 evalu.finishStep(val);
             }
-            else if (val.getVal() == "false" ) {
+            else if (val.getVal() == "up" ) {
                 evalu.getTurtleFields().setpenIsDown(false);
                 evalu.finishStep(val);
             }
