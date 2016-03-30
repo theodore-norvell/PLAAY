@@ -193,14 +193,27 @@ module mkHTML {
         multistepbutton.setAttribute("id", "multistep");
         multistepbutton.setAttribute("class","multistep");
         multistepbutton.setAttribute("onclick", "multistep()");
-        multistepbutton.textContent = "Next Function";
+        multistepbutton.textContent = "Multi-Step";
         document.getElementById("body").appendChild(multistepbutton);
         var multistep = document.getElementById("multistep");
         multistep.onclick = function multistep()
         {
-            stepTillDone();
+            multiStep();
         };
         document.getElementById("multistep").style.visibility = "hidden";
+
+        const runbutton = document.createElement("div");
+        runbutton.setAttribute("id", "run");
+        runbutton.setAttribute("class","run");
+        runbutton.setAttribute("onclick", "run()");
+        runbutton.textContent = "Run";
+        document.getElementById("body").appendChild(runbutton);
+        var runfunc = document.getElementById("run");
+        runfunc.onclick = function run()
+        {
+            stepTillDone();
+        };
+        document.getElementById("run").style.visibility = "hidden";
 
         const ifblock = document.createElement("div");
         ifblock.setAttribute("id","if");
@@ -610,6 +623,7 @@ module mkHTML {
         document.getElementById("stackbar").style.visibility = "visible";
         document.getElementById("advance").style.visibility = "visible";
         document.getElementById("multistep").style.visibility = "visible";
+        document.getElementById("run").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
         currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
@@ -816,6 +830,12 @@ module mkHTML {
         {
             redraw(currentvms);
         }
+    }
+
+    function multiStep() {
+        $('#advance').trigger('click');
+        $('#advance').trigger('click');
+        $('#advance').trigger('click');
     }
 
     function stepTillDone()
