@@ -139,6 +139,19 @@ module mkHTML {
             turtleGraphics();
         };
 
+        const quitworldbutton = document.createElement("div");
+        quitworldbutton.setAttribute("id", "quitworld");
+        quitworldbutton.setAttribute("class", "quitworld");
+        quitworldbutton.setAttribute("onclick", "quitworld()");
+        quitworldbutton.textContent = "Quit World";
+        document.getElementById("body").appendChild(quitworldbutton);
+        var quitworld = document.getElementById("quitworld");
+        quitworld.onclick = function quitprebuiltworld()
+        {
+            leaveWorld();
+        };
+        document.getElementById("quitworld").style.visibility = "hidden";
+
         const editorbutton = document.createElement("div");
         editorbutton.setAttribute("id", "edit");
         editorbutton.setAttribute("class", "edit");
@@ -236,34 +249,6 @@ module mkHTML {
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
-
-        const forwardblock = document.createElement("div");
-        forwardblock.setAttribute("id", "forward");
-        forwardblock.setAttribute("class", "block V palette");
-        forwardblock.textContent = "Forward";
-        document.getElementById("sidebar").appendChild(forwardblock);
-        document.getElementById("forward").style.visibility = "hidden";
-
-        const leftblock = document.createElement("div");
-        leftblock.setAttribute("id", "left");
-        leftblock.setAttribute("class", "block V palette");
-        leftblock.textContent = "Left";
-        document.getElementById("sidebar").appendChild(leftblock);
-        document.getElementById("left").style.visibility = "hidden";
-
-        const rightblock = document.createElement("div");
-        rightblock.setAttribute("id", "right");
-        rightblock.setAttribute("class", "block V palette");
-        rightblock.textContent = "Right";
-        document.getElementById("sidebar").appendChild(rightblock);
-        document.getElementById("right").style.visibility = "hidden";
-
-        const penblock = document.createElement("div");
-        penblock.setAttribute("id", "pen");
-        penblock.setAttribute("class", "block V palette");
-        penblock.textContent = "Pen";
-        document.getElementById("sidebar").appendChild(penblock);
-        document.getElementById("pen").style.visibility = "hidden";
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -416,6 +401,7 @@ module mkHTML {
             const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
             var base_image = new Image();
             base_image.src = "turtle1.png";
+            //base_image.src = "Turtles/"+ vms.getEval().getTurtleFields().getOrientation() + ".png";
             base_image.width = 25;
             base_image.height = 25;
             const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
@@ -433,45 +419,149 @@ module mkHTML {
         }
     }
 
+    function leaveWorld()
+    {
+        document.getElementById("turtle").style.visibility = "visible";
+        document.getElementById("quitworld").style.visibility = "hidden";
+
+        var forward = document.getElementById("forward");
+        document.getElementById("sidebar").removeChild(forward);
+        var left = document.getElementById("left");
+        document.getElementById("sidebar").removeChild(left);
+        var right = document.getElementById("right");
+        document.getElementById("sidebar").removeChild(right);
+        var pen = document.getElementById("pen");
+        document.getElementById("sidebar").removeChild(pen);
+        var clear = document.getElementById("clear");
+        document.getElementById("sidebar").removeChild(clear);
+        var show = document.getElementById("show");
+        document.getElementById("sidebar").removeChild(show);
+        var hide = document.getElementById("hide");
+        document.getElementById("sidebar").removeChild(hide);
+
+        $('.turtleFunc').remove();
+
+        var canvas = document.getElementById("turtleGraphics");
+        document.getElementById("body").removeChild(canvas);
+    }
+
     function turtleGraphics()
     {
-        document.getElementById("forward").style.visibility = "visible";
-        document.getElementById("left").style.visibility = "visible";
-        document.getElementById("right").style.visibility = "visible";
-        document.getElementById("pen").style.visibility = "visible";
+        document.getElementById("turtle").style.visibility = "hidden";
+        document.getElementById("quitworld").style.visibility = "visible";
+
+        var sidebar = $('#sidebar');
+
+        const hideblock = document.createElement("div");
+        hideblock.setAttribute("id", "hide");
+        hideblock.setAttribute("class", "block V palette");
+        hideblock.textContent = "Hide";
+        sidebar.prepend(hideblock);
+
+        const showblock = document.createElement("div");
+        showblock.setAttribute("id", "show");
+        showblock.setAttribute("class", "block V palette");
+        showblock.textContent = "Show";
+        sidebar.prepend(showblock);
+
+        const clearblock = document.createElement("div");
+        clearblock.setAttribute("id", "clear");
+        clearblock.setAttribute("class", "block V palette");
+        clearblock.textContent = "Clear";
+        sidebar.prepend(clearblock);
+
+        const penblock = document.createElement("div");
+        penblock.setAttribute("id", "pen");
+        penblock.setAttribute("class", "block V palette");
+        penblock.textContent = "Pen";
+        sidebar.prepend(penblock);
+
+        const rightblock = document.createElement("div");
+        rightblock.setAttribute("id", "right");
+        rightblock.setAttribute("class", "block V palette");
+        rightblock.textContent = "Right";
+        sidebar.prepend(rightblock);
+
+        const leftblock = document.createElement("div");
+        leftblock.setAttribute("id", "left");
+        leftblock.setAttribute("class", "block V palette");
+        leftblock.textContent = "Left";
+        sidebar.prepend(leftblock);
+
+        const forwardblock = document.createElement("div");
+        forwardblock.setAttribute("id", "forward");
+        forwardblock.setAttribute("class", "block V palette");
+        forwardblock.textContent = "Forward";
+        sidebar.prepend(forwardblock);
 
         const body = document.getElementById('body') ;
+        canv.setAttribute("id", "turtleGraphics");
         canv.setAttribute("class", "canv");
         canv.setAttribute('width','1024') ;
         canv.setAttribute('height','768') ;
         body.appendChild(canv);
 
         turtle = "turtle";
-        $(document).keydown(function(e) {
-            switch(e.which) {
-                case 37: // left
-                    leftturn();
-                    break;
 
-                case 38: // up
-                    forwardmarch();
-                    break;
-
-                case 39: // right
-                    rightturn();
-                    break;
-
-                case 40: // down
-                    backward();
-                    break;
-                case 80:
-                    penDown();
-                    break;
-
-                default: return; // exit this handler for other keys
-            }
-            e.preventDefault(); // prevent the default action (scroll / move caret)
+        $( ".palette" ).draggable({
+            helper:"clone" ,
+            start : function(event, ui){
+                ui.helper.animate({
+                    width: 40,
+                    height: 40
+                });
+                draggedObject = $(this).attr("class");
+            },
+            cursorAt: {left:20, top:20},
+            appendTo:"body"
         });
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            tolerance: "pointer",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                currentSelection = getPathToNode(currentSelection, $(this));
+                undostack.push(currentSelection);
+                var selection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                selection.choose(
+                    sel => {
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+
+        $( ".trash").droppable({
+            accept:".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            greedy: true,
+            drop: function(event, ui){
+                currentSelection = getPathToNode(currentSelection, ui.draggable);
+                var selection = tree.deleteNode(currentSelection);
+                selection[1].choose(
+                    sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        trashArray.push(trashselect);
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+        enterBox();
     }
 
     function penDown()
@@ -1387,6 +1477,7 @@ module mkHTML {
             var forwardElement = document.createElement("div");
             forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
             forwardElement.setAttribute("data-childNumber", childNumber.toString());
+            forwardElement.textContent = "Forward";
             forwardElement.appendChild(children[0]);
 
             return forwardElement;
@@ -1396,6 +1487,7 @@ module mkHTML {
             var rightElement = document.createElement("div");
             rightElement.setAttribute("class", "turtleFunc canDrag droppable");
             rightElement.setAttribute("data-childNumber", childNumber.toString());
+            rightElement.textContent = "Right";
             rightElement.appendChild(children[0]);
 
             return rightElement;
@@ -1405,6 +1497,7 @@ module mkHTML {
             var leftElement = document.createElement("div");
             leftElement.setAttribute("class", "turtleFunc canDrag droppable");
             leftElement.setAttribute("data-childNumber", childNumber.toString());
+            leftElement.textContent = "Left";
             leftElement.appendChild(children[0]);
 
             return leftElement;
@@ -1414,11 +1507,38 @@ module mkHTML {
             var penElement = document.createElement("div");
             penElement.setAttribute("class", "turtleFunc canDrag droppable");
             penElement.setAttribute("data-childNumber", childNumber.toString());
+            penElement.textContent = "Pen";
             penElement.appendChild(children[0]);
 
             return penElement;
         }
+        else if(label.match("clear"))
+        {
+            var clearElement = document.createElement("div");
+            clearElement.setAttribute("class", "turtleFunc canDrag droppable");
+            clearElement.setAttribute("data-childNumber", childNumber.toString());
+            clearElement.textContent = "Clear";
 
+            return clearElement;
+        }
+        else if(label.match("show"))
+        {
+            var showElement = document.createElement("div");
+            showElement.setAttribute("class", "turtleFunc canDrag droppable");
+            showElement.setAttribute("data-childNumber", childNumber.toString());
+            showElement.textContent = "Show";
+
+            return showElement;
+        }
+        else if(label.match("hide"))
+        {
+            var hideElement = document.createElement("div");
+            hideElement.setAttribute("class", "turtleFunc canDrag droppable");
+            hideElement.setAttribute("data-childNumber", childNumber.toString());
+            hideElement.textContent = "Hide";
+
+            return hideElement;
+        }
     }
 }
 

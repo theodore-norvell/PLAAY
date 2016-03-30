@@ -133,6 +133,16 @@ div.turtle
     bottom:100px; left: 100px;
 }
 
+div.quitworld
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
+}
+
+
 div.play
 {
     width:90px;
