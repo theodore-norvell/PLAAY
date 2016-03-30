@@ -5,6 +5,7 @@
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="vms.ts" />
+/// <reference path="value.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
@@ -16,6 +17,8 @@ import treeManager = require('./treeManager');
 import evaluationManager = require('./evaluationManager');
 import stack = require( './stackManager' ) ;
 import vms = require('./vms');
+import value = require('./value');
+import seymour = require( './seymour' ) ;
 
 module mkHTML {
     import list = collections.list;
@@ -28,22 +31,33 @@ module mkHTML {
     import VarMap = stack.VarMap;
     import mapEntry = stack.mapEntry;
     import VMS = vms.VMS;
+    import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
+    import StringV = value.StringV;
+    import BuiltInV = value.BuiltInV;
+    import Point = seymour.Point;
 
     var undostack = [];
     var redostack = [];
+    var trashArray = [];
     var currentSelection;
     var draggedSelection;
     var draggedObject;
 
     var root = pnode.mkExprSeq([]);
+    const turtleWorld = new seymour.TurtleWorld();
     var path : (  ...args : Array<number> ) => List<number> = list;
+    var pathToTrash = list<number>();
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
+    var penUp = true;
+    var turtle = "";
     currentSelection = select;
+
+    const canv = document.createElement('canvas');
 
     export function onLoad() : void
     {
@@ -57,6 +71,11 @@ module mkHTML {
         stackbar.setAttribute("id", "stackbar");
         stackbar.setAttribute("class", "stack");
         document.getElementById("body").appendChild(stackbar);
+        const table = document.createElement("table");
+        table.setAttribute("id", "stackVal");
+        document.getElementById("stackbar").appendChild(table);
+        document.getElementById("stackVal").style.border = "thin solid black";
+        document.getElementById("stackVal");
         document.getElementById("stackbar").style.visibility = "hidden";
 
         //creates undo/redo buttons
@@ -108,6 +127,31 @@ module mkHTML {
             evaluate();
         };
 
+        const turtlebutton = document.createElement("div");
+        turtlebutton.setAttribute("id", "turtle");
+        turtlebutton.setAttribute("class", "turtle");
+        turtlebutton.setAttribute("onclick", "turtle()");
+        turtlebutton.textContent = "Turtle World";
+        document.getElementById("body").appendChild(turtlebutton);
+        var turtleworld = document.getElementById("turtle");
+        turtleworld.onclick = function turtle()
+        {
+            turtleGraphics();
+        };
+
+        const quitworldbutton = document.createElement("div");
+        quitworldbutton.setAttribute("id", "quitworld");
+        quitworldbutton.setAttribute("class", "quitworld");
+        quitworldbutton.setAttribute("onclick", "quitworld()");
+        quitworldbutton.textContent = "Quit World";
+        document.getElementById("body").appendChild(quitworldbutton);
+        var quitworld = document.getElementById("quitworld");
+        quitworld.onclick = function quitprebuiltworld()
+        {
+            leaveWorld();
+        };
+        document.getElementById("quitworld").style.visibility = "hidden";
+
         const editorbutton = document.createElement("div");
         editorbutton.setAttribute("id", "edit");
         editorbutton.setAttribute("class", "edit");
@@ -123,9 +167,14 @@ module mkHTML {
 
         const trash = document.createElement("div");
         trash.setAttribute("id","trash");
-        trash.setAttribute("class", "trash");
+        trash.setAttribute("class", "trash clicktrash");
         trash.textContent = "Trash";
         document.getElementById("body").appendChild(trash);
+        var garbage = document.getElementById("trash");
+        garbage.onclick = function opendialog()
+        {
+            visualizeTrash();
+        };
 
         const advancebutton = document.createElement("div");
         advancebutton.setAttribute("id", "advance");
@@ -301,13 +350,16 @@ module mkHTML {
             accept:".canDrag",
             hoverClass: "hover",
             tolerance:'pointer',
+            greedy: true,
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
                 var selection = tree.deleteNode(currentSelection);
-                selection.choose(
+                selection[1].choose(
                     sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
                         undostack.push(currentSelection);
                         currentSelection = sel;
+                        trashArray.push(trashselect);
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
@@ -320,6 +372,232 @@ module mkHTML {
         enterBox();
     }
 
+    function redraw(vms:VMS) {
+        const ctx = canv.getContext("2d");
+        const w = canv.width;
+        const h = canv.height;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
+            const p0v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.stroke();
+        }
+        if (vms.getEval().getTurtleFields().getVisible()) {
+            // Draw a little triangle
+            const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
+            const x = vms.getEval().getTurtleFields().getPosn().x();
+            const y = vms.getEval().getTurtleFields().getPosn().y();
+            const p0x = x + 4 * Math.cos(theta);
+            const p0y = y + 4 * Math.sin(theta);
+            const p1x = x + 5 * Math.cos(theta + 2.5);
+            const p1y = y + 5 * Math.sin(theta + 2.5);
+            const p2x = x + 5 * Math.cos(theta - 2.5);
+            const p2y = y + 5 * Math.sin(theta - 2.5);
+            const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
+            const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
+            var base_image = new Image();
+            base_image.src = "turtle1.png";
+            //base_image.src = "Turtles/"+ vms.getEval().getTurtleFields().getOrientation() + ".png";
+            base_image.width = 25;
+            base_image.height = 25;
+            const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
+            const vscale = canv.height / vms.getEval().getTurtleFields().getWorldHeight() * vms.getEval().getTurtleFields().getZoom() ;
+            const newx = vms.getEval().getTurtleFields().getPosn().x() * hscale + canv.width/2 -12.5;
+            const newy = vms.getEval().getTurtleFields().getPosn().y() * vscale + canv.height/2 - 12.5;
+            ctx.drawImage(base_image, newx, newy);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.lineTo(p2v.x(), p2v.y());
+            ctx.lineTo(p0v.x(), p0v.y());
+            ctx.stroke();
+
+        }
+    }
+
+    function leaveWorld()
+    {
+        document.getElementById("turtle").style.visibility = "visible";
+        document.getElementById("quitworld").style.visibility = "hidden";
+
+        var forward = document.getElementById("forward");
+        document.getElementById("sidebar").removeChild(forward);
+        var left = document.getElementById("left");
+        document.getElementById("sidebar").removeChild(left);
+        var right = document.getElementById("right");
+        document.getElementById("sidebar").removeChild(right);
+        var pen = document.getElementById("pen");
+        document.getElementById("sidebar").removeChild(pen);
+        var clear = document.getElementById("clear");
+        document.getElementById("sidebar").removeChild(clear);
+        var show = document.getElementById("show");
+        document.getElementById("sidebar").removeChild(show);
+        var hide = document.getElementById("hide");
+        document.getElementById("sidebar").removeChild(hide);
+
+        $('.turtleFunc').remove();
+
+        var canvas = document.getElementById("turtleGraphics");
+        document.getElementById("body").removeChild(canvas);
+    }
+
+    function turtleGraphics()
+    {
+        document.getElementById("turtle").style.visibility = "hidden";
+        document.getElementById("quitworld").style.visibility = "visible";
+
+        var sidebar = $('#sidebar');
+
+        const hideblock = document.createElement("div");
+        hideblock.setAttribute("id", "hide");
+        hideblock.setAttribute("class", "block V palette");
+        hideblock.textContent = "Hide";
+        sidebar.prepend(hideblock);
+
+        const showblock = document.createElement("div");
+        showblock.setAttribute("id", "show");
+        showblock.setAttribute("class", "block V palette");
+        showblock.textContent = "Show";
+        sidebar.prepend(showblock);
+
+        const clearblock = document.createElement("div");
+        clearblock.setAttribute("id", "clear");
+        clearblock.setAttribute("class", "block V palette");
+        clearblock.textContent = "Clear";
+        sidebar.prepend(clearblock);
+
+        const penblock = document.createElement("div");
+        penblock.setAttribute("id", "pen");
+        penblock.setAttribute("class", "block V palette");
+        penblock.textContent = "Pen";
+        sidebar.prepend(penblock);
+
+        const rightblock = document.createElement("div");
+        rightblock.setAttribute("id", "right");
+        rightblock.setAttribute("class", "block V palette");
+        rightblock.textContent = "Right";
+        sidebar.prepend(rightblock);
+
+        const leftblock = document.createElement("div");
+        leftblock.setAttribute("id", "left");
+        leftblock.setAttribute("class", "block V palette");
+        leftblock.textContent = "Left";
+        sidebar.prepend(leftblock);
+
+        const forwardblock = document.createElement("div");
+        forwardblock.setAttribute("id", "forward");
+        forwardblock.setAttribute("class", "block V palette");
+        forwardblock.textContent = "Forward";
+        sidebar.prepend(forwardblock);
+
+        const body = document.getElementById('body') ;
+        canv.setAttribute("id", "turtleGraphics");
+        canv.setAttribute("class", "canv");
+        canv.setAttribute('width','1024') ;
+        canv.setAttribute('height','768') ;
+        body.appendChild(canv);
+
+        turtle = "turtle";
+
+        $( ".palette" ).draggable({
+            helper:"clone" ,
+            start : function(event, ui){
+                ui.helper.animate({
+                    width: 40,
+                    height: 40
+                });
+                draggedObject = $(this).attr("class");
+            },
+            cursorAt: {left:20, top:20},
+            appendTo:"body"
+        });
+
+        $( ".droppable" ).droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            tolerance: "pointer",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                currentSelection = getPathToNode(currentSelection, $(this));
+                undostack.push(currentSelection);
+                var selection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                selection.choose(
+                    sel => {
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+
+        $( ".trash").droppable({
+            accept:".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            greedy: true,
+            drop: function(event, ui){
+                currentSelection = getPathToNode(currentSelection, ui.draggable);
+                var selection = tree.deleteNode(currentSelection);
+                selection[1].choose(
+                    sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        trashArray.push(trashselect);
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+        enterBox();
+    }
+
+    function penDown()
+    {
+        if(penUp)
+        {
+            turtleWorld.penDown();
+            penUp = false;
+        }
+        else
+        {
+            turtleWorld.penUp();
+            penUp = true;
+        }
+    }
+
+    function rightturn()
+    {
+        turtleWorld.right(10);
+    }
+
+    function leftturn()
+    {
+        turtleWorld.right(-10);
+    }
+
+    function forwardmarch()
+    {
+        turtleWorld.forward(10);
+    }
+
+    function backward()
+    {
+        turtleWorld.forward(-10);
+    }
+    
     function evaluate()
     {
         document.getElementById("trash").style.visibility = "hidden";
@@ -334,7 +612,7 @@ module mkHTML {
         document.getElementById("multistep").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -354,6 +632,7 @@ module mkHTML {
         document.getElementById("sidebar").style.visibility = "visible";
         document.getElementById("container").style.visibility = "visible";
         document.getElementById("play").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
         document.getElementById("vms").style.visibility = "hidden";
         document.getElementById("stackbar").style.visibility = "hidden";
         document.getElementById("advance").style.visibility = "hidden";
@@ -363,6 +642,73 @@ module mkHTML {
         $(".dropZone").show();
         $(".dropZoneSmall").show();
     }
+
+    function visualizeStack(evalstack:ExecStack)
+    {
+        for(var i = 0; i < evalstack.obj.numFields(); i++)
+        {
+            if(evalstack.top().fields[i].getName().match(/\+/gi) || evalstack.top().fields[i].getName().match(/\-/gi)
+            || evalstack.top().fields[i].getName().match(/\*/gi) || evalstack.top().fields[i].getName().match(/\//gi)
+            || evalstack.top().fields[i].getName().match(/>/gi) || evalstack.top().fields[i].getName().match(/</gi)
+            || evalstack.top().fields[i].getName().match(/==/gi) || evalstack.top().fields[i].getName().match(/>=/gi)
+            || evalstack.top().fields[i].getName().match(/<=/gi) || evalstack.top().fields[i].getName().match(/&/gi)
+            || evalstack.top().fields[i].getName().match(/\|/gi))
+            {
+                var builtInV = <BuiltInV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + builtInV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+            else
+            {
+                var stringV = <StringV>evalstack.top().fields[i].getValue()
+                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
+                    "<td>" + stringV.getVal() + "</td></tr>").appendTo($("#stackVal"));
+            }
+
+        }
+        if(evalstack.getNext() == null)
+        {
+            return;
+        }
+        else
+        {
+            visualizeStack(evalstack.getNext());
+        }
+    }
+
+    function visualizeTrash() {
+        var dialogDiv = $('#trashDialog');
+
+        if (dialogDiv.length == 0) {
+            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
+            for(var i = 0; i < trashArray.length; i++) {
+                var trashdiv = document.createElement("div");
+                trashdiv.setAttribute("class", "trashitem");
+                trashdiv.setAttribute("data-trashitem", i.toString());
+                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
+                $(trashdiv).appendTo(dialogDiv);
+                //$(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            }
+            dialogDiv.dialog({
+                modal : true,
+                dialogClass: 'no-close success-dialog',
+            });
+        }else{
+            dialogDiv.dialog("destroy");
+        }
+
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid',
+            appendTo: '#container',
+            containment: false,
+            start: function(event,ui){
+                draggedObject = $(this).parent().attr("class");
+                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
+            }
+        });
+}
 
     function highlight(parent, pending)
     {
@@ -437,12 +783,17 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackVal");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = true;
         }
         else{
@@ -450,11 +801,20 @@ module mkHTML {
             while (children.firstChild) {
                 children.removeChild(children.firstChild);
             }
+            var remove = document.getElementById("stackVal");
+            while (remove.firstChild) {
+                remove.removeChild(remove.firstChild);
+            }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             var root = document.getElementById("vms").children[0];
             findInMap(root, currentvms.getEval().getVarMap());
+            visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
+        }
+        if(turtle.match("turtle"))
+        {
+            redraw(currentvms);
         }
     }
 
@@ -599,6 +959,21 @@ module mkHTML {
                             generateHTML(currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             createCopyDialog(selectionArray);
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
+                }
+                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
+                {
+                    undostack.push(currentSelection);
+                    var selection = tree.appendChild(draggedSelection, currentSelection);
+                    selection.choose(
+                        sel => {
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         },
                         ()=>{
                             generateHTML(currentSelection);
@@ -857,6 +1232,23 @@ module mkHTML {
 
             return PHBox;
         }
+        else if(label.match("param"))
+        {
+            var paramBox = document.createElement("div");
+            paramBox.setAttribute("class", "paramlistOuter H");
+            paramBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
+
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
+                paramBox.appendChild(dropZone);
+                if (i == children.length) break;
+                paramBox.appendChild(children[i]);
+            }
+
+            return paramBox;
+        }
         else if(label.match("while"))
         {
             assert.check( children.length == 2 ) ;
@@ -948,14 +1340,31 @@ module mkHTML {
             var lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
+            lambdahead.appendChild(children[1]);
 
             var doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox");
-            doBox.appendChild( children[1] ) ;
+            doBox.setAttribute("class", "doBox H");
+            doBox.appendChild( children[2] ) ;
+
+            var string;
+
+            if (node.label().getVal().length > 0)
+            {
+                string = document.createElement("div");
+                string.setAttribute("class", "stringLiteral H click canDrag");
+                string.textContent = node.label().getVal();
+            }
+            else
+            {
+                string = document.createElement("input");
+                string.setAttribute("class", "stringLiteral H input canDrag");
+                string.setAttribute("type", "text");
+            }
 
             var LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
-
+            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
+            LambdaBox.appendChild(string);
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
@@ -1063,7 +1472,73 @@ module mkHTML {
 
             return VarDeclBox;
         }
+        else if(label.match("forward"))
+        {
+            var forwardElement = document.createElement("div");
+            forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
+            forwardElement.setAttribute("data-childNumber", childNumber.toString());
+            forwardElement.textContent = "Forward";
+            forwardElement.appendChild(children[0]);
 
+            return forwardElement;
+        }
+        else if(label.match("right"))
+        {
+            var rightElement = document.createElement("div");
+            rightElement.setAttribute("class", "turtleFunc canDrag droppable");
+            rightElement.setAttribute("data-childNumber", childNumber.toString());
+            rightElement.textContent = "Right";
+            rightElement.appendChild(children[0]);
+
+            return rightElement;
+        }
+        else if(label.match("left"))
+        {
+            var leftElement = document.createElement("div");
+            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
+            leftElement.setAttribute("data-childNumber", childNumber.toString());
+            leftElement.textContent = "Left";
+            leftElement.appendChild(children[0]);
+
+            return leftElement;
+        }
+        else if(label.match("pen"))
+        {
+            var penElement = document.createElement("div");
+            penElement.setAttribute("class", "turtleFunc canDrag droppable");
+            penElement.setAttribute("data-childNumber", childNumber.toString());
+            penElement.textContent = "Pen";
+            penElement.appendChild(children[0]);
+
+            return penElement;
+        }
+        else if(label.match("clear"))
+        {
+            var clearElement = document.createElement("div");
+            clearElement.setAttribute("class", "turtleFunc canDrag droppable");
+            clearElement.setAttribute("data-childNumber", childNumber.toString());
+            clearElement.textContent = "Clear";
+
+            return clearElement;
+        }
+        else if(label.match("show"))
+        {
+            var showElement = document.createElement("div");
+            showElement.setAttribute("class", "turtleFunc canDrag droppable");
+            showElement.setAttribute("data-childNumber", childNumber.toString());
+            showElement.textContent = "Show";
+
+            return showElement;
+        }
+        else if(label.match("hide"))
+        {
+            var hideElement = document.createElement("div");
+            hideElement.setAttribute("class", "turtleFunc canDrag droppable");
+            hideElement.setAttribute("data-childNumber", childNumber.toString());
+            hideElement.textContent = "Hide";
+
+            return hideElement;
+        }
     }
 }
 

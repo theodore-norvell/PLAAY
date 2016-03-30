@@ -19,8 +19,13 @@ module evaluationManager {
             this.workspace = new Workspace();
         }
 
-        PLAAY(root : PNode) : VMS {
-            this._vms = new VMS(root, this.workspace.getWorld());
+        PLAAY(root : PNode, worlddecl : string) : VMS {
+            var worlds = new Array();
+            worlds.push(this.workspace.getWorld());
+            if (worlddecl == "turtle"){
+                worlds.push(this.workspace.getTurtleWorld());
+            }
+            this._vms = new VMS(root, worlds);
             return this._vms;
         }
 

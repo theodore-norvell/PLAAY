@@ -19,6 +19,7 @@ module evaluation {
     import ClosureV = value.ClosureV;
     import World = world.World;
     import ObjectV = value.ObjectV;
+    import TurtleFields = world.TurtleFields;
 
     export class Evaluation {
         root : PNode;
@@ -26,18 +27,68 @@ module evaluation {
         private pending : Array<number>;
         ready : Boolean;
         varmap : VarMap;
+        private turtleFields : TurtleFields;
 
         next : Evaluation;
 
-        constructor (root : PNode, obj: ObjectV) {
+        constructor (root : PNode, obj: Array<ObjectV>, stack : ExecStack) {
             this.root = root;
+            this.turtleFields = new TurtleFields();
             this.pending = new Array();
             this.ready = false;
-            var evalObj = new ObjectV();
-            this.stack = new ExecStack(evalObj);
-            this.stack.setNext(new ExecStack(obj));
+
+            for (var i = 0; i < obj.length; i++){
+                var stackpiece = new ExecStack(obj[i]);
+                if (this.stack == null) {
+                    this.stack = stackpiece;
+                } else {
+                    stackpiece.setNext(this.stack);
+                    this.stack = stackpiece;
+                }
+            }
+
+            if(stack == null){
+                var evalObj = new ObjectV();
+                var s = new ExecStack(evalObj);
+                s.setNext(this.stack);
+                this.stack = s;
+            }
+
+            else{
+                if(stack.getNext() == null){
+                    stack.setNext(this.stack);
+                }
+
+                else{
+                    stack.getNext().setNext(this.stack);
+                }
+                this.stack = stack;
+            }
+/*
+
+            if(obj != null){
+                var st = new ExecStack(obj)
+                st.setNext(this.stack.setNext());
+                this.stack.setNext(st);
+            }
+*/
+
             this.varmap = new VarMap();
-            console.log("Evaluation Pending is: " + this.pending);
+        }
+
+        addToStack(){
+            var evalObj = new ObjectV();
+            var newstack = new ExecStack(evalObj);
+            newstack.next=this.stack;
+            this.stack = newstack;
+        }
+
+        popfromStack() {
+            this.stack = this.stack.getNext()
+        }
+
+        getTurtleFields(){
+            return this.turtleFields;
         }
 
         getRoot()
@@ -93,6 +144,7 @@ module evaluation {
             var closurePath = this.pending.concat([0]);
             var closure = <ClosureV>this.varmap.get( closurePath );
             var lambda = closure.function;
+            //TODO check if lambda has return type and make sure it is the same as value's type
             this.finishStep( value );
         }
 

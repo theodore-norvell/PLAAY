@@ -9,8 +9,22 @@
     background-color:black ;
 }
 
+.canv
+{
+    background-color: white;
+    position: absolute;
+    top:5px;
+    right: 20px;
+}
+
 div.selected {
-    border: thin solid rgb(255,0,0) ;
+     border: thin solid rgb(255,0,0) ;
+     padding: 2px ;
+     margin: 2px ;
+}
+
+div.trashitem {
+    border: thin solid ghostwhite;
     padding: 2px ;
     margin: 2px ;
 }
@@ -110,6 +124,25 @@ div.trash
     bottom:4px; left: 100px;
 }
 
+div.turtle
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
+}
+
+div.quitworld
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
+}
+
+
 div.play
 {
     width:90px;
@@ -143,7 +176,7 @@ div.stack
     position:fixed;
     top:4px; left:4px;
     height:calc(80% - 8px);
-    width:20%;
+    width:150px;
     background-color:grey;
     overflow:auto;
 }
@@ -151,7 +184,7 @@ div.stack
 div.container
  {
      display:block;
-     position:absolute;
+     position: absolute;
      top:0;
      bottom:0;
      left:0;
@@ -167,7 +200,7 @@ div.container
 div.vms
 {
     display:block;
-    position:absolute;
+    position: absolute;
     top:0;
     bottom:0;
     left:0;
@@ -189,7 +222,7 @@ div.block {
     margin-right: 5px;
     border-radius: 10px;
     box-shadow: 0px 0px 3px;
-    color:purple;
+    color: rgb(190, 133, 197);
 }
 
 /*actual visualization*/
@@ -274,7 +307,7 @@ div.doBox { /*Used with both whiles and lambdas */
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.lambdaBox:before { content: "\03bb";
+div.lambdaBox { content: "\03bb";
     border-top: medium solid rgb(135,206,250) ;
     border-bottom: medium solid rgb(135,206,250) ;
     border-left: 10px solid rgb(135,206,250) ;
@@ -431,6 +464,22 @@ div.vardecl{
     margin: 1px 2px 1px 2px ;
 }
 
+div.turtleFunc:before {
+    content:url('turtle1.png');
+    display: inline ;
+    vertical-align: top ;
+}
+
+div.turtleFunc{
+    border: thin solid green ;
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
 div.type {
     border: thin solid #999 ;
     border-radius: 5px ;
@@ -523,7 +572,9 @@ div.selection {
 }
 
 .ui-widget-content.success-dialog {
-    background: #F9F9F9;
+    background: black;
+    overflow:visible;
+    position: fixed;
     border: 1px solid purple;
     color: #222222;
 }
@@ -556,4 +607,47 @@ div.selection {
     padding: 0.1em .5em;
     position: relative;
     font-size: 1em;
+}
+
+table
+{
+    border: 2px solid red;
+    color: black;
+    font-weight: bold;
+}
+
+/* rows */
+tr
+{
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* columns */
+td
+{
+    padding: 10px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* resets */
+tr:first-child
+{
+    border-top: none;
+}
+
+tr:last-child
+{
+    border-bottom: none;
+}
+
+td:first-child
+{
+    border-left: none;
+}
+
+td:last-child
+{
+    border-right: none;
 }

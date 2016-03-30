@@ -7,7 +7,7 @@
 /// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
 
-import collections = require( '../collections' ) ;
+/*import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
 import vms = require( '../vms' ) ;
@@ -32,7 +32,7 @@ var ms : VMS = new VMS(b, wrd);
 var str = new value.StringV("");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
 var xStack : execStack = new execStack(wrld);
-var eva : Evaluation = new Evaluation(a, wrld);
+var eva : Evaluation = new Evaluation(a, wrld, null);
 
 describe( 'varNode', () => {
     it('should be initialized properly', () => {
