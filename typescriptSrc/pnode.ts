@@ -996,13 +996,13 @@ module pnode {
 
                 else{
 
-                        var c = field.getValue;
-                        if (!c.isClosureV()){}//  error!
+                        var c = <ClosureV>field.getValue;
+                       // if (!c.isClosureV()){}//  error!
                         var c1 = <ClosureV>c;
-                        var f : LambdaNode = c1.function;
+                        var f : LambdaNode = <LambdaNode>c1.function;
 
                         //a bunch of pNodes(non parameter children)
-                        var argList : Array<Value>;
+                        var argList : Array<Value> = new Array();
 
                         var i = 0;
                         while(evalu.varmap.get(evalu.getPending().concat(i)) != null){
@@ -1018,6 +1018,7 @@ module pnode {
                         var param = f.child(0).children; //TODO
 
                         var arFields : Array<Field>;//fields to go in the stack
+                        arFields = new Array();
 
                         for(var j = 0; j < f.child(0).count(); j++){
                             //name, val, type, isConst
@@ -1177,8 +1178,8 @@ module pnode {
             clo.context = evalu.getStack();//TODO this is the correct stack?
             clo.function = <LambdaNode> node;
 
-            var name = <StringV> node.label().getVal;
-            var v = new Field(name.getVal(), clo, Type.ANY, true);
+//            var name = <StringV> node.label().getVal();
+            var v = new Field(node.label().getVal(), clo, Type.ANY, true);
             evalu.getStack().top().addField( v );
 
             evalu.finishStep(clo);
@@ -1801,6 +1802,9 @@ module pnode {
         return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
     export function mkParameterList( exprs : Array<ExprNode> ) : ExprSeqNode {
         return <ExprSeqNode> make( ParameterListLabel.theParameterListLabel, exprs ) ; }
+
+    export function mkType() : TypeNode{
+        return <TypeNode> make( new NoTypeLabel(),[] ) ; }
 
     //Const Make
     export function mkStringLiteral( val : string ) : ExprNode{
