@@ -3,6 +3,7 @@ package user;
 import java.util.HashMap;
 import java.util.Map;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Item;
@@ -17,11 +18,11 @@ public class RegisterUserTest {
     public static void main(String[] args) throws Exception {
 
         AmazonDynamoDBClient client = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000");
-
+//.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("PLAAY2");
+        Table table = dynamoDB.getTable("PLAAY");
 
         //String userId = "test";
         String uName = "testUser2";

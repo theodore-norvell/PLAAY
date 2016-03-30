@@ -9,8 +9,22 @@
     background-color:black ;
 }
 
+.canv
+{
+    background-color: white;
+    position: absolute;
+    top:5px;
+    right: 20px;
+}
+
 div.selected {
-    border: thin solid rgb(255,0,0) ;
+     border: thin solid rgb(255,0,0) ;
+     padding: 2px ;
+     margin: 2px ;
+}
+
+div.trashitem {
+    border: thin solid ghostwhite;
     padding: 2px ;
     margin: 2px ;
 }
@@ -85,11 +99,29 @@ div.redo
 
 div.advance
 {
-    width:90px;
+    width:40px;
     bottom:4px; left: 0px;
     height:calc(4%);
     background-color: royalblue;
-    position:fixed;
+    position:absolute;
+}
+
+div.multistep
+{
+    width:40px;
+    bottom:4px; left: 50px;
+    height:calc(4%);
+    background-color: royalblue;
+    position:absolute;
+}
+
+div.run
+{
+    width:40px;
+    bottom:4px; left: 100px;
+    height:calc(4%);
+    background-color: royalblue;
+    position:absolute;
 }
 
 div.trash
@@ -100,6 +132,25 @@ div.trash
     position:fixed;
     bottom:4px; left: 100px;
 }
+
+div.turtle
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
+}
+
+div.quitworld
+{
+    width: 50px;
+    height: calc(5%);
+    background-color: darkgreen;
+    position:fixed;
+    bottom:100px; left: 100px;
+}
+
 
 div.play
 {
@@ -134,7 +185,7 @@ div.stack
     position:fixed;
     top:4px; left:4px;
     height:calc(80% - 8px);
-    width:20%;
+    width:150px;
     background-color:grey;
     overflow:auto;
 }
@@ -143,7 +194,7 @@ div.container
 {
     display:block;
     position:absolute;
-    top:22px;
+    top:20px;
     bottom:0;
     left:0;
     right:0;
@@ -215,7 +266,7 @@ div.closewindow {
 div.vms
 {
     display:block;
-    position:absolute;
+    position: absolute;
     top:0;
     bottom:0;
     left:0;
@@ -237,10 +288,8 @@ div.block {
     margin-right: 5px;
     border-radius: 10px;
     box-shadow: 0px 0px 3px;
-    color:purple;
-    text-align:center;
+    color: rgb(190, 133, 197);
 }
-
 
 /*actual visualization*/
 div.ifBox {
@@ -324,7 +373,7 @@ div.doBox { /*Used with both whiles and lambdas */
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.lambdaBox:before { content: "\03bb";
+div.lambdaBox { content: "\03bb";
     border-top: medium solid rgb(135,206,250) ;
     border-bottom: medium solid rgb(135,206,250) ;
     border-left: 10px solid rgb(135,206,250) ;
@@ -442,12 +491,57 @@ div.placeHolder {
     border-radius: 5px ;
 }
 
+div.expOp {
+    border: thin solid ghostwhite ;
+    margin: 2px 0px 2px 0px ;
+    min-width: 2ex ;
+    min-height: 10px ;
+    width: auto ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ;
+    border-radius: 5px ;
+}
+
 div.hCont, div.var, div.assign {
     border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
     font-size: medium ;
     color: rgb(244, 140, 0) ; /* Orange */
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.vardecl:before { content: "Var" ;
+    display: inline ;
+    vertical-align: top ;
+    color: ghostwhite ;
+    font-size: large ;
+}
+
+div.vardecl{
+    border: thin solid ghostwhite ; /* Orange */
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ; /* Orange */
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.turtleFunc:before {
+    content:url('turtle1.png');
+    display: inline ;
+    vertical-align: top ;
+}
+
+div.turtleFunc{
+    border: thin solid green ;
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: medium ;
+    color: ghostwhite ;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
@@ -495,6 +589,19 @@ div.stringLiteral{
     margin: 1px 2px 1px 2px ;
 }
 
+div.inmap{
+    border: thin solid rgb(135,206,250);
+    border-radius: 5px ;
+    font-family:"Lucida Console", monospace;
+    font-weight: normal ;
+    font-size: medium ;
+    color: rgb(255,0,0);
+    max-width: 200px ;
+    white-space: pre-wrap ;
+    word-wrap: break-word ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
 
 
 div.nullLiteral {
@@ -531,7 +638,9 @@ div.selection {
 }
 
 .ui-widget-content.success-dialog {
-    background: #F9F9F9;
+    background: black;
+    overflow:visible;
+    position: fixed;
     border: 1px solid purple;
     color: #222222;
 }
@@ -564,4 +673,47 @@ div.selection {
     padding: 0.1em .5em;
     position: relative;
     font-size: 1em;
+}
+
+table
+{
+    border: 2px solid red;
+    color: black;
+    font-weight: bold;
+}
+
+/* rows */
+tr
+{
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* columns */
+td
+{
+    padding: 10px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* resets */
+tr:first-child
+{
+    border-top: none;
+}
+
+tr:last-child
+{
+    border-bottom: none;
+}
+
+td:first-child
+{
+    border-left: none;
+}
+
+td:last-child
+{
+    border-right: none;
 }

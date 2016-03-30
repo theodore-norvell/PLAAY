@@ -1050,7 +1050,7 @@ module mkHTML {
                     var user = respText.username;
                     $("#dimScreen").remove();
                     $("#login").hide();
-                    $("#userSettings").show();
+                    //$("#userSettings").show();
                     $('<input>').attr({
                         type: 'hidden',
                         id: 'currentUser',
@@ -1185,7 +1185,23 @@ module mkHTML {
         var result = $.parseJSON(json).programList;
         result.forEach(function(entry){
             $('#getProgramList').append("<div>" + entry +
-                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button></div>");
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button>" +
+                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button></div>");
+        });
+    }
+
+    export function deleteProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/DeleteProgram", {username: currentUser, programName}, function() {
+            $("#dimScreen").remove();
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
         });
     }
 

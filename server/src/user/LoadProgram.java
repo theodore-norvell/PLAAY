@@ -1,5 +1,6 @@
 package user;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.QuerySpec;
@@ -17,8 +18,8 @@ public class LoadProgram
     {
         String result = "";
         AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000"); //FOR LOCAL
-        //.withRegion(Regions.US_EAST_1); //FOR LIVE
+                //.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
         try

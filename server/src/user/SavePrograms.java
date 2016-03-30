@@ -21,8 +21,8 @@ public class SavePrograms {
     public String saveProgram(String usr, String program, String programName)
     {
         AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000"); //FOR LOCAL
-                //.withRegion(Regions.US_EAST_1); //FOR LIVE
+                //.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
         String tableName = usr;
@@ -103,8 +103,8 @@ public class SavePrograms {
     public String getProgramList(String usr)
     {
         AmazonDynamoDBClient dynamoDBClient = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000");
-
+//.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(dynamoDBClient);
 
         String tableName = usr;

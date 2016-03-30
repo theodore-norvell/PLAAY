@@ -5,6 +5,8 @@ import java.util.*;
 import javax.servlet.*;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.*;
+
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.DynamoDB;
 import com.amazonaws.services.dynamodbv2.document.Table;
@@ -53,8 +55,8 @@ public class LoginRequest extends HttpServlet
     private void login(String uname, String pword)
     {
         AmazonDynamoDBClient client = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000");
-
+                //.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(client);
 
         String tableName = "Movies";

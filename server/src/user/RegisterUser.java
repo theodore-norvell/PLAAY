@@ -1,5 +1,6 @@
 package user;
 
+import com.amazonaws.regions.Regions;
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient;
 import com.amazonaws.services.dynamodbv2.document.*;
 import com.amazonaws.services.dynamodbv2.document.spec.PutItemSpec;
@@ -16,11 +17,11 @@ public class RegisterUser
     public String register(String usr, String pwd)
     {
         AmazonDynamoDBClient client = new AmazonDynamoDBClient()
-                .withEndpoint("http://localhost:8000");
-
+                //.withEndpoint("http://localhost:8000"); //FOR LOCAL
+                .withRegion(Regions.US_EAST_1); //FOR LIVE
         DynamoDB dynamoDB = new DynamoDB(client);
 
-        Table table = dynamoDB.getTable("PLAAY2");
+        Table table = dynamoDB.getTable("PLAAY");
 
 
         try {

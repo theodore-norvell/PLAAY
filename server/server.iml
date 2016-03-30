@@ -27,5 +27,6 @@
     <orderEntry type="library" name="com.fasterxml.jackson.annotations" level="project" />
     <orderEntry type="library" name="commons-codec-1.9" level="project" />
     <orderEntry type="library" name="aspectjrt-1.8.2" level="project" />
+    <orderEntry type="library" name="javaee-api-7.0" level="project" />
   </component>
 </module>

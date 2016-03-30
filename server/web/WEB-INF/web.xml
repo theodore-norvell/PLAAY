@@ -42,7 +42,17 @@
             <servlet-name>LoadProgram</servlet-name>
             <url-pattern>/LoadProgram</url-pattern>
         </servlet-mapping>
-    
+
+        <servlet>
+            <servlet-name>DeleteProgram</servlet-name>
+            <servlet-class>user.DeleteRequest</servlet-class>
+        </servlet>
+
+        <servlet-mapping>
+            <servlet-name>DeleteProgram</servlet-name>
+            <url-pattern>/DeleteProgram</url-pattern>
+        </servlet-mapping>
+
         <servlet>
             <servlet-name>ProgramList</servlet-name>
             <servlet-class>user.ProgramListRequest</servlet-class>
