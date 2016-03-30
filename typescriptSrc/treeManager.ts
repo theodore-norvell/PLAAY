@@ -95,7 +95,7 @@ module treeManager {
             }
         }
 
-        appendChild(srcSelection:Selection, trgSelection:Selection) {
+        appendChild(srcSelection:Selection, trgSelection:Selection) : Option<Selection> {
             var edit = new pnodeEdits.InsertChildrenEdit([srcSelection.root()]);
             return edit.applyEdit(trgSelection);
 
