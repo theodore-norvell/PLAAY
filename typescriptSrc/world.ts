@@ -765,6 +765,7 @@ module world {
                 while( l < 0 ) l += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
                 while( l >= 360 ) l -= 360 ; // Once should be enough.
                 evalu.getTurtleFields().setOrientation(l);
+                evalu.finishStep(val);
             }
             else {
                 throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
