@@ -547,8 +547,8 @@ module world {
     export class TurtleFields {
         // Defining the world to view mapping
         private zoom : number = 1 ;
-        private worldWidth : number = 100 ;
-        private worldHeight : number = 100 ;
+        private worldWidth : number = 1024 ;
+        private worldHeight : number = 768 ;
 
         // The turtle
         private posn : Point = new Point(0,0) ;
