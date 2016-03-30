@@ -141,6 +141,10 @@ module value {
         isBuiltInV(){
             return false;
          }
+
+        getVal(): string{
+            return "function";
+        }
     }
     export class NullV implements Value {
         isClosureV(){
