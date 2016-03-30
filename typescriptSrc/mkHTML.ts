@@ -393,8 +393,8 @@ module mkHTML {
         const h = canv.height;
         ctx.clearRect(0, 0, w, h);
         for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
-            const p0v = this.world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
-            const p1v = this.world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
+            const p0v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
             ctx.beginPath();
             ctx.moveTo(p0v.x(), p0v.y());
             ctx.lineTo(p1v.x(), p1v.y());
