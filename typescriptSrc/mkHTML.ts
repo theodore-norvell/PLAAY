@@ -81,15 +81,13 @@ module mkHTML {
         //creates undo/redo buttons
         const undoblock = document.createElement("div");
         undoblock.setAttribute("id", "undo");
-        undoblock.setAttribute("class","undo");
+        undoblock.setAttribute("class", "undo");
         undoblock.setAttribute("onclick", "undo()");
         undoblock.textContent = "Undo";
         document.getElementById("body").appendChild(undoblock);
         var undo = document.getElementById("undo");
-        undo.onclick = function undo()
-        {
-            if(undostack.length != 0)
-            {
+        undo.onclick = function undo() {
+            if (undostack.length != 0) {
                 redostack.push(currentSelection);
                 currentSelection = undostack.pop();
                 generateHTML(currentSelection);
@@ -99,15 +97,13 @@ module mkHTML {
 
         const redoblock = document.createElement("div");
         redoblock.setAttribute("id", "redo");
-        redoblock.setAttribute("class","redo");
+        redoblock.setAttribute("class", "redo");
         redoblock.setAttribute("onclick", "redo()");
         redoblock.textContent = "Redo";
         document.getElementById("body").appendChild(redoblock);
         var redo = document.getElementById("redo");
-        redo.onclick = function redo()
-        {
-            if(redostack.length != 0)
-            {
+        redo.onclick = function redo() {
+            if (redostack.length != 0) {
                 undostack.push(currentSelection);
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
@@ -216,8 +212,8 @@ module mkHTML {
         document.getElementById("run").style.visibility = "hidden";
 
         const ifblock = document.createElement("div");
-        ifblock.setAttribute("id","if");
-        ifblock.setAttribute("class","block V palette");
+        ifblock.setAttribute("id", "if");
+        ifblock.setAttribute("class", "block V palette");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
 
@@ -250,6 +246,117 @@ module mkHTML {
         assignmentblock.setAttribute("class", "block V palette");
         assignmentblock.textContent = "Assignment";
         document.getElementById("sidebar").appendChild(assignmentblock);
+
+        const userBar = document.createElement("div");
+        userBar.setAttribute("id", "userBar");
+        userBar.setAttribute("class", "userBar");
+        document.getElementById("body").appendChild(userBar);
+
+        const loginButton = document.createElement("div");
+        loginButton.setAttribute("id", "login");
+        loginButton.setAttribute("class", "userOptions");
+        loginButton.textContent = "Login/Register";
+        document.getElementById("userBar").appendChild(loginButton);
+
+        const logoutButton = document.createElement("div");
+        logoutButton.setAttribute("id", "logout");
+        logoutButton.setAttribute("class", "userOptions");
+        logoutButton.textContent = "Logout";
+        document.getElementById("userBar").appendChild(logoutButton);
+        $("#logout").hide();
+
+        const userSettings = document.createElement("div");
+        userSettings.setAttribute("id", "userSettings");
+        userSettings.setAttribute("class", "userOptions");
+        userSettings.textContent = "User Settings";
+        document.getElementById("userBar").appendChild(userSettings);
+        $("#userSettings").hide();
+
+        const saveProgram = document.createElement("div");
+        saveProgram.setAttribute("id", "saveProgram");
+        saveProgram.setAttribute("class", "userOptions");
+        saveProgram.textContent = "Save Program";
+        document.getElementById("userBar").appendChild(saveProgram);
+        $("#saveProgram").hide();
+
+
+        const loadProgram = document.createElement("div");
+        loadProgram.setAttribute("id", "loadProgram");
+        loadProgram.setAttribute("class", "userOptions");
+        loadProgram.textContent = "Load Program";
+        document.getElementById("userBar").appendChild(loadProgram);
+        $("#loadProgram").hide();
+
+        $('#login').click(function () {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='registrationBox'>" +
+                "<div id='loginSection'>" +
+                "Login <br>" +
+                "<form name='loginUser' onSubmit='return mkHTML.loginUser()' method='post'>" +
+                "Username: <input type='text' name='username' required><br>" +
+                "Password: <input type='password' name='password' required><br>" +
+                "<input type='submit' value='Login'>" +
+                "</form></div>" +
+                "<div id='registrationSection'>" +
+                "Register <br>" +
+                "<form name='registerNewUser' onSubmit='return mkHTML.registerNewUser()' method='post'>" +
+                "Username: <input type='text' name='username' required><br>" +
+                "Password: <input type='password' name='password' required><br>" +
+                "Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
+                "<input type='submit' value='Register'></form></div>" +
+                "<div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+        });
+
+        $('#userSettings').click(function () {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='userSettingsChange'>" +
+                "<div id='editAccountTitle'>Edit Account Info:</div>" +
+                "<form name='editUserInfo' onSubmit='return mkHTML.editUser()' method='post'>" +
+                "Username: <input type='text' name='username'><br>" +
+                "Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
+                "&emsp;New: <input type='password' name='newpassword'><br>" +
+                "&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
+                "Email: <input> type='text' name='email'><br>" +
+                "<input type='submit' value='Submit Changes'></form>" +
+                "<div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+        });
+
+        $('#logout').click(function () {
+            $("#login").show();
+            $("#userSettings").hide();
+            $("#saveProgram").hide();
+            $("#loadProgram").hide();
+            $("#userSettings :input").remove();
+            $("#logout").hide();
+        });
+
+        $('#saveProgram').click(function() {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'>" +
+                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
+                "Program Name: <input type='text' name='programname'><br>" +
+                "<input type='submit' value='Submit Program'>" +
+                "</form><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            //mkHTML.getPrograms();
+        });
+
+        $('#loadProgram').click(function() {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
+        });
 
         const vardecblock = document.createElement("div");
         vardecblock.setAttribute("id", "vardecl");
@@ -303,7 +410,7 @@ module mkHTML {
 
         //creates container for code
         const container = document.createElement("div");
-        container.setAttribute("id","container");
+        container.setAttribute("id", "container");
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
 
@@ -319,10 +426,10 @@ module mkHTML {
         document.getElementById("container").appendChild(seq);
 
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
-        const div = document.createElement("div") ;
+        const div = document.createElement("div");
         div.setAttribute("id", "dropZone");
-        div.setAttribute("class", "dropZone H droppable") ;
-        document.getElementById("seq").appendChild( div ) ;
+        div.setAttribute("class", "dropZone H droppable");
+        document.getElementById("seq").appendChild(div);
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -337,7 +444,7 @@ module mkHTML {
             appendTo:"body"
         });
 
-        $( ".droppable" ).droppable({
+        $(".droppable").droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
             tolerance: "pointer",
@@ -359,8 +466,8 @@ module mkHTML {
             }
         });
 
-        $( ".trash").droppable({
-            accept:".canDrag",
+        $(".trash").droppable({
+            accept: ".canDrag",
             hoverClass: "hover",
             tolerance:'pointer',
             greedy: true,
@@ -927,6 +1034,201 @@ module mkHTML {
                     }
                 }
             });
+    }
+
+    export function loginUser(){
+        console.log('login');
+        var inputs = $('form[name="loginUser"] :input');
+        var usr = $('form[name="loginUser"] :input[name="username"]').val();
+        var psw = $('form[name="loginUser"] :input[name="password"]').val();
+        console.log($('form[name="loginUser"] #usrname').val());
+        var response = $.post("/Login",{username:usr,password:psw},
+            function(){
+                var respText = $.parseJSON(response.responseText);
+                if (respText.result == "SUCCESS")
+                {
+                    var user = respText.username;
+                    $("#dimScreen").remove();
+                    $("#login").hide();
+                    //$("#userSettings").show();
+                    $('<input>').attr({
+                        type: 'hidden',
+                        id: 'currentUser',
+                        value: user
+                    }).appendTo('#userSettings');
+                    $("#saveProgram").show();
+                    $("#loadProgram").show();
+                    $("#logout").show();
+                    $("#userSettings").val(user);
+                    //alert(respText.username);
+                }
+                else if (respText.result == "WRONGCREDENTIALS")
+                {
+                    alert("Wrong username/password, please try again.");
+                }
+                else if (respText.result == "ERROR")
+                {
+                    alert("An error has occurred, please try again later.");
+                }
+
+            });
+        return false;
+    }
+
+    export function registerNewUser(){
+        console.log('register');
+        var usr = $('form[name="registerNewUser"] :input[name="username"]').val();
+        var psw = $('form[name="registerNewUser"] :input[name="password"]').val();
+        var pswCon = $('form[name="registerNewUser"] :input[name="passwordConfirm"]').val();
+        if(psw !== pswCon)
+        {
+            alert("Passwords do not match, please confirm match.");
+        }
+        else
+        {
+            var response = $.post("/Register",{username:usr,password:psw},
+                function(){
+                    var respText = $.parseJSON(response.responseText);
+                    if (respText.result == "SUCCESS")
+                    {
+                        var user = respText.username;
+                        $("#dimScreen").remove();
+                        $("#login").hide();
+                        $("#userSettings").show();
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'currentUser',
+                            value: user
+                        }).appendTo('#userSettings');
+                        $("#saveProgram").show();
+                        $("#loadProgram").show();
+                        $("#logout").show();
+                        //$("#userSettings").val(user);
+                        //alert(respText.username);
+                    }
+                    else if (respText.result == "NAMETAKEN")
+                    {
+                        alert("Username is taken, please try another.");
+                    }
+                    else if (respText.result == "ERROR")
+                    {
+                        alert("An error has occurred, please try again.");
+                    }
+
+                });
+        }
+        return false;
+    }
+    export function editUser()
+    {
+        console.log('register');
+        var currentUser = $('#userSettings :input').val();
+        var usr = $('form[name="editUserInfo"] :input[name="username"]').val();
+        var oldpsw = $('form[name="editUserInfo"] :input[name="oldpassword"]').val();
+        var newpsw = $('form[name="editUserInfo"] :input[name="newpassword"]').val();
+        var newpswCon = $('form[name="editUserInfo"] :input[name="confirmnewpassword"]').val();
+        var email = $('form[name="editUserInfo"] :input[name="email"]').val();
+        if(usr.length == 0 && oldpsw.length == 0 && email.length == 0)
+        {
+            alert("No fields filled. Please fill at least one field.")
+        }
+        else if(oldpsw.length > 0 && newpsw.length >0 && newpsw !== newpswCon)
+        {
+            alert("Passwords do not match, please confirm match.");
+        }
+        else
+        {
+            var response = $.post("/EditUser",{username:usr,password:oldpsw},
+                function(){
+                    var respText = $.parseJSON(response.responseText);
+                    if (respText.result == "SUCCESS")
+                    {
+                        var user = respText.username;
+                        $("#dimScreen").remove();
+                        $("#login").hide();
+                        $("#userSettings").show();
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'currentUser',
+                            value: user
+                        }).appendTo('#userSettings');
+                        $("#saveProgram").show();
+                        $("#loadProgram").show();
+                        //$("#userSettings").val(user);
+                        //alert(respText.username);
+                    }
+                    else if (respText.result == "NAMETAKEN")
+                    {
+                        alert("Username is taken, please try another.");
+                    }
+                    else if (respText.result == "ERROR")
+                    {
+                        alert("An error has occurred, please try again.");
+                    }
+
+                });
+        }
+        return false;
+    }
+
+    export function getPrograms()
+    {
+        var currentUser = $('#userSettings :input').val();
+        var response = $.post("/ProgramList",{username:currentUser}, function() {
+            mkHTML.buildPage(response.responseText);
+        });
+        return false;
+    }
+
+    export function buildPage(json)
+    {
+        var result = $.parseJSON(json).programList;
+        result.forEach(function(entry){
+            $('#getProgramList').append("<div>" + entry +
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button>" +
+                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
+                "</div>");
+        });
+    }
+
+    export function deleteProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/DeleteProgram", {username: currentUser, programname: programName}, function() {
+            $("#dimScreen").remove();
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
+        });
+    }
+
+    export function loadProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
+            $("#dimScreen").remove();
+            currentSelection = unserialize(response.responseText);
+            generateHTML(currentSelection);
+            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        });
+    }
+
+    export function savePrograms()
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
+        var currentSel = serialize(currentSelection);
+        var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
+            function(){
+                console.log(response.responseText);
+                $('#dimScreen').remove();
+            });
+        return false;
     }
 
     export function generateHTML(select:Selection)
