@@ -1317,7 +1317,7 @@ var mkHTML;
                 var user = respText.username;
                 $("#dimScreen").remove();
                 $("#login").hide();
-                $("#userSettings").show();
+                //$("#userSettings").show();
                 $('<input>').attr({
                     type: 'hidden',
                     id: 'currentUser',
@@ -1427,10 +1427,26 @@ var mkHTML;
         var result = $.parseJSON(json).programList;
         result.forEach(function (entry) {
             $('#getProgramList').append("<div>" + entry +
-                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button></div>");
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button>" +
+                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
+                "</div>");
         });
     }
     mkHTML.buildPage = buildPage;
+    function deleteProgram(name) {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/DeleteProgram", { username: currentUser, programname: programName }, function () {
+            $("#dimScreen").remove();
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
+        });
+    }
+    mkHTML.deleteProgram = deleteProgram;
     function loadProgram(name) {
         var currentUser = $('#userSettings :input').val();
         var programName = name;
@@ -3448,7 +3464,7 @@ var pnode;
             return new None();
         };
         ClearLabel.prototype.isValid = function (children) {
-            if (children.length != 1) {
+            if (children.length != 0) {
                 return false;
             }
             return true;
@@ -3494,7 +3510,7 @@ var pnode;
             return new None();
         };
         HideLabel.prototype.isValid = function (children) {
-            if (children.length != 1) {
+            if (children.length != 0) {
                 return false;
             }
             return true;
@@ -3540,7 +3556,7 @@ var pnode;
             return new None();
         };
         ShowLabel.prototype.isValid = function (children) {
-            if (children.length != 1) {
+            if (children.length != 0) {
                 return false;
             }
             return true;
@@ -5723,11 +5739,11 @@ var world;
         TurtleWorld.prototype.penUp = function (node, evalu) {
             var valuepath = evalu.getPending().concat([0]);
             var val = evalu.varmap.get(valuepath);
-            if (val.getVal() == "true") {
+            if (val.getVal() == "down") {
                 evalu.getTurtleFields().setpenIsDown(true);
                 evalu.finishStep(val);
             }
-            else if (val.getVal() == "false") {
+            else if (val.getVal() == "up") {
                 evalu.getTurtleFields().setpenIsDown(false);
                 evalu.finishStep(val);
             }

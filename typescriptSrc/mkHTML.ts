@@ -1186,7 +1186,8 @@ module mkHTML {
         result.forEach(function(entry){
             $('#getProgramList').append("<div>" + entry +
                 "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button>" +
-                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button></div>");
+                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
+                "</div>");
         });
     }
 
@@ -1194,7 +1195,7 @@ module mkHTML {
     {
         var currentUser = $('#userSettings :input').val();
         var programName = name;
-        var response = $.post("/DeleteProgram", {username: currentUser, programName}, function() {
+        var response = $.post("/DeleteProgram", {username: currentUser, programname: programName}, function() {
             $("#dimScreen").remove();
             $('body').append("<div id='dimScreen'></div>");
             $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
