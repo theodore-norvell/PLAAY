@@ -1,7 +1,7 @@
 
 
 module seymour {
-    class Point {   
+    export class Point {
         private _x : number = 0 ;
         private _y : number = 0 ;
         constructor( x : number, y : number) { this._x = x ; this._y = y ; }
@@ -9,15 +9,15 @@ module seymour {
         public x() { return this._x ; }
         public y() { return this._y ; }
     }
-    interface Segment {   
+    export interface Segment {
         p0 : Point ;
         p1 : Point ;
     }
     export class TurtleWorld {
         // Defining the world to view mapping
         private zoom : number = 1 ;
-        private worldWidth : number = 100 ;
-        private worldHeight : number = 100 ;
+        private worldWidth : number = 1024 ;
+        private worldHeight : number = 768 ;
         
         // The turtle
         private posn : Point = new Point(0,0) ;
@@ -81,11 +81,6 @@ module seymour {
                  ctx.lineTo( p1v.x(), p1v.y() ) ;
                  ctx.stroke() ;
              }
-             /*var base_image = new Image();
-             base_image.src = 'turtle1.png';
-             base_image.height = 25;
-             base_image.width = 25;
-             ctx.drawImage(base_image, this.posn.x(), this.posn.y());*/
              if( this.visible ) {
                  // Draw a little triangle
                  const theta = this.orientation / 180.0 * Math.PI ;
@@ -100,13 +95,21 @@ module seymour {
                  const p0v = this.world2View( new Point(p0x,p0y), w, h ) ;
                  const p1v = this.world2View( new Point(p1x,p1y), w, h ) ;
                  const p2v = this.world2View( new Point(p2x,p2y), w, h ) ;
+                 var base_image = new Image();
+                 base_image.src = "turtle1.png";
+                 base_image.width = 25;
+                 base_image.height = 25;
+                 const hscale = this.canv.width / this.worldWidth * this.zoom ;
+                 const vscale = this.canv.height / this.worldHeight * this.zoom ;
+                 const newx = this.posn.x() * hscale + this.canv.width/2 -12.5;
+                 const newy = this.posn.y() * vscale + this.canv.height/2 - 12.5;
+                 ctx.drawImage(base_image, newx, newy);
                  ctx.beginPath() ;
                  ctx.moveTo(p0v.x(),p0v.y()) ;
                  ctx.lineTo(p1v.x(),p1v.y()) ;
                  ctx.lineTo(p2v.x(),p2v.y()) ;
                  ctx.lineTo(p0v.x(),p0v.y()) ;
                  ctx.stroke() ;
-
              }
          }
          

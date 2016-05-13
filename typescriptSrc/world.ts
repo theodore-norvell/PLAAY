@@ -9,6 +9,7 @@ import value = require('./value') ;
 import assert = require( './assert' ) ;
 import vms = require('./vms');
 import evaluation = require('./evaluation');
+import seymour = require('./seymour') ;
 
 
 module world {
@@ -24,6 +25,8 @@ module world {
     import Evaluation = evaluation.Evaluation;
     import StringV = value.StringV;
     import PNode = pnode.PNode;
+    import Point = seymour.Point;
+    import Segment = seymour.Segment;
 
     export class World extends ObjectV {
         fields:Array<Field>;
@@ -306,7 +309,7 @@ module world {
                     }
                     evalu.finishStep(v);
                 } else {
-                    throw new Error("Error evaulating " + ls.getVal() + " >= " + rs.getVal() + "! Make sure these values are numbers.");
+                    throw new Error("Error evaluating " + ls.getVal() + " >= " + rs.getVal() + "! Make sure these values are numbers.");
                 }
             }
 
@@ -510,8 +513,6 @@ module world {
             this.fields.push(orf);
         }
 
-
-
         //this.values = new ObjectV();
 
         public numFields():Number {
@@ -543,9 +544,260 @@ module world {
         }
     }
 
+    export class TurtleFields {
+        // Defining the world to view mapping
+        private zoom : number = 1 ;
+        private worldWidth : number = 1024 ;
+        private worldHeight : number = 768 ;
 
-    export class Method {
+        // The turtle
+        private posn : Point = new Point(0,0) ;
+        // Invariant: The orientation is in [0,360)
+        private orientation : number = 0.0 ;
+        private visible = true ;
+        private penIsDown = false ;
 
+        // The segments
+        private segments = new Array<Segment>() ;
+
+        // The canvas
+        //private canv : HTMLCanvasElement = document.createElement('canvas');
+
+        getpenIsDown() : boolean {
+            return this.penIsDown;
+        }
+
+        setpenIsDown(penIsDown : boolean) {
+            this.penIsDown = penIsDown;
+        }
+
+        getZoom() : number {
+            return this.zoom;
+        }
+
+        setZoom(zoom : number) {
+            this.zoom = zoom;
+        }
+
+        getWorldWidth() : number {
+            return this.worldWidth;
+        }
+
+        setWorldWidth(worldWidth : number) {
+            this.worldWidth = worldWidth;
+        }
+
+        getWorldHeight() : number {
+            return this.worldHeight;
+        }
+
+        setWorldHeight(worldHeight : number) {
+            this.worldHeight = worldHeight;
+        }
+
+        getPosn() : Point{
+            return this.posn;
+        }
+
+        setPosn(posn : Point) {
+            this.posn = posn;
+        }
+
+        getOrientation() : number {
+            return this.orientation;
+        }
+
+        setOrientation(orientation : number) {
+            this.orientation = orientation;
+        }
+
+        getVisible() : boolean {
+            return this.visible;
+        }
+
+        setVisible(visible : boolean) {
+            this.visible = visible;
+        }
+
+        getSegments() : Array<Segment> {
+            return this.segments;
+        }
+
+        setSegments(segments: Array<Segment>) {
+            this.segments = segments;
+        }
+
+        world2View( p : Point, viewWidth : number, viewHeight : number ) {
+            const hscale = viewWidth / this.worldWidth * this.zoom ;
+            const vscale = viewHeight / this.worldHeight * this.zoom ;
+            const x = p.x() * hscale + viewWidth/2 ;
+            const y = p.y() * vscale + viewHeight/2 ;
+            return new Point( x, y ) ;
+        }
+    }
+
+    export class TurtleWorld extends ObjectV {
+
+        constructor(){
+            super();
+            console.log("World's fields array is length: " + this.fields.length);
+
+
+
+            //mutators
+            var pen = new BuiltInV(this.penUp);
+            var penf = new Field("penup", pen, Type.NUMBER, true);
+            this.fields.push(penf);
+
+            var forw = new BuiltInV(this.forward);
+            var forwardf = new Field("forward", forw, Type.NUMBER, true);
+            this.fields.push(forwardf);
+
+            var right = new BuiltInV(this.right);
+            var rightf = new Field("right", right, Type.NUMBER, true);
+            this.fields.push(rightf);
+
+            var left = new BuiltInV(this.left);
+            var leftf = new Field("left", left, Type.NUMBER, true);
+            this.fields.push(leftf);
+
+            var clear = new BuiltInV(this.clear);
+            var clearf = new Field("clear", clear, Type.NUMBER, true);
+            this.fields.push(clearf);
+
+            var show = new BuiltInV(this.show);
+            var showf = new Field("show", show, Type.NUMBER, true);
+            this.fields.push(showf);
+
+            var hide = new BuiltInV(this.hide);
+            var hidef = new Field("hide", hide, Type.NUMBER, true);
+            this.fields.push(hidef);
+
+        }
+
+        forward(node : PNode, evalu : Evaluation ) {
+            var valuepath = evalu.getPending().concat([0]);
+            var val = <StringV>evalu.varmap.get(valuepath);
+
+            var isNum = true;
+            for (var i = 0; i < val.getVal().length ; i ++) {
+                //then check right side
+                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
+                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
+                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
+                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
+                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
+                    || val.getVal().charAt(0) == "-")){
+                    isNum = false;
+                }
+            }
+
+            if (isNum) {
+                const theta = evalu.getTurtleFields().getOrientation() / 180.0 * Math.PI ;
+                const newx = evalu.getTurtleFields().getPosn().x() + Number(val.getVal()) * Math.cos(theta) ;
+                const newy = evalu.getTurtleFields().getPosn().y() + Number(val.getVal()) * Math.sin(theta) ;
+                const newPosn = new Point(newx, newy) ;
+                if( evalu.getTurtleFields().getpenIsDown() ) { evalu.getTurtleFields().getSegments().push(
+                        {p0 : evalu.getTurtleFields().getPosn(), p1:newPosn})} ;
+                evalu.getTurtleFields().setPosn(newPosn) ;
+                evalu.finishStep(val);
+            }
+            else {
+                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
+            }
+        }
+
+        clear(node : PNode, evalu : Evaluation) {
+            evalu.getTurtleFields().setSegments( new Array<Segment>() );
+            evalu.finishStep( new StringV(""));
+        }
+
+        right( node : PNode, evalu : Evaluation ) {
+
+            var valuepath = evalu.getPending().concat([0]);
+            var val = <StringV>evalu.varmap.get(valuepath);
+
+            var isNum = true;
+            for (var i = 0; i < val.getVal().length ; i ++) {
+                //then check right side
+                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
+                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
+                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
+                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
+                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
+                    || val.getVal().charAt(0) == "-")){
+                    isNum = false;
+                }
+            }
+
+            if (isNum) {
+                var r = (evalu.getTurtleFields().getOrientation() + Number(val.getVal())) % 360 ;
+                while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
+                while( r >= 360 ) r -= 360 ; // Once should be enough.
+                evalu.getTurtleFields().setOrientation(r) ;
+                evalu.finishStep(val);
+
+            }
+            else {
+                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
+            }
+        }
+
+        left( node : PNode, evalu : Evaluation ) {
+            var valuepath = evalu.getPending().concat([0]);
+            var val = <StringV>evalu.varmap.get(valuepath);
+
+            var isNum = true;
+            for (var i = 0; i < val.getVal().length ; i ++) {
+                //then check right side
+                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
+                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
+                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
+                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
+                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
+                    || val.getVal().charAt(0) == "-")){
+                    isNum = false;
+                }
+            }
+
+            if (isNum) {
+                var l = (evalu.getTurtleFields().getOrientation() - Number(val.getVal())) % 360 ;
+                while( l < 0 ) l += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
+                while( l >= 360 ) l -= 360 ; // Once should be enough.
+                evalu.getTurtleFields().setOrientation(l);
+                evalu.finishStep(val);
+            }
+            else {
+                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
+            }
+        }
+
+        penUp(node : PNode, evalu : Evaluation ) {
+            var valuepath = evalu.getPending().concat([0]);
+            var val = <StringV>evalu.varmap.get(valuepath);
+
+            if (val.getVal() == "down") {
+                evalu.getTurtleFields().setpenIsDown(true);
+                evalu.finishStep(val);
+            }
+            else if (val.getVal() == "up" ) {
+                evalu.getTurtleFields().setpenIsDown(false);
+                evalu.finishStep(val);
+            }
+            else {
+                throw new Error("Error evaulating " + val.getVal() + " as a logical value!");
+            }
+        }
+
+        hide(node : PNode, evalu : Evaluation) {
+            evalu.getTurtleFields().setVisible(false);
+            evalu.finishStep( new StringV(""));
+        }
+
+        show(node : PNode, evalu : Evaluation) {
+            evalu.getTurtleFields().setVisible(true);
+            evalu.finishStep( new StringV(""));
+        }
     }
 }
 

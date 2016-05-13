@@ -35,6 +35,7 @@ module mkHTML {
     import arrayToList = collections.arrayToList;
     import StringV = value.StringV;
     import BuiltInV = value.BuiltInV;
+    import Point = seymour.Point;
 
     var undostack = [];
     var redostack = [];
@@ -46,13 +47,17 @@ module mkHTML {
     var root = pnode.mkExprSeq([]);
     const turtleWorld = new seymour.TurtleWorld();
     var path : (  ...args : Array<number> ) => List<number> = list;
+    var pathToTrash = list<number>();
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
     var penUp = true;
+    var turtle = "";
     currentSelection = select;
+
+    const canv = document.createElement('canvas');
 
     export function onLoad() : void
     {
@@ -76,15 +81,13 @@ module mkHTML {
         //creates undo/redo buttons
         const undoblock = document.createElement("div");
         undoblock.setAttribute("id", "undo");
-        undoblock.setAttribute("class","undo");
+        undoblock.setAttribute("class", "undo");
         undoblock.setAttribute("onclick", "undo()");
         undoblock.textContent = "Undo";
         document.getElementById("body").appendChild(undoblock);
         var undo = document.getElementById("undo");
-        undo.onclick = function undo()
-        {
-            if(undostack.length != 0)
-            {
+        undo.onclick = function undo() {
+            if (undostack.length != 0) {
                 redostack.push(currentSelection);
                 currentSelection = undostack.pop();
                 generateHTML(currentSelection);
@@ -94,15 +97,13 @@ module mkHTML {
 
         const redoblock = document.createElement("div");
         redoblock.setAttribute("id", "redo");
-        redoblock.setAttribute("class","redo");
+        redoblock.setAttribute("class", "redo");
         redoblock.setAttribute("onclick", "redo()");
         redoblock.textContent = "Redo";
         document.getElementById("body").appendChild(redoblock);
         var redo = document.getElementById("redo");
-        redo.onclick = function redo()
-        {
-            if(redostack.length != 0)
-            {
+        redo.onclick = function redo() {
+            if (redostack.length != 0) {
                 undostack.push(currentSelection);
                 currentSelection = redostack.pop();
                 generateHTML(currentSelection);
@@ -133,6 +134,19 @@ module mkHTML {
         {
             turtleGraphics();
         };
+
+        const quitworldbutton = document.createElement("div");
+        quitworldbutton.setAttribute("id", "quitworld");
+        quitworldbutton.setAttribute("class", "quitworld");
+        quitworldbutton.setAttribute("onclick", "quitworld()");
+        quitworldbutton.textContent = "Quit World";
+        document.getElementById("body").appendChild(quitworldbutton);
+        var quitworld = document.getElementById("quitworld");
+        quitworld.onclick = function quitprebuiltworld()
+        {
+            leaveWorld();
+        };
+        document.getElementById("quitworld").style.visibility = "hidden";
 
         const editorbutton = document.createElement("div");
         editorbutton.setAttribute("id", "edit");
@@ -175,18 +189,31 @@ module mkHTML {
         multistepbutton.setAttribute("id", "multistep");
         multistepbutton.setAttribute("class","multistep");
         multistepbutton.setAttribute("onclick", "multistep()");
-        multistepbutton.textContent = "Next Function";
+        multistepbutton.textContent = "Multi-Step";
         document.getElementById("body").appendChild(multistepbutton);
         var multistep = document.getElementById("multistep");
         multistep.onclick = function multistep()
         {
-            stepTillDone();
+            multiStep();
         };
         document.getElementById("multistep").style.visibility = "hidden";
 
+        const runbutton = document.createElement("div");
+        runbutton.setAttribute("id", "run");
+        runbutton.setAttribute("class","run");
+        runbutton.setAttribute("onclick", "run()");
+        runbutton.textContent = "Run";
+        document.getElementById("body").appendChild(runbutton);
+        var runfunc = document.getElementById("run");
+        runfunc.onclick = function run()
+        {
+            stepTillDone();
+        };
+        document.getElementById("run").style.visibility = "hidden";
+
         const ifblock = document.createElement("div");
-        ifblock.setAttribute("id","if");
-        ifblock.setAttribute("class","block V palette");
+        ifblock.setAttribute("id", "if");
+        ifblock.setAttribute("class", "block V palette");
         ifblock.textContent = "If";
         document.getElementById("sidebar").appendChild(ifblock);
 
@@ -220,6 +247,117 @@ module mkHTML {
         assignmentblock.textContent = "Assignment";
         document.getElementById("sidebar").appendChild(assignmentblock);
 
+        const userBar = document.createElement("div");
+        userBar.setAttribute("id", "userBar");
+        userBar.setAttribute("class", "userBar");
+        document.getElementById("body").appendChild(userBar);
+
+        const loginButton = document.createElement("div");
+        loginButton.setAttribute("id", "login");
+        loginButton.setAttribute("class", "userOptions");
+        loginButton.textContent = "Login/Register";
+        document.getElementById("userBar").appendChild(loginButton);
+
+        const logoutButton = document.createElement("div");
+        logoutButton.setAttribute("id", "logout");
+        logoutButton.setAttribute("class", "userOptions");
+        logoutButton.textContent = "Logout";
+        document.getElementById("userBar").appendChild(logoutButton);
+        $("#logout").hide();
+
+        const userSettings = document.createElement("div");
+        userSettings.setAttribute("id", "userSettings");
+        userSettings.setAttribute("class", "userOptions");
+        userSettings.textContent = "User Settings";
+        document.getElementById("userBar").appendChild(userSettings);
+        $("#userSettings").hide();
+
+        const saveProgram = document.createElement("div");
+        saveProgram.setAttribute("id", "saveProgram");
+        saveProgram.setAttribute("class", "userOptions");
+        saveProgram.textContent = "Save Program";
+        document.getElementById("userBar").appendChild(saveProgram);
+        $("#saveProgram").hide();
+
+
+        const loadProgram = document.createElement("div");
+        loadProgram.setAttribute("id", "loadProgram");
+        loadProgram.setAttribute("class", "userOptions");
+        loadProgram.textContent = "Load Program";
+        document.getElementById("userBar").appendChild(loadProgram);
+        $("#loadProgram").hide();
+
+        $('#login').click(function () {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='registrationBox'>" +
+                "<div id='loginSection'>" +
+                "Login <br>" +
+                "<form name='loginUser' onSubmit='return mkHTML.loginUser()' method='post'>" +
+                "Username: <input type='text' name='username' required><br>" +
+                "Password: <input type='password' name='password' required><br>" +
+                "<input type='submit' value='Login'>" +
+                "</form></div>" +
+                "<div id='registrationSection'>" +
+                "Register <br>" +
+                "<form name='registerNewUser' onSubmit='return mkHTML.registerNewUser()' method='post'>" +
+                "Username: <input type='text' name='username' required><br>" +
+                "Password: <input type='password' name='password' required><br>" +
+                "Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
+                "<input type='submit' value='Register'></form></div>" +
+                "<div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+        });
+
+        $('#userSettings').click(function () {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='userSettingsChange'>" +
+                "<div id='editAccountTitle'>Edit Account Info:</div>" +
+                "<form name='editUserInfo' onSubmit='return mkHTML.editUser()' method='post'>" +
+                "Username: <input type='text' name='username'><br>" +
+                "Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
+                "&emsp;New: <input type='password' name='newpassword'><br>" +
+                "&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
+                "Email: <input> type='text' name='email'><br>" +
+                "<input type='submit' value='Submit Changes'></form>" +
+                "<div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+        });
+
+        $('#logout').click(function () {
+            $("#login").show();
+            $("#userSettings").hide();
+            $("#saveProgram").hide();
+            $("#loadProgram").hide();
+            $("#userSettings :input").remove();
+            $("#logout").hide();
+        });
+
+        $('#saveProgram').click(function() {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'>" +
+                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
+                "Program Name: <input type='text' name='programname'><br>" +
+                "<input type='submit' value='Submit Program'>" +
+                "</form><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            //mkHTML.getPrograms();
+        });
+
+        $('#loadProgram').click(function() {
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
+        });
+
         const vardecblock = document.createElement("div");
         vardecblock.setAttribute("id", "vardecl");
         vardecblock.setAttribute("class", "block V palette");
@@ -231,27 +369,6 @@ module mkHTML {
         lambdablock.setAttribute("class", "block V palette");
         lambdablock.textContent = "Lambda Expression";
         document.getElementById("sidebar").appendChild(lambdablock);
-
-        const forwardblock = document.createElement("div");
-        forwardblock.setAttribute("id", "forward");
-        forwardblock.setAttribute("class", "block V palette");
-        forwardblock.textContent = "Forward";
-        document.getElementById("sidebar").appendChild(forwardblock);
-        document.getElementById("forward").style.visibility = "hidden";
-
-        const rightblock = document.createElement("div");
-        rightblock.setAttribute("id", "right");
-        rightblock.setAttribute("class", "block V palette");
-        rightblock.textContent = "Right";
-        document.getElementById("sidebar").appendChild(rightblock);
-        document.getElementById("right").style.visibility = "hidden";
-
-        const penblock = document.createElement("div");
-        penblock.setAttribute("id", "pen");
-        penblock.setAttribute("class", "block V palette");
-        penblock.textContent = "Pen";
-        document.getElementById("sidebar").appendChild(penblock);
-        document.getElementById("pen").style.visibility = "hidden";
 
         var list = document.createElement("datalist");
         list.setAttribute("id", "oplist");
@@ -293,7 +410,7 @@ module mkHTML {
 
         //creates container for code
         const container = document.createElement("div");
-        container.setAttribute("id","container");
+        container.setAttribute("id", "container");
         container.setAttribute("class", "container");
         document.getElementById("body").appendChild(container);
 
@@ -309,10 +426,202 @@ module mkHTML {
         document.getElementById("container").appendChild(seq);
 
         //creates empty dropzone <div id="dropZone" class="dropZone H droppable"></div>
-        const div = document.createElement("div") ;
+        const div = document.createElement("div");
         div.setAttribute("id", "dropZone");
-        div.setAttribute("class", "dropZone H droppable") ;
-        document.getElementById("seq").appendChild( div ) ;
+        div.setAttribute("class", "dropZone H droppable");
+        document.getElementById("seq").appendChild(div);
+
+        $( ".palette" ).draggable({
+            helper:"clone" ,
+            start : function(event, ui){
+                ui.helper.animate({
+                    width: 40,
+                    height: 40
+                });
+                draggedObject = $(this).attr("class");
+            },
+            cursorAt: {left:20, top:20},
+            appendTo:"body"
+        });
+
+        $(".droppable").droppable({
+            //accept: ".ifBox", //potentially only accept after function call?
+            hoverClass: "hover",
+            tolerance: "pointer",
+            drop: function (event, ui) {
+                console.log(ui.draggable.attr("id"));
+                currentSelection = getPathToNode(currentSelection, $(this));
+                undostack.push(currentSelection);
+                var selection = tree.createNode(ui.draggable.attr("id"), currentSelection);
+                selection.choose(
+                    sel => {
+                        currentSelection = sel;
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+
+        $(".trash").droppable({
+            accept: ".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            greedy: true,
+            drop: function(event, ui){
+                currentSelection = getPathToNode(currentSelection, ui.draggable);
+                var selection = tree.deleteNode(currentSelection);
+                selection[1].choose(
+                    sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
+                        undostack.push(currentSelection);
+                        currentSelection = sel;
+                        trashArray.push(trashselect);
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    },
+                    ()=>{
+                        generateHTML(currentSelection);
+                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    });
+            }
+        });
+        enterBox();
+    }
+
+    function redraw(vms:VMS) {
+        const ctx = canv.getContext("2d");
+        const w = canv.width;
+        const h = canv.height;
+        ctx.clearRect(0, 0, w, h);
+        for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
+            const p0v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.stroke();
+        }
+        if (vms.getEval().getTurtleFields().getVisible()) {
+            // Draw a little triangle
+            const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
+            const x = vms.getEval().getTurtleFields().getPosn().x();
+            const y = vms.getEval().getTurtleFields().getPosn().y();
+            const p0x = x + 4 * Math.cos(theta);
+            const p0y = y + 4 * Math.sin(theta);
+            const p1x = x + 5 * Math.cos(theta + 2.5);
+            const p1y = y + 5 * Math.sin(theta + 2.5);
+            const p2x = x + 5 * Math.cos(theta - 2.5);
+            const p2y = y + 5 * Math.sin(theta - 2.5);
+            const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
+            const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
+            const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
+            var base_image = new Image();
+            base_image.src = "turtle1.png";
+            //base_image.src = "Turtles/"+ vms.getEval().getTurtleFields().getOrientation() + ".png";
+            base_image.width = 25;
+            base_image.height = 25;
+            const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
+            const vscale = canv.height / vms.getEval().getTurtleFields().getWorldHeight() * vms.getEval().getTurtleFields().getZoom() ;
+            const newx = vms.getEval().getTurtleFields().getPosn().x() * hscale + canv.width/2 -12.5;
+            const newy = vms.getEval().getTurtleFields().getPosn().y() * vscale + canv.height/2 - 12.5;
+            ctx.drawImage(base_image, newx, newy);
+            ctx.beginPath();
+            ctx.moveTo(p0v.x(), p0v.y());
+            ctx.lineTo(p1v.x(), p1v.y());
+            ctx.lineTo(p2v.x(), p2v.y());
+            ctx.lineTo(p0v.x(), p0v.y());
+            ctx.stroke();
+
+        }
+    }
+
+    function leaveWorld()
+    {
+        document.getElementById("turtle").style.visibility = "visible";
+        document.getElementById("quitworld").style.visibility = "hidden";
+
+        var forward = document.getElementById("forward");
+        document.getElementById("sidebar").removeChild(forward);
+        var left = document.getElementById("left");
+        document.getElementById("sidebar").removeChild(left);
+        var right = document.getElementById("right");
+        document.getElementById("sidebar").removeChild(right);
+        var pen = document.getElementById("pen");
+        document.getElementById("sidebar").removeChild(pen);
+        var clear = document.getElementById("clear");
+        document.getElementById("sidebar").removeChild(clear);
+        var show = document.getElementById("show");
+        document.getElementById("sidebar").removeChild(show);
+        var hide = document.getElementById("hide");
+        document.getElementById("sidebar").removeChild(hide);
+
+        $('.turtleFunc').remove();
+
+        var canvas = document.getElementById("turtleGraphics");
+        document.getElementById("body").removeChild(canvas);
+    }
+
+    function turtleGraphics()
+    {
+        document.getElementById("turtle").style.visibility = "hidden";
+        document.getElementById("quitworld").style.visibility = "visible";
+
+        var sidebar = $('#sidebar');
+
+        const hideblock = document.createElement("div");
+        hideblock.setAttribute("id", "hide");
+        hideblock.setAttribute("class", "block V palette");
+        hideblock.textContent = "Hide";
+        sidebar.prepend(hideblock);
+
+        const showblock = document.createElement("div");
+        showblock.setAttribute("id", "show");
+        showblock.setAttribute("class", "block V palette");
+        showblock.textContent = "Show";
+        sidebar.prepend(showblock);
+
+        const clearblock = document.createElement("div");
+        clearblock.setAttribute("id", "clear");
+        clearblock.setAttribute("class", "block V palette");
+        clearblock.textContent = "Clear";
+        sidebar.prepend(clearblock);
+
+        const penblock = document.createElement("div");
+        penblock.setAttribute("id", "pen");
+        penblock.setAttribute("class", "block V palette");
+        penblock.textContent = "Pen";
+        sidebar.prepend(penblock);
+
+        const rightblock = document.createElement("div");
+        rightblock.setAttribute("id", "right");
+        rightblock.setAttribute("class", "block V palette");
+        rightblock.textContent = "Right";
+        sidebar.prepend(rightblock);
+
+        const leftblock = document.createElement("div");
+        leftblock.setAttribute("id", "left");
+        leftblock.setAttribute("class", "block V palette");
+        leftblock.textContent = "Left";
+        sidebar.prepend(leftblock);
+
+        const forwardblock = document.createElement("div");
+        forwardblock.setAttribute("id", "forward");
+        forwardblock.setAttribute("class", "block V palette");
+        forwardblock.textContent = "Forward";
+        sidebar.prepend(forwardblock);
+
+        const body = document.getElementById('body') ;
+        canv.setAttribute("id", "turtleGraphics");
+        canv.setAttribute("class", "canv");
+        canv.setAttribute('width','1024') ;
+        canv.setAttribute('height','768') ;
+        body.appendChild(canv);
+
+        turtle = "turtle";
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -357,11 +666,12 @@ module mkHTML {
             drop: function(event, ui){
                 currentSelection = getPathToNode(currentSelection, ui.draggable);
                 var selection = tree.deleteNode(currentSelection);
-                selection.choose(
+                selection[1].choose(
                     sel => {
+                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
                         undostack.push(currentSelection);
                         currentSelection = sel;
-                        trashArray.push(currentSelection);
+                        trashArray.push(trashselect);
                         generateHTML(currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
@@ -372,46 +682,6 @@ module mkHTML {
             }
         });
         enterBox();
-    }
-
-    function turtleGraphics()
-    {
-        document.getElementById("forward").style.visibility = "visible";
-        document.getElementById("right").style.visibility = "visible";
-        document.getElementById("pen").style.visibility = "visible";
-
-        const body = document.getElementById('container') ;
-        const canv = turtleWorld.getCanvas();
-        canv.setAttribute("class", "canv");
-        canv.setAttribute('width','1024') ;
-        canv.setAttribute('height','768') ;
-        body.appendChild( canv ) ;
-
-        $(document).keydown(function(e) {
-            switch(e.which) {
-                case 37: // left
-                    leftturn();
-                    break;
-
-                case 38: // up
-                    forwardmarch();
-                    break;
-
-                case 39: // right
-                    rightturn();
-                    break;
-
-                case 40: // down
-                    backward();
-                    break;
-                case 80:
-                    penDown();
-                    break;
-
-                default: return; // exit this handler for other keys
-            }
-            e.preventDefault(); // prevent the default action (scroll / move caret)
-        });
     }
 
     function penDown()
@@ -460,9 +730,10 @@ module mkHTML {
         document.getElementById("stackbar").style.visibility = "visible";
         document.getElementById("advance").style.visibility = "visible";
         document.getElementById("multistep").style.visibility = "visible";
+        document.getElementById("run").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root());
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -481,6 +752,7 @@ module mkHTML {
         document.getElementById("undo").style.visibility = "visible";
         document.getElementById("sidebar").style.visibility = "visible";
         document.getElementById("container").style.visibility = "visible";
+        document.getElementById("play").style.visibility = "visible";
         document.getElementById("play").style.visibility = "visible";
         document.getElementById("vms").style.visibility = "hidden";
         document.getElementById("stackbar").style.visibility = "hidden";
@@ -536,7 +808,7 @@ module mkHTML {
                 trashdiv.setAttribute("data-trashitem", i.toString());
                 $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
                 $(trashdiv).appendTo(dialogDiv);
-                $(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                //$(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
             dialogDiv.dialog({
                 modal : true,
@@ -553,8 +825,8 @@ module mkHTML {
             appendTo: '#container',
             containment: false,
             start: function(event,ui){
-                draggedObject = $(this).attr("class");
-                draggedSelection = getPathToNode(currentSelection, $(this));
+                draggedObject = $(this).parent().attr("class");
+                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
             }
         });
 }
@@ -661,6 +933,16 @@ module mkHTML {
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
+        if(turtle.match("turtle"))
+        {
+            redraw(currentvms);
+        }
+    }
+
+    function multiStep() {
+        $('#advance').trigger('click');
+        $('#advance').trigger('click');
+        $('#advance').trigger('click');
     }
 
     function stepTillDone()
@@ -754,6 +1036,201 @@ module mkHTML {
             });
     }
 
+    export function loginUser(){
+        console.log('login');
+        var inputs = $('form[name="loginUser"] :input');
+        var usr = $('form[name="loginUser"] :input[name="username"]').val();
+        var psw = $('form[name="loginUser"] :input[name="password"]').val();
+        console.log($('form[name="loginUser"] #usrname').val());
+        var response = $.post("/Login",{username:usr,password:psw},
+            function(){
+                var respText = $.parseJSON(response.responseText);
+                if (respText.result == "SUCCESS")
+                {
+                    var user = respText.username;
+                    $("#dimScreen").remove();
+                    $("#login").hide();
+                    //$("#userSettings").show();
+                    $('<input>').attr({
+                        type: 'hidden',
+                        id: 'currentUser',
+                        value: user
+                    }).appendTo('#userSettings');
+                    $("#saveProgram").show();
+                    $("#loadProgram").show();
+                    $("#logout").show();
+                    $("#userSettings").val(user);
+                    //alert(respText.username);
+                }
+                else if (respText.result == "WRONGCREDENTIALS")
+                {
+                    alert("Wrong username/password, please try again.");
+                }
+                else if (respText.result == "ERROR")
+                {
+                    alert("An error has occurred, please try again later.");
+                }
+
+            });
+        return false;
+    }
+
+    export function registerNewUser(){
+        console.log('register');
+        var usr = $('form[name="registerNewUser"] :input[name="username"]').val();
+        var psw = $('form[name="registerNewUser"] :input[name="password"]').val();
+        var pswCon = $('form[name="registerNewUser"] :input[name="passwordConfirm"]').val();
+        if(psw !== pswCon)
+        {
+            alert("Passwords do not match, please confirm match.");
+        }
+        else
+        {
+            var response = $.post("/Register",{username:usr,password:psw},
+                function(){
+                    var respText = $.parseJSON(response.responseText);
+                    if (respText.result == "SUCCESS")
+                    {
+                        var user = respText.username;
+                        $("#dimScreen").remove();
+                        $("#login").hide();
+                        $("#userSettings").show();
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'currentUser',
+                            value: user
+                        }).appendTo('#userSettings');
+                        $("#saveProgram").show();
+                        $("#loadProgram").show();
+                        $("#logout").show();
+                        //$("#userSettings").val(user);
+                        //alert(respText.username);
+                    }
+                    else if (respText.result == "NAMETAKEN")
+                    {
+                        alert("Username is taken, please try another.");
+                    }
+                    else if (respText.result == "ERROR")
+                    {
+                        alert("An error has occurred, please try again.");
+                    }
+
+                });
+        }
+        return false;
+    }
+    export function editUser()
+    {
+        console.log('register');
+        var currentUser = $('#userSettings :input').val();
+        var usr = $('form[name="editUserInfo"] :input[name="username"]').val();
+        var oldpsw = $('form[name="editUserInfo"] :input[name="oldpassword"]').val();
+        var newpsw = $('form[name="editUserInfo"] :input[name="newpassword"]').val();
+        var newpswCon = $('form[name="editUserInfo"] :input[name="confirmnewpassword"]').val();
+        var email = $('form[name="editUserInfo"] :input[name="email"]').val();
+        if(usr.length == 0 && oldpsw.length == 0 && email.length == 0)
+        {
+            alert("No fields filled. Please fill at least one field.")
+        }
+        else if(oldpsw.length > 0 && newpsw.length >0 && newpsw !== newpswCon)
+        {
+            alert("Passwords do not match, please confirm match.");
+        }
+        else
+        {
+            var response = $.post("/EditUser",{username:usr,password:oldpsw},
+                function(){
+                    var respText = $.parseJSON(response.responseText);
+                    if (respText.result == "SUCCESS")
+                    {
+                        var user = respText.username;
+                        $("#dimScreen").remove();
+                        $("#login").hide();
+                        $("#userSettings").show();
+                        $('<input>').attr({
+                            type: 'hidden',
+                            id: 'currentUser',
+                            value: user
+                        }).appendTo('#userSettings');
+                        $("#saveProgram").show();
+                        $("#loadProgram").show();
+                        //$("#userSettings").val(user);
+                        //alert(respText.username);
+                    }
+                    else if (respText.result == "NAMETAKEN")
+                    {
+                        alert("Username is taken, please try another.");
+                    }
+                    else if (respText.result == "ERROR")
+                    {
+                        alert("An error has occurred, please try again.");
+                    }
+
+                });
+        }
+        return false;
+    }
+
+    export function getPrograms()
+    {
+        var currentUser = $('#userSettings :input').val();
+        var response = $.post("/ProgramList",{username:currentUser}, function() {
+            mkHTML.buildPage(response.responseText);
+        });
+        return false;
+    }
+
+    export function buildPage(json)
+    {
+        var result = $.parseJSON(json).programList;
+        result.forEach(function(entry){
+            $('#getProgramList').append("<div>" + entry +
+                "<button type=\"button\" onclick=\"mkHTML.loadProgram(\'" + entry + "\')\">Select program</button>" +
+                "<button type=\"button\" onclick=\"mkHTML.deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
+                "</div>");
+        });
+    }
+
+    export function deleteProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/DeleteProgram", {username: currentUser, programname: programName}, function() {
+            $("#dimScreen").remove();
+            $('body').append("<div id='dimScreen'></div>");
+            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+            $('.closewindow').click(function () {
+                $("#dimScreen").remove();
+            });
+            mkHTML.getPrograms();
+        });
+    }
+
+    export function loadProgram(name)
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = name;
+        var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
+            $("#dimScreen").remove();
+            currentSelection = unserialize(response.responseText);
+            generateHTML(currentSelection);
+            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        });
+    }
+
+    export function savePrograms()
+    {
+        var currentUser = $('#userSettings :input').val();
+        var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
+        var currentSel = serialize(currentSelection);
+        var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
+            function(){
+                console.log(response.responseText);
+                $('#dimScreen').remove();
+            });
+        return false;
+    }
+
     export function generateHTML(select:Selection)
     {
         currentSelection = select;
@@ -804,6 +1281,21 @@ module mkHTML {
                             generateHTML(currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             createCopyDialog(selectionArray);
+                        },
+                        ()=>{
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        });
+                }
+                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
+                {
+                    undostack.push(currentSelection);
+                    var selection = tree.appendChild(draggedSelection, currentSelection);
+                    selection.choose(
+                        sel => {
+                            currentSelection = sel;
+                            generateHTML(currentSelection);
+                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         },
                         ()=>{
                             generateHTML(currentSelection);
@@ -1062,6 +1554,23 @@ module mkHTML {
 
             return PHBox;
         }
+        else if(label.match("param"))
+        {
+            var paramBox = document.createElement("div");
+            paramBox.setAttribute("class", "paramlistOuter H");
+            paramBox.setAttribute("data-childNumber", childNumber.toString());
+            //PHBox["childNumber"] = childNumber ;
+
+            for (var i = 0; true; ++i) {
+                var dropZone = document.createElement("div");
+                dropZone.setAttribute("class", "dropZoneSmall H droppable");
+                paramBox.appendChild(dropZone);
+                if (i == children.length) break;
+                paramBox.appendChild(children[i]);
+            }
+
+            return paramBox;
+        }
         else if(label.match("while"))
         {
             assert.check( children.length == 2 ) ;
@@ -1153,14 +1662,31 @@ module mkHTML {
             var lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
+            lambdahead.appendChild(children[1]);
 
             var doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox");
-            doBox.appendChild( children[1] ) ;
+            doBox.setAttribute("class", "doBox H");
+            doBox.appendChild( children[2] ) ;
+
+            var string;
+
+            if (node.label().getVal().length > 0)
+            {
+                string = document.createElement("div");
+                string.setAttribute("class", "stringLiteral H click canDrag");
+                string.textContent = node.label().getVal();
+            }
+            else
+            {
+                string = document.createElement("input");
+                string.setAttribute("class", "stringLiteral H input canDrag");
+                string.setAttribute("type", "text");
+            }
 
             var LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
-
+            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
+            LambdaBox.appendChild(string);
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
@@ -1273,6 +1799,7 @@ module mkHTML {
             var forwardElement = document.createElement("div");
             forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
             forwardElement.setAttribute("data-childNumber", childNumber.toString());
+            forwardElement.textContent = "Forward";
             forwardElement.appendChild(children[0]);
 
             return forwardElement;
@@ -1282,20 +1809,58 @@ module mkHTML {
             var rightElement = document.createElement("div");
             rightElement.setAttribute("class", "turtleFunc canDrag droppable");
             rightElement.setAttribute("data-childNumber", childNumber.toString());
+            rightElement.textContent = "Right";
             rightElement.appendChild(children[0]);
 
             return rightElement;
+        }
+        else if(label.match("left"))
+        {
+            var leftElement = document.createElement("div");
+            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
+            leftElement.setAttribute("data-childNumber", childNumber.toString());
+            leftElement.textContent = "Left";
+            leftElement.appendChild(children[0]);
+
+            return leftElement;
         }
         else if(label.match("pen"))
         {
             var penElement = document.createElement("div");
             penElement.setAttribute("class", "turtleFunc canDrag droppable");
             penElement.setAttribute("data-childNumber", childNumber.toString());
+            penElement.textContent = "Pen";
             penElement.appendChild(children[0]);
 
             return penElement;
         }
+        else if(label.match("clear"))
+        {
+            var clearElement = document.createElement("div");
+            clearElement.setAttribute("class", "turtleFunc canDrag droppable");
+            clearElement.setAttribute("data-childNumber", childNumber.toString());
+            clearElement.textContent = "Clear";
 
+            return clearElement;
+        }
+        else if(label.match("show"))
+        {
+            var showElement = document.createElement("div");
+            showElement.setAttribute("class", "turtleFunc canDrag droppable");
+            showElement.setAttribute("data-childNumber", childNumber.toString());
+            showElement.textContent = "Show";
+
+            return showElement;
+        }
+        else if(label.match("hide"))
+        {
+            var hideElement = document.createElement("div");
+            hideElement.setAttribute("class", "turtleFunc canDrag droppable");
+            hideElement.setAttribute("data-childNumber", childNumber.toString());
+            hideElement.textContent = "Hide";
+
+            return hideElement;
+        }
     }
 }
 
