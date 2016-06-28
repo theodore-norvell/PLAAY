@@ -24,9 +24,11 @@ module world {
     import VMS = vms.VMS;
     import Evaluation = evaluation.Evaluation;
     import StringV = value.StringV;
+    import DoneV = value.DoneV;
     import PNode = pnode.PNode;
-    import Point = seymour.Point;
-    import Segment = seymour.Segment;
+
+    
+   /*private*/ var done : DoneV = new DoneV() ;
 
     export class World extends ObjectV {
         fields:Array<Field>;
@@ -544,105 +546,12 @@ module world {
         }
     }
 
-    export class TurtleFields {
-        // Defining the world to view mapping
-        private zoom : number = 1 ;
-        private worldWidth : number = 1024 ;
-        private worldHeight : number = 768 ;
+    export class TurtleWorldObject extends ObjectV {
+        private tw : seymour.TurtleWorld  ;
 
-        // The turtle
-        private posn : Point = new Point(0,0) ;
-        // Invariant: The orientation is in [0,360)
-        private orientation : number = 0.0 ;
-        private visible = true ;
-        private penIsDown = false ;
-
-        // The segments
-        private segments = new Array<Segment>() ;
-
-        // The canvas
-        //private canv : HTMLCanvasElement = document.createElement('canvas');
-
-        getpenIsDown() : boolean {
-            return this.penIsDown;
-        }
-
-        setpenIsDown(penIsDown : boolean) {
-            this.penIsDown = penIsDown;
-        }
-
-        getZoom() : number {
-            return this.zoom;
-        }
-
-        setZoom(zoom : number) {
-            this.zoom = zoom;
-        }
-
-        getWorldWidth() : number {
-            return this.worldWidth;
-        }
-
-        setWorldWidth(worldWidth : number) {
-            this.worldWidth = worldWidth;
-        }
-
-        getWorldHeight() : number {
-            return this.worldHeight;
-        }
-
-        setWorldHeight(worldHeight : number) {
-            this.worldHeight = worldHeight;
-        }
-
-        getPosn() : Point{
-            return this.posn;
-        }
-
-        setPosn(posn : Point) {
-            this.posn = posn;
-        }
-
-        getOrientation() : number {
-            return this.orientation;
-        }
-
-        setOrientation(orientation : number) {
-            this.orientation = orientation;
-        }
-
-        getVisible() : boolean {
-            return this.visible;
-        }
-
-        setVisible(visible : boolean) {
-            this.visible = visible;
-        }
-
-        getSegments() : Array<Segment> {
-            return this.segments;
-        }
-
-        setSegments(segments: Array<Segment>) {
-            this.segments = segments;
-        }
-
-        world2View( p : Point, viewWidth : number, viewHeight : number ) {
-            const hscale = viewWidth / this.worldWidth * this.zoom ;
-            const vscale = viewHeight / this.worldHeight * this.zoom ;
-            const x = p.x() * hscale + viewWidth/2 ;
-            const y = p.y() * vscale + viewHeight/2 ;
-            return new Point( x, y ) ;
-        }
-    }
-
-    export class TurtleWorld extends ObjectV {
-
-        constructor(){
-            super();
-            console.log("World's fields array is length: " + this.fields.length);
-
-
+        constructor(  tw : seymour.TurtleWorld ){
+            super() ;
+            this.tw = tw ;
 
             //mutators
             var pen = new BuiltInV(this.penUp);
@@ -676,127 +585,89 @@ module world {
         }
 
         forward(node : PNode, evalu : Evaluation ) {
-            var valuepath = evalu.getPending().concat([0]);
-            var val = <StringV>evalu.varmap.get(valuepath);
-
-            var isNum = true;
-            for (var i = 0; i < val.getVal().length ; i ++) {
-                //then check right side
-                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
-                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
-                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
-                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
-                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
-                    || val.getVal().charAt(0) == "-")){
-                    isNum = false;
-                }
-            }
-
-            if (isNum) {
-                const theta = evalu.getTurtleFields().getOrientation() / 180.0 * Math.PI ;
-                const newx = evalu.getTurtleFields().getPosn().x() + Number(val.getVal()) * Math.cos(theta) ;
-                const newy = evalu.getTurtleFields().getPosn().y() + Number(val.getVal()) * Math.sin(theta) ;
-                const newPosn = new Point(newx, newy) ;
-                if( evalu.getTurtleFields().getpenIsDown() ) { evalu.getTurtleFields().getSegments().push(
-                        {p0 : evalu.getTurtleFields().getPosn(), p1:newPosn})} ;
-                evalu.getTurtleFields().setPosn(newPosn) ;
-                evalu.finishStep(val);
-            }
-            else {
-                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
-            }
+            checkNumberArgs( 0, evalu, "forward" ) ;
+            var n : number = getNumber( getArg( 0, evalu ), "forward", 0 ) ;
+            this.tw.forward( n ) ;
+            evalu.finishStep( done ) ;
         }
 
         clear(node : PNode, evalu : Evaluation) {
-            evalu.getTurtleFields().setSegments( new Array<Segment>() );
-            evalu.finishStep( new StringV(""));
+            checkNumberArgs( 0, evalu, "clear" ) ;
+            this.tw.clear() ;
+            evalu.finishStep( done ) ;
         }
 
         right( node : PNode, evalu : Evaluation ) {
-
-            var valuepath = evalu.getPending().concat([0]);
-            var val = <StringV>evalu.varmap.get(valuepath);
-
-            var isNum = true;
-            for (var i = 0; i < val.getVal().length ; i ++) {
-                //then check right side
-                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
-                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
-                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
-                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
-                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
-                    || val.getVal().charAt(0) == "-")){
-                    isNum = false;
-                }
-            }
-
-            if (isNum) {
-                var r = (evalu.getTurtleFields().getOrientation() + Number(val.getVal())) % 360 ;
-                while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
-                while( r >= 360 ) r -= 360 ; // Once should be enough.
-                evalu.getTurtleFields().setOrientation(r) ;
-                evalu.finishStep(val);
-
-            }
-            else {
-                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
-            }
+            checkNumberArgs( 0, evalu, "right" ) ;
+            var n : number = getNumber( getArg( 0, evalu ), "right", 0 ) ;
+            this.tw.right( n ) ;
+            evalu.finishStep( done ) ;
         }
 
         left( node : PNode, evalu : Evaluation ) {
-            var valuepath = evalu.getPending().concat([0]);
-            var val = <StringV>evalu.varmap.get(valuepath);
-
-            var isNum = true;
-            for (var i = 0; i < val.getVal().length ; i ++) {
-                //then check right side
-                if (! (val.getVal().charAt(i) == "0" || val.getVal().charAt(i) == "1"
-                    || val.getVal().charAt(i) == "2" || val.getVal().charAt(i) == "3"
-                    || val.getVal().charAt(i) == "4" || val.getVal().charAt(i) == "5"
-                    || val.getVal().charAt(i) == "6" || val.getVal().charAt(i) == "7"
-                    || val.getVal().charAt(i) == "8" || val.getVal().charAt(i) == "9"
-                    || val.getVal().charAt(0) == "-")){
-                    isNum = false;
-                }
-            }
-
-            if (isNum) {
-                var l = (evalu.getTurtleFields().getOrientation() - Number(val.getVal())) % 360 ;
-                while( l < 0 ) l += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
-                while( l >= 360 ) l -= 360 ; // Once should be enough.
-                evalu.getTurtleFields().setOrientation(l);
-                evalu.finishStep(val);
-            }
-            else {
-                throw new Error("Error evaluating " + val.getVal() + "! Make sure this value is a number.");
-            }
+            checkNumberArgs( 0, evalu, "left" ) ;
+            var n : number = getNumber( getArg( 0, evalu ), "left", 0 ) ;
+            this.tw.left( n ) ;
+            evalu.finishStep( done ) ;
         }
 
         penUp(node : PNode, evalu : Evaluation ) {
-            var valuepath = evalu.getPending().concat([0]);
-            var val = <StringV>evalu.varmap.get(valuepath);
+            checkNumberArgs( 0, evalu , "penUp" ) ;
+            this.tw.setPenDown( false ) ;
+            evalu.finishStep( done ) ;
+        }
 
-            if (val.getVal() == "down") {
-                evalu.getTurtleFields().setpenIsDown(true);
-                evalu.finishStep(val);
-            }
-            else if (val.getVal() == "up" ) {
-                evalu.getTurtleFields().setpenIsDown(false);
-                evalu.finishStep(val);
-            }
-            else {
-                throw new Error("Error evaulating " + val.getVal() + " as a logical value!");
-            }
+        penDown(node : PNode, evalu : Evaluation ) {
+            checkNumberArgs( 0, evalu, "penDown" ) ;
+            this.tw.setPenDown( true ) ;
+            evalu.finishStep( done ) ;
         }
 
         hide(node : PNode, evalu : Evaluation) {
-            evalu.getTurtleFields().setVisible(false);
-            evalu.finishStep( new StringV(""));
+            checkNumberArgs( 0, evalu, "hide" ) ;
+            this.tw.hide() ;
+            evalu.finishStep( done ) ;
         }
 
         show(node : PNode, evalu : Evaluation) {
-            evalu.getTurtleFields().setVisible(true);
-            evalu.finishStep( new StringV(""));
+            checkNumberArgs( 0, evalu, "show" ) ;
+            this.tw.show() ;
+            evalu.finishStep( done ) ;
+        }
+    }
+
+    /* private */ function checkNumberArgs( n : number, evalu : Evaluation, name : string ) : void {
+        // TODO This following is all wrong, since it assumes the pending node is a callWorld.
+        // But it could also be a call node.
+        // In fact we should be doing built-ins completely differently.
+        const node : PNode = evalu.getRoot().get( evalu.getPending() );
+        if( node.count() != n+1 ) {
+            // TODO We should not handle user errors by throwing exceptions.
+            throw new Error( "Wrong number of arguments to " +name+ " expected " +n+ "."  ) ; }
+    }
+
+    /* private */ function getArg( n : number, evalu : Evaluation ) : Value {
+        // TODO This following is all wrong, since it assumes the pending node is a callWorld.
+        // But it could also be a call node.
+        const path : Array<number>  = evalu.getPending().concat( [n] ) ;
+        const val : Value = evalu.getVarMap().get( path ) ;
+        assert.check( val != null ) ;
+        return val ;
+    }
+
+    /* private */ function getNumber( val : Value, name : string, n : number ) : number {
+        // TODO: At this point there is no NumberV class implemented.
+        // This is a mistake. There should be such a class and it should only
+        // be possible to turn such a value into a number.
+        // For now we make do with the StringV class.
+        if( ! val.isStringV() )
+            throw new Error( "Expected a string as argument " +n+ " to " +name+ "." ) ;
+        else {
+            const str : string = (val as StringV).getVal() ;
+            const num : number = Number( str ) ;
+            if( isNaN( num ) ) 
+                throw new Error( "Expected a number" ) ;
+            return num ;
         }
     }
 }

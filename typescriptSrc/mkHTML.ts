@@ -35,7 +35,6 @@ module mkHTML {
     import arrayToList = collections.arrayToList;
     import StringV = value.StringV;
     import BuiltInV = value.BuiltInV;
-    import Point = seymour.Point;
 
     var undostack = [];
     var redostack = [];
@@ -53,11 +52,8 @@ module mkHTML {
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
-    var penUp = true;
-    var turtle = "";
+    var turtle : boolean = false ;
     currentSelection = select;
-
-    const canv = document.createElement('canvas');
 
     export function onLoad() : void
     {
@@ -493,50 +489,7 @@ module mkHTML {
     }
 
     function redraw(vms:VMS) {
-        const ctx = canv.getContext("2d");
-        const w = canv.width;
-        const h = canv.height;
-        ctx.clearRect(0, 0, w, h);
-        for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
-            const p0v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
-            const p1v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
-            ctx.beginPath();
-            ctx.moveTo(p0v.x(), p0v.y());
-            ctx.lineTo(p1v.x(), p1v.y());
-            ctx.stroke();
-        }
-        if (vms.getEval().getTurtleFields().getVisible()) {
-            // Draw a little triangle
-            const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
-            const x = vms.getEval().getTurtleFields().getPosn().x();
-            const y = vms.getEval().getTurtleFields().getPosn().y();
-            const p0x = x + 4 * Math.cos(theta);
-            const p0y = y + 4 * Math.sin(theta);
-            const p1x = x + 5 * Math.cos(theta + 2.5);
-            const p1y = y + 5 * Math.sin(theta + 2.5);
-            const p2x = x + 5 * Math.cos(theta - 2.5);
-            const p2y = y + 5 * Math.sin(theta - 2.5);
-            const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
-            const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
-            const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
-            var base_image = new Image();
-            base_image.src = "turtle1.png";
-            //base_image.src = "Turtles/"+ vms.getEval().getTurtleFields().getOrientation() + ".png";
-            base_image.width = 25;
-            base_image.height = 25;
-            const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
-            const vscale = canv.height / vms.getEval().getTurtleFields().getWorldHeight() * vms.getEval().getTurtleFields().getZoom() ;
-            const newx = vms.getEval().getTurtleFields().getPosn().x() * hscale + canv.width/2 -12.5;
-            const newy = vms.getEval().getTurtleFields().getPosn().y() * vscale + canv.height/2 - 12.5;
-            ctx.drawImage(base_image, newx, newy);
-            ctx.beginPath();
-            ctx.moveTo(p0v.x(), p0v.y());
-            ctx.lineTo(p1v.x(), p1v.y());
-            ctx.lineTo(p2v.x(), p2v.y());
-            ctx.lineTo(p0v.x(), p0v.y());
-            ctx.stroke();
-
-        }
+        turtleWorld.redraw() ;
     }
 
     function leaveWorld()
@@ -615,13 +568,14 @@ module mkHTML {
         sidebar.prepend(forwardblock);
 
         const body = document.getElementById('body') ;
+        const canv = turtleWorld.getCanvas() ;
         canv.setAttribute("id", "turtleGraphics");
         canv.setAttribute("class", "canv");
         canv.setAttribute('width','1024') ;
         canv.setAttribute('height','768') ;
         body.appendChild(canv);
 
-        turtle = "turtle";
+        turtle = true ;
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -684,18 +638,9 @@ module mkHTML {
         enterBox();
     }
 
-    function penDown()
+    function togglePan()
     {
-        if(penUp)
-        {
-            turtleWorld.penDown();
-            penUp = false;
-        }
-        else
-        {
-            turtleWorld.penUp();
-            penUp = true;
-        }
+        turtleWorld.setPenDown( ! turtleWorld.getPenIsDown() ) ;
     }
 
     function rightturn()
@@ -733,7 +678,7 @@ module mkHTML {
         document.getElementById("run").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle ? turtleWorld : null );
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -766,25 +711,14 @@ module mkHTML {
 
     function visualizeStack(evalstack:ExecStack)
     {
-        for(var i = 0; i < evalstack.obj.numFields(); i++)
+        for(let i = 0; i < evalstack.obj.numFields(); i++)
         {
-            if(evalstack.top().fields[i].getName().match(/\+/gi) || evalstack.top().fields[i].getName().match(/\-/gi)
-            || evalstack.top().fields[i].getName().match(/\*/gi) || evalstack.top().fields[i].getName().match(/\//gi)
-            || evalstack.top().fields[i].getName().match(/>/gi) || evalstack.top().fields[i].getName().match(/</gi)
-            || evalstack.top().fields[i].getName().match(/==/gi) || evalstack.top().fields[i].getName().match(/>=/gi)
-            || evalstack.top().fields[i].getName().match(/<=/gi) || evalstack.top().fields[i].getName().match(/&/gi)
-            || evalstack.top().fields[i].getName().match(/\|/gi))
-            {
-                var builtInV = <BuiltInV>evalstack.top().fields[i].getValue()
-                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
-                    "<td>" + builtInV.getVal() + "</td></tr>").appendTo($("#stackVal"));
-            }
-            else
-            {
-                var stringV = <StringV>evalstack.top().fields[i].getValue()
-                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
-                    "<td>" + stringV.getVal() + "</td></tr>").appendTo($("#stackVal"));
-            }
+
+            // TODO. This is really not good enough, since structured values
+            const name = evalstack.obj.getFieldByNumber(i).getName() ;
+            const val = evalstack.obj.getFieldByNumber(i).getValue() ;
+            $("<tr><td>" + name + "</td>" +
+                  "<td>" + val.toString() + "</td></tr>").appendTo($("#stackVal"));
 
         }
         if(evalstack.getNext() == null)
@@ -933,7 +867,7 @@ module mkHTML {
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
-        if(turtle.match("turtle"))
+        if(turtle)
         {
             redraw(currentvms);
         }

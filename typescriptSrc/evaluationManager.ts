@@ -2,6 +2,8 @@ import evaluation = require( './evaluation' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import workspace = require('./workspace') ;
+import seymour = require('./seymour') ;
+import world = require('./world') ;
 
 module evaluationManager {
 
@@ -19,11 +21,11 @@ module evaluationManager {
             this.workspace = new Workspace();
         }
 
-        PLAAY(root : PNode, worlddecl : string) : VMS {
+        PLAAY(root : PNode, turtleWorld : seymour.TurtleWorld ) : VMS {
             var worlds = new Array();
             worlds.push(this.workspace.getWorld());
-            if (worlddecl == "turtle"){
-                worlds.push(this.workspace.getTurtleWorld());
+            if (turtleWorld !=  null ){
+                worlds.push( new world.TurtleWorldObject( turtleWorld ) ) ;
             }
             this._vms = new VMS(root, worlds);
             return this._vms;

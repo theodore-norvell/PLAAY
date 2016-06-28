@@ -1,7 +1,7 @@
 
 
 module seymour {
-    export class Point {
+    class Point {
         private _x : number = 0 ;
         private _y : number = 0 ;
         constructor( x : number, y : number) { this._x = x ; this._y = y ; }
@@ -9,15 +9,15 @@ module seymour {
         public x() { return this._x ; }
         public y() { return this._y ; }
     }
-    export interface Segment {
+    interface Segment {
         p0 : Point ;
         p1 : Point ;
     }
     export class TurtleWorld {
         // Defining the world to view mapping
         private zoom : number = 1 ;
-        private worldWidth : number = 1024 ;
-        private worldHeight : number = 768 ;
+        private worldWidth : number = 100 ;
+        private worldHeight : number = 100 ;
         
         // The turtle
         private posn : Point = new Point(0,0) ;
@@ -32,9 +32,9 @@ module seymour {
         // The canvas
         private canv : HTMLCanvasElement = document.createElement('canvas');
         
-        getCanvas() { return this.canv ; }
+        getCanvas() : HTMLCanvasElement { return this.canv ; }
         
-        forward( n : number ) {
+        forward( n : number ) : void  {
             const theta = this.orientation / 180.0 * Math.PI ;
             const newx =this.posn.x() + n * Math.cos(theta) ;
             const newy =this.posn.y() + n * Math.sin(theta) ;
@@ -44,11 +44,11 @@ module seymour {
             this.redraw() ;
         }
         
-        clear() { 
+        clear() : void { 
             this.segments = new Array<Segment>() ;
         }
         
-        right( d : number ) { 
+        right( d : number ) :void { 
             var r = (this.orientation + d) % 360 ;
             while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
             while( r >= 360 ) r -= 360 ; // Once should be enough.
@@ -56,19 +56,19 @@ module seymour {
             this.redraw() ;
          }
         
-        left( d : number ) { 
+        left( d : number ) :void { 
             this.right( - d ) ;
          }
          
-         penUp() { this.penIsDown = false ; }
+         getPenIsDown() : boolean { return this.penIsDown ; }
          
-         penDown() { this.penIsDown = true ; }
+         setPenDown( newValue : boolean ) : void { this.penIsDown = newValue ; }
          
-         hide() { this.visible = false ; this.redraw() ; }
+         hide() : void { this.visible = false ; this.redraw() ; }
          
-         show() { this.visible = true ; this.redraw() ;  }
+         show() : void  { this.visible = true ; this.redraw() ;  }
          
-         redraw() {
+         redraw() : void {
              const ctx = this.canv.getContext("2d") ;
              const w = this.canv.width ;
              const h = this.canv.height ;
@@ -95,15 +95,16 @@ module seymour {
                  const p0v = this.world2View( new Point(p0x,p0y), w, h ) ;
                  const p1v = this.world2View( new Point(p1x,p1y), w, h ) ;
                  const p2v = this.world2View( new Point(p2x,p2y), w, h ) ;
-                 var base_image = new Image();
-                 base_image.src = "turtle1.png";
-                 base_image.width = 25;
-                 base_image.height = 25;
-                 const hscale = this.canv.width / this.worldWidth * this.zoom ;
-                 const vscale = this.canv.height / this.worldHeight * this.zoom ;
-                 const newx = this.posn.x() * hscale + this.canv.width/2 -12.5;
-                 const newy = this.posn.y() * vscale + this.canv.height/2 - 12.5;
-                 ctx.drawImage(base_image, newx, newy);
+                 // The following commented out code draws an image of seymour the turtle.
+                 //var base_image = new Image();
+                 //base_image.src = "turtle1.png";
+                 //base_image.width = 25;
+                 //base_image.height = 25;
+                 //const hscale = this.canv.width / this.worldWidth * this.zoom ;
+                 //const vscale = this.canv.height / this.worldHeight * this.zoom ;
+                 //const newx = this.posn.x() * hscale + this.canv.width/2 -12.5;
+                 //const newy = this.posn.y() * vscale + this.canv.height/2 - 12.5;
+                 //ctx.drawImage(base_image, newx, newy);
                  ctx.beginPath() ;
                  ctx.moveTo(p0v.x(),p0v.y()) ;
                  ctx.lineTo(p1v.x(),p1v.y()) ;
@@ -113,7 +114,7 @@ module seymour {
              }
          }
          
-         private world2View( p : Point, viewWidth : number, viewHeight : number ) {
+         private world2View( p : Point, viewWidth : number, viewHeight : number ) : Point {
              const hscale = viewWidth / this.worldWidth * this.zoom ;
              const vscale = viewHeight / this.worldHeight * this.zoom ;
              const x = p.x() * hscale + viewWidth/2 ;
