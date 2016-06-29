@@ -4,6 +4,7 @@ import vms = require('./vms') ;
 import workspace = require('./workspace') ;
 import seymour = require('./seymour') ;
 import world = require('./world') ;
+import assert = require('./assert') ;
 
 module evaluationManager {
 
