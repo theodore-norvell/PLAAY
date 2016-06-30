@@ -3,6 +3,7 @@ import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import evaluation = require('./evaluation');
+import assert = require('./assert') ;
 
 module value {
 
@@ -64,6 +65,7 @@ module value {
     export interface Value {
         isClosureV : () => boolean ;
         isBuiltInV : () => boolean ;
+        isStringV : () => boolean ;
     }
 
     export class StringV implements Value {
@@ -73,22 +75,31 @@ module value {
             this.contents = val;
         }
 
-        getVal(){
+        getVal() : string {
             return this.contents;
         }
 
-        setVal(val : string){
+        setVal(val : string) : void {
             this.contents = val;
         }
-        isClosureV(){
+        isClosureV() : boolean {
             return false;
         }
-        isBuiltInV(){
+        isBuiltInV() : boolean {
             return false;
+        }
+        isStringV() : boolean {
+            return true;
+        }
+
+        toString() : string {
+            return '"' +this.contents+ '"' ;
         }
     }
 
     export class ObjectV implements Value {
+        // TODO make this private and enforce invariant
+        // that no two field have the same name.
         fields:Array<Field>;
 
         constructor() {
@@ -113,6 +124,11 @@ module value {
             return false;
         }
 
+        public getFieldByNumber( i : number ) : Field {
+            assert.check( 0 <= i && i < this.fields.length ) ;
+            return this.fields[i] ;
+        }
+
         public getField(fieldName:string):Field {
             for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName()== fieldName) {
@@ -129,6 +145,13 @@ module value {
         isBuiltInV(){
             return false;
         }
+        isStringV() : boolean {
+            return false ;
+        }
+
+        toString() : string {
+            return "object" ;
+        }
     }
 
     export class ClosureV implements Value {
@@ -141,17 +164,30 @@ module value {
         isBuiltInV(){
             return false;
          }
+      
+        isStringV() : boolean {
+            return false ;
+        }
 
-        getVal(): string{
-            return "function";
+        toString() : string {
+            return "closure" ;
         }
     }
+
     export class NullV implements Value {
         isClosureV(){
             return false;
         }
         isBuiltInV(){
             return false;
+        }
+      
+        isStringV() : boolean {
+            return false ;
+        }
+
+        toString() : string {
+            return "null" ;
         }
 
     }
@@ -162,6 +198,14 @@ module value {
         }
         isBuiltInV(){
             return false;
+        }
+      
+        isStringV() : boolean {
+            return false ;
+        }
+
+        toString() : string {
+            return "done" ;
         }
     }
 
@@ -179,10 +223,13 @@ module value {
         isBuiltInV(){
             return true;
         }
+      
+        isStringV() : boolean {
+            return false ;
+        }
 
-        getVal()
-        {
-            return "BuiltInV";
+        toString() : string {
+            return "built-in" ;
         }
     }
 

@@ -33,9 +33,9 @@ module mkHTML {
     import VMS = vms.VMS;
     import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
+    import Value = value.Value ;
     import StringV = value.StringV;
     import BuiltInV = value.BuiltInV;
-    import Point = seymour.Point;
 
     var undostack = [];
     var redostack = [];
@@ -53,11 +53,8 @@ module mkHTML {
     var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
-    var penUp = true;
-    var turtle = "";
+    var turtle : boolean = false ;
     currentSelection = select;
-
-    const canv = document.createElement('canvas');
 
     export function onLoad() : void
     {
@@ -181,7 +178,7 @@ module mkHTML {
         var advance = document.getElementById("advance");
         advance.onclick = function advance()
         {
-            setValAndHighlight();
+            advanceOneStep();
         };
         document.getElementById("advance").style.visibility = "hidden";
 
@@ -492,54 +489,11 @@ module mkHTML {
         enterBox();
     }
 
-    function redraw(vms:VMS) {
-        const ctx = canv.getContext("2d");
-        const w = canv.width;
-        const h = canv.height;
-        ctx.clearRect(0, 0, w, h);
-        for (let i = 0; i < vms.getEval().getTurtleFields().getSegments().length; ++i) {
-            const p0v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p0, w, h);
-            const p1v = vms.getEval().getTurtleFields().world2View(vms.getEval().getTurtleFields().getSegments()[i].p1, w, h);
-            ctx.beginPath();
-            ctx.moveTo(p0v.x(), p0v.y());
-            ctx.lineTo(p1v.x(), p1v.y());
-            ctx.stroke();
-        }
-        if (vms.getEval().getTurtleFields().getVisible()) {
-            // Draw a little triangle
-            const theta = vms.getEval().getTurtleFields().getOrientation() / 180.0 * Math.PI;
-            const x = vms.getEval().getTurtleFields().getPosn().x();
-            const y = vms.getEval().getTurtleFields().getPosn().y();
-            const p0x = x + 4 * Math.cos(theta);
-            const p0y = y + 4 * Math.sin(theta);
-            const p1x = x + 5 * Math.cos(theta + 2.5);
-            const p1y = y + 5 * Math.sin(theta + 2.5);
-            const p2x = x + 5 * Math.cos(theta - 2.5);
-            const p2y = y + 5 * Math.sin(theta - 2.5);
-            const p0v = vms.getEval().getTurtleFields().world2View(new Point(p0x, p0y), w, h);
-            const p1v = vms.getEval().getTurtleFields().world2View(new Point(p1x, p1y), w, h);
-            const p2v = vms.getEval().getTurtleFields().world2View(new Point(p2x, p2y), w, h);
-            var base_image = new Image();
-            base_image.src = "turtle1.png";
-            //base_image.src = "Turtles/"+ vms.getEval().getTurtleFields().getOrientation() + ".png";
-            base_image.width = 25;
-            base_image.height = 25;
-            const hscale = canv.width / vms.getEval().getTurtleFields().getWorldWidth() * vms.getEval().getTurtleFields().getZoom() ;
-            const vscale = canv.height / vms.getEval().getTurtleFields().getWorldHeight() * vms.getEval().getTurtleFields().getZoom() ;
-            const newx = vms.getEval().getTurtleFields().getPosn().x() * hscale + canv.width/2 -12.5;
-            const newy = vms.getEval().getTurtleFields().getPosn().y() * vscale + canv.height/2 - 12.5;
-            ctx.drawImage(base_image, newx, newy);
-            ctx.beginPath();
-            ctx.moveTo(p0v.x(), p0v.y());
-            ctx.lineTo(p1v.x(), p1v.y());
-            ctx.lineTo(p2v.x(), p2v.y());
-            ctx.lineTo(p0v.x(), p0v.y());
-            ctx.stroke();
-
-        }
+    function redraw(vms:VMS) : void {
+        turtleWorld.redraw() ;
     }
 
-    function leaveWorld()
+    function leaveWorld() : void
     {
         document.getElementById("turtle").style.visibility = "visible";
         document.getElementById("quitworld").style.visibility = "hidden";
@@ -565,7 +519,7 @@ module mkHTML {
         document.getElementById("body").removeChild(canvas);
     }
 
-    function turtleGraphics()
+    function turtleGraphics() : void
     {
         document.getElementById("turtle").style.visibility = "hidden";
         document.getElementById("quitworld").style.visibility = "visible";
@@ -615,13 +569,14 @@ module mkHTML {
         sidebar.prepend(forwardblock);
 
         const body = document.getElementById('body') ;
+        const canv = turtleWorld.getCanvas() ;
         canv.setAttribute("id", "turtleGraphics");
         canv.setAttribute("class", "canv");
-        canv.setAttribute('width','1024') ;
-        canv.setAttribute('height','768') ;
+        canv.setAttribute('width','200') ;
+        canv.setAttribute('height','200') ;
         body.appendChild(canv);
 
-        turtle = "turtle";
+        turtle = true ;
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -683,42 +638,8 @@ module mkHTML {
         });
         enterBox();
     }
-
-    function penDown()
-    {
-        if(penUp)
-        {
-            turtleWorld.penDown();
-            penUp = false;
-        }
-        else
-        {
-            turtleWorld.penUp();
-            penUp = true;
-        }
-    }
-
-    function rightturn()
-    {
-        turtleWorld.right(10);
-    }
-
-    function leftturn()
-    {
-        turtleWorld.right(-10);
-    }
-
-    function forwardmarch()
-    {
-        turtleWorld.forward(10);
-    }
-
-    function backward()
-    {
-        turtleWorld.forward(-10);
-    }
     
-    function evaluate()
+    function evaluate() : void
     {
         document.getElementById("trash").style.visibility = "hidden";
         document.getElementById("redo").style.visibility = "hidden";
@@ -733,7 +654,7 @@ module mkHTML {
         document.getElementById("run").style.visibility = "visible";
         document.getElementById("edit").style.visibility = "visible";
 
-        currentvms = evaluation.PLAAY(currentSelection.root(), turtle);
+        currentvms = evaluation.PLAAY(currentSelection.root(), turtle ? turtleWorld : null );
         var children = document.getElementById("vms");
         while (children.firstChild) {
             children.removeChild(children.firstChild);
@@ -745,7 +666,7 @@ module mkHTML {
         $(".dropZoneSmall").hide();
     }
 
-    function editor()
+    function editor() : void
     {
         document.getElementById("trash").style.visibility = "visible";
         document.getElementById("redo").style.visibility = "visible";
@@ -764,40 +685,26 @@ module mkHTML {
         $(".dropZoneSmall").show();
     }
 
-    function visualizeStack(evalstack:ExecStack)
+    function visualizeStack(evalstack:ExecStack) : void
     {
-        for(var i = 0; i < evalstack.obj.numFields(); i++)
+        for(let i = 0; i < evalstack.obj.numFields(); i++)
         {
-            if(evalstack.top().fields[i].getName().match(/\+/gi) || evalstack.top().fields[i].getName().match(/\-/gi)
-            || evalstack.top().fields[i].getName().match(/\*/gi) || evalstack.top().fields[i].getName().match(/\//gi)
-            || evalstack.top().fields[i].getName().match(/>/gi) || evalstack.top().fields[i].getName().match(/</gi)
-            || evalstack.top().fields[i].getName().match(/==/gi) || evalstack.top().fields[i].getName().match(/>=/gi)
-            || evalstack.top().fields[i].getName().match(/<=/gi) || evalstack.top().fields[i].getName().match(/&/gi)
-            || evalstack.top().fields[i].getName().match(/\|/gi))
-            {
-                var builtInV = <BuiltInV>evalstack.top().fields[i].getValue()
-                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
-                    "<td>" + builtInV.getVal() + "</td></tr>").appendTo($("#stackVal"));
-            }
-            else
-            {
-                var stringV = <StringV>evalstack.top().fields[i].getValue()
-                $("<tr><td>" + evalstack.top().fields[i].getName() + "</td>" +
-                    "<td>" + stringV.getVal() + "</td></tr>").appendTo($("#stackVal"));
-            }
+
+            // TODO. This is really not good enough, since structured values should show in a structured way.
+            const name = evalstack.obj.getFieldByNumber(i).getName() ;
+            const val = evalstack.obj.getFieldByNumber(i).getValue() ;
+            $("<tr><td>" + name + "</td>" +
+                // TODO toString is not a good idea, as is may return strings that screw up the HTML.
+                  "<td>" + val.toString() + "</td></tr>").appendTo($("#stackVal"));
 
         }
-        if(evalstack.getNext() == null)
-        {
-            return;
-        }
-        else
+        if(evalstack.getNext() != null)
         {
             visualizeStack(evalstack.getNext());
         }
     }
 
-    function visualizeTrash() {
+    function visualizeTrash() : void {
         var dialogDiv = $('#trashDialog');
 
         if (dialogDiv.length == 0) {
@@ -831,7 +738,7 @@ module mkHTML {
         });
 }
 
-    function highlight(parent, pending)
+    function highlight(parent, pending) : void
     {
         if(pending.isEmpty())
         {
@@ -861,22 +768,25 @@ module mkHTML {
         }
     }
 
-    function findInMap(root, varmap:VarMap)
+    function findInMap(root : HTMLElement, varmap : VarMap) : void
     {
-        for(var i=0; i < varmap.size; i++)
+        for(let i=0; i < varmap.size; i++)
         {
-            var list = arrayToList(varmap.entries[i].getPath())
-            var value = Object.create(varmap.entries[i].getValue());
+            const list = arrayToList(varmap.entries[i].getPath())
+            const value : Value = Object.create(varmap.entries[i].getValue());
             setHTMLValue(root, list, value);
         }
     }
 
-    function setHTMLValue(root, path:List<number>, value)
+    function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value ) : void 
     {
         if(path.isEmpty())
         {
             var self = $(root);
-            self.replaceWith("<div class='inmap'>"+ value.getVal() +"</div>");
+            // TODO. toString may not be the best function to call here,
+            // since it could return any old crap that is not compatible with
+            // HTML.
+            self.replaceWith("<div class='inmap'>"+ value.toString() +"</div>");
         }
         else{
             var child = $(root);
@@ -885,18 +795,18 @@ module mkHTML {
                 var index = child.find('div[data-childNumber="' + path.first() + '"]').index();
                 var check = path.first();
                 if(index != check)
-                    setHTMLValue(root.children[index], path.rest(), value);
+                    setHTMLValue(<HTMLElement>root.children[index], path.rest(), value);
                 else
-                    setHTMLValue(root.children[check], path.rest(), value);
+                    setHTMLValue(<HTMLElement>root.children[check], path.rest(), value);
             }
             else
             {
-                setHTMLValue(root.children[path.first()], path, value);
+                setHTMLValue(<HTMLElement>root.children[path.first()], path, value);
             }
         }
     }
 
-    function setValAndHighlight()
+    function advanceOneStep()
     {
         currentvms = evaluation.next();
         if (!highlighted && currentvms.getEval().ready) {
@@ -910,7 +820,8 @@ module mkHTML {
             }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            var root = document.getElementById("vms").children[0];
+            const vms : HTMLElement = document.getElementById("vms") ;
+            var root : HTMLElement = <HTMLElement>vms.children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
@@ -928,12 +839,12 @@ module mkHTML {
             }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            var root = document.getElementById("vms").children[0];
+            var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
             findInMap(root, currentvms.getEval().getVarMap());
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
-        if(turtle.match("turtle"))
+        if(turtle)
         {
             redraw(currentvms);
         }
@@ -956,7 +867,7 @@ module mkHTML {
         }
         children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
         $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-        var root = document.getElementById("vms").children[0];
+        var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
         var list = arrayToList(currentvms.getEval().getPath());
         var map = Object.create(currentvms.getEval().getVarMap());
         findInMap(root, map);
@@ -1382,7 +1293,7 @@ module mkHTML {
         });
     }
 
-    function getPathToNode(select:Selection, self) : Selection
+    function getPathToNode(select:Selection, self ) : Selection
     {
         var array = [];
         var anchor;

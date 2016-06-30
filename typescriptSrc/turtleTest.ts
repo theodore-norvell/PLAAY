@@ -12,7 +12,7 @@ function turtleTest() {
     body.appendChild( canv ) ;
     
     let playList : Array< () => void > = [
-        () => {turtleWorld.penDown()},
+        () => {turtleWorld.setPenDown(true)},
         () => {turtleWorld.forward(20)},
         () => {turtleWorld.right(90)},
         () => {turtleWorld.forward(20)},
@@ -23,12 +23,12 @@ function turtleTest() {
         () => {turtleWorld.right(90)},
         () => {turtleWorld.clear()},
         () => {turtleWorld.hide()},
-        () => {turtleWorld.penUp()},       
+        () => {turtleWorld.setPenDown(false)},       
         () => {turtleWorld.forward(-20)},
         () => {turtleWorld.show()},
         () => {turtleWorld.right(90)},  
         () => {turtleWorld.forward(10)}, 
-        () => {turtleWorld.penDown()},
+        () => {turtleWorld.setPenDown(true)},
         
         () => {for(let i=0 ; i< 360 ; ++i) {turtleWorld.forward(0.2) ; turtleWorld.left(1) ; } },
         

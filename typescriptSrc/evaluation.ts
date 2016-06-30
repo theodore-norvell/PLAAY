@@ -8,6 +8,7 @@ import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import value = require('./value') ;
 import world = require('./world');
+import assert = require('./assert') ;
 
 module evaluation {
 
@@ -19,24 +20,25 @@ module evaluation {
     import ClosureV = value.ClosureV;
     import World = world.World;
     import ObjectV = value.ObjectV;
-    import TurtleFields = world.TurtleFields;
 
     export class Evaluation {
+        // TODO root should be private
         root : PNode;
         private stack : ExecStack;
         private pending : Array<number>;
+        // TODO ready should be private
         ready : Boolean;
+        // TODO varmap should be private
         varmap : VarMap;
-        private turtleFields : TurtleFields;
 
         next : Evaluation; // TODO eliminate this field.
 
         constructor (root : PNode, obj: Array<ObjectV>, stack : ExecStack) {
             this.root = root;
-            this.turtleFields = new TurtleFields();
             this.pending = new Array();
             this.ready = false;
 
+            // TODO fix this. 
             for (var i = 0; i < obj.length; i++){
                 var stackpiece = new ExecStack(obj[i]);
                 if (this.stack == null) {
@@ -85,10 +87,6 @@ module evaluation {
 
         popfromStack() {
             this.stack = this.stack.getNext()
-        }
-
-        getTurtleFields(){
-            return this.turtleFields;
         }
 
         getRoot()

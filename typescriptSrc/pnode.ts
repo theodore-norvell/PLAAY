@@ -600,7 +600,7 @@ module pnode {
 
         abstract isValid(children:Array<PNode>) ;
 
-        abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS);
+        abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS) : void ;
 
         strategy:nodeStrategy;
 
@@ -620,12 +620,13 @@ module pnode {
             return null ;
         }
 
-        select(vms:VMS){
+        select(vms:VMS) : void {
             this.strategy.select(vms, this);
         }
 
         //Template
-        step(vms:VMS){
+        step(vms:VMS) : void {
+            // TODO fix this crap.
             if(vms.stack.top().ready == true){
                 var evalu = vms.stack.top();
                 var pending = evalu.getPending();
@@ -1504,7 +1505,6 @@ module pnode {
 
 
         isValid(children:Array<PNode>) {
-            //TODO check if child 0 is a method
             return children.every(function (c:PNode) {
                 return c.isExprNode()
             });
@@ -1531,6 +1531,7 @@ module pnode {
             super() ;
         }
 
+        // TODO Complete this!
         nodeStep(node, evalu, vms){}
 
         // Singleton
@@ -1545,6 +1546,7 @@ module pnode {
         }
     }
 
+    // TODO. Get rid of this and similar lables,
     export class PenLabel extends ExprLabel {
         _val:string; //either up or down
         strategy : TurtleStrategy = new TurtleStrategy();

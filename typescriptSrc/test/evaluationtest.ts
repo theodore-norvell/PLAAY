@@ -31,7 +31,7 @@ var root = opt.choose(
     });
 
 var evalmananger = new evaluationManager.EvaluationManager();
-var ms = evalmananger.PLAAY(root,"");
+var ms = evalmananger.PLAAY(root, null);
 describe ("initialize evaluation", () => {
     it('should not have null stack', () => {
         assert.check(ms.stack != null);

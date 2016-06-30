@@ -2,6 +2,8 @@
 import evaluation = require( './evaluation' ) ;
 import value = require( './value') ;
 
+// TODO At least rename this compilation unit to stack.
+// Although we might also question why it exists at all.
 module stack {
 
     import Evaluation = evaluation.Evaluation;
