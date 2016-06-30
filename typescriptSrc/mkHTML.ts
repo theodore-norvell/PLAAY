@@ -178,7 +178,7 @@ module mkHTML {
         var advance = document.getElementById("advance");
         advance.onclick = function advance()
         {
-            setValAndHighlight();
+            advanceOneStep();
         };
         document.getElementById("advance").style.visibility = "hidden";
 
@@ -489,11 +489,11 @@ module mkHTML {
         enterBox();
     }
 
-    function redraw(vms:VMS) {
+    function redraw(vms:VMS) : void {
         turtleWorld.redraw() ;
     }
 
-    function leaveWorld()
+    function leaveWorld() : void
     {
         document.getElementById("turtle").style.visibility = "visible";
         document.getElementById("quitworld").style.visibility = "hidden";
@@ -519,7 +519,7 @@ module mkHTML {
         document.getElementById("body").removeChild(canvas);
     }
 
-    function turtleGraphics()
+    function turtleGraphics() : void
     {
         document.getElementById("turtle").style.visibility = "hidden";
         document.getElementById("quitworld").style.visibility = "visible";
@@ -572,8 +572,8 @@ module mkHTML {
         const canv = turtleWorld.getCanvas() ;
         canv.setAttribute("id", "turtleGraphics");
         canv.setAttribute("class", "canv");
-        canv.setAttribute('width','1024') ;
-        canv.setAttribute('height','768') ;
+        canv.setAttribute('width','200') ;
+        canv.setAttribute('height','200') ;
         body.appendChild(canv);
 
         turtle = true ;
@@ -638,33 +638,8 @@ module mkHTML {
         });
         enterBox();
     }
-
-    function togglePan()
-    {
-        turtleWorld.setPenDown( ! turtleWorld.getPenIsDown() ) ;
-    }
-
-    function rightturn()
-    {
-        turtleWorld.right(10);
-    }
-
-    function leftturn()
-    {
-        turtleWorld.right(-10);
-    }
-
-    function forwardmarch()
-    {
-        turtleWorld.forward(10);
-    }
-
-    function backward()
-    {
-        turtleWorld.forward(-10);
-    }
     
-    function evaluate()
+    function evaluate() : void
     {
         document.getElementById("trash").style.visibility = "hidden";
         document.getElementById("redo").style.visibility = "hidden";
@@ -691,7 +666,7 @@ module mkHTML {
         $(".dropZoneSmall").hide();
     }
 
-    function editor()
+    function editor() : void
     {
         document.getElementById("trash").style.visibility = "visible";
         document.getElementById("redo").style.visibility = "visible";
@@ -710,29 +685,26 @@ module mkHTML {
         $(".dropZoneSmall").show();
     }
 
-    function visualizeStack(evalstack:ExecStack)
+    function visualizeStack(evalstack:ExecStack) : void
     {
         for(let i = 0; i < evalstack.obj.numFields(); i++)
         {
 
-            // TODO. This is really not good enough, since structured values
+            // TODO. This is really not good enough, since structured values should show in a structured way.
             const name = evalstack.obj.getFieldByNumber(i).getName() ;
             const val = evalstack.obj.getFieldByNumber(i).getValue() ;
             $("<tr><td>" + name + "</td>" +
+                // TODO toString is not a good idea, as is may return strings that screw up the HTML.
                   "<td>" + val.toString() + "</td></tr>").appendTo($("#stackVal"));
 
         }
-        if(evalstack.getNext() == null)
-        {
-            return;
-        }
-        else
+        if(evalstack.getNext() != null)
         {
             visualizeStack(evalstack.getNext());
         }
     }
 
-    function visualizeTrash() {
+    function visualizeTrash() : void {
         var dialogDiv = $('#trashDialog');
 
         if (dialogDiv.length == 0) {
@@ -766,7 +738,7 @@ module mkHTML {
         });
 }
 
-    function highlight(parent, pending)
+    function highlight(parent, pending) : void
     {
         if(pending.isEmpty())
         {
@@ -796,7 +768,7 @@ module mkHTML {
         }
     }
 
-    function findInMap(root : HTMLElement, varmap : VarMap)
+    function findInMap(root : HTMLElement, varmap : VarMap) : void
     {
         for(let i=0; i < varmap.size; i++)
         {
@@ -806,7 +778,7 @@ module mkHTML {
         }
     }
 
-    function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value )
+    function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value ) : void 
     {
         if(path.isEmpty())
         {
@@ -834,7 +806,7 @@ module mkHTML {
         }
     }
 
-    function setValAndHighlight()
+    function advanceOneStep()
     {
         currentvms = evaluation.next();
         if (!highlighted && currentvms.getEval().ready) {
@@ -1321,7 +1293,7 @@ module mkHTML {
         });
     }
 
-    function getPathToNode(select:Selection, self) : Selection
+    function getPathToNode(select:Selection, self ) : Selection
     {
         var array = [];
         var anchor;
