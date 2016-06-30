@@ -33,6 +33,7 @@ module mkHTML {
     import VMS = vms.VMS;
     import ExecStack = stack.execStack;
     import arrayToList = collections.arrayToList;
+    import Value = value.Value ;
     import StringV = value.StringV;
     import BuiltInV = value.BuiltInV;
 
@@ -795,22 +796,25 @@ module mkHTML {
         }
     }
 
-    function findInMap(root, varmap:VarMap)
+    function findInMap(root : HTMLElement, varmap : VarMap)
     {
-        for(var i=0; i < varmap.size; i++)
+        for(let i=0; i < varmap.size; i++)
         {
-            var list = arrayToList(varmap.entries[i].getPath())
-            var value = Object.create(varmap.entries[i].getValue());
+            const list = arrayToList(varmap.entries[i].getPath())
+            const value : Value = Object.create(varmap.entries[i].getValue());
             setHTMLValue(root, list, value);
         }
     }
 
-    function setHTMLValue(root, path:List<number>, value)
+    function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value )
     {
         if(path.isEmpty())
         {
             var self = $(root);
-            self.replaceWith("<div class='inmap'>"+ value.getVal() +"</div>");
+            // TODO. toString may not be the best function to call here,
+            // since it could return any old crap that is not compatible with
+            // HTML.
+            self.replaceWith("<div class='inmap'>"+ value.toString() +"</div>");
         }
         else{
             var child = $(root);
@@ -819,13 +823,13 @@ module mkHTML {
                 var index = child.find('div[data-childNumber="' + path.first() + '"]').index();
                 var check = path.first();
                 if(index != check)
-                    setHTMLValue(root.children[index], path.rest(), value);
+                    setHTMLValue(<HTMLElement>root.children[index], path.rest(), value);
                 else
-                    setHTMLValue(root.children[check], path.rest(), value);
+                    setHTMLValue(<HTMLElement>root.children[check], path.rest(), value);
             }
             else
             {
-                setHTMLValue(root.children[path.first()], path, value);
+                setHTMLValue(<HTMLElement>root.children[path.first()], path, value);
             }
         }
     }
@@ -844,7 +848,8 @@ module mkHTML {
             }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            var root = document.getElementById("vms").children[0];
+            const vms : HTMLElement = document.getElementById("vms") ;
+            var root : HTMLElement = <HTMLElement>vms.children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
@@ -862,7 +867,7 @@ module mkHTML {
             }
             children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
             $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            var root = document.getElementById("vms").children[0];
+            var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
             findInMap(root, currentvms.getEval().getVarMap());
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
@@ -890,7 +895,7 @@ module mkHTML {
         }
         children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
         $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-        var root = document.getElementById("vms").children[0];
+        var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
         var list = arrayToList(currentvms.getEval().getPath());
         var map = Object.create(currentvms.getEval().getVarMap());
         findInMap(root, map);
