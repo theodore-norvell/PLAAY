@@ -806,7 +806,7 @@ module mkHTML {
         }
     }
 
-    function advanceOneStep()
+    function advanceOneStep() : void
     {
         currentvms = evaluation.next();
         if (!highlighted && currentvms.getEval().ready) {
@@ -874,7 +874,7 @@ module mkHTML {
         highlight(root, list);
     }
 
-    function createCopyDialog(selectionArray) {
+    function createCopyDialog(selectionArray)  : JQuery {
         return $("<div></div>")
             .dialog({
                 resizable: false,
