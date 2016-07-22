@@ -70,20 +70,30 @@ module mkHTML {
 		return obj;
 	}
 
-	function createValued(elementType, className, idName, parentElement, value) {
-		var obj = create(elementType, className, idName, parentElement);
+	function createValued(elementType, parentElement, value) {
+		var obj = $("<" + elementType + "></" + elementType + ">");
+		if (parentElement) { obj.appendTo(parentElement); }
 		if (value) { obj.val(value); }
 		return obj;
 	}
 
+	function createPrepended(elementType, className, idName, parentElement, textContent, prependToThis) {
+		var obj = createTexted(elementType, className, idName, parentElement, textContent);
+		if (prependToThis) { obj.prependTo(prependToThis); }
+		return obj;
+	}
+
+	function createHidden(elementType, className, idName, parentElement, textContent) {
+		return createTexted(elementType, className, idName, parentElement, textContent).css("visibility", "hidden");
+	}
+
     export function onLoad() : void
     {
-		const sidebar = create("div", "sidebar", "sidebar", "body");
-		const stackbar = create("div", "stack", "stackbar", "body");
-        $("#stackbar").css("visibility","hidden");
-		const table = create("table", null, "stackVal", $("#stackbar"));
+		const sidebar = create("div", "sidebar evalHidden", "sidebar", "body");
+		createHidden("div", "stack evalVisible", $("#stackbar"), "body", null);
+		create("table", null, "stackVal", $("#stackbar"));
 
-		const undoblock = createTexted("div", "undo", "undo", "body", "Undo");
+		createTexted("div", "undo evalHidden", "undo", "body", "Undo");
         $("#undo").click(function() {
 			if (undostack.length != 0) {
 				redostack.push(currentSelection);
@@ -93,7 +103,7 @@ module mkHTML {
 			}
 		});
 
-		const redoblock = createTexted("div", "redo", "redo", "body", "Redo");
+		createTexted("div", "redo evalHidden", "redo", "body", "Redo");
         $("#redo").click(function() {
 			if (redostack.length != 0) {
                 undostack.push(currentSelection);
@@ -103,51 +113,26 @@ module mkHTML {
             }
 		});
 
-		const playbutton = createTexted("div", "play", "play", "body", "Play");
-        $("#play").click(function() {evaluate();});
-
-		const turtlebutton = createTexted("div", "turtle", "turtle", "body", "Turtle World"); 
-        $("#turtle").click(function() {turtleGraphics();});
-
-		const quitworldbutton = createTexted("div", "quitworld", "quitworld", "body", "Quit World"); 
-        $("#quitworld").click(function() {leaveWorld();});
-        document.getElementById("quitworld").style.visibility = "hidden";
-
-		const editorbutton = createTexted("div", "edit", "edit", "body", "Edit"); 
-        $("#edit").click(function() {editor();});
-        document.getElementById("edit").style.visibility = "hidden";
-
-		const trash = createTexted("div", "trash", "trash", "body", "Trash"); 
-        $("#trash").click(function() {visualizeTrash();});
-		
-		const advancebutton = createTexted("div", "advance", "advance", "body", "Next"); 
-        $("#edit").click(function() {advanceOneStep();});
-        document.getElementById("advance").style.visibility = "hidden";
-
-		const multistepbutton = createTexted("div", "multistep", "multistep", "body", "Multi-Step"); 
-        $("#multistep").click(function() {multiStep();});
-        document.getElementById("multistep").style.visibility = "hidden";
-
-		const runbutton = createTexted("div", "run", "run", "body", "Run"); 
-        $("#run").click(function() {stepTillDone();});
-        document.getElementById("run").style.visibility = "hidden";
-
-		const ifblock = createTexted("div", "block V palette", "if", $("#sidebar"), "If"); 
-		const whileblock = createTexted("div", "block V palette", "while", $("#sidebar"), "While"); 
-		const varblock = createTexted("div", "block V palette", "var", $("#sidebar"), "Var"); 
-		const stringlitblock = createTexted("div", "block V palette", "stringliteral", $("#sidebar"), "String Literal"); 
-		const worldblock = createTexted("div", "block V palette", "worldcall", $("#sidebar"), "Call World"); 
-		const assignmentblock = createTexted("div", "block V palette", "assign", $("#sidebar"), "Assignment"); 
-		const userBar = create("div", "userBar", "userBar", "body"); 
-		const loginButton = createTexted("div", "userOptions", "login", $("#userBar"), "Login/Register"); 
-		const logoutButton = createTexted("div", "userOptions", "logout", $("#userBar"), "Logout"); 
-        $("#logout").hide();
-		const userSettings = createTexted("div", "userOptions", "userSettings", $("#userBar"), "User Settings"); 
-        $("#userSettings").hide();
-		const saveProgram = createTexted("div", "userOptions", "saveProgram", $("#userBar"), "Save Program"); 
-        $("#saveProgram").hide();
-		const loadProgram = createTexted("div", "userOptions", "loadProgram", $("#userBar"), "Load Program"); 
-        $("#loadProgram").hide();
+		createTexted("div", "play evalHidden", "play", "body", "Play").click(function() {evaluate();});
+		createTexted("div", "turtle", "turtle", "body", "Turtle World").click(function() {turtleGraphics();});
+		createHidden("div", "quitworld", "quitworld", "body", "Quit World").click(function() {leaveWorld();});
+		createHidden("div", "edit evalVisible", "edit", "body", "Edit").click(function() {editor();});
+		createTexted("div", "trash evalHidden", "trash", "body", "Trash").click(function() {visualizeTrash();});
+		createHidden("div", "advance evalVisible", "advance", "body", "Next").click(function() {advanceOneStep();});
+		createHidden("div", "multistep evalVisible", "multistep", "body", "Multi-Step").click(function() {multiStep();});
+		createHidden("div", "run evalVisible", "run", "body", "Run").click(function() {stepTillDone();});
+		createTexted("div", "block V palette", "if", sidebar, "If"); 
+		createTexted("div", "block V palette", "while", sidebar, "While"); 
+		createTexted("div", "block V palette", "var", sidebar, "Var"); 
+		createTexted("div", "block V palette", "stringliteral", sidebar, "String Literal"); 
+		createTexted("div", "block V palette", "worldcall", sidebar, "Call World"); 
+		createTexted("div", "block V palette", "assign", sidebar, "Assignment"); 
+		create("div", "userBar", "userBar", "body"); 
+		createTexted("div", "userOptions", "login", $("#userBar"), "Login/Register"); 
+		createTexted("div", "userOptions", "logout", $("#userBar"), "Logout").hide();
+		createTexted("div", "userOptions", "userSettings", $("#userBar"), "User Settings").hide();
+		createTexted("div", "userOptions", "saveProgram", $("#userBar"), "Save Program").hide();
+		createTexted("div", "userOptions", "loadProgram", $("#userBar"), "Load Program").hide();
 
         $('#login').click(function () {
             $('body').append("<div id='dimScreen'></div>");
@@ -220,28 +205,19 @@ module mkHTML {
             mkHTML.getPrograms();
         });
 
-		const vardecblock = createTexted("div", "block V palette", "vardecl", $("#sidebar"), "Var Declaration"); 
-		const lambdablock = createTexted("div", "block V palette", "lambda", $("#sidebar"), "Lambda Expression"); 
+		const vardecblock = createTexted("div", "block V palette", "vardecl", sidebar, "Var Declaration"); 
+		const lambdablock = createTexted("div", "block V palette", "lambda", sidebar, "Lambda Expression"); 
 		var list = create("datalist", null, "oplist", "body"); 
 
-		createValued("option", null, null, $("#oplist"), "+");
-		createValued("option", null, null, $("#oplist"), "-");
-		createValued("option", null, null, $("#oplist"), "*");
-		createValued("option", null, null, $("#oplist"), "/");
-		createValued("option", null, null, $("#oplist"), ">");
-		createValued("option", null, null, $("#oplist"), "<");
-		createValued("option", null, null, $("#oplist"), "==");
-		createValued("option", null, null, $("#oplist"), ">=");
-		createValued("option", null, null, $("#oplist"), "<=");
-		createValued("option", null, null, $("#oplist"), "&");
-		createValued("option", null, null, $("#oplist"), "|");
+		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
+		for (var i = 0; i < optionList.length; i++) {
+			createValued("option", $("#oplist"), optionList[i]);
+		}
 
-		const container = create("div", "container", "container", "body"); 
-		const vms = create("div", "vms", "vms", "body"); 
-        document.getElementById("vms").style.visibility = "hidden";
-		const seq = create("div", null, "seq", $("#container")); 
-        $("#seq").attr("data-childNumber", "-1");
-		const div = create("div", "dropZone H droppable", "dropZone", $("#seq")); 
+		create("div", "container evalHidden", "container", "body"); 
+		createHidden("div", "vms evalVisible", "vms", "body", null); 
+		create("div", null, "seq", $("#container")).attr("data-childNumber", "-1");
+		create("div", "dropZone H droppable", "dropZone", $("#seq")); 
 
         $( ".palette" ).draggable({
             helper:"clone" ,
@@ -310,24 +286,9 @@ module mkHTML {
 
     function leaveWorld() : void
     {
-        document.getElementById("turtle").style.visibility = "visible";
-        document.getElementById("quitworld").style.visibility = "hidden";
-
-        var forward = document.getElementById("forward");
-        document.getElementById("sidebar").removeChild(forward);
-        var left = document.getElementById("left");
-        document.getElementById("sidebar").removeChild(left);
-        var right = document.getElementById("right");
-        document.getElementById("sidebar").removeChild(right);
-        var pen = document.getElementById("pen");
-        document.getElementById("sidebar").removeChild(pen);
-        var clear = document.getElementById("clear");
-        document.getElementById("sidebar").removeChild(clear);
-        var show = document.getElementById("show");
-        document.getElementById("sidebar").removeChild(show);
-        var hide = document.getElementById("hide");
-        document.getElementById("sidebar").removeChild(hide);
-
+		$("#turtle").css("visibility","visible");
+		$("#quitworld").css("visibility","hidden");
+		$(".removeFromSidebar").remove();
         $('.turtleFunc').remove();
 
         var canvas = document.getElementById("turtleGraphics");
@@ -336,25 +297,17 @@ module mkHTML {
 
     function turtleGraphics() : void
     {
-        document.getElementById("turtle").style.visibility = "hidden";
-        document.getElementById("quitworld").style.visibility = "visible";
-
-        var sidebar = $('#sidebar');
-
-		const hideblock = createTexted("div", "block V palette", "hide", null, "Hide");
-        sidebar.prepend(hideblock);
-		const showblock = createTexted("div", "block V palette", "show", null, "Show");
-        sidebar.prepend(showblock);
-		const clearblock = createTexted("div", "block V palette", "clear", null, "Clear");
-        sidebar.prepend(clearblock);
-		const penblock = createTexted("div", "block V palette", "pen", null, "Pen");
-        sidebar.prepend(penblock);
-		const rightblock = createTexted("div", "block V palette", "right", null, "Right");
-        sidebar.prepend(rightblock);
-		const leftblock = createTexted("div", "block V palette", "left", null, "Left");
-        sidebar.prepend(leftblock);
-		const forwardblock = createTexted("div", "block V palette", "forward", null, "Forward");
-        sidebar.prepend(forwardblock);
+		$("#turtle").css("visibility","hidden");
+		$("#quitworld").css("visibility","visible");
+		
+		const tempSidebar = $("#sidebar");
+		createPrepended("div", "block V palette removeFromSidebar", "hide", null, "Hide", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "show", null, "Show", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "clear", null, "Clear", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "pen", null, "Pen", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "right", null, "Right", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "left", null, "Left", tempSidebar);
+		createPrepended("div", "block V palette removeFromSidebar", "forward", null, "Forward", tempSidebar);
 
         const body = document.getElementById('body') ;
         const canv = turtleWorld.getCanvas() ;
@@ -429,45 +382,20 @@ module mkHTML {
     
     function evaluate() : void
     {
-        document.getElementById("trash").style.visibility = "hidden";
-        document.getElementById("redo").style.visibility = "hidden";
-        document.getElementById("undo").style.visibility = "hidden";
-        document.getElementById("sidebar").style.visibility = "hidden";
-        document.getElementById("container").style.visibility = "hidden";
-        document.getElementById("play").style.visibility = "hidden";
-        document.getElementById("vms").style.visibility = "visible";
-        document.getElementById("stackbar").style.visibility = "visible";
-        document.getElementById("advance").style.visibility = "visible";
-        document.getElementById("multistep").style.visibility = "visible";
-        document.getElementById("run").style.visibility = "visible";
-        document.getElementById("edit").style.visibility = "visible";
-
+		$(".evalHidden").css("visibility", "hidden");
+		$(".evalVisible").css("visibility", "visible");
         currentvms = evaluation.PLAAY(currentSelection.root(), turtle ? turtleWorld : null );
-        var children = document.getElementById("vms");
-        while (children.firstChild) {
-            children.removeChild(children.firstChild);
-        }
-
-        children.appendChild(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true));//vms.getEval().getRoot(), vms.getEval().getRoot().count()));
-        $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        $("#vms").empty()
+			.append(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true))
+        	.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
 
     function editor() : void
     {
-        document.getElementById("trash").style.visibility = "visible";
-        document.getElementById("redo").style.visibility = "visible";
-        document.getElementById("undo").style.visibility = "visible";
-        document.getElementById("sidebar").style.visibility = "visible";
-        document.getElementById("container").style.visibility = "visible";
-        document.getElementById("play").style.visibility = "visible";
-        document.getElementById("vms").style.visibility = "hidden";
-        document.getElementById("stackbar").style.visibility = "hidden";
-        document.getElementById("advance").style.visibility = "hidden";
-        document.getElementById("multistep").style.visibility = "hidden";
-        document.getElementById("edit").style.visibility = "hidden";
-
+		$(".evalHidden").css("visibility", "visible");
+		$(".evalVisible").css("visibility", "hidden");
         $(".dropZone").show();
         $(".dropZoneSmall").show();
     }
@@ -497,12 +425,9 @@ module mkHTML {
         if (dialogDiv.length == 0) {
             dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
             for(var i = 0; i < trashArray.length; i++) {
-                var trashdiv = document.createElement("div");
-                trashdiv.setAttribute("class", "trashitem");
-                trashdiv.setAttribute("data-trashitem", i.toString());
-                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo($(trashdiv));
-                $(trashdiv).appendTo(dialogDiv);
-                //$(".trashitem").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+				var trashdiv = create("div", "trashitem", null, dialogDiv);
+                trashdiv.attr("data-trashitem", i.toString());
+                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo(trashdiv);
             }
             dialogDiv.dialog({
                 modal : true,
@@ -523,17 +448,19 @@ module mkHTML {
                 draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
             }
         });
-}
+	}
 
     function highlight(parent, pending) : void
     {
         if(pending.isEmpty())
         {
             var self = $(parent);
-            if(self.index() == 0)
-                $("<div class='selected V'></div>").prependTo(self.parent());
-            else
-                $("<div class='selected V'></div>").insertBefore(self);
+            if(self.index() == 0) {
+				$("<div class='selected V'></div>").prependTo(self.parent());
+			}
+            else {
+				$("<div class='selected V'></div>").insertBefore(self);
+			}
             self.detach().appendTo($(".selected"));
         }
         else
@@ -543,10 +470,12 @@ module mkHTML {
             {
                 var index = child.find('div[data-childNumber="' + pending.first() + '"]').index();
                 var check = pending.first();
-                if(index != check)
-                    highlight(parent.children[index], pending.rest());
-                else
-                    highlight(parent.children[check], pending.rest());
+                if(index != check) {
+					highlight(parent.children[index], pending.rest());
+				}
+                else {
+					highlight(parent.children[check], pending.rest());
+				}
             }
             else
             {
@@ -559,9 +488,7 @@ module mkHTML {
     {
         for(let i=0; i < varmap.size; i++)
         {
-            const list = arrayToList(varmap.entries[i].getPath())
-            const value : Value = Object.create(varmap.entries[i].getValue());
-            setHTMLValue(root, list, value);
+            setHTMLValue(root, arrayToList(varmap.entries[i].getPath()), Object.create(varmap.entries[i].getValue()));
         }
     }
 
@@ -581,10 +508,11 @@ module mkHTML {
             {
                 var index = child.find('div[data-childNumber="' + path.first() + '"]').index();
                 var check = path.first();
-                if(index != check)
+                if(index != check) {
                     setHTMLValue(<HTMLElement>root.children[index], path.rest(), value);
-                else
+				} else {
                     setHTMLValue(<HTMLElement>root.children[check], path.rest(), value);
+				}
             }
             else
             {
@@ -596,43 +524,24 @@ module mkHTML {
     function advanceOneStep() : void
     {
         currentvms = evaluation.next();
+		$("#stackVal").empty();
+		$("#vms").empty()
+			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true))
+			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+		var root = $("#vms :first-child").get(0);
         if (!highlighted && currentvms.getEval().ready) {
-            var children = document.getElementById("vms");
-            while (children.firstChild) {
-                children.removeChild(children.firstChild);
-            }
-            var remove = document.getElementById("stackVal");
-            while (remove.firstChild) {
-                remove.removeChild(remove.firstChild);
-            }
-            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
-            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             const vms : HTMLElement = document.getElementById("vms") ;
-            var root : HTMLElement = <HTMLElement>vms.children[0];
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
             visualizeStack(currentvms.getEval().getStack());
             highlighted = true;
-        }
-        else{
-            var children = document.getElementById("vms");
-            while (children.firstChild) {
-                children.removeChild(children.firstChild);
-            }
-            var remove = document.getElementById("stackVal");
-            while (remove.firstChild) {
-                remove.removeChild(remove.firstChild);
-            }
-            children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
-            $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
+        } else {
             findInMap(root, currentvms.getEval().getVarMap());
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
-        if(turtle)
-        {
+        if(turtle) {
             redraw(currentvms);
         }
     }
@@ -643,18 +552,15 @@ module mkHTML {
         $('#advance').trigger('click');
     }
 
-    function stepTillDone()
-    {
+    function stepTillDone() {
         currentvms = evaluation.next();
-        while(!currentvms.getEval().isDone())
+        while(!currentvms.getEval().isDone()) {
             currentvms = evaluation.next();
-        var children = document.getElementById("vms");
-        while (children.firstChild) {
-            children.removeChild(children.firstChild);
-        }
-        children.appendChild(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)); //vms.getEval().getRoot(), vms.getEval().getRoot().count()));
-        $("#vms").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-        var root : HTMLElement = <HTMLElement> document.getElementById("vms").children[0];
+		}
+		$("#vms").empty()
+			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)) 
+			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+		var root = $("#vms :first-child").get(0);
         var list = arrayToList(currentvms.getEval().getPath());
         var map = Object.create(currentvms.getEval().getVarMap());
         findInMap(root, map);
@@ -932,11 +838,8 @@ module mkHTML {
     export function generateHTML(select:Selection)
     {
         currentSelection = select;
-        var children = document.getElementById("container");
-        while (children.firstChild) {
-            children.removeChild(children.firstChild);
-        }
-        children.appendChild(traverseAndBuild(select.root(), select.root().count(), false));
+		$("#container").empty()
+			.append(traverseAndBuild(select.root(), select.root().count(), false));
 
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
