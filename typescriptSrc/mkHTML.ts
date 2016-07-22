@@ -89,7 +89,8 @@ module mkHTML {
 
     export function onLoad() : void
     {
-		const sidebar = create("div", "sidebar evalHidden", "sidebar", "body");
+		create("div", "sidebar evalHidden", "sidebar", "body");
+		const sidebarConst = $("#sidebar");
 		createHidden("div", "stack evalVisible", $("#stackbar"), "body", null);
 		create("table", null, "stackVal", $("#stackbar"));
 
@@ -121,12 +122,12 @@ module mkHTML {
 		createHidden("div", "advance evalVisible", "advance", "body", "Next").click(function() {advanceOneStep();});
 		createHidden("div", "multistep evalVisible", "multistep", "body", "Multi-Step").click(function() {multiStep();});
 		createHidden("div", "run evalVisible", "run", "body", "Run").click(function() {stepTillDone();});
-		createTexted("div", "block V palette", "if", sidebar, "If"); 
-		createTexted("div", "block V palette", "while", sidebar, "While"); 
-		createTexted("div", "block V palette", "var", sidebar, "Var"); 
-		createTexted("div", "block V palette", "stringliteral", sidebar, "String Literal"); 
-		createTexted("div", "block V palette", "worldcall", sidebar, "Call World"); 
-		createTexted("div", "block V palette", "assign", sidebar, "Assignment"); 
+		createTexted("div", "block V palette", "if", sidebarConst, "If"); 
+		createTexted("div", "block V palette", "while", sidebarConst, "While"); 
+		createTexted("div", "block V palette", "var", sidebarConst, "Var"); 
+		createTexted("div", "block V palette", "stringliteral", sidebarConst, "String Literal"); 
+		createTexted("div", "block V palette", "worldcall", sidebarConst, "Call World"); 
+		createTexted("div", "block V palette", "assign", sidebarConst, "Assignment"); 
 		create("div", "userBar", "userBar", "body"); 
 		createTexted("div", "userOptions", "login", $("#userBar"), "Login/Register"); 
 		createTexted("div", "userOptions", "logout", $("#userBar"), "Logout").hide();
@@ -205,9 +206,9 @@ module mkHTML {
             mkHTML.getPrograms();
         });
 
-		const vardecblock = createTexted("div", "block V palette", "vardecl", sidebar, "Var Declaration"); 
-		const lambdablock = createTexted("div", "block V palette", "lambda", sidebar, "Lambda Expression"); 
-		var list = create("datalist", null, "oplist", "body"); 
+		createTexted("div", "block V palette", "vardecl", sidebarConst, "Var Declaration"); 
+		createTexted("div", "block V palette", "lambda", sidebarConst, "Lambda Expression"); 
+		create("datalist", null, "oplist", "body"); 
 
 		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
 		for (var i = 0; i < optionList.length; i++) {
@@ -425,9 +426,9 @@ module mkHTML {
         if (dialogDiv.length == 0) {
             dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
             for(var i = 0; i < trashArray.length; i++) {
-				var trashdiv = create("div", "trashitem", null, dialogDiv);
-                trashdiv.attr("data-trashitem", i.toString());
-                $(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)).appendTo(trashdiv);
+				create("div", "trashitem", null, dialogDiv)
+					.attr("data-trashitem", i.toString())
+                	.append($(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
             }
             dialogDiv.dialog({
                 modal : true,
