@@ -11,12 +11,12 @@ import pnode = require( '../pnode' ) ;
 import pnodeEdits = require( '../pnodeEdits' ) ;
 
 
-var a : pnode.ExprNode = pnode.mkStringLiteral( "a" ) ;
-var b : pnode.ExprNode = pnode.mkStringLiteral( "b" ) ;
-var c : pnode.ExprNode = pnode.mkStringLiteral( "c" ) ;
-var d : pnode.ExprNode = pnode.mkStringLiteral( "d" ) ;
-var s0 : pnode.ExprSeqNode = pnode.mkExprSeq( [a,b] ) ;
-var s1 : pnode.ExprSeqNode = pnode.mkExprSeq( [c] ) ;
+var a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
+var b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
+var c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
+var d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
+var s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
+var s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
 var ite0 = pnode.mkIf( a, s0, s1 )  ;
 
 // The next few tests build a tree top down using the InsertChildrenEdit

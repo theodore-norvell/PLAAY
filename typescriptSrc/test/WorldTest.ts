@@ -24,7 +24,7 @@ import Type = value.Type;
 import execStack = stack.execStack;
 
 var wld = new World();
-var a : pnode.ExprNode = pnode.mkVar("a");
+var a : pnode.PNode = pnode.mkVar("a");
 var str = new value.StringV("");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
 

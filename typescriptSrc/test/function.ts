@@ -22,37 +22,34 @@ import varStrategy = pnode.varStrategy;
 import Field = value.Field;
 import Type = value.Type;
 import execStack = stack.execStack;
-import ExprSeqNode = pnode.ExprSeqNode;
 import ObjectV = value.ObjectV;
-import LambdaNode = pnode.LambdaNode;
 import ClosureV = value.ClosureV;
 import StringV = value.StringV;
-import ExprNode = pnode.ExprNode;
 
 var wld = new World();
 var wlds : Array<ObjectV> = new Array();
 wlds.push(wld);
-var a : pnode.ExprNode = pnode.mkVar("a");
-var b : pnode.ExprNode = pnode.mkVar("b");
-var c : pnode.ExprNode = pnode.mkVar("c");
+var a : pnode.PNode = pnode.mkVar("a");
+var b : pnode.PNode = pnode.mkVar("b");
+var c : pnode.PNode = pnode.mkVar("c");
 
 
 var str = new value.StringV("3");
 var str2 = new value.StringV("2");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);//a=3
 var f2 : Field = new Field(b.label().getVal(), str2, Type.ANY , false);//b=2
-var cw : ExprNode = pnode.mkWorldCall(a, b);
+var cw : pnode.PNode = pnode.mkWorldCall(a, b);
 cw.label().changeValue("F");
 
-var t : pnode.TypeNode = pnode.mkType();
-var func : ExprSeqNode = pnode.mkExprSeq([c]);
+var t : pnode.PNode = pnode.mkType();
+var func : pnode.PNode = pnode.mkExprSeq([c]);
 
 
 
-var param : ExprSeqNode = pnode.mkExprSeq([a,b]);
-var lamb : LambdaNode = pnode.mkLambda("F", param, t, func);
+var param : pnode.PNode = pnode.mkExprSeq([a,b]);
+var lamb : pnode.PNode = pnode.mkLambda("F", param, t, func);
 
-var s : ExprSeqNode = pnode.mkExprSeq([a,b,lamb, cw]);
+var s : pnode.PNode = pnode.mkExprSeq([a,b,lamb, cw]);
 var vm : VMS = new VMS(s, wlds);//eval created and pushed on VMS stack
 vm.getEval().setPending([2]);
 
@@ -73,8 +70,8 @@ describe( 'Lambda', () => {
         var xField = vm.evalu.getStack().getField("F");
         var close = <ClosureV> xField.getValue();
         assert.check(close.isClosureV());
-        assert.check(close.context == vm.evalu.getStack());
-        assert.check(close.function == lamb);
+        assert.check(close.getContext() == vm.evalu.getStack());
+        assert.check(close.getLambdaNode() == lamb);
     } );
 
 

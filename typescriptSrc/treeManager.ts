@@ -6,8 +6,6 @@ import edits = require('./edits');
 
 module treeManager {
 
-    import ExprSeq = pnode.ExprSeqNode;
-    import ExprNode = pnode.ExprNode;
     import ExprSeqLabel = pnode.ExprSeqLabel;
     import Selection = pnodeEdits.Selection;
     import list = collections.list;

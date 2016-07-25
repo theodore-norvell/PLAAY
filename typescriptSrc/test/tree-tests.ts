@@ -6,12 +6,12 @@
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
 
-var a : pnode.ExprNode = pnode.mkStringLiteral( "a" ) ;
-var b : pnode.ExprNode = pnode.mkStringLiteral( "b" ) ;
-var c : pnode.ExprNode = pnode.mkStringLiteral( "c" ) ;
-var d : pnode.ExprNode = pnode.mkStringLiteral( "d" ) ;
-var s0 : pnode.ExprSeqNode = pnode.mkExprSeq( [a,b] ) ;
-var s1 : pnode.ExprSeqNode = pnode.mkExprSeq( [c] ) ;
+var a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
+var b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
+var c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
+var d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
+var s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
+var s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
 var ite0 = pnode.mkIf( a, s0, s1 )  ;
 
 // We'd like the following to fail at compile time.

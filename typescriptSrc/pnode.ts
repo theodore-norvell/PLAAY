@@ -37,22 +37,21 @@ module pnode {
         isValid : (children:Array<PNode>) => boolean ;
         strategy:nodeStrategy;
         step : (vms:VMS) => void;
-        /** Returns the class that uses this sort of label */
-        getClass : () => PNodeClass ;
 
         getVal : () => string ;
+
         changeValue:(newString : string) => Option<Label> ;
 
         toJSON : () => any ;
+
+        isExprNode : () => boolean ;
+
+        isExprSeqNode: () => boolean ;
+
+        isTypeNode : () => boolean ;
     }
 
-    /**  Interface is to describe objects that are classes that are subclasses of PNode
-     * and can have constructors that can take the parameters below.*/
-    export interface PNodeClass {
-        new(label:Label, children:Array<PNode>) : PNode ;
-    }
-
-    export abstract class PNode {
+    export class PNode {
         private _label:Label;
         private _children:Array<PNode>;
 
@@ -166,11 +165,11 @@ module pnode {
                 })
         }
 
-        abstract isExprNode():boolean ;
+        public isExprNode():boolean { return this._label.isExprNode() ; }
 
-        abstract isExprSeqNode():boolean ;
+        public isExprSeqNode():boolean  { return this._label.isExprSeqNode() ; }
 
-        abstract isTypeNode():boolean ;
+        public isTypeNode():boolean  { return this._label.isTypeNode() ; }
 
         toString ():string {
             var strs = this._children.map((p:PNode) => p.toString());
@@ -203,8 +202,7 @@ module pnode {
     export function tryMake(label:Label, children:Array<PNode>):Option<PNode> {
         if (label.isValid(children)) {
             //console.log("tryMake: label is " +label+ " children.length is " +children.length ) ; 
-            const cls = label.getClass();
-            return new Some(new cls(label, children));
+            return new Some(new PNode(label, children));
         }
         else {
             return new None<PNode>();
@@ -216,8 +214,7 @@ module pnode {
     }
 
     export function make(label:Label, children:Array<PNode>):PNode {
-        const cls = label.getClass();
-        return new cls(label, children);
+        return new PNode(label, children);
     }
 
     export function lookUp( varName : string, stack : execStack ) : Field {
@@ -525,76 +522,6 @@ module pnode {
 
 
     //Node Declarations
-
-    export class ExprNode extends PNode {
-        exprNodeTag:any // Unique field to defeat duck typing
-        // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
-
-        constructor(label:Label, children:Array<PNode>) {
-            super(label, children);
-        }
-
-        isExprNode():boolean {
-            return true;
-        }
-
-        isExprSeqNode():boolean {
-            return false;
-        }
-
-        isTypeNode():boolean {
-            return false;
-        }
-    }
-
-    export class ExprSeqNode extends PNode {
-        seqNodeTag:any // Unique field to defeat duck typing
-        // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
-        constructor(label:Label, children:Array<PNode>) {
-            super(label, children);
-        }
-
-        isExprNode():boolean {
-            return false;
-        }
-
-        isExprSeqNode():boolean {
-            return true;
-        }
-
-        isTypeNode():boolean {
-            return false;
-        }
-
-    }
-
-    export class TypeNode extends PNode {
-        typeNodeTag:any; // Unique field to defeat duck typing
-        // See http://stackoverflow.com/questions/34803240/requiring-argument-to-be-an-instance-of-a-subclass-of-a-given-class-in-typescr
-        constructor(label:Label, children:Array<PNode>) {
-            super(label, children);
-        }
-
-        isExprNode():boolean {
-            return false;
-        }
-
-        isExprSeqNode():boolean {
-            return false;
-        }
-
-        isTypeNode():boolean {
-            return true;
-        }
-    }
-
-    export class LambdaNode extends ExprNode {
-        constructor(label:Label, children:Array<PNode>) {
-            super(label, children);
-        }
-
-    }
-
     //Node Labels
     export abstract class ExprLabel implements Label {
 
@@ -603,10 +530,6 @@ module pnode {
         abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS) : void ;
 
         strategy:nodeStrategy;
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
 
         /*private*/
         constructor() {
@@ -638,6 +561,12 @@ module pnode {
             }
         }
 
+        isExprNode() { return true ; }
+
+        isExprSeqNode() { return false ; }
+
+        isTypeNode() { return false ; }
+
         // Singleton
         //public static theExprLabel = new ExprLabel();
 
@@ -667,10 +596,6 @@ module pnode {
 
         }
 
-        getClass():PNodeClass {
-            return ExprSeqNode;
-        }
-
         toString():string {
             return "seq";
         }
@@ -690,6 +615,12 @@ module pnode {
         select(vms:VMS){
             this.strategy.select(vms, this);
         }
+
+        isExprNode() { return false ; }
+
+        isExprSeqNode() { return true ; }
+
+        isTypeNode() { return false ; }
 
         // Singleton
         public static theExprSeqLabel = new ExprSeqLabel();
@@ -712,10 +643,6 @@ module pnode {
 
         step(vms:VMS) {
             //TODO should the parameter list do anything? I don't think it does - JH
-        }
-
-        getClass():PNodeClass {
-            return ExprSeqNode;
         }
 
         toString():string {
@@ -741,6 +668,12 @@ module pnode {
         // Singleton
         public static theParameterListLabel = new ParameterListLabel();
 
+        isExprNode() { return false ; }
+
+        isExprSeqNode() { return false ; }
+
+        isTypeNode() { return false ; }
+
         public toJSON() : any {
             return { kind:  "ParamLabel" } ; }
 
@@ -749,13 +682,10 @@ module pnode {
     }
 
     export abstract class TypeLabel implements Label {
-        isValid:(children:Array<PNode>) => boolean;
+
+        abstract isValid(children:Array<PNode>) ;
 
         strategy : nodeStrategy;
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
 
         /*private*/
         constructor() {
@@ -773,6 +703,12 @@ module pnode {
             //TODO not sure yet
         }
 
+        isExprNode() { return false ; }
+
+        isExprSeqNode() { return false ; }
+
+        isTypeNode() { return true ; }
+
         public abstract toJSON() : any ;
     }
 
@@ -784,10 +720,6 @@ module pnode {
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -837,10 +769,6 @@ module pnode {
         }
 
         strategy : varDeclStrategy = new varDeclStrategy();
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
 
         toString():string {
             return "vdecl";
@@ -907,10 +835,6 @@ module pnode {
 
         strategy:assignStrategy = new assignStrategy();
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "assign";
         }
@@ -971,10 +895,6 @@ module pnode {
             return children.every(function(c : PNode) { return c.isExprNode() } ) ;
         }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "callWorld";
         }
@@ -993,14 +913,11 @@ module pnode {
                var field = evalu.getStack().getField(this._val.toString());
                 if (field.getValue().isBuiltInV()){
                      return  (<BuiltInV> field.getValue()).step(node, evalu);
-               }
-
-                else{
-
-                        var c = <ClosureV>field.getValue;
-                       // if (!c.isClosureV()){}//  error!
-                        var c1 = <ClosureV>c;
-                        var f : LambdaNode = <LambdaNode>c1.function;
+                }
+                else if( field.getValue().isClosureV() ) {
+                        var v : Value = field.getValue() ;
+                        var c : ClosureV = <ClosureV> v ;
+                        var f : PNode = c.getLambdaNode() ;
 
                         //a bunch of pNodes(non parameter children)
                         var argList : Array<Value> = new Array();
@@ -1034,12 +951,18 @@ module pnode {
                         }
 
                         var stack = new execStack(activationRecord);//might have to take a look at how execution stack is made
-                        stack.setNext(c1.context);
+                        stack.setNext( c.getContext() );
 
                         var newEval = new Evaluation(f, null, stack);
                         newEval.setPending([]);
                         vms.stack.push( newEval );
                     }
+                else {
+                    // TODO report error. Field exists but is not a function.
+                }
+            }
+            else {
+                // TODO report error. Field with the name does not exist.
             }
         }
 
@@ -1067,10 +990,6 @@ module pnode {
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
             return true;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1103,10 +1022,6 @@ module pnode {
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
             return true;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1150,10 +1065,6 @@ module pnode {
              return true;
          }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "lambda";
         }
@@ -1175,9 +1086,7 @@ module pnode {
         }
 
         nodeStep(node, evalu) {
-            var clo = new ClosureV();
-            clo.context = evalu.getStack();//TODO this is the correct stack?
-            clo.function = <LambdaNode> node;
+            var clo = new ClosureV( node, evalu.getStack()) ;//TODO this is the correct stack?
 
 //            var name = <StringV> node.label().getVal();
             var v = new Field(node.label().getVal(), clo, Type.ANY, true);
@@ -1221,10 +1130,6 @@ module pnode {
          if( ! children[1].isExprSeqNode() ) return false ;
          if( ! children[2].isExprSeqNode() ) return false ;
          return true ; }
-
-        getClass():PNodeClass {
-            return ExprNode;
-        }
 
         toString():string {
             return "if";
@@ -1273,10 +1178,6 @@ module pnode {
          if( ! children[1].isExprSeqNode() ) return false ;
          return true ; }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "while";
         }
@@ -1306,15 +1207,11 @@ module pnode {
 
     //Type Labels
 
-    export class NoTypeLabel implements TypeLabel {
+    export class NoTypeLabel extends TypeLabel {
         strategy : nodeStrategy;
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;}
-
-        getClass():PNodeClass {
-            return TypeNode;
-        }
 
         toString():string {
             return "noType";
@@ -1333,8 +1230,7 @@ module pnode {
         }
 
         /*private*/
-        constructor() {
-        }
+        constructor() { super() ; }
 
         // Singleton
         public static theNoTypeLabel = new NoTypeLabel();
@@ -1360,12 +1256,9 @@ module pnode {
         val() : string { return this._val ; }
 
         isValid( children : Array<PNode> ) {
-        return children.length == 0 ; }
+            return children.length == 0 ; }
 
-        getClass() : PNodeClass { return ExprNode ; }
-
-
-         changeValue (newString : string) : Option<Label> {
+        changeValue (newString : string) : Option<Label> {
              var newLabel = new StringLiteralLabel(newString);
              return new Some(newLabel);
          }
@@ -1412,8 +1305,6 @@ module pnode {
             return this._val ;
         }
 
-        getClass() : PNodeClass { return ExprNode ; }
-
         toString() : string { return "number[" + this._val + "]"  ; }
 
         nodeStep(node, evalu){
@@ -1453,8 +1344,6 @@ module pnode {
             return this._val;
         }
 
-        getClass() : PNodeClass { return ExprNode ; }
-
         toString() : string { return "boolean[" + this._val + "]"  ; }
 
         nodeStep(node, evalu){
@@ -1479,8 +1368,6 @@ module pnode {
 
         isValid( children : Array<PNode> ) {
             return children.length == 0;}
-
-        getClass() : PNodeClass { return ExprNode ; }
 
         toString() : string { return "null"  ; }
 
@@ -1508,10 +1395,6 @@ module pnode {
             return children.every(function (c:PNode) {
                 return c.isExprNode()
             });
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1576,10 +1459,6 @@ module pnode {
             return this._val;
         }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "penup";
         }
@@ -1632,10 +1511,6 @@ module pnode {
 
         getVal():string {
             return this._val;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1692,10 +1567,6 @@ module pnode {
             return this._val;
         }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "right";
         }
@@ -1746,10 +1617,6 @@ module pnode {
 
         getVal():string {
             return this._val;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1804,10 +1671,6 @@ module pnode {
             return this._val;
         }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "hide";
         }
@@ -1858,10 +1721,6 @@ module pnode {
 
         getVal():string {
             return this._val;
-        }
-
-        getClass():PNodeClass {
-            return ExprNode;
         }
 
         toString():string {
@@ -1918,10 +1777,6 @@ module pnode {
             return this._val;
         }
 
-        getClass():PNodeClass {
-            return ExprNode;
-        }
-
         toString():string {
             return "left";
         }
@@ -1948,47 +1803,47 @@ module pnode {
     }
 
     //Placeholder Make
-    export function mkExprPH():ExprNode {
-        return <ExprNode> make(ExprPHLabel.theExprPHLabel, []);
+    export function mkExprPH():PNode {
+        return  make(ExprPHLabel.theExprPHLabel, []);
     }
 
-    export function mkExprOpt():ExprNode {
-        return <ExprNode> make(ExprOptLabel.theExprOptLabel, []);
+    export function mkExprOpt():PNode {
+        return make(ExprOptLabel.theExprOptLabel, []);
     }
 
-    //Loop and If Make
-    export function mkIf(guard:ExprNode, thn:ExprSeqNode, els:ExprSeqNode):ExprNode {
-        return <ExprNode> make(IfLabel.theIfLabel, [guard, thn, els]); }
+    // Make if node
+    export function mkIf(guard:PNode, thn:PNode, els:PNode):PNode {
+        return make(IfLabel.theIfLabel, [guard, thn, els]); }
 
-    export function mkWorldCall(left:ExprNode, right:ExprNode):ExprNode {
-        return <ExprNode> make(CallWorldLabel.theCallWorldLabel, [left, right]); }
+    export function mkWorldCall(left:PNode, right:PNode):PNode {
+        return make(CallWorldLabel.theCallWorldLabel, [left, right]); }
 
-    export function mkWhile(cond:ExprNode, seq:ExprSeqNode):ExprNode {
-        return <ExprNode> make(WhileLabel.theWhileLabel, [cond, seq]); }
+    export function mkWhile(cond:PNode, seq:PNode):PNode {
+        return make(WhileLabel.theWhileLabel, [cond, seq]); }
 
-    export function mkExprSeq( exprs : Array<ExprNode> ) : ExprSeqNode {
-        return <ExprSeqNode> make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
-    export function mkParameterList( exprs : Array<ExprNode> ) : ExprSeqNode {
-        return <ExprSeqNode> make( ParameterListLabel.theParameterListLabel, exprs ) ; }
+    export function mkExprSeq( exprs : Array<PNode> ) : PNode {
+        return make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
+    export function mkParameterList( exprs : Array<PNode> ) : PNode {
+        return make( ParameterListLabel.theParameterListLabel, exprs ) ; }
 
-    export function mkType() : TypeNode{
-        return <TypeNode> make( new NoTypeLabel(),[] ) ; }
+    export function mkType() : PNode{
+        return make( new NoTypeLabel(),[] ) ; }
 
     //Const Make
-    export function mkStringLiteral( val : string ) : ExprNode{
-        return <ExprNode> make( new StringLiteralLabel(val),[] ) ; }
+    export function mkStringLiteral( val : string ) : PNode{
+        return make( new StringLiteralLabel(val),[] ) ; }
 
-    export function mkNumberLiteral( val : string ) : ExprNode{
-        return <ExprNode> make( new NumberLiteralLabel(val),[] ) ; }
+    export function mkNumberLiteral( val : string ) : PNode{
+        return make( new NumberLiteralLabel(val),[] ) ; }
 
-    export function mkBooleanLiteral( val : string ) : ExprNode{
-        return <ExprNode> make( new BooleanLiteralLabel(val),[] ) ; }
+    export function mkBooleanLiteral( val : string ) : PNode{
+        return make( new BooleanLiteralLabel(val),[] ) ; }
 
-    export function mkVar( val :string) : ExprNode{
-        return <ExprNode> make (new VariableLabel(val), []) ;}
+    export function mkVar( val :string) : PNode{
+        return make (new VariableLabel(val), []) ;}
 
-    export function mkLambda( val :string, param:ExprSeqNode, type:TypeNode, func : ExprSeqNode) : ExprNode{
-        return <ExprNode> make (new LambdaLabel(val), [param, type, func]) ;}
+    export function mkLambda( val :string, param:PNode, type:PNode, func : PNode) : PNode{
+        return make (new LambdaLabel(val), [param, type, func]) ;}
 
 
     // JSON support
@@ -2002,13 +1857,6 @@ module pnode {
         return PNode.fromJSON( json ) ; }
 
     function fromJSONToLabel( json : any ) : Label {
-         // There is probably a reflective way to do this
-         //   Perhaps
-         //       var labelClass = pnode[json.kind] ;
-         //       check that labelClass is not undefined
-         //       var  fromJSON : any => Label = labelClass["fromJSON"] ;
-         //       check that fromJSON is not undefined
-         //       return fromJSON( json ) ;
          var labelClass = pnode[json.kind] ; // This line relies on
              //  (a) the json.kind field being the name of the concrete label class.
              //  (b) that all the concrete label classes are exported from the pnode module.

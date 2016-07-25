@@ -11,7 +11,6 @@ module value {
     import execStack = stack.execStack;
     import list = collections.list;
     import List = collections.List;
-    import LambdaNode = pnode.LambdaNode;
     import VMS  = vms.VMS;
     import Evaluation = evaluation.Evaluation;
 
@@ -155,9 +154,24 @@ module value {
     }
 
     export class ClosureV implements Value {
-        //need function obj
-        public function : LambdaNode;
-        context : execStack;
+
+        private func : PNode ;
+        private context : execStack;
+
+        constructor( func : PNode, context : execStack ) {
+            assert.check( func.label() instanceof pnode.LambdaLabel ) ;
+            this.func = func ;
+            this.context = context ;
+        }
+
+        getContext() : execStack {
+            return this.context ;
+        }
+
+        getLambdaNode() : PNode {
+            return this.func ;
+        }
+
         isClosureV(){
             return true;
         }

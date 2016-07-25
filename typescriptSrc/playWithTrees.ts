@@ -8,22 +8,22 @@ import assert = require( './assert' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require( './pnodeEdits' ) ;
 
-var a : pnode.ExprNode = pnode.mkStringLiteral( "a" ) ;
+var a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
 console.log( a.toString() ) ;
 
-var b : pnode.ExprNode = pnode.mkStringLiteral( "b" ) ;
+var b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
 console.log( b.toString() ) ;
 
-var c : pnode.ExprNode = pnode.mkStringLiteral( "c" ) ;
+var c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
 console.log( c.toString() ) ;
 
-var d : pnode.ExprNode = pnode.mkStringLiteral( "d" ) ;
+var d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
 console.log( d.toString() ) ;
 
-var s0 : pnode.ExprSeqNode = pnode.mkExprSeq( [a,b] ) ;
+var s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
 console.log( s0.toString() ) ;
 
-var s1 : pnode.ExprSeqNode = pnode.mkExprSeq( [c] ) ;
+var s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
 console.log( s1.toString() ) ;
 
 var ite0 = pnode.mkIf( a, s0, s1 )  ;
