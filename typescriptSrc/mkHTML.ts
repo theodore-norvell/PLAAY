@@ -42,7 +42,7 @@ module mkHTML {
     var trashArray = [];
     var currentSelection;
     var draggedSelection;
-    var draggedObject : string ;
+    var draggedObject;
 
     var root = pnode.mkExprSeq([]);
     const turtleWorld = new seymour.TurtleWorld();
@@ -884,7 +884,7 @@ module mkHTML {
                 width: 75,
                 open: function(event, ui)
                 {
-                    const markup = selectionArray[0][0];
+                    var markup = selectionArray[0][0];
                     $(this).html(markup);
 
                     setTimeout(function() {
