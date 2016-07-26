@@ -1,14 +1,15 @@
 /// <reference path="../typings/main/ambient/mocha/index.d.ts" />
-
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
+/// <reference path="../value.ts" />
+/// <reference path="../stackManager.ts" />
 
-import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
+import collections = require( '../collections' ) ;
 import pnode = require( '../pnode' ) ;
 import vms = require( '../vms' ) ;
 import evaluation = require( '../evaluation' ) ;
@@ -42,12 +43,12 @@ var cw : pnode.PNode = pnode.mkWorldCall(a, b);
 cw.label().changeValue("F");
 
 var t : pnode.PNode = pnode.mkType();
-var func : pnode.PNode = pnode.mkExprSeq([c]);
+var body : pnode.PNode = pnode.mkExprSeq([c]);
 
 
 
-var param : pnode.PNode = pnode.mkExprSeq([a,b]);
-var lamb : pnode.PNode = pnode.mkLambda("F", param, t, func);
+var param : pnode.PNode = pnode.mkExprSeq([a,b]); // TODO: The type here is wrong.
+var lamb : pnode.PNode = pnode.mkLambda("F", param, t, body);
 
 var s : pnode.PNode = pnode.mkExprSeq([a,b,lamb, cw]);
 var vm : VMS = new VMS(s, wlds);//eval created and pushed on VMS stack
@@ -61,14 +62,15 @@ describe( 'Lambda', () => {
         assert.check(vm.evalu.ready);
     } );
 
-    it('Should be put into stack when stepped', () => {
+    it('Should step', () => {
+        // TODO The next line fails because of mutual requiring between modules pnode and value.
         lamb.label().step(vm);
-        assert.check(vm.evalu.getStack().inStack("F"));
     } );
 
     it('Should have a closure value in stack when stepped', () => {
-        var xField = vm.evalu.getStack().getField("F");
-        var close = <ClosureV> xField.getValue();
+        let val : value.Value = vm.evalu.getVarMap().get([2]) ;
+        assert.check( val.isClosureV() ) ;
+        let close : ClosureV = <ClosureV> val ;
         assert.check(close.isClosureV());
         assert.check(close.getContext() == vm.evalu.getStack());
         assert.check(close.getLambdaNode() == lamb);

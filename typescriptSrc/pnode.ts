@@ -1,8 +1,12 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="vms.ts" />
+/// <reference path="evaluation.ts" />
+/// <reference path="stackManager.ts" />
+/// <reference path="value.ts" />
 
-import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import collections = require( './collections' ) ;
 import vms = require('./vms' ) ;
 import evaluation = require('./evaluation') ;
 import stack = require( './stackManager' ) ;

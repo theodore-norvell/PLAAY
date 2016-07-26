@@ -1,3 +1,11 @@
+/// <reference path="stackManager.ts" />
+/// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="vms.ts" />
+/// <reference path="evaluation.ts" />
+/// <reference path="assert.ts" />
+
+
 import stack = require( './stackManager' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode') ;
@@ -159,6 +167,7 @@ module value {
         private context : execStack;
 
         constructor( func : PNode, context : execStack ) {
+            console.log('LambdaLabel as JSON: %j', pnode.LambdaLabel ) ; //TODO Delete debug statement.
             assert.check( func.label() instanceof pnode.LambdaLabel ) ;
             this.func = func ;
             this.context = context ;
