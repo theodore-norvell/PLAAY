@@ -3,8 +3,8 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 
-import collections = require( './collections' );
 import assert = require( './assert' );
+import collections = require( './collections' );
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 

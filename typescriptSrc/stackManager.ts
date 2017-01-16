@@ -1,10 +1,12 @@
+/// <reference path="evaluation.ts" />
+/// <reference path="value.ts" />
 
 import evaluation = require( './evaluation' ) ;
 import value = require( './value') ;
 
 // TODO At least rename this compilation unit to stack.
 // Although we might also question why it exists at all.
-module stack {
+module stackManager {
 
     import Evaluation = evaluation.Evaluation;
     import Value = value.Value;
@@ -203,4 +205,4 @@ module stack {
     }
 }
 
-export = stack;
+export = stackManager ;

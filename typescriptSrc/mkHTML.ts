@@ -4,13 +4,15 @@
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
+/// <reference path="stackManager.ts" />
 /// <reference path="vms.ts" />
 /// <reference path="value.ts" />
+/// <reference path="seymour.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 
-import collections = require( './collections' );
 import assert = require( './assert' );
+import collections = require( './collections' );
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
