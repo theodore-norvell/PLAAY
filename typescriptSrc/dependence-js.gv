@@ -1,0 +1,42 @@
+digraph Depends {
+
+   gsize="8,6"; ratio=fill;
+   node[fontsize=8, shape=rectangle];
+
+   mkHTML -> pnode ;
+   mkHTML -> treeManager ;
+   mkHTML -> evaluationManager ;
+   mkHTML -> seymour ;
+
+   evaluation -> stackManager ;
+   evaluation -> value ;
+
+   evaluationManager -> vms ;
+   evaluationManager -> workspace ;
+   evaluationManager -> world ;
+
+   playground -> pnode ;
+   playground -> pnodeEdits ;
+
+
+   pnode -> evaluation ;
+   pnode -> stackManager ;
+   pnode -> value ;
+
+   pnodeEdits -> edits ;
+   pnodeEdits -> pnode ;
+
+   treeManager -> pnode ;
+   treeManager -> pnodeEdits ;
+
+   //turtleTest -> seymour ;
+
+   value -> pnode ;
+
+   vms -> stackManager ;
+   vms -> evaluation ;
+
+   workspace -> world ;
+
+   world -> value ;
+}
