@@ -1,8 +1,14 @@
-import pnode = require( './pnode' ) ;
+/// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
+/// <reference path="edits.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="pnodeEdits.ts" />
+
 import assert = require( './assert' )
-import pnodeEdits = require ('./pnodeEdits');
 import collections = require( './collections' ) ;
 import edits = require('./edits');
+import pnode = require( './pnode' ) ;
+import pnodeEdits = require ('./pnodeEdits');
 
 module treeManager {
 

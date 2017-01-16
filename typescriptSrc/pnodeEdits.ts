@@ -1,12 +1,12 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
 /// <reference path="edits.ts" />
+/// <reference path="pnode.ts" />
 
-import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
-import pnode = require( './pnode' ) ;
+import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
+import pnode = require( './pnode' ) ;
 
 module pnodeEdits {
     import Option = collections.Option;

@@ -2,12 +2,21 @@
  * Created by Ryne on 24/02/2016.
  */
 
-import stack = require( './stackManager' ) ;
+/// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
+/// <reference path="evaluation.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="stackManager.ts" />
+/// <reference path="value.ts" />
+/// <reference path="world.ts" />
+
+import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import evaluation = require( './evaluation' ) ;
+import pnode = require('./pnode');
+import stack = require( './stackManager' ) ;
 import value = require('./value');
 import world = require('./world');
-import pnode = require('./pnode');
 
 module vms{
 

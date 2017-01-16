@@ -1,17 +1,17 @@
-/// <reference path="stackManager.ts" />
-/// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
-/// <reference path="vms.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
+/// <reference path="evaluation.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="stackManager.ts" />
+/// <reference path="vms.ts" />
 
 
-import stack = require( './stackManager' ) ;
-import collections = require( './collections' ) ;
-import pnode = require('./pnode') ;
-import vms = require('./vms') ;
-import evaluation = require('./evaluation');
 import assert = require('./assert') ;
+import collections = require( './collections' ) ;
+import evaluation = require('./evaluation');
+import pnode = require('./pnode') ;
+import stack = require( './stackManager' ) ;
+import vms = require('./vms') ;
 
 module value {
 

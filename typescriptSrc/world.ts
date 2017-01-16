@@ -2,15 +2,22 @@
  * Created by Jessica on 2/22/2016.
  */
 
-import stack = require( './stackManager' ) ;
-import pnode = require( './pnode' ) ;
-import collections = require( './collections' ) ;
-import value = require('./value') ;
-import assert = require( './assert' ) ;
-import vms = require('./vms');
-import evaluation = require('./evaluation');
-import seymour = require('./seymour') ;
+/// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
+/// <reference path="evaluation.ts" />
+/// <reference path="pnode.ts" />
+/// <reference path="seymour.ts" />
+/// <reference path="value.ts" />
+/// <reference path="vms.ts" />
 
+import assert = require( './assert' ) ;
+import collections = require( './collections' ) ;
+import evaluation = require('./evaluation');
+import pnode = require( './pnode' ) ;
+import seymour = require('./seymour') ;
+import stack = require( './stackManager' ) ;
+import value = require('./value') ;
+import vms = require('./vms');
 
 module world {
     import Stack = stack.Stack;
