@@ -11,3 +11,6 @@ import evaluation = require('./evaluation');
 import stack = require('./stackManager');
 import value = require('./value');
 import vms = require('./vms');
+
+module interpretation {
+}

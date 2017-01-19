@@ -32,13 +32,12 @@ module pnode {
 
 
     // Needs to be moved to "interpretation".
-    export interface nodeStrategy {
-        select( vms : VMS, label:Label ) : void;
-    }
+    //export interface nodeStrategy {
+    //    select( vms : VMS, label:Label ) : void;
+    //}
 
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
-        strategy:nodeStrategy;
         step : (vms:VMS) => void;
 
         getVal : () => string ;
@@ -224,7 +223,7 @@ module pnode {
         return stack.getField(varName);
     }
 
-    export class lrStrategy implements nodeStrategy {
+    export class lrStrategy {
         select( vms : VMS, label:Label ) : void {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -260,7 +259,7 @@ module pnode {
         }
     }
 
-    export class varStrategy implements nodeStrategy {
+    export class varStrategy {
         select( vms:VMS, label:Label ){
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -275,7 +274,8 @@ module pnode {
         }
    }
 
-    export class whileStrategy implements nodeStrategy {
+    //Do we want all strategies moved to interpretation?
+    export class whileStrategy {
 
         deletefromMap(vms:VMS, path : Array<number>){
             for (var i = 0; i < vms.getEval().getRoot().get(path).count(); i++) {
@@ -325,7 +325,7 @@ module pnode {
         }
     }
 
-    export class lambdaStrategy implements nodeStrategy {
+    export class lambdaStrategy {
 
         select(vms:VMS, label:Label) {
             var evalu = vms.stack.top();
@@ -339,7 +339,7 @@ module pnode {
         }
     }
 
-    export class assignStrategy implements nodeStrategy {
+    export class assignStrategy {
         select(vms:VMS, label:Label) {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -360,7 +360,7 @@ module pnode {
         }
     }
 
-    export class LiteralStrategy implements nodeStrategy {
+    export class LiteralStrategy {
         select( vms:VMS, label:Label ){
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -373,7 +373,7 @@ module pnode {
         }
     }
 
-     export class ifStrategy implements nodeStrategy {
+     export class ifStrategy {
         select( vms : VMS, label:Label){
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -420,7 +420,7 @@ module pnode {
         }
     }
 
-    export class varDeclStrategy implements nodeStrategy {
+    export class varDeclStrategy {
         select( vms : VMS, label:Label) {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -452,7 +452,7 @@ module pnode {
         }
     }
 
-    export class TurtleStrategy implements nodeStrategy {
+    export class TurtleStrategy {
         select( vms : VMS, label:Label) {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
@@ -531,8 +531,6 @@ module pnode {
         abstract isValid(children:Array<PNode>) ;
 
         abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS) : void ;
-
-        strategy:nodeStrategy;
 
         /*private*/
         constructor() {
@@ -686,9 +684,7 @@ module pnode {
 
     export abstract class TypeLabel implements Label {
 
-        abstract isValid(children:Array<PNode>) ;
-
-        strategy : nodeStrategy;
+        abstract isValid(children: Array<PNode>);
 
         /*private*/
         constructor() {
@@ -1211,7 +1207,6 @@ module pnode {
     //Type Labels
 
     export class NoTypeLabel extends TypeLabel {
-        strategy : nodeStrategy;
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;}
