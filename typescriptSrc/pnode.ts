@@ -31,7 +31,7 @@ module pnode {
     import ObjectV = value.ObjectV;
 
 
-
+    // Needs to be moved to "interpretation".
     export interface nodeStrategy {
         select( vms : VMS, label:Label ) : void;
     }
