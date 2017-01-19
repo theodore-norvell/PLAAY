@@ -9,8 +9,8 @@ import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import evaluation = require('./evaluation') ;
 import stack = require( './stackManager' ) ;
-import vms = require('./vms' ) ;
-import value = require('./value') ;
+import value = require('./value');
+import vms = require('./vms');
 
 module pnode {
     import Option = collections.Option;

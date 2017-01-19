@@ -12,15 +12,15 @@
 /// <reference path="jqueryui.d.ts" />
 
 import assert = require( './assert' );
-import collections = require( './collections' );
+import collections = require('./collections');
+import evaluationManager = require('./evaluationManager');
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
+import seymour = require('./seymour');
+import stack = require('./stackManager');
 import treeManager = require('./treeManager');
-import evaluationManager = require('./evaluationManager');
-import stack = require( './stackManager' ) ;
-import vms = require('./vms');
 import value = require('./value');
-import seymour = require( './seymour' ) ;
+import vms = require('./vms');
 
 module mkHTML {
     import list = collections.list;
