@@ -4,6 +4,9 @@
 /* Star trek mauve: rgb(190, 133, 197) */
 /* Star trek dark orange: rgb(182, 78, 78) */
 /* Blue: rgb(135,206,250);  */
+#stackval {
+	border: thin solid black;
+}
 .plaay {
     color:rgb(244, 140, 0) ;
     background-color:black ;
