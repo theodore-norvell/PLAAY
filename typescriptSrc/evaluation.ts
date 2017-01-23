@@ -4,18 +4,20 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="interpretation.ts" />
 /// <reference path="pnode.ts" />
+/// <reference path="stackManager.ts" />
 /// <reference path="value.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="stackManager.ts" />
 /// <reference path="world.ts" />
 
 import assert = require('./assert') ;
-import collections = require( './collections' ) ;
-import pnode = require('./pnode') ;
+import collections = require('./collections');
+import interpretation = require('./interpretation');
+import pnode = require('./pnode');
+import stack = require('./stackManager');
 import value = require('./value') ;
 import vms = require('./vms') ;
-import stack = require( './stackManager' ) ;
 import world = require('./world');
 
 module evaluation {

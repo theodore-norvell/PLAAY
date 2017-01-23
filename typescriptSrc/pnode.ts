@@ -7,7 +7,7 @@
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation') ;
+import evaluation = require('./evaluation');
 import stack = require( './stackManager' ) ;
 import value = require('./value');
 import vms = require('./vms');
@@ -349,7 +349,7 @@ module pnode {
                     var p = pending.concat([1]);
                     if(!evalu.varmap.inMap(p)){
                         vms.stack.top().setPending(p);
-                        node.child(1).label().strategy.select(vms, node.child(1).label());
+                        node.child(1).label().select(vms, node.child(1).label());
                     }
 
                     else{
@@ -391,7 +391,7 @@ module pnode {
                             }
                             else{
                                 evalu.setPending(thenPath);
-                                node.child(1).label().strategy.select( vms, node.child(1).label() );
+                                node.child(1).label().select( vms, node.child(1).label() );
                             }
                         }
 
@@ -402,7 +402,7 @@ module pnode {
 
                             else{
                                 evalu.setPending(elsePath);
-                                node.child(2).label().strategy.select( vms, node.child(2).label() );
+                                node.child(2).label().select( vms, node.child(2).label() );
                             }
                         }
 
@@ -413,7 +413,7 @@ module pnode {
 
                     else{
                         evalu.setPending(guardPath);
-                        node.child(0).label().strategy.select( vms, node.child(0).label() );
+                        node.child(0).label().select( vms, node.child(0).label() );
                     }
                 }
             }
