@@ -4,14 +4,12 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="stackManager.ts" />
 /// <reference path="world.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require( './evaluation' ) ;
 import pnode = require('./pnode');
 import world = require('./world');
 
@@ -20,7 +18,7 @@ module vms{
     import World = world.World;
     import PNode = pnode.PNode;
 
-    export class VMS{
+    export class VMS {
 
         evalStack : EvalStack ;
         evalu : Evaluation ;  // TODO eliminate useless field

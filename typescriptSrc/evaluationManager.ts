@@ -1,4 +1,4 @@
-import evaluation = require( './evaluation' ) ;
+
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import workspace = require('./workspace') ;
@@ -8,7 +8,7 @@ import assert = require('./assert') ;
 
 module evaluationManager {
 
-    import Evaluation = evaluation.Evaluation;
+    import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
     import VMS = vms.VMS;
     import Workspace = workspace.Workspace;

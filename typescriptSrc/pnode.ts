@@ -1,34 +1,29 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="stackManager.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="value.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation') ;
-import stack = require( './stackManager' ) ;
 import vms = require('./vms' ) ;
-import value = require('./value') ;
 
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
     import VMS = vms.VMS;
-    import Evaluation = evaluation.Evaluation;
-    import Stack = stack.Stack;
-    import execStack = stack.execStack;
-    import Value = value.Value;
-    import BuiltInV = value.BuiltInV;
-    import varMap = stack.VarMap;
-    import Field = value.Field;
-    import ClosureV = value.ClosureV;
-    import StringV = value.StringV;
+    import Evaluation = vms.Evaluation;
+    import VarStack = vms.VarStack;
+    import EvalStack = vms.EvalStack;
+    import Value = vms.Value;
+    import BuiltInV = vms.BuiltInV;
+    import ValueMap = vms.ValueMap;
+    import Field = vms.Field;
+    import ClosureV = vms.ClosureV;
+    import StringV = vms.StringV;
     import arrayToList = collections.arrayToList;
-    import Type = value.Type;
-    import ObjectV = value.ObjectV;
+    import Type = vms.Type;
+    import ObjectV = vms.ObjectV;
 
 
 
@@ -220,13 +215,13 @@ module pnode {
         return new PNode(label, children);
     }
 
-    export function lookUp( varName : string, stack : execStack ) : Field {
+    export function lookUp( varName : string, stack : VarStack ) : Field {
         return stack.getField(varName);
     }
 
     export class lrStrategy implements nodeStrategy {
         select( vms : VMS, label:Label ) : void {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
 
             if(pending != null) {
@@ -236,7 +231,7 @@ module pnode {
                     var flag = true;
                     for(var i = 0; i < node.count(); i++){
                         var p = pending.concat([i]);
-                        if(!evalu.varmap.inMap(p)){
+                        if(!evalu.map.inMap(p)){
                             flag = false;
                         }
                     }
@@ -247,12 +242,12 @@ module pnode {
                         var n;
                         for(var i = 0; i < node.count(); i++){
                             var p = pending.concat([i]);
-                            if(!evalu.varmap.inMap(p)){
+                            if(!evalu.map.inMap(p)){
                                 n = i;
                                 break;
                             }
                         }
-                        vms.stack.top().setPending(pending.concat([n]));
+                        vms.evalStack.top().setPending(pending.concat([n]));
                         node.child(n).label().strategy.select(vms, node.child(n).label() );
                     }
                 }
@@ -262,7 +257,7 @@ module pnode {
 
     export class varStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
@@ -282,22 +277,22 @@ module pnode {
                 var childPath = path.concat([i]);
                 this.deletefromMap(vms, childPath);
             }
-            vms.getEval().getVarMap().remove(path);
+            vms.getEval().getValMap().remove(path);
 
         }
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
                 if(node.label() == label){
                     var guardPath = pending.concat([0]);
                     var loopPath = pending.concat([1]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
+                    if (evalu.map.inMap(guardPath)){
+                        var string = <StringV>evalu.map.get(guardPath);
                         if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(loopPath)){
+                            if(evalu.map.inMap(loopPath)){
                                 evalu.popfromStack();
                                 this.deletefromMap(vms, loopPath);
                             }
