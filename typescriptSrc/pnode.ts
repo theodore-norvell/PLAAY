@@ -1,6 +1,5 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="stackManager.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
@@ -284,36 +283,32 @@ module pnode {
         select(vms:VMS, label:Label) {
             var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(pending);
-                if(node.label() == label){
-                    var guardPath = pending.concat([0]);
-                    var loopPath = pending.concat([1]);
-                    if (evalu.map.inMap(guardPath)){
-                        var string = <StringV>evalu.map.get(guardPath);
-                        if (string.contents.match("true")){
-                            if(evalu.map.inMap(loopPath)){
-                                evalu.popfromStack();
-                                this.deletefromMap(vms, loopPath);
-                            }
-                            this.deletefromMap(vms, guardPath);
-                            evalu.addToStack();
-                            evalu.setPending(loopPath);
-                            node.child(1).label().strategy.select( vms, node.child(1).label() );
-                        }
-
-                        else if(string.contents.match("false")){
-                                evalu.ready = true;
-                        }
-
-                        else{
-                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
-                        }
-                    }
-
-                    else{
-                        evalu.setPending(guardPath);
-                        node.child(0).label().strategy.select( vms, node.child(0).label() );
+            assert.check( pending != null ) ;
+            var node = evalu.root.get(pending);
+            let guardPath = pending.concat([0]);
+            let bodyPath = pending.concat([1]);
+            let guardMapped = evalu.map.inMap(guardPath) ;
+            let bodyMapped = evalu.map.inMap(bodyPath) ;
+            if ( guardMapped && bodyMapped ){
+                // Both children mapped; step
+                // this node.
+                evalu.ready = true;
+            } else if( guardMapped ) {
+                let value = evalu.map.get(guardPath);
+                if( ! (value instanceof StringV) ) {
+                    // TODO Fix error handling
+                    throw new Error ("Type error.  Guard of while loop must be true or false.") ;
+                } else {
+                    let strVal = <StringV> value ;
+                    let str = strVal.contents ;
+                    if( str == "true" ) {
+                        evalu.setPending(bodyPath);
+                        node.child(1).label().strategy.select( vms, node.child(1).label() );
+                    } else if( str == "false" ) {
+                        evalu.ready = true ;
+                    } else {
+                        // TODO Fix error handling
+                        throw new Error ("Type error.  Guard of while loop must be true or false.") ;
                     }
                 }
             }
@@ -323,7 +318,7 @@ module pnode {
     export class lambdaStrategy implements nodeStrategy {
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -336,14 +331,14 @@ module pnode {
 
     export class assignStrategy implements nodeStrategy {
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(arrayToList(pending));
                 if (node.label() == label) {
                     var p = pending.concat([1]);
-                    if(!evalu.varmap.inMap(p)){
-                        vms.stack.top().setPending(p);
+                    if(!evalu.map.inMap(p)){
+                        vms.evalStack.top().setPending(p);
                         node.child(1).label().strategy.select(vms, node.child(1).label());
                     }
 
@@ -357,12 +352,12 @@ module pnode {
 
     export class LiteralStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
-                    vms.stack.top().ready = true;
+                    vms.evalStack.top().ready = true;
                 }
             }
         }
@@ -370,7 +365,7 @@ module pnode {
 
      export class ifStrategy implements nodeStrategy {
         select( vms : VMS, label:Label){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -378,10 +373,10 @@ module pnode {
                     var guardPath = pending.concat([0]);
                     var thenPath = pending.concat([1]);
                     var elsePath = pending.concat([2]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
+                    if (evalu.map.inMap(guardPath)){
+                        var string = <StringV>evalu.map.get(guardPath);
                         if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(thenPath)){
+                            if(evalu.map.inMap(thenPath)){
                                 evalu.ready = true;
                             }
                             else{
@@ -391,7 +386,7 @@ module pnode {
                         }
 
                         else if(string.contents.match("false")){
-                            if (evalu.varmap.inMap(elsePath)){
+                            if (evalu.map.inMap(elsePath)){
                                 evalu.ready = true;
                             }
 
@@ -417,17 +412,17 @@ module pnode {
 
     export class varDeclStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var nameofVar = pending.concat([0]);
                     var valueofVar = pending.concat([2]);
-                    if (evalu.varmap.inMap(nameofVar)) {
-                        var name = <StringV> evalu.varmap.get(nameofVar);
+                    if (evalu.map.inMap(nameofVar)) {
+                        var name = <StringV> evalu.map.get(nameofVar);
                         if(! lookUp(name.getVal(), evalu.getStack())) {
-                            if (evalu.varmap.inMap(valueofVar)) {
+                            if (evalu.map.inMap(valueofVar)) {
                                 evalu.ready = true;
                             } else {
                                 evalu.setPending(valueofVar);
@@ -449,13 +444,13 @@ module pnode {
 
     export class TurtleStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var value = pending.concat([0]);
-                    if (evalu.varmap.inMap(value)) {
+                    if (evalu.map.inMap(value)) {
                         evalu.ready = true;
                     }
                     else {
@@ -548,8 +543,8 @@ module pnode {
         //Template
         step(vms:VMS) : void {
             // TODO fix this crap.
-            if(vms.stack.top().ready == true){
-                var evalu = vms.stack.top();
+            if(vms.evalStack.top().ready == true){
+                var evalu = vms.evalStack.top();
                 var pending = evalu.getPending();
                 if(pending != null) {
                     var node = evalu.root.get(arrayToList(pending));
@@ -588,7 +583,7 @@ module pnode {
             var thisNode = vms.getEval().getRoot().get(arrayToList(pending));
             var valpath = pending.concat([thisNode.count() - 1]);
 
-            var v = vms.getEval().varmap.get( valpath );
+            var v = vms.getEval().map.get( valpath );
 
             vms.getEval().finishStep( v );
 
@@ -948,8 +943,7 @@ module pnode {
                             activationRecord.addField(arFields[k]);
                         }
 
-                        var stack = new execStack(activationRecord);//might have to take a look at how execution stack is made
-                        stack.setNext( c.getContext() );
+                        var stack = new VarStack(activationRecord, c.getContext());
 
                         var newEval = new Evaluation(f, null, stack);
                         newEval.setPending([]);

@@ -5,7 +5,6 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="stackManager.ts" />
 /// <reference path="world.ts" />
 
 import assert = require( './assert' ) ;
@@ -21,14 +20,14 @@ module vms{
     export class VMS {
 
         evalStack : EvalStack ;
-        evalu : Evaluation ;  // TODO eliminate useless field
+        //evalu : Evaluation ;  // TODO eliminate useless field
         val : String ; // TODO What is this?
         private world : World;
 
         constructor(root : PNode, worlds: Array<World>) {
-            this.evalu = new Evaluation(root, worlds, null);
+            var evalu = new Evaluation(root, worlds, null);
             this.evalStack = new EvalStack();
-            this.evalStack.push(this.evalu);
+            this.evalStack.push(evalu);
             this.world = worlds[0];
         }
 
@@ -37,13 +36,20 @@ module vms{
         }
 
         getEval() : Evaluation {
-            return this.evalu;
+            return this.evalStack.top() ;
         }
 
+        // TODO: Is this really needed.
         getWorld() : World {
             return this.world;
         }
 
+        // TODO.  Since advance will need to 
+        // call the interpreter, we should use 
+        // dependence inversion to avoid 
+        // circular dependence.  Instead the
+        // VMS can depend on an interface that
+        // the interpreter implements.
         advance(){
             if(this.canAdvance()){
                if(this.evalStack.top().isDone()) {//TODO is done for evaluations?
@@ -139,9 +145,9 @@ module vms{
             this.finishStep( value );
         }
 
-        setVarMap(map : ValueMap){
-            this.map = map;
-        }
+        // setVarMap(map : ValueMap){
+        //     this.map = map;
+        // }
 
 
         isDone(){
@@ -239,9 +245,9 @@ module vms{
         obj : ObjectV;
         next : VarStack;
 
-        constructor(object : ObjectV){
+        constructor(object : ObjectV, next : VarStack ){
             this.obj = object;
-            this.next = null;
+            this.next = next;
         }
 
         top() : ObjectV{

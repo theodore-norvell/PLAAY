@@ -4,11 +4,11 @@
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
+import vms = require( '../vms' ) ;
 import evaluationManager = require( '../evaluationManager' ) ;
 
 var varNode = pnode.mkStringLiteral("aa");
@@ -31,10 +31,10 @@ var root = opt.choose(
     });
 
 var evalmananger = new evaluationManager.EvaluationManager();
-var ms = evalmananger.PLAAY(root, null);
+var ms : vms.VMS  = evalmananger.PLAAY(root, null);
 describe ("initialize evaluation", () => {
     it('should not have null stack', () => {
-        assert.check(ms.stack != null);
+        assert.check(ms.evalStack != null);
     });
     it('should not be ready', () => {
         assert.check(ms.getEval().ready == false);
@@ -48,8 +48,8 @@ describe ("initialize evaluation", () => {
     });
 });
 
-var ms2 = evalmananger.next();
 describe('first step', () => {
+    var ms2 = evalmananger.next();
     it('should have pending as [0]', () => {
         assert.check(ms2.getEval().getPending().length == 1);
     });
@@ -58,8 +58,8 @@ describe('first step', () => {
     });
 });
 
-var ms3 = evalmananger.next();
 describe('second step', () => {
+    var ms3 = evalmananger.next();
     it('should have pending as []', () => {
         assert.check(ms3.getEval().getPending().length == 0);
     });
@@ -67,12 +67,12 @@ describe('second step', () => {
         assert.check(ms3.getEval().ready == false);
     });
     it('should have 1 thing in varmap', () => {
-        assert.check(ms3.getEval().getVarMap().size == 1);
+        assert.check(ms3.getEval().getValMap().size == 1);
     });
 });
 
-var ms4 = evalmananger.next();
 describe('third step', () => {
+    var ms4 = evalmananger.next();
     it('should have pending as [2]', () => {
         assert.check(ms4.getEval().getPending().length == 1);
     });
@@ -81,8 +81,8 @@ describe('third step', () => {
     });
 });
 
-var ms5 = evalmananger.next();
 describe('fourth step', () => {
+    var ms5 = evalmananger.next();
     it('should have pending as []', () => {
         assert.check(ms5.getEval().getPending().length == 0);
     });
@@ -90,12 +90,12 @@ describe('fourth step', () => {
         assert.check(ms5.getEval().ready == false);
     });
     it('should have 2 things in varmap', () => {
-        assert.check(ms5.getEval().getVarMap().size == 2);
+        assert.check(ms5.getEval().getValMap().size == 2);
     });
 });
 
-var ms6 = evalmananger.next();
 describe('fifth step', () => {
+    var ms6 = evalmananger.next();
     it('should have pending as []', () => {
         assert.check(ms6.getEval().getPending().length == 0);
     });
@@ -104,19 +104,19 @@ describe('fifth step', () => {
     });
 });
 
-var ms7 = evalmananger.next();
 describe('sixth step', () => {
+    var ms7 = evalmananger.next();
     it('should have pending as null', () => {
-        assert.check(ms5.getEval().getPending() == null);
+        assert.check(ms7.getEval().getPending() == null);
     });
     it('should be done', () => {
-        assert.check(ms5.getEval().isDone() == true);
+        assert.check(ms7.getEval().isDone() == true);
     });
     it('should have 3 things in varmap', () => {
-        assert.check(ms5.getEval().getVarMap().size == 3);
+        assert.check(ms7.getEval().getValMap().size == 3);
     });
     it('should have something in stack named aa', () => {
-        assert.check(ms5.getEval().getStack().inStack("aa") == true);
+        assert.check(ms7.getEval().getStack().inStack("aa") == true);
     });
 });
 

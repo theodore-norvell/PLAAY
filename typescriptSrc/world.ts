@@ -4,34 +4,29 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="seymour.ts" />
-/// <reference path="value.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation');
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
-import stack = require( './stackManager' ) ;
-import value = require('./value') ;
 import vms = require('./vms');
 
 module world {
-    import Stack = stack.Stack;
+    import EvalStack = vms.EvalStack;
     import list = collections.list;
     import List = collections.List;
-    import ObjectV = value.ObjectV;
-    import Field  = value.Field;
-    import Value = value.Value;
-    import BuiltInV = value.BuiltInV;
-    import Type = value.Type;
+    import ObjectV = vms.ObjectV;
+    import Field  = vms.Field;
+    import Value = vms.Value;
+    import BuiltInV = vms.BuiltInV;
+    import Type = vms.Type;
     import VMS = vms.VMS;
-    import Evaluation = evaluation.Evaluation;
-    import StringV = value.StringV;
-    import DoneV = value.DoneV;
+    import Evaluation = vms.Evaluation;
+    import StringV = vms.StringV;
+    import DoneV = vms.DoneV;
     import PNode = pnode.PNode;
 
     
@@ -49,8 +44,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -94,8 +89,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -139,8 +134,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -184,8 +179,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -229,8 +224,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -280,8 +275,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -331,8 +326,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -383,8 +378,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 var isNum = true;
                 //need to check if each character is a digit before continuing
@@ -435,8 +430,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
 
                 var v;
@@ -460,8 +455,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
 
                 var v;
@@ -493,8 +488,8 @@ module world {
                 var leftside = evalu.getPending().concat([0]);
                 var rightside = evalu.getPending().concat([1]);
 
-                var ls = <StringV>evalu.varmap.get(leftside);
-                var rs = <StringV>evalu.varmap.get(rightside);
+                var ls = <StringV>evalu.map.get(leftside);
+                var rs = <StringV>evalu.map.get(rightside);
 
                 if (ls.getVal() != ("true" || "false") ) {
                     throw new Error("Error evaulating " + ls.getVal() + " as a logical value!");
@@ -657,7 +652,7 @@ module world {
         // TODO This following is all wrong, since it assumes the pending node is a callWorld.
         // But it could also be a call node.
         const path : Array<number>  = evalu.getPending().concat( [n] ) ;
-        const val : Value = evalu.getVarMap().get( path ) ;
+        const val : Value = evalu.getValMap().get( path ) ;
         assert.check( val != null ) ;
         return val ;
     }
