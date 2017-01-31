@@ -752,6 +752,9 @@ module pnode {
     }
 
     export class VarDeclLabel extends ExprLabel {
+        // TODO. Fix this node type to conform to the abstract syntax.
+        // The label needs a string and a boolean.
+        // There should be 2 children: a type and an expression.
         _val : string ;
 
         isValid( children : Array<PNode> ) : boolean {
@@ -807,14 +810,15 @@ module pnode {
         }
 
         // Singleton
+        // TODO Delete this.
         public static theVarDeclLabel = new VarDeclLabel("");
 
         public toJSON() : any {
-            return { kind: "VarDeclLabel" } ;
+            return { kind: "VarDeclLabel", name: this._val } ;
         }
 
         public static fromJSON( json : any ) : VarDeclLabel {
-            return VarDeclLabel.theVarDeclLabel ;
+            return new VarDeclLabel( json.name ) ;
         }
     }
 
