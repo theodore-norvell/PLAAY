@@ -6,35 +6,35 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="seymour.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
+import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 
 module world {
     import EvalStack = vms.EvalStack;
     import list = collections.list;
     import List = collections.List;
-    import ObjectV = vms.ObjectV;
-    import Field  = vms.Field;
+    import ObjectV = valueTypes.ObjectV;
+    import Field  = valueTypes.Field;
     import Value = vms.Value;
-    import BuiltInV = vms.BuiltInV;
+    import BuiltInV = valueTypes.BuiltInV;
     import Type = vms.Type;
     import VMS = vms.VMS;
     import Evaluation = vms.Evaluation;
-    import StringV = vms.StringV;
-    import DoneV = vms.DoneV;
+    import StringV = valueTypes.StringV;
+    import DoneV = valueTypes.DoneV;
     import PNode = pnode.PNode;
 
     
    /*private*/ var done : DoneV = new DoneV() ;
 
     export class World extends ObjectV {
-        fields:Array<Field>;
-
 
         constructor() {
             super();
@@ -515,36 +515,6 @@ module world {
             var orf = new Field("|", or, Type.BOOL, true);
 
             this.fields.push(orf);
-        }
-
-        //this.values = new ObjectV();
-
-        public numFields():Number {
-            return this.fields.length;
-        }
-
-        public addField(field:Field) {
-            this.fields.push(field);
-        }
-
-        public deleteField(fieldName:string):boolean {
-            for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() === fieldName) {
-                    this.fields.splice(i, 1);
-                    return true;
-                }
-            }
-
-            return false;
-        }
-
-        public getField(fieldName:string):Field {
-            for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() === fieldName) {
-                    return this.fields[i];
-                }
-            }
-            return null;
         }
     }
 

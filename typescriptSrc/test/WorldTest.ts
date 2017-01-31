@@ -3,25 +3,27 @@
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
+/// <reference path="../valueTypes.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
 import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
+import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import varStrategy = pnode.varStrategy;
-import Field = vms.Field;
+import Field = valueTypes.Field;
 import Type = vms.Type;
 import VarStack = vms.VarStack;
 
 var wld = new World();
 var a : pnode.PNode = pnode.mkVar("a");
-var str = new vms.StringV("");
+var str = new valueTypes.StringV("");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);
 
 

@@ -20,30 +20,23 @@ module vms{
     export class VMS {
 
         evalStack : EvalStack ;
-        //val : String ; // TODO What is this?
-        private world : World; // TODO Why do we need this?
 
-        constructor(root : PNode, worlds: Array<World>) {
-            // TODO: If worlds is an array we should use all
-            // its values.
-            var varStack = new VarStack(worlds[0], null) ;
-            var evalu = new Evaluation(root, worlds, varStack);
+        constructor(root : PNode, worlds: Array<ObjectI>) {
+            assert.checkPrecondition( worlds.length > 0 ) ;
+            var varStack = null ;
+            for( let i = 0 ; i < worlds.length ; ++i ) {
+                varStack = new VarStack( worlds[i], varStack ) ; }
+            var evalu = new Evaluation(root, varStack);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
-            this.world = worlds[0];
         }
 
         canAdvance() : boolean {
-            return this.evalStack.notEmpty();//TODO add notEmpty to evalStack why can't this file see members?
+            return this.evalStack.notEmpty();
         }
 
         getEval() : Evaluation {
             return this.evalStack.top() ;
-        }
-
-        // TODO: Is this really needed.
-        getWorld() : World {
-            return this.world;
         }
 
         // TODO.  Since advance will need to 
@@ -85,7 +78,7 @@ module vms{
 
         next : Evaluation; // TODO eliminate this field.
 
-        constructor (root : PNode, obj: Array<ObjectV>, varStack : VarStack) {
+        constructor (root : PNode, varStack : VarStack) {
             this.root = root;
             this.pending = new Array();
             this.ready = false;
@@ -145,8 +138,9 @@ module vms{
         setResult(value : Value ){
             var node = this.root.get( this.pending );
             var closurePath = this.pending.concat([0]);
-            var closure = <ClosureV>this.map.get( closurePath );
-            var lambda = closure.getLambdaNode() ;
+            var closure : Value = this.map.get( closurePath );
+            assert.check( closure.isClosureV() ) ;
+            var lambda = (closure as ClosureI).getLambdaNode() ;
             //TODO check if lambda has return type and make sure it is the same as value's type
             this.finishStep( value );
         }
@@ -249,17 +243,17 @@ module vms{
         }
     }
 
-        export class VarStack {
+    export class VarStack {
 
-        obj : ObjectV;
+        obj : ObjectI;
         next : VarStack;
 
-        constructor(object : ObjectV, next : VarStack ){
+        constructor(object : ObjectI, next : VarStack ){
             this.obj = object;
             this.next = next;
         }
 
-        top() : ObjectV{
+        top() : ObjectI {
             return this.obj;
         }
 
@@ -270,8 +264,8 @@ module vms{
         //Return true if value was correctly set
         setField(name : string, val : Value) : boolean{
             for(var i = 0; i < this.obj.numFields(); i++){
-                if(name == this.obj.fields[i].getName()){
-                    this.obj.fields[i].setValue(val);
+                if(name == this.obj.getFieldByNumber(i).getName()){
+                    this.obj.getFieldByNumber(i).setValue(val);
                     return true;
                 }
             }
@@ -285,11 +279,11 @@ module vms{
 
         }
 
-        getField(name : string) : Field {
+        getField(name : string) : FieldI {
             for(var i = 0; i < this.obj.numFields(); i++){
 //                if(name.match(this.obj.fields[i].getName().toString())){
-                if(name == this.obj.fields[i].getName()){
-                    return this.obj.fields[i];
+                if(name == this.obj.getFieldByNumber(i).getName()){
+                    return this.obj.getFieldByNumber(i);
                 }
             }
             if(this.next == null){
@@ -302,8 +296,7 @@ module vms{
 
         inStack(name : string) : boolean {
             for (var i = 0; i < this.obj.numFields(); i++) {
-//                if(name.match(this.obj.fields[i].getName().toString())){
-                if (name == this.obj.fields[i].getName()) {
+                if (name == this.obj.getFieldByNumber(i).getName()) {
                     return true;
                 }
             }
@@ -371,233 +364,21 @@ module vms{
         isStringV : () => boolean ;
     }
 
-        export class Field {
-        name : string;
-        value : Value;
-        type : Type;
-        isConstant : boolean;
-
-        constructor(name : string, value : Value, type : Type, isConstant : boolean) {
-            this.name = name;
-            this.value = value;
-            this.type = type;
-            this. isConstant = isConstant;
-        }
-
-        // getters and setters
-        getName() {
-            return this.name;
-        }
-
-        setName(name : string) {
-            this.name = name;
-        }
-
-        getValue() {
-            return this.value;
-        }
-
-        setValue(value : Value) {
-            this.value = value;
-        }
-
-        getType() {
-            return this.type;
-        }
-
-        setType(type : Type) {
-            this.type = type;
-        }
-
-        getIsConstant() {
-            return this.isConstant;
-        }
-
-        setIsConstant(isConstant :boolean) {
-            this.isConstant = isConstant;
-        }
+    export interface ClosureI extends Value {
+        getLambdaNode : () => PNode ;
     }
 
-    export class StringV implements Value {
-        contents : string;
-
-        constructor(val : string){
-            this.contents = val;
-        }
-
-        getVal() : string {
-            return this.contents;
-        }
-
-        setVal(val : string) : void {
-            this.contents = val;
-        }
-        isClosureV() : boolean {
-            return false;
-        }
-        isBuiltInV() : boolean {
-            return false;
-        }
-        isStringV() : boolean {
-            return true;
-        }
-
-        toString() : string {
-            return '"' +this.contents+ '"' ;
-        }
+    export interface ObjectI extends Value {
+        numFields: () => number ;
+        getFieldByNumber : (number) => FieldI ;
     }
 
-    export class ObjectV implements Value {
-        // TODO make this private and enforce invariant
-        // that no two field have the same name.
-        fields:Array<Field>;
-
-        constructor() {
-            this.fields = new Array<Field>();
-        }
-
-        public numFields():Number {
-            return this.fields.length;
-        }
-
-        public addField(field:Field) {
-            this.fields.push(field);
-        }
-
-        public deleteField(fieldName:string):boolean {
-            for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
-                    this.fields.splice(i, 1);
-                    return true;
-                }
-            }
-            return false;
-        }
-
-        public getFieldByNumber( i : number ) : Field {
-            assert.check( 0 <= i && i < this.fields.length ) ;
-            return this.fields[i] ;
-        }
-
-        public getField(fieldName:string):Field {
-            for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
-                    return this.fields[i];
-                }
-            }
-            return null;
-        }
-
-
-        isClosureV(){
-            return false;
-        }
-        isBuiltInV(){
-            return false;
-        }
-        isStringV() : boolean {
-            return false ;
-        }
-
-        toString() : string {
-            return "object" ;
-        }
+    export interface FieldI  {
+        getName : () => string ;
+        getValue : () => Value ;
+        setValue : ( Value ) => void ;
     }
 
-    export class ClosureV implements Value {
-
-        private func : PNode ;
-        private context : VarStack;
-
-        constructor( func : PNode, context : VarStack ) {
-            console.log('LambdaLabel as JSON: %j', pnode.LambdaLabel ) ; //TODO Delete debug statement.
-            assert.check( func.label() instanceof pnode.LambdaLabel ) ;
-            this.func = func ;
-            this.context = context ;
-        }
-
-        getContext() : VarStack {
-            return this.context ;
-        }
-
-        getLambdaNode() : PNode {
-            return this.func ;
-        }
-
-        isClosureV(){
-            return true;
-        }
-        isBuiltInV(){
-            return false;
-         }
-      
-        isStringV() : boolean {
-            return false ;
-        }
-
-        toString() : string {
-            return "closure" ;
-        }
-    }
-
-    export class NullV implements Value {
-        isClosureV(){
-            return false;
-        }
-        isBuiltInV(){
-            return false;
-        }
-      
-        isStringV() : boolean {
-            return false ;
-        }
-
-        toString() : string {
-            return "null" ;
-        }
-
-    }
-
-    export class DoneV implements Value {
-        isClosureV(){
-            return false;
-        }
-        isBuiltInV(){
-            return false;
-        }
-      
-        isStringV() : boolean {
-            return false ;
-        }
-
-        toString() : string {
-            return "done" ;
-        }
-    }
-
-    export class BuiltInV implements Value {
-        step : (node : PNode, evalu : Evaluation) => void;
-
-        constructor ( step : (node : PNode, evalu : Evaluation)=>void ){
-            this.step = step;
-        }
-
-        isClosureV(){
-            return false;
-        }
-
-        isBuiltInV(){
-            return true;
-        }
-      
-        isStringV() : boolean {
-            return false ;
-        }
-
-        toString() : string {
-            return "built-in" ;
-        }
-    }
 
     export enum Type {
         STRING,
@@ -607,6 +388,5 @@ module vms{
         METHOD,
         NULL
     }
-
 }
 export = vms;

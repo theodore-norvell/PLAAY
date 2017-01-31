@@ -1,9 +1,11 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
+import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms' ) ;
 
 module pnode {
@@ -15,16 +17,15 @@ module pnode {
     import VarStack = vms.VarStack;
     import EvalStack = vms.EvalStack;
     import Value = vms.Value;
-    import BuiltInV = vms.BuiltInV;
+    import BuiltInV = valueTypes.BuiltInV;
     import ValueMap = vms.ValueMap;
-    import Field = vms.Field;
-    import ClosureV = vms.ClosureV;
-    import StringV = vms.StringV;
+    import FieldI = vms.FieldI ;
+    import Field = valueTypes.Field;
+    import ClosureV = valueTypes.ClosureV;
+    import StringV = valueTypes.StringV;
     import arrayToList = collections.arrayToList;
     import Type = vms.Type;
-    import ObjectV = vms.ObjectV;
-
-
+    import ObjectV = valueTypes.ObjectV;
 
     export interface nodeStrategy {
         select( vms : VMS, label:Label ) : void;
@@ -214,7 +215,7 @@ module pnode {
         return new PNode(label, children);
     }
 
-    export function lookUp( varName : string, stack : VarStack ) : Field {
+    export function lookUp( varName : string, stack : VarStack ) : FieldI {
         return stack.getField(varName);
     }
 
@@ -949,7 +950,7 @@ module pnode {
 
                         var stack = new VarStack(activationRecord, c.getContext());
 
-                        var newEval = new Evaluation(f, null, stack);
+                        var newEval = new Evaluation(f, stack);
                         newEval.setPending([]);
                         vms.stack.push( newEval );
                     }

@@ -2,24 +2,26 @@
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
+/// <reference path="../valueTypes.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
 import collections = require( '../collections' ) ;
 import pnode = require( '../pnode' ) ;
+import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import varStrategy = pnode.varStrategy;
-import Field = vms.Field;
+import Field = valueTypes.Field;
 import Type = vms.Type;
 import VarStack = vms.VarStack;
-import ObjectV = vms.ObjectV;
-import ClosureV = vms.ClosureV;
-import StringV = vms.StringV;
+import ObjectV = valueTypes.ObjectV;
+import ClosureV = valueTypes.ClosureV;
+import StringV = valueTypes.StringV;
 
 var wld = new World();
 var wlds : Array<ObjectV> = new Array();
@@ -29,8 +31,8 @@ var b : pnode.PNode = pnode.mkVar("b");
 var c : pnode.PNode = pnode.mkVar("c");
 
 
-var str = new vms.StringV("3");
-var str2 = new vms.StringV("2");
+var str = new valueTypes.StringV("3");
+var str2 = new valueTypes.StringV("2");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);//a=3
 var f2 : Field = new Field(b.label().getVal(), str2, Type.ANY , false);//b=2
 var cw : pnode.PNode = pnode.mkWorldCall(a, b);

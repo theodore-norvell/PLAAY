@@ -18,14 +18,14 @@ module evaluationManager {
         private _vms : VMS;
         private workspace : Workspace;
 
-        constructor(){
+        constructor() {
             this.workspace = new Workspace();
         }
 
         PLAAY(root : PNode, turtleWorld : seymour.TurtleWorld ) : VMS {
             var worlds = new Array();
             worlds.push(this.workspace.getWorld());
-            if (turtleWorld !=  null ){
+            if (turtleWorld !=  null ) {
                 worlds.push( new world.TurtleWorldObject( turtleWorld ) ) ;
             }
             this._vms = new VMS(root, worlds);

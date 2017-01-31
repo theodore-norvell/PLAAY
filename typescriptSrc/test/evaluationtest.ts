@@ -39,9 +39,6 @@ describe ("initialize evaluation", function() {
     it('should not be ready', function() {
         assert.check(ms.getEval().ready == false);
     });
-    it('should have a plus world call', function() {
-        assert.check(ms.getWorld().getField("+") != null);
-    });
     it('should have nothing in the pending', function() {
         assert.check(ms.getEval().getPending().length == 0);
         console.log( ms.getEval().getPending() )

@@ -4,6 +4,7 @@
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="jquery.d.ts" />
@@ -15,6 +16,7 @@ import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
 import evaluationManager = require('./evaluationManager');
+import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 import seymour = require( './seymour' ) ;
 
@@ -32,8 +34,8 @@ module mkHTML {
     import VarStack = vms.VarStack;
     import arrayToList = collections.arrayToList;
     import Value = vms.Value ;
-    import StringV = vms.StringV;
-    import BuiltInV = vms.BuiltInV;
+    import StringV = valueTypes.StringV;
+    import BuiltInV = valueTypes.BuiltInV;
 
     var undostack = [];
     var redostack = [];
