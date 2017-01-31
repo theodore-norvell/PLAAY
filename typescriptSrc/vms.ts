@@ -10,11 +10,9 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
-import world = require('./world');
 
 module vms{
 
-    import World = world.World;
     import PNode = pnode.PNode;
 
     export class VMS {
