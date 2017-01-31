@@ -20,12 +20,14 @@ module vms{
     export class VMS {
 
         evalStack : EvalStack ;
-        //evalu : Evaluation ;  // TODO eliminate useless field
-        val : String ; // TODO What is this?
-        private world : World;
+        //val : String ; // TODO What is this?
+        private world : World; // TODO Why do we need this?
 
         constructor(root : PNode, worlds: Array<World>) {
-            var evalu = new Evaluation(root, worlds, null);
+            // TODO: If worlds is an array we should use all
+            // its values.
+            var varStack = new VarStack(worlds[0], null) ;
+            var evalu = new Evaluation(root, worlds, varStack);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
             this.world = worlds[0];
@@ -52,16 +54,20 @@ module vms{
         // the interpreter implements.
         advance(){
             if(this.canAdvance()){
-               if(this.evalStack.top().isDone()) {//TODO is done for evaluations?
-                  // eval = evalStack.top();
-                  var value = this.evalStack.pop().getValMap().get([]); //TODO get value from evaluation?
-                   if(this.evalStack.notEmpty()){
-                       this.evalStack.top().setResult( value );
-                   }
-               }
-
-               else{
-                   this.evalStack.top().advance(this);
+                let ev = this.evalStack.top();
+                assert.check( ev.getStack() != null ) ;
+                
+                if( ev.isDone() ) {
+                    var value = ev.getValMap().get([]); //TODO get value from evaluation?
+                    this.evalStack.pop() ;
+                    if(this.evalStack.notEmpty()){
+                        this.evalStack.top().setResult( value );
+                    }
+                }
+                else{
+                    assert.check( ev.getStack() != null ) ;
+                    ev.advance(this);
+                    assert.check( ev.getStack() != null ) ;
                }
             }
         }
@@ -155,16 +161,19 @@ module vms{
         }
 
         advance( vms : VMS ){
-            if(!this.isDone()){
+            assert.checkPrecondition( !this.isDone() ) ;
 
-                var pending2 = Object.create(this.pending);
-                var topNode = this.root.get( pending2 );
-                if( this.ready ){
-                    topNode.label().step(vms);
-                }
-                else{
-                    topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
-                }
+            var pending2 = Object.create(this.pending);
+            var topNode = this.root.get( pending2 );
+            if( this.ready ){
+                assert.check( this.getStack() != null ) ;
+                topNode.label().step(vms);
+                assert.check( this.getStack() != null ) ;
+            }
+            else{
+                assert.check( this.getStack() != null ) ;
+                topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
+                assert.check( this.getStack() != null ) ;
             }
         }
     }
