@@ -352,7 +352,11 @@ module vms{
         numFields : () => number ;
         hasField : (string) => boolean ;
         getFieldByNumber : (i:number) => FieldI ;
-        getField : (fieldName:string) => FieldI ;
+        /**
+         * Get Field by name
+         * Precondition: hasField( name ) ;
+         */
+        getField : (name:string) => FieldI ;
     }
 
     export interface FieldI  {
