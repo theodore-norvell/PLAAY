@@ -32,6 +32,7 @@ var root = opt.choose(
 
 var evalmananger = new evaluationManager.EvaluationManager();
 var ms : vms.VMS  = evalmananger.PLAAY(root, null);
+
 describe ("initialize evaluation", function() {
     it('should not have null stack', function() {
         assert.check(ms.evalStack != null);
