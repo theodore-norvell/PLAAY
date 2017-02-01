@@ -91,17 +91,16 @@ module pnode {
         }
 
         //return the node at the path
-        public get(path : collections.List<number> | Array<number> ) : PNode {
-             if( path instanceof Array ) 
-                 return this.listGet( collections.arrayToList( path ) ) ;
-             else if( path instanceof collections.List ) {
-                return this.listGet( path ) ; }
-             else { assert.check( false, "Unreachable") ; return null ; }
+        public get(path: number[]): PNode {
+            if (true) {        //if path is an instance of number[]...
+                return this.listGet(path);
+            }
+            else { assert.check( false, "Unreachable") ; return null ; }
         }
 
-        private listGet(path : collections.List<number> ) : PNode {
-             if(path.isEmpty() ) return this ;
-             else return this.child( path.first() ).listGet( path.rest() ) ;
+        private listGet(path: number[] ) : PNode {
+             if(path.length == 0) return this ;
+             else return this.child( path[0] ).listGet( path.slice(1,-1) ) ;
          }
 
 
@@ -229,7 +228,7 @@ module pnode {
             var pending = evalu.getPending();
 
             if(pending != null) {
-                var node = evalu.root.get(arrayToList(pending));
+                var node = evalu.root.get(pending);
 
                 if(node.label() == label){
                     var flag = true;
@@ -259,20 +258,8 @@ module pnode {
         }
     }
 
-    export class varStrategy {
-        select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
-            var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(arrayToList(pending));
-                if(node.label() == label){
-                  //TODO how to highlight  look up the variable in the stack and highlight it.
-                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
-                    else{evalu.ready = true;}
-                }
-            }
-        }
-   }
+ //   export class varStrategy {
+ //  }
 
     //Do we want all strategies moved to interpretation?
     export class whileStrategy {
@@ -344,7 +331,7 @@ module pnode {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
             if (pending != null) {
-                var node = evalu.root.get(arrayToList(pending));
+                var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var p = pending.concat([1]);
                     if(!evalu.varmap.inMap(p)){
@@ -365,7 +352,7 @@ module pnode {
             var evalu = vms.stack.top();
             var pending = evalu.getPending();
             if(pending != null){
-                var node = evalu.root.get(arrayToList(pending));
+                var node = evalu.root.get(pending);
                 if(node.label() == label){
                     vms.stack.top().ready = true;
                 }
@@ -555,7 +542,7 @@ module pnode {
                 var evalu = vms.stack.top();
                 var pending = evalu.getPending();
                 if(pending != null) {
-                    var node = evalu.root.get(arrayToList(pending));
+                    var node = evalu.getPending();
                     this.nodeStep(node, evalu, vms);
                 }
                 else{}//error
@@ -588,7 +575,7 @@ module pnode {
 
             var pending = vms.getEval().getPending();
 
-            var thisNode = vms.getEval().getRoot().get(arrayToList(pending));
+            var thisNode = vms.getEval().getRoot().get(pending);
             var valpath = pending.concat([thisNode.count() - 1]);
 
             var v = vms.getEval().varmap.get( valpath );

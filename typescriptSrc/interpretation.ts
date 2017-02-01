@@ -20,18 +20,32 @@ module interpretation {
     import None = collections.None;
     import VMS = vms.VMS;
     import PNode = pnode.PNode;
+    import Label = pnode.Label;
 
     export interface Selector {
-        select(node: PNode): void;
+        select: (vms: VMS, label: Label) => void;
     }
 
     export interface Stepper {
+        step: (vms: VMS, label: Label) => void;
     }
 
     export class varSelector implements Selector {
-        select(node: PNode) {
-            
+            select(vms:VMS, label:Label){
+                var evalu = vms.stack.top();
+                var pending = evalu.getPending();
+                if (pending != null) {
+                    var node = evalu.root.get(pending);
+                    if (node.label() == label) {
+                        //TODO how to highlight  look up the variable in the stack and highlight it.
+                        if (!evalu.getStack().inStack(label.getVal())) { } //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
+                        else { evalu.ready = true; }
+                    }
+                }
+            }
         }
-    }
+}
+
+
 
 }
