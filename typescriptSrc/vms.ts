@@ -170,24 +170,38 @@ module vms{
         }
     }
 
+    /*private*/ class MapEntry {
+        path : Array<number>;
+        val : Value;
+
+        constructor (key : Array<number>, value : Value ){
+            this.path = key;
+            this.val = value;
+        }
+
+        getPath(){return this.path;}
+        getValue(){return this.val;}
+        setValue(v : Value ){this.val = v;}
+    }
 
     export class ValueMap {
+        // TODO:  It would be safer to use lists of numbers instead of arrays of numbers to represent paths.
         size : number ;
-        entries : Array<mapEntry>;
+        entries : Array<MapEntry>;
 
         constructor(){
-            this.entries = new Array<mapEntry>();
+            this.entries = new Array<MapEntry>();
             this.size = 0;
         }
 
-        samePath(a : Array<number>, b : Array<number>){
-            var flag = true;
-            for(var p = 0; p < Math.max(a.length, b.length); p++){
+        private samePath(a : Array<number>, b : Array<number>){
+            if( a.length != b.length ) return false ;
+            for(var p = 0; p < a.length; p++){
                 if(a[p] != b[p]){
-                    flag = false;
+                    return false;
                 }
             }
-            return flag;
+            return true ;
         }
 
         get(p : Array<number>) : Value {
@@ -210,8 +224,7 @@ module vms{
                 }
             }
             if(notIn){
-
-                var me = new mapEntry(p, v);
+                var me = new MapEntry(p, v);
                 this.entries.push(me);
                 this.size++;
             }
@@ -321,21 +334,6 @@ module vms{
             if(this.head == null){return false;}
             else{return true;}
         }
-    }
-
-    export class mapEntry{
-        path : Array<number>;
-        val : Value;
-
-        constructor (key : Array<number>, value : Value ){
-            this.path = key;
-            this.val = value;
-        }
-
-        getPath(){return this.path;}
-        getValue(){return this.val;}
-        setValue(v : Value ){this.val = v;}
-
     }
 
     export interface Value {
