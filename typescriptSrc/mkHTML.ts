@@ -4,9 +4,8 @@
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="evaluationManager.ts" />
-/// <reference path="stackManager.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="value.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
@@ -17,9 +16,8 @@ import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
 import evaluationManager = require('./evaluationManager');
-import stack = require( './stackManager' ) ;
+import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
-import value = require('./value');
 import seymour = require( './seymour' ) ;
 
 module mkHTML {
@@ -30,14 +28,13 @@ module mkHTML {
     import Selection = pnodeEdits.Selection;
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import EvaluationManager = evaluationManager.EvaluationManager;
-    import VarMap = stack.VarMap;
-    import mapEntry = stack.mapEntry;
+    import ValueMap = vms.ValueMap;
     import VMS = vms.VMS;
-    import ExecStack = stack.execStack;
+    import VarStack = vms.VarStack;
     import arrayToList = collections.arrayToList;
-    import Value = value.Value ;
-    import StringV = value.StringV;
-    import BuiltInV = value.BuiltInV;
+    import Value = vms.Value ;
+    import StringV = valueTypes.StringV;
+    import BuiltInV = valueTypes.BuiltInV;
 
     var undostack = [];
     var redostack = [];
@@ -406,7 +403,7 @@ module mkHTML {
         $(".dropZoneSmall").show();
     }
 
-    function visualizeStack(evalstack:ExecStack) : void
+    function visualizeStack(evalstack:VarStack) : void
     {
         for(let i = 0; i < evalstack.obj.numFields(); i++)
         {
@@ -490,7 +487,7 @@ module mkHTML {
         }
     }
 
-    function findInMap(root : HTMLElement, varmap : VarMap) : void
+    function findInMap(root : HTMLElement, varmap : ValueMap) : void
     {
         for(let i=0; i < varmap.size; i++)
         {

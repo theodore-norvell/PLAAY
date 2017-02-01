@@ -1,36 +1,31 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
-/// <reference path="stackManager.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="value.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation') ;
-import stack = require( './stackManager' ) ;
+import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms' ) ;
-import value = require('./value') ;
 
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
     import VMS = vms.VMS;
-    import Evaluation = evaluation.Evaluation;
-    import Stack = stack.Stack;
-    import execStack = stack.execStack;
-    import Value = value.Value;
-    import BuiltInV = value.BuiltInV;
-    import varMap = stack.VarMap;
-    import Field = value.Field;
-    import ClosureV = value.ClosureV;
-    import StringV = value.StringV;
+    import Evaluation = vms.Evaluation;
+    import VarStack = vms.VarStack;
+    import EvalStack = vms.EvalStack;
+    import Value = vms.Value;
+    import BuiltInV = valueTypes.BuiltInV;
+    import ValueMap = vms.ValueMap;
+    import FieldI = vms.FieldI ;
+    import Field = valueTypes.Field;
+    import ClosureV = valueTypes.ClosureV;
+    import StringV = valueTypes.StringV;
     import arrayToList = collections.arrayToList;
-    import Type = value.Type;
-    import ObjectV = value.ObjectV;
-
-
+    import Type = vms.Type;
+    import ObjectV = valueTypes.ObjectV;
 
     export interface nodeStrategy {
         select( vms : VMS, label:Label ) : void;
@@ -220,13 +215,13 @@ module pnode {
         return new PNode(label, children);
     }
 
-    export function lookUp( varName : string, stack : execStack ) : Field {
+    export function lookUp( varName : string, stack : VarStack ) : FieldI {
         return stack.getField(varName);
     }
 
     export class lrStrategy implements nodeStrategy {
         select( vms : VMS, label:Label ) : void {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
 
             if(pending != null) {
@@ -236,7 +231,7 @@ module pnode {
                     var flag = true;
                     for(var i = 0; i < node.count(); i++){
                         var p = pending.concat([i]);
-                        if(!evalu.varmap.inMap(p)){
+                        if(!evalu.map.inMap(p)){
                             flag = false;
                         }
                     }
@@ -247,12 +242,12 @@ module pnode {
                         var n;
                         for(var i = 0; i < node.count(); i++){
                             var p = pending.concat([i]);
-                            if(!evalu.varmap.inMap(p)){
+                            if(!evalu.map.inMap(p)){
                                 n = i;
                                 break;
                             }
                         }
-                        vms.stack.top().setPending(pending.concat([n]));
+                        vms.evalStack.top().setPending(pending.concat([n]));
                         node.child(n).label().strategy.select(vms, node.child(n).label() );
                     }
                 }
@@ -262,7 +257,7 @@ module pnode {
 
     export class varStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
@@ -282,43 +277,39 @@ module pnode {
                 var childPath = path.concat([i]);
                 this.deletefromMap(vms, childPath);
             }
-            vms.getEval().getVarMap().remove(path);
+            vms.getEval().getValMap().remove(path);
 
         }
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(pending);
-                if(node.label() == label){
-                    var guardPath = pending.concat([0]);
-                    var loopPath = pending.concat([1]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
-                        if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(loopPath)){
-                                evalu.popfromStack();
-                                this.deletefromMap(vms, loopPath);
-                            }
-                            this.deletefromMap(vms, guardPath);
-                            evalu.addToStack();
-                            evalu.setPending(loopPath);
-                            node.child(1).label().strategy.select( vms, node.child(1).label() );
-                        }
-
-                        else if(string.contents.match("false")){
-                                evalu.ready = true;
-                        }
-
-                        else{
-                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
-                        }
-                    }
-
-                    else{
-                        evalu.setPending(guardPath);
-                        node.child(0).label().strategy.select( vms, node.child(0).label() );
+            assert.check( pending != null ) ;
+            var node = evalu.root.get(pending);
+            let guardPath = pending.concat([0]);
+            let bodyPath = pending.concat([1]);
+            let guardMapped = evalu.map.inMap(guardPath) ;
+            let bodyMapped = evalu.map.inMap(bodyPath) ;
+            if ( guardMapped && bodyMapped ){
+                // Both children mapped; step
+                // this node.
+                evalu.ready = true;
+            } else if( guardMapped ) {
+                let value = evalu.map.get(guardPath);
+                if( ! (value instanceof StringV) ) {
+                    // TODO Fix error handling
+                    throw new Error ("Type error.  Guard of while loop must be true or false.") ;
+                } else {
+                    let strVal = <StringV> value ;
+                    let str = strVal.contents ;
+                    if( str == "true" ) {
+                        evalu.setPending(bodyPath);
+                        node.child(1).label().strategy.select( vms, node.child(1).label() );
+                    } else if( str == "false" ) {
+                        evalu.ready = true ;
+                    } else {
+                        // TODO Fix error handling
+                        throw new Error ("Type error.  Guard of while loop must be true or false.") ;
                     }
                 }
             }
@@ -328,7 +319,7 @@ module pnode {
     export class lambdaStrategy implements nodeStrategy {
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -341,14 +332,14 @@ module pnode {
 
     export class assignStrategy implements nodeStrategy {
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(arrayToList(pending));
                 if (node.label() == label) {
                     var p = pending.concat([1]);
-                    if(!evalu.varmap.inMap(p)){
-                        vms.stack.top().setPending(p);
+                    if(!evalu.map.inMap(p)){
+                        vms.evalStack.top().setPending(p);
                         node.child(1).label().strategy.select(vms, node.child(1).label());
                     }
 
@@ -362,12 +353,12 @@ module pnode {
 
     export class LiteralStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
-                    vms.stack.top().ready = true;
+                    vms.evalStack.top().ready = true;
                 }
             }
         }
@@ -375,7 +366,7 @@ module pnode {
 
      export class ifStrategy implements nodeStrategy {
         select( vms : VMS, label:Label){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -383,10 +374,10 @@ module pnode {
                     var guardPath = pending.concat([0]);
                     var thenPath = pending.concat([1]);
                     var elsePath = pending.concat([2]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
+                    if (evalu.map.inMap(guardPath)){
+                        var string = <StringV>evalu.map.get(guardPath);
                         if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(thenPath)){
+                            if(evalu.map.inMap(thenPath)){
                                 evalu.ready = true;
                             }
                             else{
@@ -396,7 +387,7 @@ module pnode {
                         }
 
                         else if(string.contents.match("false")){
-                            if (evalu.varmap.inMap(elsePath)){
+                            if (evalu.map.inMap(elsePath)){
                                 evalu.ready = true;
                             }
 
@@ -422,17 +413,17 @@ module pnode {
 
     export class varDeclStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var nameofVar = pending.concat([0]);
                     var valueofVar = pending.concat([2]);
-                    if (evalu.varmap.inMap(nameofVar)) {
-                        var name = <StringV> evalu.varmap.get(nameofVar);
+                    if (evalu.map.inMap(nameofVar)) {
+                        var name = <StringV> evalu.map.get(nameofVar);
                         if(! lookUp(name.getVal(), evalu.getStack())) {
-                            if (evalu.varmap.inMap(valueofVar)) {
+                            if (evalu.map.inMap(valueofVar)) {
                                 evalu.ready = true;
                             } else {
                                 evalu.setPending(valueofVar);
@@ -454,13 +445,13 @@ module pnode {
 
     export class TurtleStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var value = pending.concat([0]);
-                    if (evalu.varmap.inMap(value)) {
+                    if (evalu.map.inMap(value)) {
                         evalu.ready = true;
                     }
                     else {
@@ -553,8 +544,8 @@ module pnode {
         //Template
         step(vms:VMS) : void {
             // TODO fix this crap.
-            if(vms.stack.top().ready == true){
-                var evalu = vms.stack.top();
+            if(vms.evalStack.top().ready == true){
+                var evalu = vms.evalStack.top();
                 var pending = evalu.getPending();
                 if(pending != null) {
                     var node = evalu.root.get(arrayToList(pending));
@@ -593,7 +584,7 @@ module pnode {
             var thisNode = vms.getEval().getRoot().get(arrayToList(pending));
             var valpath = pending.concat([thisNode.count() - 1]);
 
-            var v = vms.getEval().varmap.get( valpath );
+            var v = vms.getEval().map.get( valpath );
 
             vms.getEval().finishStep( v );
 
@@ -762,6 +753,9 @@ module pnode {
     }
 
     export class VarDeclLabel extends ExprLabel {
+        // TODO. Fix this node type to conform to the abstract syntax.
+        // The label needs a string and a boolean.
+        // There should be 2 children: a type and an expression.
         _val : string ;
 
         isValid( children : Array<PNode> ) : boolean {
@@ -817,14 +811,15 @@ module pnode {
         }
 
         // Singleton
+        // TODO Delete this.
         public static theVarDeclLabel = new VarDeclLabel("");
 
         public toJSON() : any {
-            return { kind: "VarDeclLabel" } ;
+            return { kind: "VarDeclLabel", name: this._val } ;
         }
 
         public static fromJSON( json : any ) : VarDeclLabel {
-            return VarDeclLabel.theVarDeclLabel ;
+            return new VarDeclLabel( json.name ) ;
         }
     }
 
@@ -953,10 +948,9 @@ module pnode {
                             activationRecord.addField(arFields[k]);
                         }
 
-                        var stack = new execStack(activationRecord);//might have to take a look at how execution stack is made
-                        stack.setNext( c.getContext() );
+                        var stack = new VarStack(activationRecord, c.getContext());
 
-                        var newEval = new Evaluation(f, null, stack);
+                        var newEval = new Evaluation(f, stack);
                         newEval.setPending([]);
                         vms.stack.push( newEval );
                     }

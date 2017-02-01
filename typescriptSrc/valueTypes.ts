@@ -1,28 +1,26 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="stackManager.ts" />
 /// <reference path="vms.ts" />
 
-
-import assert = require('./assert') ;
+import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation');
 import pnode = require('./pnode') ;
-import stack = require( './stackManager' ) ;
 import vms = require('./vms') ;
 
-module value {
+module valueTypes {
 
-    import PNode = pnode.PNode;
-    import execStack = stack.execStack;
-    import list = collections.list;
-    import List = collections.List;
-    import VMS  = vms.VMS;
-    import Evaluation = evaluation.Evaluation;
+    import PNode = pnode.PNode ;
+    import Value = vms.Value ;
+    import VarStack = vms.VarStack ;
+    import Evaluation = vms.Evaluation ;
+    import ClosureI = vms.ClosureI ;
+    import ObjectI = vms.ObjectI ;
+    import FieldI = vms.FieldI ;
+    import Type = vms.Type ;
 
-    export class Field {
+
+    export class Field implements FieldI {
         name : string;
         value : Value;
         type : Type;
@@ -36,11 +34,11 @@ module value {
         }
 
         // getters and setters
-        getName() {
+        getName() : string {
             return this.name;
         }
 
-        setName(name : string) {
+        setName(name : string) : void {
             this.name = name;
         }
 
@@ -48,15 +46,15 @@ module value {
             return this.value;
         }
 
-        setValue(value : Value) {
+        setValue(value : Value) : void {
             this.value = value;
         }
 
-        getType() {
+        getType() : Type {
             return this.type;
         }
 
-        setType(type : Type) {
+        setType(type : Type) : void  {
             this.type = type;
         }
 
@@ -67,12 +65,6 @@ module value {
         setIsConstant(isConstant :boolean) {
             this.isConstant = isConstant;
         }
-    }
-
-    export interface Value {
-        isClosureV : () => boolean ;
-        isBuiltInV : () => boolean ;
-        isStringV : () => boolean ;
     }
 
     export class StringV implements Value {
@@ -104,23 +96,30 @@ module value {
         }
     }
 
-    export class ObjectV implements Value {
+    export class ObjectV implements ObjectI {
         // TODO make this private and enforce invariant
-        // that no two field have the same name.
-        fields:Array<Field>;
+        // that no two fields have the same name.
+        protected fields:Array<Field>;
 
         constructor() {
             this.fields = new Array<Field>();
         }
 
-        public numFields():Number {
+        public numFields():number {
             return this.fields.length;
         }
 
+        // TODO: Is there really a good reason to be
+        // able to add fields to an object.
+        // Maybe we should just pass a list or array of
+        // fields in to the constructor.
         public addField(field:Field) {
+            assert.checkPrecondition( ! this.hasField( field.getName()) )
             this.fields.push(field);
         }
 
+        // TODO: Do we really need to be able to
+        // delete fields from an object.
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName()== fieldName) {
@@ -131,8 +130,18 @@ module value {
             return false;
         }
 
+        public hasField( name : string ) : boolean {
+            for (let i = 0, sz=this.numFields(); i < sz; i++) {
+                if (name == this.getFieldByNumber(i).getName()) {
+                    return true;
+                }
+            }
+            return false ;
+        }
+
         public getFieldByNumber( i : number ) : Field {
-            assert.check( 0 <= i && i < this.fields.length ) ;
+            assert.checkPrecondition( 0 <= i && i < this.fields.length,
+                                      "ObjectV.getFieldByNumber called with bad argument." ) ;
             return this.fields[i] ;
         }
 
@@ -142,7 +151,7 @@ module value {
                     return this.fields[i];
                 }
             }
-            return null;
+            assert.checkPrecondition( false, "ObjectV.getField called with bad argument.") ;
         }
 
 
@@ -161,19 +170,19 @@ module value {
         }
     }
 
-    export class ClosureV implements Value {
+    export class ClosureV implements ClosureI {
 
         private func : PNode ;
-        private context : execStack;
+        private context : VarStack;
 
-        constructor( func : PNode, context : execStack ) {
+        constructor( func : PNode, context : VarStack ) {
             console.log('LambdaLabel as JSON: %j', pnode.LambdaLabel ) ; //TODO Delete debug statement.
             assert.check( func.label() instanceof pnode.LambdaLabel ) ;
             this.func = func ;
             this.context = context ;
         }
 
-        getContext() : execStack {
+        getContext() : VarStack {
             return this.context ;
         }
 
@@ -256,15 +265,5 @@ module value {
         }
     }
 
-    export enum Type {
-        STRING,
-        BOOL,
-        NUMBER,
-        ANY,
-        METHOD,
-        NULL
-    }
-
 }
-
-export = value;
+export = valueTypes ;
