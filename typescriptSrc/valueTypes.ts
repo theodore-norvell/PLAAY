@@ -109,10 +109,17 @@ module valueTypes {
             return this.fields.length;
         }
 
+        // TODO: Is there really a good reason to be
+        // able to add fields to an object.
+        // Maybe we should just pass a list or array of
+        // fields in to the constructor.
         public addField(field:Field) {
+            assert.checkPrecondition( ! this.hasField( field.getName()) )
             this.fields.push(field);
         }
 
+        // TODO: Do we really need to be able to
+        // delete fields from an object.
         public deleteField(fieldName:string):boolean {
             for (var i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName()== fieldName) {
@@ -123,8 +130,18 @@ module valueTypes {
             return false;
         }
 
+        public hasField( name : string ) : boolean {
+            for (let i = 0, sz=this.numFields(); i < sz; i++) {
+                if (name == this.getFieldByNumber(i).getName()) {
+                    return true;
+                }
+            }
+            return false ;
+        }
+
         public getFieldByNumber( i : number ) : Field {
-            assert.check( 0 <= i && i < this.fields.length ) ;
+            assert.checkPrecondition( 0 <= i && i < this.fields.length,
+                                      "ObjectV.getFieldByNumber called with bad argument." ) ;
             return this.fields[i] ;
         }
 
@@ -134,7 +151,7 @@ module valueTypes {
                     return this.fields[i];
                 }
             }
-            return null;
+            assert.checkPrecondition( false, "ObjectV.getField called with bad argument.") ;
         }
 
 
