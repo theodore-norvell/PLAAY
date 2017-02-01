@@ -261,49 +261,31 @@ module vms{
 
         //Return true if value was correctly set
         setField(name : string, val : Value) : boolean{
-            for(var i = 0; i < this.obj.numFields(); i++){
-                if(name == this.obj.getFieldByNumber(i).getName()){
-                    this.obj.getFieldByNumber(i).setValue(val);
-                    return true;
-                }
-            }
-            if(this.next == null){
+            if( this.obj.hasField( name ) ) {
+                this.obj.getField(name).setValue( val ) ;
+                return true ;
+            } else if(this.next == null){
                 return false;
-            }
-            else{
-                var here = this.next.setField(name, val);
-                return here;
+            } else{
+                return this.next.setField(name, val);
             }
 
         }
 
         getField(name : string) : FieldI {
-            for(var i = 0; i < this.obj.numFields(); i++){
-//                if(name.match(this.obj.fields[i].getName().toString())){
-                if(name == this.obj.getFieldByNumber(i).getName()){
-                    return this.obj.getFieldByNumber(i);
-                }
-            }
-            if(this.next == null){
+            if( this.obj.hasField( name ) ) {
+                return this.obj.getField( name ) ;
+            } else if(this.next == null){
                 return null;
-            }
-            else{
+            } else{
                 return this.next.getField(name);
             }
         }
 
         inStack(name : string) : boolean {
-            for (var i = 0; i < this.obj.numFields(); i++) {
-                if (name == this.obj.getFieldByNumber(i).getName()) {
-                    return true;
-                }
-            }
-            if (this.next == null) {
-                return false;
-            }
-            else {
-                return this.next.inStack(name);
-            }
+            return this.obj.hasField( name ) 
+                   ||  (this.next != null)
+                       && this.next.inStack(name);
         }
     }
 
@@ -367,8 +349,10 @@ module vms{
     }
 
     export interface ObjectI extends Value {
-        numFields: () => number ;
-        getFieldByNumber : (number) => FieldI ;
+        numFields : () => number ;
+        hasField : (string) => boolean ;
+        getFieldByNumber : (i:number) => FieldI ;
+        getField : (fieldName:string) => FieldI ;
     }
 
     export interface FieldI  {
