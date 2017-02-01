@@ -29,7 +29,6 @@ module mkHTML {
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import EvaluationManager = evaluationManager.EvaluationManager;
     import ValueMap = vms.ValueMap;
-    import MapEntry = vms.mapEntry;
     import VMS = vms.VMS;
     import VarStack = vms.VarStack;
     import arrayToList = collections.arrayToList;
