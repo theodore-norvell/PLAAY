@@ -1,0 +1,5 @@
+module editing {
+	
+}
+
+export = editing;
