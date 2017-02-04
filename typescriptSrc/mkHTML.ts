@@ -1,43 +1,33 @@
-/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
-/// <reference path="evaluationManager.ts" />
 /// <reference path="valueTypes.ts" />
-/// <reference path="vms.ts" />
-/// <reference path="seymour.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 /// <reference path="userRelated.ts" />
+/// <reference path="executing.ts" />
 /// <reference path="sharedMkHtml.ts" />
 
-import assert = require( './assert' );
 import collections = require( './collections' );
 import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
-import evaluationManager = require('./evaluationManager');
 import valueTypes = require( './valueTypes' ) ;
-import vms = require('./vms');
-import seymour = require( './seymour' ) ;
 import userRelated = require( './userRelated' ) ;
+import executing = require( './executing' ) ;
 import sharedMkHtml = require('./sharedMkHtml');
 
 module mkHTML {
     import list = collections.list;
     import List = collections.List;
-    import PNode = pnode.PNode;
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
-    import EvaluationManager = evaluationManager.EvaluationManager;
-    import ValueMap = vms.ValueMap;
-    import VMS = vms.VMS;
-    import VarStack = vms.VarStack;
-    import arrayToList = collections.arrayToList;
-    import Value = vms.Value ;
     import StringV = valueTypes.StringV;
     import BuiltInV = valueTypes.BuiltInV;
+	import evaluate = executing.evaluate;
+	import traverseAndBuild = sharedMkHtml.traverseAndBuild;
+
 	var currentSelection = sharedMkHtml.currentSelection;
 
     var undostack = [];
@@ -46,13 +36,8 @@ module mkHTML {
     var draggedSelection;
     var draggedObject;
 
-    const turtleWorld = new seymour.TurtleWorld();
     var pathToTrash = list<number>();
     var tree = new TreeManager();
-    var evaluation = new EvaluationManager();
-    var highlighted = false;
-    var currentvms;
-    var turtle : boolean = false ;
 
     export function onLoad() : void
     {
@@ -88,9 +73,9 @@ module mkHTML {
 		createHidden("div", "quitworld", "quitworld", bodyConst, "Quit World").click(function() {leaveWorld();});
 		createHidden("div", "edit evalVisible", "edit", bodyConst, "Edit").click(function() {editor();});
 		createTexted("div", "trash evalHidden", "trash", bodyConst, "Trash").click(function() {visualizeTrash();});
-		createHidden("div", "advance evalVisible", "advance", bodyConst, "Next").click(function() {advanceOneStep();});
-		createHidden("div", "multistep evalVisible", "multistep", bodyConst, "Multi-Step").click(function() {multiStep();});
-		createHidden("div", "run evalVisible", "run", bodyConst, "Run").click(function() {stepTillDone();});
+		createHidden("div", "advance evalVisible", "advance", bodyConst, "Next").click(function() {executing.advanceOneStep();});
+		createHidden("div", "multistep evalVisible", "multistep", bodyConst, "Multi-Step").click(function() {executing.multiStep();});
+		createHidden("div", "run evalVisible", "run", bodyConst, "Run").click(function() {executing.stepTillDone();});
 		createTexted("div", "block V palette", "if", sidebarConst, "If"); 
 		createTexted("div", "block V palette", "while", sidebarConst, "While"); 
 		createTexted("div", "block V palette", "var", sidebarConst, "Var"); 
@@ -282,10 +267,6 @@ module mkHTML {
 		return createTexted(elementType, className, idName, parentElement, textContent).css("visibility", "hidden");
 	}
 
-    function redraw(vms:VMS) : void {
-        turtleWorld.redraw() ;
-    }
-
     function leaveWorld() : void
     {
 		$("#turtle").css("visibility","visible");
@@ -297,43 +278,12 @@ module mkHTML {
         document.getElementById("body").removeChild(canvas);
     }
 
-    function evaluate() : void
-    {
-		$(".evalHidden").css("visibility", "hidden");
-		$(".evalVisible").css("visibility", "visible");
-        currentvms = evaluation.PLAAY(currentSelection.root(), turtle ? turtleWorld : null );
-        $("#vms").empty()
-			.append(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true))
-        	.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-        $(".dropZone").hide();
-        $(".dropZoneSmall").hide();
-    }
-
     function editor() : void
     {
 		$(".evalHidden").css("visibility", "visible");
 		$(".evalVisible").css("visibility", "hidden");
         $(".dropZone").show();
         $(".dropZoneSmall").show();
-    }
-
-    function visualizeStack(evalstack:VarStack) : void
-    {
-        for(let i = 0; i < evalstack.obj.numFields(); i++)
-        {
-
-            // TODO. This is really not good enough, since structured values should show in a structured way.
-            const name = evalstack.obj.getFieldByNumber(i).getName() ;
-            const val = evalstack.obj.getFieldByNumber(i).getValue() ;
-            $("<tr><td>" + name + "</td>" +
-                // TODO toString is not a good idea, as is may return strings that screw up the HTML.
-                  "<td>" + val.toString() + "</td></tr>").appendTo($("#stackVal"));
-
-        }
-        if(evalstack.getNext() != null)
-        {
-            visualizeStack(evalstack.getNext());
-        }
     }
 
     function visualizeTrash() : void {
@@ -366,123 +316,6 @@ module mkHTML {
             }
         });
 	}
-
-    function highlight(parent, pending) : void
-    {
-        if(pending.isEmpty())
-        {
-            var self = $(parent);
-            if(self.index() == 0) {
-				$("<div class='selected V'></div>").prependTo(self.parent());
-			}
-            else {
-				$("<div class='selected V'></div>").insertBefore(self);
-			}
-            self.detach().appendTo($(".selected"));
-        }
-        else
-        {
-            var child = $(parent);
-            if ( child.children('div[data-childNumber="' + pending.first() + '"]').length > 0 )
-            {
-                var index = child.find('div[data-childNumber="' + pending.first() + '"]').index();
-                var check = pending.first();
-                if(index != check) {
-					highlight(parent.children[index], pending.rest());
-				}
-                else {
-					highlight(parent.children[check], pending.rest());
-				}
-            }
-            else
-            {
-                highlight(parent.children[pending.first()], pending);
-            }
-        }
-    }
-
-    function findInMap(root : HTMLElement, varmap : ValueMap) : void
-    {
-        for(let i=0; i < varmap.size; i++)
-        {
-            setHTMLValue(root, arrayToList(varmap.entries[i].getPath()), Object.create(varmap.entries[i].getValue()));
-        }
-    }
-
-    function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value ) : void 
-    {
-        if(path.isEmpty())
-        {
-            var self = $(root);
-            // TODO. toString may not be the best function to call here,
-            // since it could return any old crap that is not compatible with
-            // HTML.
-            self.replaceWith("<div class='inmap'>"+ value.toString() +"</div>");
-        }
-        else{
-            var child = $(root);
-            if ( child.children('div[data-childNumber="' + path.first() + '"]').length > 0 )
-            {
-                var index = child.find('div[data-childNumber="' + path.first() + '"]').index();
-                var check = path.first();
-                if(index != check) {
-                    setHTMLValue(<HTMLElement>root.children[index], path.rest(), value);
-				} else {
-                    setHTMLValue(<HTMLElement>root.children[check], path.rest(), value);
-				}
-            }
-            else
-            {
-                setHTMLValue(<HTMLElement>root.children[path.first()], path, value);
-            }
-        }
-    }
-
-    function advanceOneStep() : void
-    {
-        currentvms = evaluation.next();
-		$("#stackVal").empty();
-		$("#vms").empty()
-			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true))
-			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-		var root = $("#vms :first-child").get(0);
-        if (!highlighted && currentvms.getEval().ready) {
-            const vms : HTMLElement = document.getElementById("vms") ;
-            var list = arrayToList(currentvms.getEval().getPending());
-            findInMap(root, currentvms.getEval().getVarMap());
-            highlight(root, list);
-            visualizeStack(currentvms.getEval().getStack());
-            highlighted = true;
-        } else {
-            findInMap(root, currentvms.getEval().getVarMap());
-            visualizeStack(currentvms.getEval().getStack());
-            highlighted = false;
-        }
-        if(turtle) {
-            redraw(currentvms);
-        }
-    }
-
-    function multiStep() {
-        $('#advance').trigger('click');
-        $('#advance').trigger('click');
-        $('#advance').trigger('click');
-    }
-
-    function stepTillDone() {
-        currentvms = evaluation.next();
-        while(!currentvms.getEval().isDone()) {
-            currentvms = evaluation.next();
-		}
-		$("#vms").empty()
-			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)) 
-			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-		var root = $("#vms :first-child").get(0);
-        var list = arrayToList(currentvms.getEval().getPath());
-        var map = Object.create(currentvms.getEval().getVarMap());
-        findInMap(root, map);
-        highlight(root, list);
-    }
 
     function createCopyDialog(selectionArray)  : JQuery {
         return $("<div></div>")
@@ -775,402 +608,6 @@ module mkHTML {
             path = collections.cons( array[i], path ) ;
 
         return new pnodeEdits.Selection(tree, path, anchor, focus);
-    }
-
-    function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
-    {
-        var children = new Array<HTMLElement>() ;
-        for(var i = 0; i < node.count(); i++)
-        {
-            children.push( traverseAndBuild(node.child(i), i, evaluating) ) ;
-        }
-        return buildHTML(node, children, childNumber, evaluating);
-    }
-
-    function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
-    {
-        var label = node.label().toString();
-        if(label.match('if'))
-        {
-            assert.check( children.length == 3 ) ;
-
-            var guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "ifGuardBox H workplace");
-            guardbox.appendChild( children[0] ) ;
-
-            var thenbox = document.createElement("div");
-            thenbox.setAttribute("class", "thenBox H workplace");
-            thenbox.appendChild( children[1] ) ;
-
-            var elsebox = document.createElement("div");
-            elsebox.setAttribute("class", "elseBox H workplace");
-            elsebox.appendChild( children[2] ) ;
-
-            var ifbox = document.createElement("div");
-            ifbox.setAttribute("data-childNumber", childNumber.toString());
-            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
-            ifbox.appendChild(guardbox);
-            ifbox.appendChild(thenbox);
-            ifbox.appendChild(elsebox);
-            return ifbox ;
-        }
-        else if(label.match("seq"))
-        {
-            if(evaluating)
-            {
-                var seqBox = document.createElement("div");
-                seqBox.setAttribute("class", "seqBox V");
-                seqBox.setAttribute("data-childNumber", childNumber.toString());
-
-                for (var i = 0; true; ++i) {
-                    if (i == children.length) break;
-                    seqBox.appendChild(children[i]);
-                }
-
-                return seqBox;
-            }
-            else {
-
-                var seqBox = document.createElement("div");
-                seqBox.setAttribute("class", "seqBox V");
-                seqBox.setAttribute("data-childNumber", childNumber.toString());
-                seqBox["childNumber"] = childNumber;
-
-                for (var i = 0; true; ++i) {
-                    var dropZone = document.createElement("div");
-                    dropZone.setAttribute("class", "dropZone H droppable");
-                    seqBox.appendChild(dropZone);
-                    if (i == children.length) break;
-                    seqBox.appendChild(children[i]);
-                }
-
-                return seqBox;
-            }
-        }
-        else if(label.match("expPH"))
-        {
-            var PHBox = document.createElement("div");
-            PHBox.setAttribute("class", "placeHolder V");
-            PHBox.setAttribute("data-childNumber", childNumber.toString());
-            //PHBox["childNumber"] = childNumber ;
-
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                PHBox.appendChild(dropZone);
-                if (i == children.length) break;
-                PHBox.appendChild(children[i]);
-            }
-
-            return PHBox;
-        }
-        else if(label.match("param"))
-        {
-            var paramBox = document.createElement("div");
-            paramBox.setAttribute("class", "paramlistOuter H");
-            paramBox.setAttribute("data-childNumber", childNumber.toString());
-            //PHBox["childNumber"] = childNumber ;
-
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                paramBox.appendChild(dropZone);
-                if (i == children.length) break;
-                paramBox.appendChild(children[i]);
-            }
-
-            return paramBox;
-        }
-        else if(label.match("while"))
-        {
-            assert.check( children.length == 2 ) ;
-
-            var guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "whileGuardBox H workplace");
-            guardbox.appendChild( children[0] ) ;
-
-            var thenbox = document.createElement("div");
-            thenbox.setAttribute("class", "thenBox H workplace");
-            thenbox.appendChild( children[1] ) ;
-
-            var whileBox = document.createElement("div");
-            whileBox.setAttribute("data-childNumber", childNumber.toString());
-            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
-            whileBox.appendChild(guardbox);
-            whileBox.appendChild(thenbox);
-
-            return whileBox;
-        }
-        else if(label.match("callWorld"))
-        {
-            var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "callWorld H canDrag droppable" );
-            WorldBox.setAttribute("data-childNumber", childNumber.toString());
-            WorldBox.setAttribute("type", "text");
-            WorldBox.setAttribute("list", "oplist");
-
-            var dropZone = document.createElement("div");
-            dropZone.setAttribute("class", "dropZoneSmall H droppable");
-
-            if((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
-                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
-                || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
-                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)) )
-                && node.label().getVal().length > 0)
-            {
-                var opval = document.createElement("div");
-                opval.setAttribute("class", "op H click");
-                opval.textContent = node.label().getVal();
-
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[1]);
-            }
-            else if(node.label().getVal().length > 0)
-            {
-                var opval = document.createElement("div");
-                opval.setAttribute("class", "op H click");
-                opval.textContent = node.label().getVal();
-
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(children[1]);
-            }
-            else
-            {
-                var op = document.createElement("input");
-                op.setAttribute("class", "op H input");
-                op.setAttribute("type", "text");
-                op.setAttribute("list", "oplist");
-                op.textContent = "";
-
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(op);
-                WorldBox.appendChild(children[1]);
-            }
-
-            return WorldBox;
-        }
-        else if(label.match("assign"))
-        {
-            var AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "assign H canDrag droppable" );
-            AssignBox.setAttribute("data-childNumber", childNumber.toString());
-
-            var equals = document.createElement("div");
-            equals.setAttribute("class", "op H");
-            equals.textContent = ":=";
-
-            AssignBox.appendChild(children[0]);
-            AssignBox.appendChild(equals);
-            AssignBox.appendChild(children[1]);
-
-            return AssignBox;
-        }
-        else if(label.match("lambda"))
-        {
-            var lambdahead = document.createElement("div");
-            lambdahead.setAttribute("class", "lambdaHeader V ");
-            lambdahead.appendChild( children[0] ) ;
-            lambdahead.appendChild(children[1]);
-
-            var doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox H");
-            doBox.appendChild( children[2] ) ;
-
-            var string;
-
-            if (node.label().getVal().length > 0)
-            {
-                string = document.createElement("div");
-                string.setAttribute("class", "stringLiteral H click canDrag");
-                string.textContent = node.label().getVal();
-            }
-            else
-            {
-                string = document.createElement("input");
-                string.setAttribute("class", "stringLiteral H input canDrag");
-                string.setAttribute("type", "text");
-            }
-
-            var LambdaBox = document.createElement("div");
-            LambdaBox.setAttribute("class", "lambdaBox V droppable");
-            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
-            LambdaBox.appendChild(string);
-            LambdaBox.appendChild(lambdahead);
-            LambdaBox.appendChild(doBox);
-
-            return LambdaBox;
-        }
-        else if(label.match("null"))
-        {
-            var NullBox = document.createElement("div");
-            NullBox.setAttribute("class", "nullLiteral H droppable");
-            NullBox.textContent = "-";
-
-            return NullBox;
-        }
-        else if (label.match("var"))
-        {
-            var VarBox;
-            if (node.label().getVal().length > 0)
-            {
-                VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click canDrag");
-                VarBox.setAttribute("data-childNumber", childNumber.toString());
-                VarBox.textContent = node.label().getVal();
-            }
-            else
-            {
-                VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input canDrag");
-                VarBox.setAttribute("data-childNumber", childNumber.toString());
-                VarBox.setAttribute("type", "text");
-                VarBox.textContent = "";
-            }
-            return VarBox;
-        }
-        else if (label.match("string"))
-        {
-            var StringBox;
-            if (node.label().getVal().length > 0)
-            {
-                StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click canDrag");
-                StringBox.setAttribute("data-childNumber", childNumber.toString());
-                StringBox.textContent = node.label().getVal();
-            }
-            else
-            {
-                StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input canDrag");
-                StringBox.setAttribute("data-childNumber", childNumber.toString());
-                StringBox.setAttribute("type", "text");
-                StringBox.textContent = "";
-            }
-            return StringBox;
-        }
-        else if(label.match("noType"))
-        {
-            var noType = document.createElement("div");
-            noType.setAttribute( "class", "noReturnType V" ) ;
-            noType.setAttribute("data-childNumber", childNumber.toString());
-            noType["childNumber"] = childNumber ;
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                noType.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                noType.appendChild( children[i] ) ;
-            }
-
-            return noType ;
-        }
-        else if(label.match("expOpt"))
-        {
-            var OptType = document.createElement("div");
-            OptType.setAttribute("class", "expOp V");
-            OptType.setAttribute("data-childNumber", childNumber.toString());
-
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                OptType.appendChild(dropZone);
-                if (i == children.length) break;
-                OptType.appendChild(children[i]);
-            }
-
-            return OptType;
-        }
-        else if(label.match("vdecl"))
-        {
-            var VarDeclBox = document.createElement("div");
-            VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
-            VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
-
-            var type = document.createElement("div");
-            type.textContent = ":";
-
-            var equals = document.createElement("div");
-            equals.textContent = ":=";
-
-            VarDeclBox.appendChild(children[0]);
-            VarDeclBox.appendChild(type);
-            VarDeclBox.appendChild(children[1]);
-            VarDeclBox.appendChild(equals);
-            VarDeclBox.appendChild(children[2]);
-
-            return VarDeclBox;
-        }
-        else if(label.match("forward"))
-        {
-            var forwardElement = document.createElement("div");
-            forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
-            forwardElement.setAttribute("data-childNumber", childNumber.toString());
-            forwardElement.textContent = "Forward";
-            forwardElement.appendChild(children[0]);
-
-            return forwardElement;
-        }
-        else if(label.match("right"))
-        {
-            var rightElement = document.createElement("div");
-            rightElement.setAttribute("class", "turtleFunc canDrag droppable");
-            rightElement.setAttribute("data-childNumber", childNumber.toString());
-            rightElement.textContent = "Right";
-            rightElement.appendChild(children[0]);
-
-            return rightElement;
-        }
-        else if(label.match("left"))
-        {
-            var leftElement = document.createElement("div");
-            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
-            leftElement.setAttribute("data-childNumber", childNumber.toString());
-            leftElement.textContent = "Left";
-            leftElement.appendChild(children[0]);
-
-            return leftElement;
-        }
-        else if(label.match("pen"))
-        {
-            var penElement = document.createElement("div");
-            penElement.setAttribute("class", "turtleFunc canDrag droppable");
-            penElement.setAttribute("data-childNumber", childNumber.toString());
-            penElement.textContent = "Pen";
-            penElement.appendChild(children[0]);
-
-            return penElement;
-        }
-        else if(label.match("clear"))
-        {
-            var clearElement = document.createElement("div");
-            clearElement.setAttribute("class", "turtleFunc canDrag droppable");
-            clearElement.setAttribute("data-childNumber", childNumber.toString());
-            clearElement.textContent = "Clear";
-
-            return clearElement;
-        }
-        else if(label.match("show"))
-        {
-            var showElement = document.createElement("div");
-            showElement.setAttribute("class", "turtleFunc canDrag droppable");
-            showElement.setAttribute("data-childNumber", childNumber.toString());
-            showElement.textContent = "Show";
-
-            return showElement;
-        }
-        else if(label.match("hide"))
-        {
-            var hideElement = document.createElement("div");
-            hideElement.setAttribute("class", "turtleFunc canDrag droppable");
-            hideElement.setAttribute("data-childNumber", childNumber.toString());
-            hideElement.textContent = "Hide";
-
-            return hideElement;
-        }
     }
 }
 
