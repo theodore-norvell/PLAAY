@@ -196,7 +196,7 @@ module userRelated {
         var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
             $("#dimScreen").remove();
             currentSelection = unserialize(response.responseText);
-            generateHTML(currentSelection);
+            //generateHTML(currentSelection);
             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         });
     }

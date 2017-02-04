@@ -1,5 +1,5 @@
-module editing {
+module sharedMkHtml {
 	
 }
 
-export = editing;
+export = sharedMkHtml;

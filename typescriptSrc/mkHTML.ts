@@ -28,7 +28,6 @@ module mkHTML {
     import PNode = pnode.PNode;
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
-    import fromJSONToPNode = pnode.fromJSONToPNode;
     import EvaluationManager = evaluationManager.EvaluationManager;
     import ValueMap = vms.ValueMap;
     import VMS = vms.VMS;
