@@ -1,24 +1,21 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
+/// <reference path="sharedMkHtml.ts" />
 
 import collections = require( './collections' );
 import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
+import sharedMkHtml = require('./sharedMkHtml');
 
 module userRelated {
 
     import list = collections.list;
-    import List = collections.List;
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import Selection = pnodeEdits.Selection;
+		
+	var currentSelection = sharedMkHtml.currentSelection;
 	
-    var root = pnode.mkExprSeq([]);
-    var path : (  ...args : Array<number> ) => List<number> = list;
-    var currentSelection;
-    var select = new pnodeEdits.Selection(root,path(),0,0);
-    currentSelection = select;
-
     export function loginUser(){
         console.log('login');
         var inputs = $('form[name="loginUser"] :input');

@@ -10,6 +10,7 @@
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
 /// <reference path="userRelated.ts" />
+/// <reference path="sharedMkHtml.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
@@ -21,6 +22,7 @@ import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 import seymour = require( './seymour' ) ;
 import userRelated = require( './userRelated' ) ;
+import sharedMkHtml = require('./sharedMkHtml');
 
 module mkHTML {
     import list = collections.list;
@@ -36,25 +38,21 @@ module mkHTML {
     import Value = vms.Value ;
     import StringV = valueTypes.StringV;
     import BuiltInV = valueTypes.BuiltInV;
+	var currentSelection = sharedMkHtml.currentSelection;
 
     var undostack = [];
     var redostack = [];
     var trashArray = [];
-    var currentSelection;
     var draggedSelection;
     var draggedObject;
 
-    var root = pnode.mkExprSeq([]);
     const turtleWorld = new seymour.TurtleWorld();
-    var path : (  ...args : Array<number> ) => List<number> = list;
     var pathToTrash = list<number>();
     var tree = new TreeManager();
     var evaluation = new EvaluationManager();
-    var select = new pnodeEdits.Selection(root,path(),0,0);
     var highlighted = false;
     var currentvms;
     var turtle : boolean = false ;
-    currentSelection = select;
 
     export function onLoad() : void
     {
