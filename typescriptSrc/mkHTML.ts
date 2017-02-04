@@ -85,7 +85,7 @@ module mkHTML {
 		});
 
 		createTexted("div", "play evalHidden", "play", bodyConst, "Play").click(function() {evaluate();});
-		createTexted("div", "turtle", "turtle", bodyConst, "Turtle World").click(function() {turtleGraphics();});
+		createTexted("div", "turtle", "turtle", bodyConst, "Turtle World");
 		createHidden("div", "quitworld", "quitworld", bodyConst, "Quit World").click(function() {leaveWorld();});
 		createHidden("div", "edit evalVisible", "edit", bodyConst, "Edit").click(function() {editor();});
 		createTexted("div", "trash evalHidden", "trash", bodyConst, "Trash").click(function() {visualizeTrash();});
