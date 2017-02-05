@@ -2,6 +2,7 @@
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="sharedMkHtml.ts" />
+/// <reference path="jquery.d.ts" />
 
 import collections = require( './collections' );
 import pnodeEdits = require( './pnodeEdits');
@@ -13,9 +14,80 @@ module userRelated {
     import list = collections.list;
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import Selection = pnodeEdits.Selection;
-		
 	var currentSelection = sharedMkHtml.currentSelection;
-	
+
+	$('#login').click(function () {
+		$("body").append("<div id='dimScreen'></div>");
+		$('#dimScreen').append("<div id='registrationBox'>" +
+			"<div id='loginSection'>" +
+			"Login <br>" +
+			"<form name='loginUser' onSubmit='return mkHTML.loginUser()' method='post'>" +
+			"Username: <input type='text' name='username' required><br>" +
+			"Password: <input type='password' name='password' required><br>" +
+			"<input type='submit' value='Login'>" +
+			"</form></div>" +
+			"<div id='registrationSection'>" +
+			"Register <br>" +
+			"<form name='registerNewUser' onSubmit='return mkHTML.registerNewUser()' method='post'>" +
+			"Username: <input type='text' name='username' required><br>" +
+			"Password: <input type='password' name='password' required><br>" +
+			"Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
+			"<input type='submit' value='Register'></form></div>" +
+			"<div class='closewindow'>Close Window</div></div>");
+		$('.closewindow').click(function () {
+			$("#dimScreen").remove();
+		});
+	});
+
+	$('#userSettings').click(function () {
+		$('body').append("<div id='dimScreen'></div>");
+		$('#dimScreen').append("<div id='userSettingsChange'>" +
+			"<div id='editAccountTitle'>Edit Account Info:</div>" +
+			"<form name='editUserInfo' onSubmit='return mkHTML.editUser()' method='post'>" +
+			"Username: <input type='text' name='username'><br>" +
+			"Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
+			"&emsp;New: <input type='password' name='newpassword'><br>" +
+			"&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
+			"Email: <input> type='text' name='email'><br>" +
+			"<input type='submit' value='Submit Changes'></form>" +
+			"<div class='closewindow'>Close Window</div></div>");
+		$('.closewindow').click(function () {
+			$("#dimScreen").remove();
+		});
+	});
+
+	$('#logout').click(function () {
+		$("#login").show();
+		$("#userSettings").hide();
+		$("#saveProgram").hide();
+		$("#loadProgram").hide();
+		$("#userSettings :input").remove();
+		$("#logout").hide();
+	});
+
+	$('#saveProgram').click(function() {
+		$('body').append("<div id='dimScreen'></div>");
+		$('#dimScreen').append("<div id='getProgramList'>" +
+			"<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
+			"Program Name: <input type='text' name='programname'><br>" +
+			"<input type='submit' value='Submit Program'>" +
+			"</form><div class='closewindow'>Close Window</div></div>");
+		$('.closewindow').click(function () {
+			$("#dimScreen").remove();
+		});
+		//userRelated.getPrograms();
+	});
+
+	$('#loadProgram').click(function() {
+		$('body').append("<div id='dimScreen'></div>");
+		$('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+		$('.closewindow').click(function () {
+			$("#dimScreen").remove();
+		});
+		userRelated.getPrograms();
+	});
+
+
     export function loginUser(){
         console.log('login');
         var inputs = $('form[name="loginUser"] :input');

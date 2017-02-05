@@ -30,6 +30,12 @@ module executing {
 
     const turtleWorld = new seymour.TurtleWorld();
 
+	$("#play").click(function() {evaluate();});
+	$("#advance").click(function() {advanceOneStep();});
+	$("#multistep").click(function() {multiStep();});
+	$("#run").click(function() {stepTillDone();});
+	$("#edit").click(function() {editor();});
+
     export function evaluate() : void
     {
 		$(".evalHidden").css("visibility", "hidden");
@@ -86,6 +92,14 @@ module executing {
         $('#advance').trigger('click');
         $('#advance').trigger('click');
         $('#advance').trigger('click');
+    }
+
+    function editor() : void
+    {
+		$(".evalHidden").css("visibility", "visible");
+		$(".evalVisible").css("visibility", "hidden");
+        $(".dropZone").show();
+        $(".dropZoneSmall").show();
     }
 
     function redraw(vms:VMS) : void {

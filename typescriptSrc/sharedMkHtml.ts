@@ -15,6 +15,7 @@ module sharedMkHtml {
     import PNode = pnode.PNode;
 
     export var currentSelection;
+    export var undostack = [];
     var root = pnode.mkExprSeq([]);
     var path : (  ...args : Array<number> ) => List<number> = list;
     var select = new pnodeEdits.Selection(root,path(),0,0);

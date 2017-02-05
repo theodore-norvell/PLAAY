@@ -1,54 +1,41 @@
 /// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="valueTypes.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
-/// <reference path="userRelated.ts" />
-/// <reference path="executing.ts" />
 /// <reference path="sharedMkHtml.ts" />
+/// <reference path="createHtmlElements.ts" />
 
 import collections = require( './collections' );
-import pnode = require('./pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require('./treeManager');
 import valueTypes = require( './valueTypes' ) ;
-import userRelated = require( './userRelated' ) ;
-import executing = require( './executing' ) ;
 import sharedMkHtml = require('./sharedMkHtml');
+import createHtmlElements = require('./createHtmlElements');
 
 module mkHTML {
     import list = collections.list;
-    import List = collections.List;
     import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
     import StringV = valueTypes.StringV;
     import BuiltInV = valueTypes.BuiltInV;
-	import evaluate = executing.evaluate;
 	import traverseAndBuild = sharedMkHtml.traverseAndBuild;
-
+	import createHtmls = createHtmlElements.createHtmls;
 	var currentSelection = sharedMkHtml.currentSelection;
+	var undostack = sharedMkHtml.undostack;
 
-    var undostack = [];
     var redostack = [];
     var trashArray = [];
+    var pathToTrash = list<number>();
     var draggedSelection;
     var draggedObject;
 
-    var pathToTrash = list<number>();
     var tree = new TreeManager();
 
     export function onLoad() : void
     {
-		const bodyConst = $("body");
-		create("div", "sidebar evalHidden", "sidebar", bodyConst);
-		const sidebarConst = $("#sidebar");
-		
-		createHidden("div", "stack evalVisible", "stackbar", bodyConst, null);
-		create("table", null, "stackVal", $("#stackbar"));
-
-		createTexted("div", "undo evalHidden", "undo", bodyConst, "Undo");
+		createHtmls();
         $("#undo").click(function() {
 			if (undostack.length != 0) {
 				redostack.push(currentSelection);
@@ -57,8 +44,6 @@ module mkHTML {
 				$("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
 			}
 		});
-
-		createTexted("div", "redo evalHidden", "redo", bodyConst, "Redo");
         $("#redo").click(function() {
 			if (redostack.length != 0) {
                 undostack.push(currentSelection);
@@ -67,127 +52,6 @@ module mkHTML {
                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
 		});
-
-		createTexted("div", "play evalHidden", "play", bodyConst, "Play").click(function() {evaluate();});
-		createTexted("div", "turtle", "turtle", bodyConst, "Turtle World");
-		createHidden("div", "quitworld", "quitworld", bodyConst, "Quit World").click(function() {leaveWorld();});
-		createHidden("div", "edit evalVisible", "edit", bodyConst, "Edit").click(function() {editor();});
-		createTexted("div", "trash evalHidden", "trash", bodyConst, "Trash").click(function() {visualizeTrash();});
-		createHidden("div", "advance evalVisible", "advance", bodyConst, "Next").click(function() {executing.advanceOneStep();});
-		createHidden("div", "multistep evalVisible", "multistep", bodyConst, "Multi-Step").click(function() {executing.multiStep();});
-		createHidden("div", "run evalVisible", "run", bodyConst, "Run").click(function() {executing.stepTillDone();});
-		createTexted("div", "block V palette", "if", sidebarConst, "If"); 
-		createTexted("div", "block V palette", "while", sidebarConst, "While"); 
-		createTexted("div", "block V palette", "var", sidebarConst, "Var"); 
-		createTexted("div", "block V palette", "stringliteral", sidebarConst, "String Literal"); 
-		createTexted("div", "block V palette", "worldcall", sidebarConst, "Call World"); 
-		createTexted("div", "block V palette", "assign", sidebarConst, "Assignment"); 
-		create("div", "userBar", "userBar", bodyConst); 
-		const userBarConst = $("#userBar");
-		createTexted("div", "userOptions", "login", userBarConst, "Login/Register"); 
-		createTexted("div", "userOptions", "logout", userBarConst, "Logout").hide();
-		createTexted("div", "userOptions", "userSettings", userBarConst, "User Settings").hide();
-		createTexted("div", "userOptions", "saveProgram", userBarConst, "Save Program").hide();
-		createTexted("div", "userOptions", "loadProgram", userBarConst, "Load Program").hide();
-
-        $('#login').click(function () {
-            bodyConst.append("<div id='dimScreen'></div>");
-            $('#dimScreen').append("<div id='registrationBox'>" +
-                "<div id='loginSection'>" +
-                "Login <br>" +
-                "<form name='loginUser' onSubmit='return mkHTML.loginUser()' method='post'>" +
-                "Username: <input type='text' name='username' required><br>" +
-                "Password: <input type='password' name='password' required><br>" +
-                "<input type='submit' value='Login'>" +
-                "</form></div>" +
-                "<div id='registrationSection'>" +
-                "Register <br>" +
-                "<form name='registerNewUser' onSubmit='return mkHTML.registerNewUser()' method='post'>" +
-                "Username: <input type='text' name='username' required><br>" +
-                "Password: <input type='password' name='password' required><br>" +
-                "Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
-                "<input type='submit' value='Register'></form></div>" +
-                "<div class='closewindow'>Close Window</div></div>");
-            $('.closewindow').click(function () {
-                $("#dimScreen").remove();
-            });
-        });
-
-        $('#userSettings').click(function () {
-            $('body').append("<div id='dimScreen'></div>");
-            $('#dimScreen').append("<div id='userSettingsChange'>" +
-                "<div id='editAccountTitle'>Edit Account Info:</div>" +
-                "<form name='editUserInfo' onSubmit='return mkHTML.editUser()' method='post'>" +
-                "Username: <input type='text' name='username'><br>" +
-                "Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
-                "&emsp;New: <input type='password' name='newpassword'><br>" +
-                "&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
-                "Email: <input> type='text' name='email'><br>" +
-                "<input type='submit' value='Submit Changes'></form>" +
-                "<div class='closewindow'>Close Window</div></div>");
-            $('.closewindow').click(function () {
-                $("#dimScreen").remove();
-            });
-        });
-
-        $('#logout').click(function () {
-            $("#login").show();
-            $("#userSettings").hide();
-            $("#saveProgram").hide();
-            $("#loadProgram").hide();
-            $("#userSettings :input").remove();
-            $("#logout").hide();
-        });
-
-        $('#saveProgram').click(function() {
-            $('body').append("<div id='dimScreen'></div>");
-            $('#dimScreen').append("<div id='getProgramList'>" +
-                "<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
-                "Program Name: <input type='text' name='programname'><br>" +
-                "<input type='submit' value='Submit Program'>" +
-                "</form><div class='closewindow'>Close Window</div></div>");
-            $('.closewindow').click(function () {
-                $("#dimScreen").remove();
-            });
-            //userRelated.getPrograms();
-        });
-
-        $('#loadProgram').click(function() {
-            $('body').append("<div id='dimScreen'></div>");
-            $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
-            $('.closewindow').click(function () {
-                $("#dimScreen").remove();
-            });
-            userRelated.getPrograms();
-        });
-
-		createTexted("div", "block V palette", "vardecl", sidebarConst, "Var Declaration"); 
-		createTexted("div", "block V palette", "lambda", sidebarConst, "Lambda Expression"); 
-		create("datalist", null, "oplist", bodyConst); 
-
-		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
-		for (var i = 0; i < optionList.length; i++) {
-			createValued("option", $("#oplist"), optionList[i]);
-		}
-
-		create("div", "container evalHidden", "container", bodyConst); 
-		createHidden("div", "vms evalVisible", "vms", bodyConst, null); 
-		create("div", null, "seq", $("#container")).attr("data-childNumber", "-1");
-		create("div", "dropZone H droppable", "dropZone", $("#seq")); 
-
-        $( ".palette" ).draggable({
-            helper:"clone" ,
-            start : function(event, ui){
-                ui.helper.animate({
-                    width: 40,
-                    height: 40
-                });
-                draggedObject = $(this).attr("class");
-            },
-            cursorAt: {left:20, top:20},
-            appendTo:"body"
-        });
-
         $(".droppable").droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
@@ -210,6 +74,8 @@ module mkHTML {
             }
         });
 
+		$(".trash").click(function() {visualizeTrash();});
+		$(".quitworld").click(function() {leaveWorld();});
         $(".trash").droppable({
             accept: ".canDrag",
             hoverClass: "hover",
@@ -233,39 +99,23 @@ module mkHTML {
                     });
             }
         });
-        enterBox();
+
+        $( ".palette" ).draggable({
+            helper:"clone" ,
+            start : function(event, ui){
+                ui.helper.animate({
+                    width: 40,
+                    height: 40
+                });
+                draggedObject = $(this).attr("class");
+            },
+            cursorAt: {left:20, top:20},
+            appendTo:"body"
+        });
+
+
+		enterBox();
     }
-
-	function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery {
-		var obj = $("<" + elementType + "></" + elementType + ">");
-		if (className) { obj.addClass(className); }
-		if (idName) { obj.attr("id", idName); }
-		if (parentElement) { obj.appendTo(parentElement); }
-		return obj;
-	}
-	
-	function createTexted(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery {
-		var obj = create(elementType, className, idName, parentElement);
-		if (textContent) { obj.text(textContent); }
-		return obj;
-	}
-
-	function createValued(elementType: string, parentElement: JQuery, value: string) : JQuery {
-		var obj = $("<" + elementType + "></" + elementType + ">");
-		if (parentElement) { obj.appendTo(parentElement); }
-		if (value) { obj.val(value); }
-		return obj;
-	}
-
-	function createPrepended(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string, prependToThis: JQuery) : JQuery {
-		var obj = createTexted(elementType, className, idName, parentElement, textContent);
-		if (prependToThis) { obj.prependTo(prependToThis); }
-		return obj;
-	}
-
-	function createHidden(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery {
-		return createTexted(elementType, className, idName, parentElement, textContent).css("visibility", "hidden");
-	}
 
     function leaveWorld() : void
     {
@@ -277,45 +127,6 @@ module mkHTML {
         var canvas = document.getElementById("turtleGraphics");
         document.getElementById("body").removeChild(canvas);
     }
-
-    function editor() : void
-    {
-		$(".evalHidden").css("visibility", "visible");
-		$(".evalVisible").css("visibility", "hidden");
-        $(".dropZone").show();
-        $(".dropZoneSmall").show();
-    }
-
-    function visualizeTrash() : void {
-        var dialogDiv = $('#trashDialog');
-
-        if (dialogDiv.length == 0) {
-            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
-            for(var i = 0; i < trashArray.length; i++) {
-				create("div", "trashitem", null, dialogDiv)
-					.attr("data-trashitem", i.toString())
-                	.append($(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
-            }
-            dialogDiv.dialog({
-                modal : true,
-                dialogClass: 'no-close success-dialog',
-            });
-        }else{
-            dialogDiv.dialog("destroy");
-        }
-
-        $(".canDrag").draggable({
-            //helper:'clone',
-            //appendTo:'body',
-            revert:'invalid',
-            appendTo: '#container',
-            containment: false,
-            start: function(event,ui){
-                draggedObject = $(this).parent().attr("class");
-                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
-            }
-        });
-	}
 
     function createCopyDialog(selectionArray)  : JQuery {
         return $("<div></div>")
@@ -609,6 +420,46 @@ module mkHTML {
 
         return new pnodeEdits.Selection(tree, path, anchor, focus);
     }
+
+	function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery {
+		var obj = $("<" + elementType + "></" + elementType + ">");
+		if (className) { obj.addClass(className); }
+		if (idName) { obj.attr("id", idName); }
+		if (parentElement) { obj.appendTo(parentElement); }
+		return obj;
+	}
+
+    function visualizeTrash() : void {
+        var dialogDiv = $('#trashDialog');
+
+        if (dialogDiv.length == 0) {
+            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
+            for(var i = 0; i < trashArray.length; i++) {
+				create("div", "trashitem", null, dialogDiv)
+					.attr("data-trashitem", i.toString())
+                	.append($(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
+            }
+            dialogDiv.dialog({
+                modal : true,
+                dialogClass: 'no-close success-dialog',
+            });
+        }else{
+            dialogDiv.dialog("destroy");
+        }
+
+        $(".canDrag").draggable({
+            //helper:'clone',
+            //appendTo:'body',
+            revert:'invalid',
+            appendTo: '#container',
+            containment: false,
+            start: function(event,ui){
+                draggedObject = $(this).parent().attr("class");
+                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
+            }
+        });
+	}
+
 }
 
 export = mkHTML ;
