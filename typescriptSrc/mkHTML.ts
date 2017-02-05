@@ -77,7 +77,6 @@ module mkHTML {
         });
 
 		$(".trash").click(function() {visualizeTrash();});
-		$(".quitworld").click(function() {leaveWorld();});
         $(".trash").droppable({
             accept: ".canDrag",
             hoverClass: "hover",
@@ -117,17 +116,6 @@ module mkHTML {
 
 
 		enterBox();
-    }
-
-    function leaveWorld() : void
-    {
-		$("#turtle").css("visibility","visible");
-		$("#quitworld").css("visibility","hidden");
-		$(".removeFromSidebar").remove();
-        $('.turtleFunc').remove();
-
-        var canvas = document.getElementById("turtleGraphics");
-        document.getElementById("body").removeChild(canvas);
     }
 
     function createCopyDialog(selectionArray)  : JQuery {
