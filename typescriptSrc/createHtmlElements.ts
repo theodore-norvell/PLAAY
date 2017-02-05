@@ -53,16 +53,15 @@ module createHtmlElements {
 		createTexted("div", "block V palette", "lambda", sidebarConst, "Lambda Expression"); 
 		create("datalist", null, "oplist", bodyConst); 
 
-		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
-		for (var i = 0; i < optionList.length; i++) {
-			createValued("option", $("#oplist"), optionList[i]);
-		}
-
 		create("div", "container evalHidden", "container", bodyConst); 
 		createHidden("div", "vms evalVisible", "vms", bodyConst, null); 
 		create("div", null, "seq", $("#container")).attr("data-childNumber", "-1");
 		create("div", "dropZone H droppable", "dropZone", $("#seq")); 
 
+		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
+		for (var i = 0; i < optionList.length; i++) {
+			createValued("option", $("#oplist"), optionList[i]);
+		}
 	}
 
 	function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery {

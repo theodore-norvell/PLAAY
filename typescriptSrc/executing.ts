@@ -11,8 +11,8 @@ import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
 import vms = require('./vms');
 
-module executing {
-
+module executing 
+{
     import EvaluationManager = evaluationManager.EvaluationManager;
 	import traverseAndBuild = sharedMkHtml.traverseAndBuild;
     import List = collections.List;
@@ -29,14 +29,17 @@ module executing {
     var highlighted = false;
 
     const turtleWorld = new seymour.TurtleWorld();
+	
+	export function executingActions() 
+	{
+		$("#play").click(evaluate);
+		$("#advance").click(advanceOneStep);
+		$("#multistep").click(multiStep);
+		$("#run").click(stepTillDone);
+		$("#edit").click(editor);
+	}
 
-	$("#play").click(function() {evaluate();});
-	$("#advance").click(function() {advanceOneStep();});
-	$("#multistep").click(function() {multiStep();});
-	$("#run").click(function() {stepTillDone();});
-	$("#edit").click(function() {editor();});
-
-    export function evaluate() : void
+    function evaluate() : void
     {
 		$(".evalHidden").css("visibility", "hidden");
 		$(".evalVisible").css("visibility", "visible");
@@ -48,7 +51,7 @@ module executing {
         $(".dropZoneSmall").hide();
     }
 
-    export function advanceOneStep() : void
+    function advanceOneStep() : void
     {
         currentvms = evaluation.next();
 		$("#stackVal").empty();
@@ -73,7 +76,8 @@ module executing {
         }
     }
 
-    export function stepTillDone() {
+    function stepTillDone() 
+	{
         currentvms = evaluation.next();
         while(!currentvms.getEval().isDone()) {
             currentvms = evaluation.next();
@@ -88,7 +92,8 @@ module executing {
         highlight(root, list);
     }
 
-    export function multiStep() {
+    function multiStep() 
+	{
         $('#advance').trigger('click');
         $('#advance').trigger('click');
         $('#advance').trigger('click');
@@ -195,7 +200,6 @@ module executing {
             }
         }
     }
-
 }
 
 export = executing;

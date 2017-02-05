@@ -6,6 +6,8 @@
 /// <reference path="jqueryui.d.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="createHtmlElements.ts" />
+/// <reference path="executing.ts" />
+/// <reference path="userRelated.ts" />
 
 import collections = require( './collections' );
 import pnodeEdits = require( './pnodeEdits');
@@ -13,15 +15,12 @@ import treeManager = require('./treeManager');
 import valueTypes = require( './valueTypes' ) ;
 import sharedMkHtml = require('./sharedMkHtml');
 import createHtmlElements = require('./createHtmlElements');
+import executing = require('./executing');
+import userRelated = require('./userRelated');
 
 module mkHTML {
     import list = collections.list;
-    import TreeManager = treeManager.TreeManager;
     import Selection = pnodeEdits.Selection;
-    import StringV = valueTypes.StringV;
-    import BuiltInV = valueTypes.BuiltInV;
-	import traverseAndBuild = sharedMkHtml.traverseAndBuild;
-	import createHtmls = createHtmlElements.createHtmls;
 	var currentSelection = sharedMkHtml.currentSelection;
 	var undostack = sharedMkHtml.undostack;
 
@@ -31,11 +30,14 @@ module mkHTML {
     var draggedSelection;
     var draggedObject;
 
-    var tree = new TreeManager();
+    var tree = new treeManager.TreeManager();
 
     export function onLoad() : void
     {
-		createHtmls();
+		createHtmlElements.createHtmls();
+		executing.executingActions();
+		userRelated.userRelatedActions();
+
         $("#undo").click(function() {
 			if (undostack.length != 0) {
 				redostack.push(currentSelection);
@@ -205,7 +207,7 @@ module mkHTML {
     {
         currentSelection = select;
 		$("#container").empty()
-			.append(traverseAndBuild(select.root(), select.root().count(), false));
+			.append(sharedMkHtml.traverseAndBuild(select.root(), select.root().count(), false));
 
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -437,7 +439,7 @@ module mkHTML {
             for(var i = 0; i < trashArray.length; i++) {
 				create("div", "trashitem", null, dialogDiv)
 					.attr("data-trashitem", i.toString())
-                	.append($(traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
+                	.append($(sharedMkHtml.traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
             }
             dialogDiv.dialog({
                 modal : true,

@@ -9,26 +9,37 @@ import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
 import sharedMkHtml = require('./sharedMkHtml');
 
-module userRelated {
+module userRelated 
+{
 
     import list = collections.list;
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import Selection = pnodeEdits.Selection;
 	var currentSelection = sharedMkHtml.currentSelection;
 
-	$('#login').click(function () {
+	export function userRelatedActions () 
+	{
+		$('#login').click(loginAction);
+		$('#userSettings').click(userSettingsAction);
+		$('#logout').click(logoutAction);
+		$('#saveProgram').click(saveProgramAction);
+		$('#loadProgram').click(loadProgramAction);
+	}
+
+	function loginAction () 
+	{
 		$("body").append("<div id='dimScreen'></div>");
 		$('#dimScreen').append("<div id='registrationBox'>" +
 			"<div id='loginSection'>" +
 			"Login <br>" +
-			"<form name='loginUser' onSubmit='return mkHTML.loginUser()' method='post'>" +
+			"<form name='loginUser' onSubmit='return loginUser()' method='post'>" +
 			"Username: <input type='text' name='username' required><br>" +
 			"Password: <input type='password' name='password' required><br>" +
 			"<input type='submit' value='Login'>" +
 			"</form></div>" +
 			"<div id='registrationSection'>" +
 			"Register <br>" +
-			"<form name='registerNewUser' onSubmit='return mkHTML.registerNewUser()' method='post'>" +
+			"<form name='registerNewUser' onSubmit='return registerNewUser()' method='post'>" +
 			"Username: <input type='text' name='username' required><br>" +
 			"Password: <input type='password' name='password' required><br>" +
 			"Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
@@ -37,13 +48,14 @@ module userRelated {
 		$('.closewindow').click(function () {
 			$("#dimScreen").remove();
 		});
-	});
+	}
 
-	$('#userSettings').click(function () {
+	function userSettingsAction () 
+	{
 		$('body').append("<div id='dimScreen'></div>");
 		$('#dimScreen').append("<div id='userSettingsChange'>" +
 			"<div id='editAccountTitle'>Edit Account Info:</div>" +
-			"<form name='editUserInfo' onSubmit='return mkHTML.editUser()' method='post'>" +
+			"<form name='editUserInfo' onSubmit='return editUser()' method='post'>" +
 			"Username: <input type='text' name='username'><br>" +
 			"Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
 			"&emsp;New: <input type='password' name='newpassword'><br>" +
@@ -54,41 +66,44 @@ module userRelated {
 		$('.closewindow').click(function () {
 			$("#dimScreen").remove();
 		});
-	});
+	}
 
-	$('#logout').click(function () {
+	function logoutAction () 
+	{
 		$("#login").show();
 		$("#userSettings").hide();
 		$("#saveProgram").hide();
 		$("#loadProgram").hide();
 		$("#userSettings :input").remove();
 		$("#logout").hide();
-	});
+	}
 
-	$('#saveProgram').click(function() {
+	function saveProgramAction () 
+	{
 		$('body').append("<div id='dimScreen'></div>");
 		$('#dimScreen').append("<div id='getProgramList'>" +
-			"<form name='saveProgramTree' onSubmit='return mkHTML.savePrograms()' method='post'>" +
+			"<form name='saveProgramTree' onSubmit='return savePrograms()' method='post'>" +
 			"Program Name: <input type='text' name='programname'><br>" +
 			"<input type='submit' value='Submit Program'>" +
 			"</form><div class='closewindow'>Close Window</div></div>");
 		$('.closewindow').click(function () {
 			$("#dimScreen").remove();
 		});
-		//userRelated.getPrograms();
-	});
+		//getPrograms();
+	}
 
-	$('#loadProgram').click(function() {
+	function loadProgramAction() 
+	{
 		$('body').append("<div id='dimScreen'></div>");
 		$('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
 		$('.closewindow').click(function () {
 			$("#dimScreen").remove();
 		});
-		userRelated.getPrograms();
-	});
+		getPrograms();
+	}
 
-
-    export function loginUser(){
+    function loginUser()
+	{
         console.log('login');
         var inputs = $('form[name="loginUser"] :input');
         var usr = $('form[name="loginUser"] :input[name="username"]').val();
@@ -127,7 +142,8 @@ module userRelated {
         return false;
     }
 
-    export function registerNewUser(){
+    function registerNewUser()
+	{
         console.log('register');
         var usr = $('form[name="registerNewUser"] :input[name="username"]').val();
         var psw = $('form[name="registerNewUser"] :input[name="password"]').val();
@@ -171,7 +187,8 @@ module userRelated {
         }
         return false;
     }
-    export function editUser()
+
+    function editUser()
     {
         console.log('register');
         var currentUser = $('#userSettings :input').val();
@@ -223,27 +240,27 @@ module userRelated {
         return false;
     }
 
-    export function getPrograms()
+    function getPrograms()
     {
         var currentUser = $('#userSettings :input').val();
         var response = $.post("/ProgramList",{username:currentUser}, function() {
-            userRelated.buildPage(response.responseText);
+            buildPage(response.responseText);
         });
         return false;
     }
 
-    export function buildPage(json)
+    function buildPage(json)
     {
         var result = $.parseJSON(json).programList;
         result.forEach(function(entry){
             $('#getProgramList').append("<div>" + entry +
-                "<button type=\"button\" onclick=\"userRelated.loadProgram(\'" + entry + "\')\">Select program</button>" +
-                "<button type=\"button\" onclick=\"userRelated.deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
+                "<button type=\"button\" onclick=\"loadProgram(\'" + entry + "\')\">Select program</button>" +
+                "<button type=\"button\" onclick=\"deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
                 "</div>");
         });
     }
 
-    export function deleteProgram(name)
+    function deleteProgram(name)
     {
         var currentUser = $('#userSettings :input').val();
         var programName = name;
@@ -254,11 +271,11 @@ module userRelated {
             $('.closewindow').click(function () {
                 $("#dimScreen").remove();
             });
-            userRelated.getPrograms();
+            getPrograms();
         });
     }
 
-    export function loadProgram(name)
+    function loadProgram(name)
     {
         var currentUser = $('#userSettings :input').val();
         var programName = name;
@@ -270,7 +287,7 @@ module userRelated {
         });
     }
 
-    export function savePrograms()
+    function savePrograms()
     {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
