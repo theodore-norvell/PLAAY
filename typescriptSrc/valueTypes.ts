@@ -20,6 +20,7 @@ module valueTypes {
     import Type = vms.Type ;
 
 
+    /** A field of an object. */
     export class Field implements FieldI {
         name : string;
         value : Value;
@@ -67,6 +68,7 @@ module valueTypes {
         }
     }
 
+    /** A string value. */
     export class StringV implements Value {
         contents : string;
 
@@ -78,9 +80,6 @@ module valueTypes {
             return this.contents;
         }
 
-        setVal(val : string) : void {
-            this.contents = val;
-        }
         isClosureV() : boolean {
             return false;
         }
@@ -96,6 +95,7 @@ module valueTypes {
         }
     }
 
+    /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
         // TODO make this private and enforce invariant
         // that no two fields have the same name.
@@ -170,6 +170,7 @@ module valueTypes {
         }
     }
 
+    /** Closures.  */
     export class ClosureV implements ClosureI {
 
         private func : PNode ;
@@ -206,6 +207,7 @@ module valueTypes {
         }
     }
 
+    /** Null values.  */
     export class NullV implements Value {
         isClosureV(){
             return false;
@@ -224,6 +226,7 @@ module valueTypes {
 
     }
 
+    /** The Done value. Used to indicate completion of a command. */
     export class DoneV implements Value {
         isClosureV(){
             return false;
@@ -241,6 +244,7 @@ module valueTypes {
         }
     }
 
+    /** A built in function. */
     export class BuiltInV implements Value {
         step : (node : PNode, evalu : Evaluation) => void;
 
