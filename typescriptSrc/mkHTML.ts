@@ -1,22 +1,24 @@
-/// <reference path="collections.ts" />
-/// <reference path="pnodeEdits.ts" />
-/// <reference path="treeManager.ts" />
-/// <reference path="valueTypes.ts" />
 /// <reference path="jquery.d.ts" />
 /// <reference path="jqueryui.d.ts" />
-/// <reference path="sharedMkHtml.ts" />
+
+/// <reference path="collections.ts" />
 /// <reference path="createHtmlElements.ts" />
 /// <reference path="executing.ts" />
+/// <reference path="pnodeEdits.ts" />
+/// <reference path="sharedMkHtml.ts" />
+/// <reference path="treeManager.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="userRelated.ts" />
 
+
 import collections = require( './collections' );
-import pnodeEdits = require( './pnodeEdits');
-import treeManager = require('./treeManager');
-import valueTypes = require( './valueTypes' ) ;
-import sharedMkHtml = require('./sharedMkHtml');
 import createHtmlElements = require('./createHtmlElements');
 import executing = require('./executing');
+import pnodeEdits = require( './pnodeEdits');
+import sharedMkHtml = require('./sharedMkHtml');
+import treeManager = require('./treeManager');
 import userRelated = require('./userRelated');
+import valueTypes = require( './valueTypes' ) ;
 
 module mkHTML {
     import list = collections.list;
