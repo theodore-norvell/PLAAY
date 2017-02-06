@@ -15,6 +15,12 @@ module vms{
 
     import PNode = pnode.PNode;
 
+    /** The execution state of a virtual machine.
+     * 
+     * The state of the machine includes
+     * 
+     * * An evaluation stack.
+     */
     export class VMS {
 
         evalStack : EvalStack ;
@@ -64,6 +70,10 @@ module vms{
         }
     }
 
+    /** An evaluation is the state of evaluation of one PLAAY expression.
+     * Typically it will  be the evaluatio of one method body.
+     * See the run-time model documentation for details.
+     * */
     export class Evaluation {
         // TODO root should be private
         root : PNode;
@@ -184,8 +194,12 @@ module vms{
         setValue(v : Value ){this.val = v;}
     }
 
+    /** A map from paths to values.
+     * Each evaluation has such a map to record the values of already evaluated nodes.
+     */
     export class ValueMap {
-        // TODO:  It would be safer to use lists of numbers instead of arrays of numbers to represent paths.
+        // TODO: Lists of numbers would be better than arrays, owing to their immutability.
+        // But hy not just used pointers to nodes as keys instead of using sequences of numbers.
         size : number ;
         entries : Array<MapEntry>;
 
@@ -254,6 +268,9 @@ module vms{
         }
     }
 
+    /* A VarStack is the context for expression evaluation. I.e. it is where
+    * variables are looked up.  See the run-time model for more detail.
+    */
     export class VarStack {
 
         obj : ObjectI;
@@ -302,6 +319,9 @@ module vms{
         }
     }
 
+    /** An EvalStack is simply a stack of evaluations.
+     * 
+     */
     export class EvalStack { 
 
         head : Evaluation;
@@ -336,6 +356,9 @@ module vms{
         }
     }
 
+    /** A Value is a value of the PLAAY language.
+     * Concrete value classes can be found elsewhere.
+     */
     export interface Value {
         isClosureV : () => boolean ;
         isBuiltInV : () => boolean ;

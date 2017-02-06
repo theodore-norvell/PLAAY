@@ -8,6 +8,7 @@ import collections = require( './collections' ) ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms' ) ;
 
+/** Module pnode contains the PNode class and the implementations of the labels. */
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
@@ -31,6 +32,8 @@ module pnode {
         select( vms : VMS, label:Label ) : void;
     }
 
+
+    /** Labels are used to label PNodes. Like PNodes, Labels are immutable objects. */
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
         strategy:nodeStrategy;
@@ -38,61 +41,87 @@ module pnode {
 
         getVal : () => string ;
 
+        /** Possibly change the label associated with a node. 
+         * TODO: This seems a hack. Do we need it?
+        */
         changeValue:(newString : string) => Option<Label> ;
 
+        /** Convert the label to an object that we can put out as JSON.
+         * This object must of a "kind" field and the value of that field must be the name of the 
+         * concrete class that implements Label.
+         * 
+         * Each concrete class implementing Label must also have a public
+         * static method called fromJSON which takes an object such as the one returned from toJSON.*/
         toJSON : () => any ;
 
+        /** Is this label a label for an expression node? */
         isExprNode : () => boolean ;
 
+        /** Is this label a label for an expression sequence node? */
         isExprSeqNode: () => boolean ;
 
+        /** Is this label a label for a type node node? */
         isTypeNode : () => boolean ;
     }
 
+    /** PNodes are abstract syntax trees for the PLAAY language.
+     * Each PNode consists of a Label and a sequence of 0 or more children.
+     * 
+     * PNodes are immutable objects.
+     * 
+     * Each PNode represents a valid tree in the sense that, if `l` is its label
+     * and `chs` is an array of its children, then `l.isValid(chs)` must be true.
+    */
     export class PNode {
         private _label:Label;
         private _children:Array<PNode>;
 
         /** Construct a PNode.
-         *  Precondition: label.isValid( children )
+         *  recondition: label.isValid( children )
          * @param label A Label for the node.
          * @param children: A list (Array) of children
          */
-        /*protected*/
         constructor(label:Label, children:Array<PNode>) {
             //Precondition  would not need to be checked if the constructor were private.
             assert.check(label.isValid(children),
                 "Attempted to make an invalid program node");
             this._label = label;
-            this._children = children.slice();
+            this._children = children.slice();  // Must make copy to ensure immutability.
         }
 
+        /** How many children. */
         public count():number {
             return this._children.length;
         }
 
+        /** Get some of the children as an array. */
         public children(start:number, end:number):Array<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
+            assert.checkPrecondition( 0 <= start && start <= this.count() ) ;
+            assert.checkPrecondition( 0 <= end && end <= this.count() ) ;
             return this._children.slice(start, end);
         }
 
+        /** Get one child. */
         public child(i:number):PNode {
-            assert.check( 0 <= i && i < this.count() ) ;
+            assert.checkPrecondition( 0 <= i && i < this.count() ) ;
             return this._children[i];
         }
 
+        /** Get the label. */
         public label():Label {
             return this._label;
         }
 
-        //return the node at the path
+        /* Return the node at the path */
         public get(path : collections.List<number> | Array<number> ) : PNode {
+            // TODO. Do we really need to be able to pass in an array?
              if( path instanceof Array ) 
                  return this.listGet( collections.arrayToList( path ) ) ;
              else if( path instanceof collections.List ) {
                 return this.listGet( path ) ; }
-             else { assert.check( false, "Unreachable") ; return null ; }
+             else { assert.checkPrecondition( false, "Bad path argument.") ; return null ; }
         }
 
         private listGet(path : collections.List<number> ) : PNode {
@@ -103,12 +132,14 @@ module pnode {
 
         /** Possibly return a copy of the node in which the children are replaced.
          * The result will have children
+         * ~~~
          *    [c[0], c[1], c[start-1]] ++ newChildren ++ [c[end], c[end+1], ...]
-         * where c is this.children().
-         * I.e. the segment c[ start,.. end] is replaced by newChildren.
+         * ~~~
+         * where `c` is `this.children()`.
+         * I.e. the segment `c[ start,.. end]` is replaced by `newChildren`.
          * The method succeeds iff the node required to be constructed would be valid.
-         * Node that start and end can be number value including negative.
-         * Negative numbers k are treated as length + k, where length
+         * Node that start and end can be any number value including negative.
+         * Negative numbers `k` are treated as `length + k`, where `length`
          * is the number of children.
          * @param newChildren An array of children to be added
          * @param start The first child to omit. Default 0.
@@ -129,7 +160,7 @@ module pnode {
         /** Would tryModify succeed?
          */
         public canModify(newChildren:Array<PNode>, start:number, end:number):boolean {
-            return !this.tryModify(newChildren, start, end).isEmpty();
+            return ! this.tryModify(newChildren, start, end).isEmpty();
         }
 
         /** Return a copy of the node in which the children are replaced.
@@ -145,20 +176,28 @@ module pnode {
                 })
         }
 
+        /** Attempt to change the label at the root of this tree.
+         * @Returns Either Some(t) where t is a tree with a new label or returns None, if such a tree is not valid.
+         */
         public tryModifyLabel(newLabel:Label):Option<PNode> {
             return tryMake(newLabel, this._children);
         }
 
+        /** Can the label be modified. See tryModifyLabel. */
         public canModifyLabel(newLabel:Label):boolean {
             return !this.tryModifyLabel(newLabel).isEmpty();
         }
 
+        /** Return a tree with a different label and the same children.
+         * 
+         * Precondition: `canModifyLabel(newLabel)`
+         */
         public modifyLabel(newLabel:Label):PNode {
             var opt = this.tryModifyLabel(newLabel);
             return opt.choose(
                 p => p,
                 () => {
-                    assert.check(false, "Precondition violation on PNode.modifyLabel");
+                    assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
                     return null;
                 })
         }
@@ -169,6 +208,7 @@ module pnode {
 
         public isTypeNode():boolean  { return this._label.isTypeNode() ; }
 
+        /** Convert to a string for debugging purposes. */
         toString ():string {
             var strs = this._children.map((p:PNode) => p.toString());
             var args = strs.reduce((a:string, p:string) => a + " " + p.toString(), "");
@@ -197,6 +237,9 @@ module pnode {
     }
 
 
+    /** Try to make a PNode.
+     * @returns `Some( t )` if a valid tree can be made. `None()` otherwise.
+     */
     export function tryMake(label:Label, children:Array<PNode>):Option<PNode> {
         if (label.isValid(children)) {
             //console.log("tryMake: label is " +label+ " children.length is " +children.length ) ; 
@@ -207,10 +250,17 @@ module pnode {
         }
     }
 
+    /** Equivalent to `label.isValid(children)`. Also equivalent to `! tryMake(label, children).isEmpty()`.
+     */
     export function canMake(label:Label, children:Array<PNode>):boolean {
         return label.isValid(children)
     }
 
+    /** Construct a PNode.
+     * Precondition: label.isValid( children )
+     * @param label A Label for the node.
+     * @param children: A list (Array) of children
+     */
     export function make(label:Label, children:Array<PNode>):PNode {
         return new PNode(label, children);
     }
@@ -515,8 +565,7 @@ module pnode {
 
 
 
-    //Node Declarations
-    //Node Labels
+    /** Abstract base class for all expression labels.  */
     export abstract class ExprLabel implements Label {
 
         abstract isValid(children:Array<PNode>) ;
@@ -567,7 +616,7 @@ module pnode {
         abstract toJSON() : any ;
     }
 
-
+    /** A sequence of expressions. */
     export class ExprSeqLabel implements Label {
         isValid(children:Array<PNode>) {
             return children.every(function (c:PNode) {
@@ -626,9 +675,11 @@ module pnode {
             return ExprSeqLabel.theExprSeqLabel ; }
     }
 
+    /** A parameter list.  */
     export class ParameterListLabel implements Label {
         isValid(children:Array<PNode>) {
             return children.every(function (c:PNode) {
+                // TODO Shouldn't these all be VarDecls?
                 return c.isExprNode()
             });
         }
@@ -675,6 +726,7 @@ module pnode {
             return ParameterListLabel.theParameterListLabel ; }
     }
 
+    /** Abstract base class for all type labels.  */
     export abstract class TypeLabel implements Label {
 
         abstract isValid(children:Array<PNode>) ;
@@ -706,8 +758,7 @@ module pnode {
         public abstract toJSON() : any ;
     }
 
-    //Variable
-
+    /** References to variables.  */
     export class VariableLabel extends ExprLabel {
         _val : string;
         strategy:varStrategy = new varStrategy();
@@ -735,7 +786,7 @@ module pnode {
             evalu.finishStep( v )
         }
 
-        /*private*/
+        private
         constructor(name : string) {
             super() ;
             this._val = name;
@@ -752,6 +803,7 @@ module pnode {
 
     }
 
+    /** Variable declaration nodes. */
     export class VarDeclLabel extends ExprLabel {
         // TODO. Fix this node type to conform to the abstract syntax.
         // The label needs a string and a boolean.
@@ -823,6 +875,7 @@ module pnode {
         }
     }
 
+    /** Assignments.  */
     export class AssignLabel extends ExprLabel {
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -882,7 +935,7 @@ module pnode {
     }
 
 
-    //Arithmetic Labels
+    /** Calls to explicitly named functions.  */
     export class CallWorldLabel extends ExprLabel {
 
         _val : string;//the operation
@@ -980,8 +1033,7 @@ module pnode {
         }
     }
 
-    //Placeholder Labels
-
+    /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
@@ -993,12 +1045,13 @@ module pnode {
             return "expPH";
         }
 
-        /*private*/
+        private
         constructor() {
             super();
         }
 
-        nodeStep(node, evalu){}//Placeholders don't need to to step
+        // TODO: Stepping a place holder is a run time error.
+        nodeStep(node, evalu){}
 
         // Singleton
         public static theExprPHLabel = new ExprPHLabel();
@@ -1012,6 +1065,9 @@ module pnode {
         }
     }
 
+    // TODO: What is this?  It seems to me that places where
+    // expressions are optional we either need a "NoExprLabel" node or
+    // some sort of ExprLabel node.
     export class ExprOptLabel extends ExprLabel {
 
         strategy : LiteralStrategy = new LiteralStrategy();
@@ -1049,12 +1105,14 @@ module pnode {
         }
     }
 
+    /** Function (or method) literals. */
     export class LambdaLabel extends ExprLabel {
-
+        // TODO Eliminate the _val field.
         _val : string;
         strategy : lambdaStrategy = new lambdaStrategy();
 
         isValid( children : Array<PNode> ) {
+            // TODO: Lambdas should have 4 children. See AST docs.
              if( children.length != 3 ) return false ;
              if ( ! children[0].isExprSeqNode() ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
@@ -1115,8 +1173,7 @@ module pnode {
         }
     }
 
-    //While and If Labels
-
+    /** If expressions */
     export class IfLabel extends ExprLabel {
 
         strategy:ifStrategy = new ifStrategy();
@@ -1165,6 +1222,7 @@ module pnode {
         }
     }
 
+    /** While loop expressions */
     export class WhileLabel extends ExprLabel {
 
         strategy:whileStrategy = new whileStrategy();
@@ -1202,9 +1260,11 @@ module pnode {
         }
     }
 
-    //Type Labels
-
+    /** A missing type label */
     export class NoTypeLabel extends TypeLabel {
+        // TODO: Should this really extend TypeLabel?
+
+        // TODO:  Note that no selection strategy is needed for this label
         strategy : nodeStrategy;
 
         isValid(children:Array<PNode>):boolean {
@@ -1213,7 +1273,8 @@ module pnode {
         toString():string {
             return "noType";
         }
-
+    
+        // TODO: No step is needed for this label
         step ( vms : VMS ) {
 
         }
@@ -1241,9 +1302,8 @@ module pnode {
         }
     }
 
-     //Literal Labels
-
-     export class StringLiteralLabel extends ExprLabel {
+    /** String literals. */
+    export class StringLiteralLabel extends ExprLabel {
         _val : string ;
 
         strategy : LiteralStrategy = new LiteralStrategy();
@@ -1281,6 +1341,7 @@ module pnode {
         }
      }
 
+    /** Number literals. */
     export class NumberLiteralLabel extends ExprLabel {
         _val : string ;
 
@@ -1290,7 +1351,6 @@ module pnode {
 
         isValid( children : Array<PNode> ) {
             return children.length == 0 ;
-        //TODO logic to make sure this is a number
         }
 
         changeValue (newString : string) : Option<Label> {
@@ -1304,6 +1364,7 @@ module pnode {
 
         toString() : string { return "number[" + this._val + "]"  ; }
 
+        // TODO Stepper should be shared with string literal.
         nodeStep(node, evalu){
 
         }
@@ -1319,6 +1380,7 @@ module pnode {
         }
     }
 
+    /** Boolean literals */
     export class BooleanLiteralLabel extends ExprLabel {
         _val : string ;
 
@@ -1343,6 +1405,7 @@ module pnode {
 
         toString() : string { return "boolean[" + this._val + "]"  ; }
 
+        // TODO Stepper should be shared with string literal.
         nodeStep(node, evalu){
 
         }
@@ -1359,7 +1422,7 @@ module pnode {
         }
     }
 
-
+    /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
         constructor() { super() ; }
 
@@ -1383,6 +1446,7 @@ module pnode {
         }
     }
 
+    /** Call a function.  */
     export class CallLabel extends ExprLabel {
 
         strategy : lrStrategy = new lrStrategy();
@@ -1426,7 +1490,7 @@ module pnode {
         }
     }
 
-    // TODO. Get rid of this and similar lables,
+    // TODO. Get rid of this and similar labels.
     export class PenLabel extends ExprLabel {
         _val:string; //either up or down
         strategy : TurtleStrategy = new TurtleStrategy();

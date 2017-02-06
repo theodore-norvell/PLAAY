@@ -8,6 +8,9 @@ import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
 import pnode = require( './pnode' ) ;
 
+/** pnodeEdits is responsible for edits that operate on selections.
+ * 
+ */
 module pnodeEdits {
     import Option = collections.Option;
     import None = collections.None;
@@ -25,29 +28,30 @@ module pnodeEdits {
     * If the path is empty, the root is identified. Otherwise the first
     * item of the path must identify a child of the root and the rest of
     * the path indicates a node equal to or under than child in the same way.
-    * Let p be the node identified by the path.  The selected nodes are the
-    * children of p numbered between the focus and the anchor.
-    * We require 0 <= focus <= p.count() and 0 <= focus <= p.count().
-    * <ul>
-    * <li> If focus == anchor, no nodes are selected but the selection
+    * Let `p` be the node identified by the path.  The selected nodes are the
+    * children of `p` numbered between the `focus` and the `anchor`.
+    * We require `0 <= focus <= p.count()` and `0 <= anchor <= p.count()`.
+    * 
+    * * If `focus == anchor`, no nodes are selected but the selection
     * defines a selection point.
-    * <li> If focus < anchor, the selected nodes are the children of p numbered k
-    * where focus <= k < anchor.
-    * <li> If anchor < focus, the selected nodes are the children of p numbered k
-    * where anchor <= k < focus.
-    * </ul>
+    * * If `focus < anchor`, the selected nodes are the children of p numbered k
+    * where `focus <= k < anchor`.
+    * * If `anchor < focus`, the selected nodes are the children of p numbered k
+    * where `anchor <= k < focus`.
+    * 
     * Invariant:
-    *   - The path must identify a node under the root.
+    * 
+    * * The path must identify a node under the root.
     *       I.e. the path can be empty or its first item must be
     *       the index of a child of the root and the rest of the path must
     *       identify a node under that child.
-    *   - The focus and anchor must both be integers greater or equal to 0 and
+    * * The focus and anchor must both be integers greater or equal to 0 and
     *     less or equal to the number of children of the node identified by the path.
     */
     export class Selection {
         constructor( root : PNode, path : List<number>,
                     anchor : number, focus : number ) {
-            assert.check( checkSelection( root, path, anchor, focus ), 
+            assert.checkPrecondition( checkSelection( root, path, anchor, focus ), 
                          "Attempt to make a bad selection" ) ;
             this._root = root;
             this._path = path;
@@ -91,6 +95,9 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Replace all selected nodes with another sequence of nodes. 
+     * 
+     */
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
 
@@ -142,6 +149,9 @@ module pnodeEdits {
         }
     }
 
+    /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
+     * 
+     */
     export class DeleteEdit extends AbstractEdit<Selection> {
 
         constructor() {
@@ -156,8 +166,14 @@ module pnodeEdits {
         }
     }
 
-    //changes the id inside the label
+    /**  Changes the string value of a node's label.
+     *  
+     */
     export class ChangeLabelEdit extends AbstractEdit<Selection> {
+        // TODO:  This edit applies not to the selected nodes, but
+        // to their parent.  I think that's against the spirit of selections.
+        // Furthermore I'm not thrilled that there is a changeValue method
+        // that can be applied to any label.
         _newString:string;
 
         constructor(newString:string) {
@@ -223,6 +239,7 @@ module pnodeEdits {
         }
     }
 
+    /** Copy all nodes in one selection over the selected nodes in another. */
     export class CopyNodeEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
 
@@ -268,6 +285,9 @@ module pnodeEdits {
 
     }
 
+    /** Move nodes by first copying them and then deleting the originals.
+     * The nodes to be moved are indicated by the parameter to the constuctor.
+     */
     export class MoveNodeEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
         _oldSelection : Selection;
@@ -310,26 +330,32 @@ module pnodeEdits {
                 //if you are moving to an occupied space, you cannot move
                 return new None<Selection>();
             }
+            
             var edit = new InsertChildrenEdit(this._newNodes);
             var selwithchildren = edit.applyEdit(selection).choose(
                 p => p,
                     () => {
+                        // TODO This assert is troubling.  I think the move
+                        // should fail if the copy can not be done.
                         assert.check(false, "Error applying edit to node");
                         return null;
                     });
-
+            // TODO What if this selection violates the invariant.
+            // I think the move should fail.
             var newSel = new Selection(selwithchildren.root(), this._oldSelection.path(), this._oldSelection.anchor(), this._oldSelection.focus());
             var edit2 = new DeleteEdit();
             return edit2.applyEdit(newSel);
         }
     }
 
+    /** Swap.  TODO document after code is reviewed. */
     export class SwapEdit extends AbstractEdit<Selection> {
         _srcNodes:Array<PNode>;
         _trgNodes:Array<PNode>;
         _srcSelection:Selection;
         _trgSelection:Selection;
 
+        // TODO: Why does this need two constructor parameters?
         constructor(srcSelection:Selection, trgSelection:Selection) {
             super();
 
@@ -420,6 +446,7 @@ module pnodeEdits {
                         var sel1 = opt.choose(
                             p => p,
                             () => {
+                                // TODO. What the FUCH is going on here?
                                 return null;
                             });
 
@@ -440,6 +467,7 @@ module pnodeEdits {
                         var sel1 = opt.choose(
                             p => p,
                             () => {
+                                // TODO. What the FUCH is going on here?
                                 return null;
                             });
 
