@@ -23,9 +23,11 @@ module vms{
      */
     export class VMS {
 
+        // TODO make evalStack private and provide short cuts for accessing.
         evalStack : EvalStack ;
+        private interpreter : Interpreter ;
 
-        constructor(root : PNode, worlds: Array<ObjectI>) {
+        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             var varStack = null ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
@@ -43,19 +45,13 @@ module vms{
             return this.evalStack.top() ;
         }
 
-        // TODO.  Since advance will need to 
-        // call the interpreter, we should use 
-        // dependence inversion to avoid 
-        // circular dependence.  Instead the
-        // VMS can depend on an interface that
-        // the interpreter implements.
         advance(){
             if(this.canAdvance()){
                 let ev = this.evalStack.top();
                 assert.check( ev.getStack() != null ) ;
                 
                 if( ev.isDone() ) {
-                    var value = ev.getValMap().get([]); //TODO get value from evaluation?
+                    var value = ev.getValMap().get([]);
                     this.evalStack.pop() ;
                     if(this.evalStack.notEmpty()){
                         this.evalStack.top().setResult( value );
@@ -63,7 +59,7 @@ module vms{
                 }
                 else{
                     assert.check( ev.getStack() != null ) ;
-                    ev.advance(this);
+                    ev.advance( this.interpreter, this);
                     assert.check( ev.getStack() != null ) ;
                }
             }
@@ -162,22 +158,29 @@ module vms{
             return this.pending == null; //check if pending is null
         }
 
-        advance( vms : VMS ){
+        advance( interpreter : Interpreter, vms : VMS ){
             assert.checkPrecondition( !this.isDone() ) ;
 
             var pending2 = Object.create(this.pending);
             var topNode = this.root.get( pending2 );
             if( this.ready ){
                 assert.check( this.getStack() != null ) ;
-                topNode.label().step(vms);
+                //topNode.label().step(vms);
+                interpreter.step( vms, topNode.label() ) ;
                 assert.check( this.getStack() != null ) ;
             }
             else{
                 assert.check( this.getStack() != null ) ;
                 topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
+                interpreter.select( vms, topNode.label ) ;
                 assert.check( this.getStack() != null ) ;
             }
         }
+    }
+
+    export interface Interpreter {
+        step : (VMS, Label) => void ;
+        select: (VMS, Label) => void ;
     }
 
     /*private*/ class MapEntry {
