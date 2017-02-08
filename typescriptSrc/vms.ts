@@ -28,9 +28,9 @@ module vms{
 
     export class VMS{
 
-        stack : Stack ;
-        evalu : Evaluation ;
-        val : String ;
+        private stack : Stack ;
+        private evalu : Evaluation ;
+        private val : String ;
         private world : World;
 
         constructor(root : PNode, worlds: Array<World>) {
@@ -42,6 +42,10 @@ module vms{
 
         canAdvance() : boolean {
             return this.stack.notEmpty();//TODO add notEmpty to stack why can't this file see members?
+        }
+
+        getStack(): Stack {
+            return this.stack;
         }
 
         getEval() : Evaluation {

@@ -24,15 +24,18 @@ module interpretation {
 
     export interface Selector {
         select: (vms: VMS, label: Label) => void;
+
     }
 
-    export interface Stepper {
-        step: (vms: VMS, label: Label) => void;
+    export class lrSelector implements Selector {
+        select(vms: VMS, label: Label) {
+
+        }
     }
 
     export class varSelector implements Selector {
-            select(vms:VMS, label:Label){
-                var evalu = vms.stack.top();
+           select(vms:VMS, label:Label){
+                var evalu = vms.getStack().top();
                 var pending = evalu.getPending();
                 if (pending != null) {
                     var node = evalu.root.get(pending);
@@ -43,9 +46,110 @@ module interpretation {
                     }
                 }
             }
+    }
+
+    export class whileSelector implements Selector {
+        select(vms: VMS, label: Label) {
         }
-}
+    }
 
+    export class lambdaSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
 
+    export class assignSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class literalSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class ifSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class declareSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class callSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class turtleSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export class miscSelector implements Selector {
+        select(vms: VMS, label: Label) {
+        }
+    }
+
+    export interface Stepper {
+        step: (vms: VMS, label: Label) => void;
+    }
+
+    export class lrStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class varStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class whileStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class lambdaStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class assignStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class literalStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class ifStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class declareStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class callStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class turtleStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
+
+    export class miscStepper implements Stepper {
+        step(vms: VMS, label: Label) {
+        }
+    }
 
 }

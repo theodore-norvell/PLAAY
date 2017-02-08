@@ -95,7 +95,7 @@ module pnode {
             if (true) {        //if path is an instance of number[]...
                 return this.listGet(path);
             }
-            else { assert.check( false, "Unreachable") ; return null ; }
+            //else { assert.check( false, "Unreachable") ; return null ; }
         }
 
         private listGet(path: number[] ) : PNode {
