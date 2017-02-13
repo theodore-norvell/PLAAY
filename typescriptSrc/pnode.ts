@@ -1,102 +1,127 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
-/// <reference path="stackManager.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="value.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require('./evaluation') ;
-import stack = require( './stackManager' ) ;
-import value = require('./value');
-import vms = require('./vms');
+import valueTypes = require( './valueTypes' ) ;
+import vms = require('./vms' ) ;
 
+/** Module pnode contains the PNode class and the implementations of the labels. */
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
     import None = collections.None;
     import VMS = vms.VMS;
-    import Evaluation = evaluation.Evaluation;
-    import Stack = stack.Stack;
-    import execStack = stack.execStack;
-    import Value = value.Value;
-    import BuiltInV = value.BuiltInV;
-    import varMap = stack.VarMap;
-    import Field = value.Field;
-    import ClosureV = value.ClosureV;
-    import StringV = value.StringV;
+    import Evaluation = vms.Evaluation;
+    import VarStack = vms.VarStack;
+    import EvalStack = vms.EvalStack;
+    import Value = vms.Value;
+    import BuiltInV = valueTypes.BuiltInV;
+    import ValueMap = vms.ValueMap;
+    import FieldI = vms.FieldI ;
+    import Field = valueTypes.Field;
+    import ClosureV = valueTypes.ClosureV;
+    import StringV = valueTypes.StringV;
     import arrayToList = collections.arrayToList;
-    import Type = value.Type;
-    import ObjectV = value.ObjectV;
+    import Type = vms.Type;
+    import ObjectV = valueTypes.ObjectV;
+
+    export interface nodeStrategy {
+        select( vms : VMS, label:Label ) : void;
+    }
 
 
-    // Needs to be moved to "interpretation".
-    //export interface nodeStrategy {
-    //    select( vms : VMS, label:Label ) : void;
-    //}
-
+    /** Labels are used to label PNodes. Like PNodes, Labels are immutable objects. */
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
+        strategy:nodeStrategy;
         step : (vms:VMS) => void;
 
         getVal : () => string ;
 
+        /** Possibly change the label associated with a node. 
+         * TODO: This seems a hack. Do we need it?
+        */
         changeValue:(newString : string) => Option<Label> ;
 
+        /** Convert the label to an object that we can put out as JSON.
+         * This object must of a "kind" field and the value of that field must be the name of the 
+         * concrete class that implements Label.
+         * 
+         * Each concrete class implementing Label must also have a public
+         * static method called fromJSON which takes an object such as the one returned from toJSON.*/
         toJSON : () => any ;
 
+        /** Is this label a label for an expression node? */
         isExprNode : () => boolean ;
 
+        /** Is this label a label for an expression sequence node? */
         isExprSeqNode: () => boolean ;
 
+        /** Is this label a label for a type node node? */
         isTypeNode : () => boolean ;
     }
 
+    /** PNodes are abstract syntax trees for the PLAAY language.
+     * Each PNode consists of a Label and a sequence of 0 or more children.
+     * 
+     * PNodes are immutable objects.
+     * 
+     * Each PNode represents a valid tree in the sense that, if `l` is its label
+     * and `chs` is an array of its children, then `l.isValid(chs)` must be true.
+    */
     export class PNode {
         private _label:Label;
         private _children:Array<PNode>;
 
         /** Construct a PNode.
-         *  Precondition: label.isValid( children )
+         *  recondition: label.isValid( children )
          * @param label A Label for the node.
          * @param children: A list (Array) of children
          */
-        /*protected*/
         constructor(label:Label, children:Array<PNode>) {
             //Precondition  would not need to be checked if the constructor were private.
             assert.check(label.isValid(children),
                 "Attempted to make an invalid program node");
             this._label = label;
-            this._children = children.slice();
+            this._children = children.slice();  // Must make copy to ensure immutability.
         }
 
+        /** How many children. */
         public count():number {
             return this._children.length;
         }
 
+        /** Get some of the children as an array. */
         public children(start:number, end:number):Array<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
+            assert.checkPrecondition( 0 <= start && start <= this.count() ) ;
+            assert.checkPrecondition( 0 <= end && end <= this.count() ) ;
             return this._children.slice(start, end);
         }
 
+        /** Get one child. */
         public child(i:number):PNode {
-            assert.check( 0 <= i && i < this.count() ) ;
+            assert.checkPrecondition( 0 <= i && i < this.count() ) ;
             return this._children[i];
         }
 
+        /** Get the label. */
         public label():Label {
             return this._label;
         }
 
-        //return the node at the path
+        /* Return the node at the path */
         public get(path : collections.List<number> | Array<number> ) : PNode {
+            // TODO. Do we really need to be able to pass in an array?
              if( path instanceof Array ) 
                  return this.listGet( collections.arrayToList( path ) ) ;
              else if( path instanceof collections.List ) {
                 return this.listGet( path ) ; }
-             else { assert.check( false, "Unreachable") ; return null ; }
+             else { assert.checkPrecondition( false, "Bad path argument.") ; return null ; }
         }
 
         private listGet(path : collections.List<number> ) : PNode {
@@ -107,12 +132,14 @@ module pnode {
 
         /** Possibly return a copy of the node in which the children are replaced.
          * The result will have children
+         * ~~~
          *    [c[0], c[1], c[start-1]] ++ newChildren ++ [c[end], c[end+1], ...]
-         * where c is this.children().
-         * I.e. the segment c[ start,.. end] is replaced by newChildren.
+         * ~~~
+         * where `c` is `this.children()`.
+         * I.e. the segment `c[ start,.. end]` is replaced by `newChildren`.
          * The method succeeds iff the node required to be constructed would be valid.
-         * Node that start and end can be number value including negative.
-         * Negative numbers k are treated as length + k, where length
+         * Node that start and end can be any number value including negative.
+         * Negative numbers `k` are treated as `length + k`, where `length`
          * is the number of children.
          * @param newChildren An array of children to be added
          * @param start The first child to omit. Default 0.
@@ -133,7 +160,7 @@ module pnode {
         /** Would tryModify succeed?
          */
         public canModify(newChildren:Array<PNode>, start:number, end:number):boolean {
-            return !this.tryModify(newChildren, start, end).isEmpty();
+            return ! this.tryModify(newChildren, start, end).isEmpty();
         }
 
         /** Return a copy of the node in which the children are replaced.
@@ -149,20 +176,28 @@ module pnode {
                 })
         }
 
+        /** Attempt to change the label at the root of this tree.
+         * @Returns Either Some(t) where t is a tree with a new label or returns None, if such a tree is not valid.
+         */
         public tryModifyLabel(newLabel:Label):Option<PNode> {
             return tryMake(newLabel, this._children);
         }
 
+        /** Can the label be modified. See tryModifyLabel. */
         public canModifyLabel(newLabel:Label):boolean {
             return !this.tryModifyLabel(newLabel).isEmpty();
         }
 
+        /** Return a tree with a different label and the same children.
+         * 
+         * Precondition: `canModifyLabel(newLabel)`
+         */
         public modifyLabel(newLabel:Label):PNode {
             var opt = this.tryModifyLabel(newLabel);
             return opt.choose(
                 p => p,
                 () => {
-                    assert.check(false, "Precondition violation on PNode.modifyLabel");
+                    assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
                     return null;
                 })
         }
@@ -173,6 +208,7 @@ module pnode {
 
         public isTypeNode():boolean  { return this._label.isTypeNode() ; }
 
+        /** Convert to a string for debugging purposes. */
         toString ():string {
             var strs = this._children.map((p:PNode) => p.toString());
             var args = strs.reduce((a:string, p:string) => a + " " + p.toString(), "");
@@ -201,6 +237,9 @@ module pnode {
     }
 
 
+    /** Try to make a PNode.
+     * @returns `Some( t )` if a valid tree can be made. `None()` otherwise.
+     */
     export function tryMake(label:Label, children:Array<PNode>):Option<PNode> {
         if (label.isValid(children)) {
             //console.log("tryMake: label is " +label+ " children.length is " +children.length ) ; 
@@ -211,21 +250,28 @@ module pnode {
         }
     }
 
+    /** Equivalent to `label.isValid(children)`. Also equivalent to `! tryMake(label, children).isEmpty()`.
+     */
     export function canMake(label:Label, children:Array<PNode>):boolean {
         return label.isValid(children)
     }
 
+    /** Construct a PNode.
+     * Precondition: label.isValid( children )
+     * @param label A Label for the node.
+     * @param children: A list (Array) of children
+     */
     export function make(label:Label, children:Array<PNode>):PNode {
         return new PNode(label, children);
     }
 
-    export function lookUp( varName : string, stack : execStack ) : Field {
+    export function lookUp( varName : string, stack : VarStack ) : FieldI {
         return stack.getField(varName);
     }
 
-    export class lrStrategy {
+    export class lrStrategy implements nodeStrategy {
         select( vms : VMS, label:Label ) : void {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
 
             if(pending != null) {
@@ -235,7 +281,7 @@ module pnode {
                     var flag = true;
                     for(var i = 0; i < node.count(); i++){
                         var p = pending.concat([i]);
-                        if(!evalu.varmap.inMap(p)){
+                        if(!evalu.map.inMap(p)){
                             flag = false;
                         }
                     }
@@ -246,12 +292,12 @@ module pnode {
                         var n;
                         for(var i = 0; i < node.count(); i++){
                             var p = pending.concat([i]);
-                            if(!evalu.varmap.inMap(p)){
+                            if(!evalu.map.inMap(p)){
                                 n = i;
                                 break;
                             }
                         }
-                        vms.stack.top().setPending(pending.concat([n]));
+                        vms.evalStack.top().setPending(pending.concat([n]));
                         node.child(n).label().strategy.select(vms, node.child(n).label() );
                     }
                 }
@@ -259,9 +305,9 @@ module pnode {
         }
     }
 
-    export class varStrategy {
+    export class varStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
@@ -274,61 +320,56 @@ module pnode {
         }
    }
 
-    //Do we want all strategies moved to interpretation?
-    export class whileStrategy {
+    export class whileStrategy implements nodeStrategy {
 
         deletefromMap(vms:VMS, path : Array<number>){
             for (var i = 0; i < vms.getEval().getRoot().get(path).count(); i++) {
                 var childPath = path.concat([i]);
                 this.deletefromMap(vms, childPath);
             }
-            vms.getEval().getVarMap().remove(path);
+            vms.getEval().getValMap().remove(path);
 
         }
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(pending);
-                if(node.label() == label){
-                    var guardPath = pending.concat([0]);
-                    var loopPath = pending.concat([1]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
-                        if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(loopPath)){
-                                evalu.popfromStack();
-                                this.deletefromMap(vms, loopPath);
-                            }
-                            this.deletefromMap(vms, guardPath);
-                            evalu.addToStack();
-                            evalu.setPending(loopPath);
-                            node.child(1).label().strategy.select( vms, node.child(1).label() );
-                        }
-
-                        else if(string.contents.match("false")){
-                                evalu.ready = true;
-                        }
-
-                        else{
-                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
-                        }
-                    }
-
-                    else{
-                        evalu.setPending(guardPath);
-                        node.child(0).label().strategy.select( vms, node.child(0).label() );
+            assert.check( pending != null ) ;
+            var node = evalu.root.get(pending);
+            let guardPath = pending.concat([0]);
+            let bodyPath = pending.concat([1]);
+            let guardMapped = evalu.map.inMap(guardPath) ;
+            let bodyMapped = evalu.map.inMap(bodyPath) ;
+            if ( guardMapped && bodyMapped ){
+                // Both children mapped; step
+                // this node.
+                evalu.ready = true;
+            } else if( guardMapped ) {
+                let value = evalu.map.get(guardPath);
+                if( ! (value instanceof StringV) ) {
+                    // TODO Fix error handling
+                    throw new Error ("Type error.  Guard of while loop must be true or false.") ;
+                } else {
+                    let strVal = <StringV> value ;
+                    let str = strVal.contents ;
+                    if( str == "true" ) {
+                        evalu.setPending(bodyPath);
+                        node.child(1).label().strategy.select( vms, node.child(1).label() );
+                    } else if( str == "false" ) {
+                        evalu.ready = true ;
+                    } else {
+                        // TODO Fix error handling
+                        throw new Error ("Type error.  Guard of while loop must be true or false.") ;
                     }
                 }
             }
         }
     }
 
-    export class lambdaStrategy {
+    export class lambdaStrategy implements nodeStrategy {
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -339,16 +380,16 @@ module pnode {
         }
     }
 
-    export class assignStrategy {
+    export class assignStrategy implements nodeStrategy {
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(arrayToList(pending));
                 if (node.label() == label) {
                     var p = pending.concat([1]);
-                    if(!evalu.varmap.inMap(p)){
-                        vms.stack.top().setPending(p);
+                    if(!evalu.map.inMap(p)){
+                        vms.evalStack.top().setPending(p);
                         node.child(1).label().strategy.select(vms, node.child(1).label());
                     }
 
@@ -360,22 +401,22 @@ module pnode {
         }
     }
 
-    export class LiteralStrategy {
+    export class LiteralStrategy implements nodeStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(arrayToList(pending));
                 if(node.label() == label){
-                    vms.stack.top().ready = true;
+                    vms.evalStack.top().ready = true;
                 }
             }
         }
     }
 
-     export class ifStrategy {
+     export class ifStrategy implements nodeStrategy {
         select( vms : VMS, label:Label){
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -383,10 +424,10 @@ module pnode {
                     var guardPath = pending.concat([0]);
                     var thenPath = pending.concat([1]);
                     var elsePath = pending.concat([2]);
-                    if (evalu.varmap.inMap(guardPath)){
-                        var string = <StringV>evalu.varmap.get(guardPath);
+                    if (evalu.map.inMap(guardPath)){
+                        var string = <StringV>evalu.map.get(guardPath);
                         if (string.contents.match("true")){
-                            if(evalu.varmap.inMap(thenPath)){
+                            if(evalu.map.inMap(thenPath)){
                                 evalu.ready = true;
                             }
                             else{
@@ -396,7 +437,7 @@ module pnode {
                         }
 
                         else if(string.contents.match("false")){
-                            if (evalu.varmap.inMap(elsePath)){
+                            if (evalu.map.inMap(elsePath)){
                                 evalu.ready = true;
                             }
 
@@ -420,19 +461,19 @@ module pnode {
         }
     }
 
-    export class varDeclStrategy {
+    export class varDeclStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var nameofVar = pending.concat([0]);
                     var valueofVar = pending.concat([2]);
-                    if (evalu.varmap.inMap(nameofVar)) {
-                        var name = <StringV> evalu.varmap.get(nameofVar);
+                    if (evalu.map.inMap(nameofVar)) {
+                        var name = <StringV> evalu.map.get(nameofVar);
                         if(! lookUp(name.getVal(), evalu.getStack())) {
-                            if (evalu.varmap.inMap(valueofVar)) {
+                            if (evalu.map.inMap(valueofVar)) {
                                 evalu.ready = true;
                             } else {
                                 evalu.setPending(valueofVar);
@@ -452,15 +493,15 @@ module pnode {
         }
     }
 
-    export class TurtleStrategy {
+    export class TurtleStrategy implements nodeStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.evalStack.top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var value = pending.concat([0]);
-                    if (evalu.varmap.inMap(value)) {
+                    if (evalu.map.inMap(value)) {
                         evalu.ready = true;
                     }
                     else {
@@ -524,13 +565,14 @@ module pnode {
 
 
 
-    //Node Declarations
-    //Node Labels
+    /** Abstract base class for all expression labels.  */
     export abstract class ExprLabel implements Label {
 
         abstract isValid(children:Array<PNode>) ;
 
         abstract nodeStep(node:PNode, evalu:Evaluation, vms:VMS) : void ;
+
+        strategy:nodeStrategy;
 
         /*private*/
         constructor() {
@@ -551,8 +593,8 @@ module pnode {
         //Template
         step(vms:VMS) : void {
             // TODO fix this crap.
-            if(vms.stack.top().ready == true){
-                var evalu = vms.stack.top();
+            if(vms.evalStack.top().ready == true){
+                var evalu = vms.evalStack.top();
                 var pending = evalu.getPending();
                 if(pending != null) {
                     var node = evalu.root.get(arrayToList(pending));
@@ -574,7 +616,7 @@ module pnode {
         abstract toJSON() : any ;
     }
 
-
+    /** A sequence of expressions. */
     export class ExprSeqLabel implements Label {
         isValid(children:Array<PNode>) {
             return children.every(function (c:PNode) {
@@ -591,7 +633,7 @@ module pnode {
             var thisNode = vms.getEval().getRoot().get(arrayToList(pending));
             var valpath = pending.concat([thisNode.count() - 1]);
 
-            var v = vms.getEval().varmap.get( valpath );
+            var v = vms.getEval().map.get( valpath );
 
             vms.getEval().finishStep( v );
 
@@ -633,9 +675,11 @@ module pnode {
             return ExprSeqLabel.theExprSeqLabel ; }
     }
 
+    /** A parameter list.  */
     export class ParameterListLabel implements Label {
         isValid(children:Array<PNode>) {
             return children.every(function (c:PNode) {
+                // TODO Shouldn't these all be VarDecls?
                 return c.isExprNode()
             });
         }
@@ -682,9 +726,12 @@ module pnode {
             return ParameterListLabel.theParameterListLabel ; }
     }
 
+    /** Abstract base class for all type labels.  */
     export abstract class TypeLabel implements Label {
 
-        abstract isValid(children: Array<PNode>);
+        abstract isValid(children:Array<PNode>) ;
+
+        strategy : nodeStrategy;
 
         /*private*/
         constructor() {
@@ -711,8 +758,7 @@ module pnode {
         public abstract toJSON() : any ;
     }
 
-    //Variable
-
+    /** References to variables.  */
     export class VariableLabel extends ExprLabel {
         _val : string;
         strategy:varStrategy = new varStrategy();
@@ -740,7 +786,7 @@ module pnode {
             evalu.finishStep( v )
         }
 
-        /*private*/
+        private
         constructor(name : string) {
             super() ;
             this._val = name;
@@ -757,7 +803,11 @@ module pnode {
 
     }
 
+    /** Variable declaration nodes. */
     export class VarDeclLabel extends ExprLabel {
+        // TODO. Fix this node type to conform to the abstract syntax.
+        // The label needs a string and a boolean.
+        // There should be 2 children: a type and an expression.
         _val : string ;
 
         isValid( children : Array<PNode> ) : boolean {
@@ -813,17 +863,19 @@ module pnode {
         }
 
         // Singleton
+        // TODO Delete this.
         public static theVarDeclLabel = new VarDeclLabel("");
 
         public toJSON() : any {
-            return { kind: "VarDeclLabel" } ;
+            return { kind: "VarDeclLabel", name: this._val } ;
         }
 
         public static fromJSON( json : any ) : VarDeclLabel {
-            return VarDeclLabel.theVarDeclLabel ;
+            return new VarDeclLabel( json.name ) ;
         }
     }
 
+    /** Assignments.  */
     export class AssignLabel extends ExprLabel {
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
@@ -883,7 +935,7 @@ module pnode {
     }
 
 
-    //Arithmetic Labels
+    /** Calls to explicitly named functions.  */
     export class CallWorldLabel extends ExprLabel {
 
         _val : string;//the operation
@@ -949,10 +1001,9 @@ module pnode {
                             activationRecord.addField(arFields[k]);
                         }
 
-                        var stack = new execStack(activationRecord);//might have to take a look at how execution stack is made
-                        stack.setNext( c.getContext() );
+                        var stack = new VarStack(activationRecord, c.getContext());
 
-                        var newEval = new Evaluation(f, null, stack);
+                        var newEval = new Evaluation(f, stack);
                         newEval.setPending([]);
                         vms.stack.push( newEval );
                     }
@@ -982,8 +1033,7 @@ module pnode {
         }
     }
 
-    //Placeholder Labels
-
+    /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
 
         isValid( children : Array<PNode> ) : boolean {
@@ -995,12 +1045,13 @@ module pnode {
             return "expPH";
         }
 
-        /*private*/
+        private
         constructor() {
             super();
         }
 
-        nodeStep(node, evalu){}//Placeholders don't need to to step
+        // TODO: Stepping a place holder is a run time error.
+        nodeStep(node, evalu){}
 
         // Singleton
         public static theExprPHLabel = new ExprPHLabel();
@@ -1014,6 +1065,9 @@ module pnode {
         }
     }
 
+    // TODO: What is this?  It seems to me that places where
+    // expressions are optional we either need a "NoExprLabel" node or
+    // some sort of ExprLabel node.
     export class ExprOptLabel extends ExprLabel {
 
         strategy : LiteralStrategy = new LiteralStrategy();
@@ -1051,12 +1105,14 @@ module pnode {
         }
     }
 
+    /** Function (or method) literals. */
     export class LambdaLabel extends ExprLabel {
-
+        // TODO Eliminate the _val field.
         _val : string;
         strategy : lambdaStrategy = new lambdaStrategy();
 
         isValid( children : Array<PNode> ) {
+            // TODO: Lambdas should have 4 children. See AST docs.
              if( children.length != 3 ) return false ;
              if ( ! children[0].isExprSeqNode() ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
@@ -1117,8 +1173,7 @@ module pnode {
         }
     }
 
-    //While and If Labels
-
+    /** If expressions */
     export class IfLabel extends ExprLabel {
 
         strategy:ifStrategy = new ifStrategy();
@@ -1167,6 +1222,7 @@ module pnode {
         }
     }
 
+    /** While loop expressions */
     export class WhileLabel extends ExprLabel {
 
         strategy:whileStrategy = new whileStrategy();
@@ -1204,9 +1260,12 @@ module pnode {
         }
     }
 
-    //Type Labels
-
+    /** A missing type label */
     export class NoTypeLabel extends TypeLabel {
+        // TODO: Should this really extend TypeLabel?
+
+        // TODO:  Note that no selection strategy is needed for this label
+        strategy : nodeStrategy;
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;}
@@ -1214,7 +1273,8 @@ module pnode {
         toString():string {
             return "noType";
         }
-
+    
+        // TODO: No step is needed for this label
         step ( vms : VMS ) {
 
         }
@@ -1242,9 +1302,8 @@ module pnode {
         }
     }
 
-     //Literal Labels
-
-     export class StringLiteralLabel extends ExprLabel {
+    /** String literals. */
+    export class StringLiteralLabel extends ExprLabel {
         _val : string ;
 
         strategy : LiteralStrategy = new LiteralStrategy();
@@ -1282,6 +1341,7 @@ module pnode {
         }
      }
 
+    /** Number literals. */
     export class NumberLiteralLabel extends ExprLabel {
         _val : string ;
 
@@ -1291,7 +1351,6 @@ module pnode {
 
         isValid( children : Array<PNode> ) {
             return children.length == 0 ;
-        //TODO logic to make sure this is a number
         }
 
         changeValue (newString : string) : Option<Label> {
@@ -1305,6 +1364,7 @@ module pnode {
 
         toString() : string { return "number[" + this._val + "]"  ; }
 
+        // TODO Stepper should be shared with string literal.
         nodeStep(node, evalu){
 
         }
@@ -1320,6 +1380,7 @@ module pnode {
         }
     }
 
+    /** Boolean literals */
     export class BooleanLiteralLabel extends ExprLabel {
         _val : string ;
 
@@ -1344,6 +1405,7 @@ module pnode {
 
         toString() : string { return "boolean[" + this._val + "]"  ; }
 
+        // TODO Stepper should be shared with string literal.
         nodeStep(node, evalu){
 
         }
@@ -1360,7 +1422,7 @@ module pnode {
         }
     }
 
-
+    /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
         constructor() { super() ; }
 
@@ -1384,6 +1446,7 @@ module pnode {
         }
     }
 
+    /** Call a function.  */
     export class CallLabel extends ExprLabel {
 
         strategy : lrStrategy = new lrStrategy();
@@ -1427,7 +1490,7 @@ module pnode {
         }
     }
 
-    // TODO. Get rid of this and similar lables,
+    // TODO. Get rid of this and similar labels.
     export class PenLabel extends ExprLabel {
         _val:string; //either up or down
         strategy : TurtleStrategy = new TurtleStrategy();

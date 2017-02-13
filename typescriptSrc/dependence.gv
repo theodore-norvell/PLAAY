@@ -3,31 +3,22 @@ digraph Depends {
    gsize="8,6"; ratio=fill;
    node[fontsize=8, shape=rectangle];
 
-   //mkHTML -> assert ;
-   //mkHTML -> collections ;
-   mkHTML -> pnode ;
-   mkHTML -> treeManager ;
-   mkHTML -> evaluationManager ;
-   mkHTML -> stackManager ;
-   mkHTML -> vms ;
-   mkHTML -> value ;
-   mkHTML -> seymour ;
-
    //edits -> assert ;
    //edits -> collections ;
-
-   
-   //evaluation -> assert ;
-   //evaluation -> collections ;
-   evaluation -> stackManager ;
-   evaluation -> pnode ;
-   evaluation -> value ;
-   evaluation -> vms ;
-   evaluation -> world ;
 
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
+
+   //mkHTML -> assert ;
+   //mkHTML -> collections ;
+   mkHTML -> pnode ;
+   mkHTML -> pnodeEdits ;
+   mkHTML -> treeManager ;
+   mkHTML -> evaluationManager ;
+   mkHTML -> vms ;
+   mkHTML -> valueTypes ;
+   mkHTML -> seymour ;
 
    //pageManipulation -> assert ;
    //pageManipulation -> collections ;
@@ -35,24 +26,18 @@ digraph Depends {
    //playground -> assert ;
    //playground -> collections ;
    playground -> pnode ;
-   playground -> pnode ;
    playground -> pnodeEdits ;
-
 
    //pnode -> assert ;
    //pnode -> collections ;
-   pnode -> evaluation ;
    pnode -> stackManager ;
+   pnode -> valueTypes ;
    pnode -> vms ;
-   pnode -> value ;
 
    //pnodeEdits -> assert ;
    //pnodeEdits -> collections ;
    pnodeEdits -> edits ;
    pnodeEdits -> pnode ;
-
-   stackManager -> evaluation ;
-   stackManager -> value ;
 
    //treeManager -> asssert ;
    //treeManager -> collections ;
@@ -62,29 +47,21 @@ digraph Depends {
 
    //turtleTest -> seymour ;
 
-   //value -> assert ;
-   //value -> collections ;
-   value -> evaluation ;
-   value -> pnode ;
-   value -> stackManager ;
-   value -> vms ;
+   //valueTypes -> assert ;
+   //valueTypes -> collections ;
+   valueTypes -> pnode ;
+   valueTypes -> vms ;
 
    //vms -> assert ;
    //vms -> collections ;
-   vms -> evaluation ;
    vms -> pnode ;
-   vms -> stackManager ;
-   vms -> value ;
-   vms -> world ;
 
    workspace -> world ;
 
    //world -> assert ;
    //world -> collections ;
-   world -> evaluation ;
    world -> pnode ;
    world -> seymour ;
-   world -> stackManager ;
-   world -> value ;
+   world -> valueTypes ;
    world -> vms ;
 }
