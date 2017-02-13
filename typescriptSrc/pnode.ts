@@ -224,7 +224,7 @@ module pnode {
 
     export class lrStrategy {
         select( vms : VMS, label:Label ) : void {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
 
             if(pending != null) {
@@ -250,7 +250,7 @@ module pnode {
                                 break;
                             }
                         }
-                        vms.stack.top().setPending(pending.concat([n]));
+                        vms.getStack().top().setPending(pending.concat([n]));
                         node.child(n).label().strategy.select(vms, node.child(n).label() );
                     }
                 }
@@ -274,7 +274,7 @@ module pnode {
         }
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -315,7 +315,7 @@ module pnode {
     export class lambdaStrategy {
 
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -328,14 +328,14 @@ module pnode {
 
     export class assignStrategy {
         select(vms:VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
                 if (node.label() == label) {
                     var p = pending.concat([1]);
                     if(!evalu.varmap.inMap(p)){
-                        vms.stack.top().setPending(p);
+                        vms.getStack().top().setPending(p);
                         node.child(1).label().select(vms, node.child(1).label());
                     }
 
@@ -349,12 +349,12 @@ module pnode {
 
     export class LiteralStrategy {
         select( vms:VMS, label:Label ){
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
                 if(node.label() == label){
-                    vms.stack.top().ready = true;
+                    vms.getStack().top().ready = true;
                 }
             }
         }
@@ -362,7 +362,7 @@ module pnode {
 
      export class ifStrategy {
         select( vms : VMS, label:Label){
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if(pending != null){
                 var node = evalu.root.get(pending);
@@ -409,7 +409,7 @@ module pnode {
 
     export class varDeclStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
@@ -441,7 +441,7 @@ module pnode {
 
     export class TurtleStrategy {
         select( vms : VMS, label:Label) {
-            var evalu = vms.stack.top();
+            var evalu = vms.getStack().top();
             var pending = evalu.getPending();
             if (pending != null) {
                 var node = evalu.root.get(pending);
@@ -463,8 +463,8 @@ module pnode {
         select(){}
 
         step( vms : VMS, label : Label ){
-            if( vms.stack.top().ready){
-                var eval = vms.stack.top();
+            if( vms.getStack().top().ready){
+                var eval = vms.getStack().top();
                 if(eval.getPending() != null){
                     var node = eval.root.get(eval.getPending());
                     if( node.label() == label ){
@@ -497,7 +497,7 @@ module pnode {
                         newEval.getPending() = [];
                         newEval.ready = false;
 
-                        vms.stack.push( newEval );
+                        vms.getStack().push( newEval );
                     }
                 }
             }
@@ -538,8 +538,8 @@ module pnode {
         //Template
         step(vms:VMS) : void {
             // TODO fix this crap.
-            if(vms.stack.top().ready == true){
-                var evalu = vms.stack.top();
+            if(vms.getStack().top().ready == true){
+                var evalu = vms.getStack().top();
                 var pending = evalu.getPending();
                 if(pending != null) {
                     var node = evalu.getPending();
@@ -941,7 +941,7 @@ module pnode {
 
                         var newEval = new Evaluation(f, null, stack);
                         newEval.setPending([]);
-                        vms.stack.push( newEval );
+                        vms.getStack().push( newEval );
                     }
                 else {
                     // TODO report error. Field exists but is not a function.
