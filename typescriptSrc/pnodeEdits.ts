@@ -15,7 +15,8 @@ module pnodeEdits {
     import Option = collections.Option;
     import None = collections.None;
     import Some = collections.Some;
-    import List = collections.List
+    import List = collections.List ;
+    import cons = collections.cons ;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
@@ -96,73 +97,125 @@ module pnodeEdits {
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
     /** Replace all selected nodes with another set of nodes. */
-    function singleReplace( node : PNode, path : List<number>,
-                           start : number, end : number, newNodes : Array<PNode> ) : Option<PNode>
+    function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
+        let start = selection.anchor() ;
+        let end = selection.focus() ;
+        if( end < start ) { const t = start ; start = end ; end = t ; }
+        return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
+    }
+    
+    function singleReplaceHelper( node : PNode, path : List<number>,
+                           start : number, end : number, newNodes : Array<PNode> ) : Option<Selection>
     {
         if( path.isEmpty() ) {
             assert.checkPrecondition( 0 <= start && start <= end && end <= node.count() ) ;
-            var newChildren = node.children(0, start).concat( newNodes, node.children(end, node.count()) ) ;
-            return pnode.tryMake( node.label(), newChildren ) ;
+            const newChildren = node.children(0, start).concat( newNodes, node.children(end, node.count()) ) ;
+            const opt =  pnode.tryMake( node.label(), newChildren ) ;
+            return opt.bind( newNode => collections.some( new Selection( newNode, path, start, start+newChildren.length ) ) ) ;
         } else {
             const k = path.first() ;
             const len = node.count() ;
-            assert.check( 0 <= k, "Bad Path. k < 0 in singleReplace" ) ;
-            assert.check( k < len, "Bad Path. k >= len in singleReplace" ) ;
-            return singleReplace( node.child(k), path.rest(), start, end, newNodes ) ;
+            assert.check( 0 <= k, "Bad Path. k < 0" ) ;
+            assert.check( k < len, "Bad Path. k >= len" ) ;
+            const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
+            return opt.bind( newSeln => {
+                const p0 = node.children(0, k ) ;
+                const p1 = [ newSeln.root() ] ;
+                const p2 = node.children( k+1, len ) ;
+                const newChildren = p0.concat( p1, p2 ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                return opt.map( newNode => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
+            } ) ;
         }
     }
 
-    /** Handle the case where the src path is empty but the target path is not. */
-    function doubleReplaceHelper( node : PNode,
+    /** Replace all selected nodes with another set of nodes. */
+    function doubleReplace( srcSelection, newNodes4Src : Array<PNode>,
+                            trgSelection, newNodes4Trg : Array<PNode>,
+                            allowSrcAncestorOverwrite : boolean = true, 
+                            allowTrgAncestorOverwrite : boolean = true ) : Option<Selection> {
+        let srcStart = srcSelection.anchor() ;
+        let srcEnd = srcSelection.focus() ;
+        if( srcEnd < srcStart ) { const t = srcStart ; srcStart = srcEnd ; srcEnd = t ; }
+
+        let trgStart = trgSelection.anchor() ;
+        let trgEnd = trgSelection.focus() ;
+        if( trgEnd < trgStart ) { const t = trgStart ; trgStart = trgEnd ; trgEnd = t ; }
+
+        const node = srcSelection.root() ;
+        assert.checkPrecondition( node == trgSelection.root() ) ;
+        return doubleReplaceHelper(node, srcSelection.path(), srcStart, srcEnd, newNodes4Src,
+                                        trgSelection.path(), trgStart, trgEnd, newNodes4Trg,
+                                        allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
+    }
+
+    /** Handle the case where the src path is empty but the target path is not.
+     * We return two selections. The first is for the new source and the second for the new target.
+    */
+    function doubleReplaceOnePathEmpty( node : PNode,
                             srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
                             trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<PNode>,
-                            allowTrgAncestorOverwrite : boolean )
-    : Option<PNode>
+                            allowTrgAncestorOverwrite : boolean, returnNewTargetSeln : boolean )
+    : Option< Selection >
     {
         const k = trgPath.first() ;
         const len = node.count() ;
-        assert.check( 0 <= k, "Bad Path. k < 0 in doubleReplace" ) ;
-        assert.check( k < len, "Bad Path. k >= len in doubleReplace" ) ;
+        assert.check( 0 <= k, "Bad Path. k < 0" ) ;
+        assert.check( k < len, "Bad Path. k >= len" ) ;
         const child = node.child(k) ;
         if( k < srcStart ) {
-            const opt = singleReplace( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind( newChild => {
+            const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
+            return opt.bind( newSeln => {
                 const p0 = node.children(0, k) ;
-                const p1 = [newChild] ;
+                const p1 = [newSeln.root()] ;
                 const p2 = node.children(k+1, srcStart ) ;
                 const p3 = newNodes4Src ;
                 const p4 = node.children( srcEnd, len ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ; } ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ; 
+                return opt.map( newNode =>
+                    returnNewTargetSeln
+                    ? new Selection( newNode, trgPath, newSeln.anchor(), newSeln.focus() ) 
+                    : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
+            } ) ;
         } else if( srcEnd <= k ) {
-            const opt = singleReplace( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind( newChild => {
+            const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
+            return opt.bind( newSeln => {
                 const p0 = node.children(0, srcStart) ;
                 const p1 = newNodes4Src ;
                 const p2 = node.children( srcEnd, k ) ;
-                const p3 = [newChild];
+                const p3 = [newSeln.root()];
                 const p4 = node.children( k+1, len ) ;
-                const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ; } ) ;
+                const newChildren = p0.concat( p1, p2, p3, p4 ) ;    
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const k_new = k + newNodes4Src.length - (srcEnd-srcStart);
+                return opt.map( newNode => 
+                    returnNewTargetSeln
+                    ? new Selection( newNode, cons( k_new, trgPath.rest()), newSeln.anchor(), newSeln.focus() )
+                    : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
+                } ) ;
         } else if( allowTrgAncestorOverwrite ) {
             // The target is within the source selection. We delete the target and
             // ignore the nodes that replace the target.
+            assert.checkPrecondition( ! returnNewTargetSeln ) ;
             const p0 = node.children(0, srcStart) ;
             const p1 = newNodes4Src ;
             const p2 = node.children( srcEnd, len ) ;
             const newChildren = p0.concat( p1, p2 ) ;
-            return pnode.tryMake( node.label(), newChildren ) ;
+            const opt = pnode.tryMake( node.label(), newChildren ) ;
+            return opt.map( newNode =>
+                new Selection( node, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
         } else {
-            return collections.none<PNode>() ;
+            return collections.none<Selection>() ;
         }
     }
     
     /** Replace all selected nodes in two places with two other sequences */
-    function doubleReplace( node : PNode,
+    function doubleReplaceHelper( node : PNode,
                             srcPath : List<number>, srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
                             trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<PNode>,
                             allowSrcAncestorOverwrite : boolean = true,  allowTrgAncestorOverwrite : boolean = true )
-    : Option<PNode>
+    : Option<Selection>
     {
         if( srcPath.isEmpty() && trgPath.isEmpty() ) {
             if( srcEnd <= trgStart ) {
@@ -172,7 +225,10 @@ module pnodeEdits {
                 const p3 = newNodes4Trg ;
                 const p4 = node.children( trgEnd , node.count() ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const newStart = trgStart + newNodes4Src.length - (srcEnd-srcStart) ;
+                const newEnd = newStart + newNodes4Trg.length ;
+                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
             } else if( trgEnd <= srcStart ) {
                 const p0 = node.children( 0, trgStart ) ;
                 const p1 = newNodes4Trg ;
@@ -180,69 +236,103 @@ module pnodeEdits {
                 const p3 = newNodes4Src ;
                 const p4 = node.children( srcEnd , node.count() ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const newEnd = trgStart + newNodes4Trg.length ;
+                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), trgStart, newEnd ) ) ;
             } else {
-                // Overlaping src and target ranges.  This is ambiguous.
-                // We'll try it both ways and pick one that works.
-                // If both work, we'll arbitrarily put the source nodes first.
+                // Overlaping src and target ranges.  This is ambiguous unless either the new source nodes
+                // or the new target nodes are empty.
+                if( newNodes4Src.length != 0 && newNodes4Trg.length != 0 ) {
+                    // Ambiguous case. This might happen if we swap a node with itself.
+                    // It should fail.
+                    return collections.none<Selection>() ;
+                }
                 const start = Math.min( srcStart, trgStart ) ;
                 const end = Math.max( srcEnd, trgEnd ) ;
                 const p0 = node.children( 0, start ) ;
                 const p1 = node.children( end , node.count() ) ;
-                const newChildrenA = p0.concat( newNodes4Src, newNodes4Trg, p1 ) ;
-                const newChildrenB = p0.concat( newNodes4Trg, newNodes4Src, p1 ) ;
-                return   pnode.tryMake( node.label(), newChildrenA )
-                       .orElse(
-                         pnode.tryMake( node.label(), newChildrenB ) ) ;
+                const newChildren = p0.concat( newNodes4Trg, newNodes4Src, p1 ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const newEnd = start + newNodes4Trg.length ;
+                return opt.map( newNode =>
+                    new Selection( newNode, collections.nil<number>(), start, newEnd ) )  ;
             }
         } else if( srcPath.isEmpty() ) {
-            return doubleReplaceHelper( node, srcStart, srcEnd, newNodes4Src, trgPath, trgStart, trgEnd, newNodes4Trg, allowTrgAncestorOverwrite ) ;
+            return doubleReplaceOnePathEmpty( node, srcStart, srcEnd, newNodes4Src, trgPath, trgStart, trgEnd, newNodes4Trg, allowTrgAncestorOverwrite, true ) ;
         } else if( trgPath.isEmpty() ) {
-            return doubleReplaceHelper( node, trgStart, trgEnd, newNodes4Trg, srcPath, srcStart, srcEnd, newNodes4Src, allowSrcAncestorOverwrite ) ;
+            return doubleReplaceOnePathEmpty( node, trgStart, trgEnd, newNodes4Trg, srcPath, srcStart, srcEnd, newNodes4Src, allowSrcAncestorOverwrite, false ) ;
         } else if( srcPath.first() == trgPath.first() ) {
             const k = srcPath.first() ;
             const len = node.count() ;
-            assert.check( 0 <= k, "Bad Path. k < 0 in doubleReplace" ) ;
-            assert.check( k < len, "Bad Path. k >= len in doubleReplace" ) ;
+            assert.check( 0 <= k, "Bad Path. k < 0" ) ;
+            assert.check( k < len, "Bad Path. k >= len" ) ;
             const child = node.child( k ) ;
-            const opt = doubleReplace( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
-            opt.bind( newChild => {
+            const opt = doubleReplaceHelper( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
+            opt.bind( newSeln => {
                 const p0 = node.children( 0, k ) ;
+                const p1 = [newSeln.root()] ;
                 const p2 = node.children( k+1, node.count()) ;
-                const newChildren = p0.concat( [newChild], p2 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ;
-            } ) ;
+                const newChildren = p0.concat( p1, p2 ) ;
+                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                return opt.map( newNode => 
+                    new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
+             } ) ;
         } else {
             // Neither path is empty
             const kSrc = srcPath.first() ;
             const kTrg = trgPath.first() ;
             const len = node.count() ;
-            assert.check( 0 <= kSrc, "Bad Path. k < 0 in doubleReplace" ) ;
-            assert.check( kSrc < len, "Bad Path. k >= len in doubleReplace" ) ;
-            assert.check( 0 <= kTrg, "Bad Path. k < 0 in doubleReplace" ) ;
-            assert.check( kSrc < kTrg, "Bad Path. k >= len in doubleReplace" ) ;
+            assert.check( 0 <= kSrc, "Bad Path. k < 0" ) ;
+            assert.check( kSrc < len, "Bad Path. k >= len" ) ;
+            assert.check( 0 <= kTrg, "Bad Path. k < 0" ) ;
+            assert.check( kSrc < kTrg, "Bad Path. k >= len" ) ;
             const childSrc = node.child( kSrc ) ;
             const childTrg = node.child( kTrg ) ;
-            const optSrc = singleReplace( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            const optTrg = singleReplace( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            optSrc.bind( newSrcChild => optTrg.bind( newTrgChild  => {
+            const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
+            const optTrg = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
+            optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
                 let p0, p1, p2, p3, p4 ;
                 if( kSrc < kTrg ) {
                     p0 = node.children( 0, kSrc ) ;
-                    p1 = [newSrcChild] ;
+                    p1 = [newSrcSeln.root()] ;
                     p2 = node.children( kSrc+1, kTrg ) ;
-                    p3 = [newTrgChild] ;
+                    p3 = [newTrgSeln.root()] ;
                     p4 = node.children( kTrg+1, len ) ; }
                 else {
                     p0 = node.children( 0, kTrg ) ;
-                    p1 = [newTrgChild] ;
+                    p1 = [newTrgSeln.root()] ;
                     p2 = node.children( kTrg+1, kSrc ) ;
-                    p3 = [newSrcChild] ;
+                    p3 = [newSrcSeln.root()] ;
                     p4 = node.children( kSrc+1, len ) ; }
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                return pnode.tryMake( node.label(), newChildren ) ;
-            } ) ) ;
+                const opt =  pnode.tryMake( node.label(), newChildren ) ;
+                return opt.map( newNode =>
+                    new Selection( newNode, cons( kTrg, newTrgSeln.path()), newTrgSeln.anchor(), newTrgSeln.focus() ) ) ;
+            } ) ) ; }
+    }
+
+    function extractSelectedNodes(selection : Selection) : Array<PNode> {
+        function loop(node:PNode, path:List<number>,
+                          start:number, end:number) : Array<PNode> {
+            if (path.isEmpty()) {
+                return node.children(start, end); }
+            else {
+                const k = path.first();
+                const len = node.count();
+                assert.check(0 <= k, "Bad Path. k < 0");
+                assert.check(k < len, "Bad Path. k >= len");
+                return loop(node.child(k), path.rest(), start, end); }
         }
+        // Determine the start and end
+        var start:number;
+        var end:number;
+        if (selection.anchor() <= selection.focus()) {
+            start = selection.anchor();
+            end = selection.focus(); }
+        else {
+            start = selection.focus();
+            end = selection.anchor(); }
+        return loop( selection.root(), selection.path(), start, end ) ;
     }
 
     /** Replace all selected nodes with another sequence of nodes. 
@@ -258,19 +348,11 @@ module pnodeEdits {
         applyEdit( selection : Selection ) : Option<Selection> {
 
             // Determine the start and end
-            var start : number ;
-            var end : number ;
-            if( selection.anchor() <= selection.focus() ) {
-                start = selection.anchor() ; end = selection.focus() ; }
-            else {
-                start = selection.focus() ; end = selection.anchor() ; }
-            // Loop down to find and modify the selections target node.
-            const opt = singleReplace( selection.root(), selection.path(), start, end, this._newNodes ) ;
-            // If successful, build a new Selection object.
-            return opt.map(
-                    ( newRoot : PNode ) => {
-                        const f = start + this._newNodes.length;
-                        return new Selection( newRoot, selection.path(), start, f) ; } ) ;
+            const start : number = Math.min( selection.anchor(), selection.focus() );
+            const end : number = Math.max( selection.anchor(), selection.focus() );
+
+            // Try to make the replacement.
+            return singleReplace( selection, this._newNodes ) ;
         }
     }
 
@@ -283,11 +365,11 @@ module pnodeEdits {
             super() ; }
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            var noPH = new pnodeEdits.InsertChildrenEdit([]);
-            var withPH = new pnodeEdits.InsertChildrenEdit([pnode.mkExprPH()]);
-            var alt = edits.alt(noPH, withPH);
-
-            return alt.applyEdit(selection);
+            const opt = singleReplace( selection, [] ) ;
+            // TODO add more choices for replacement, such as noType, noExp, etc.
+            return opt.recoverBy(
+                () => singleReplace( selection, [pnode.mkExprPH()] )
+            ) ;
         }
     }
 
@@ -323,8 +405,8 @@ module pnodeEdits {
                 else {
                     const k = path.first();
                     const len = node.count();
-                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
-                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
+                    assert.check(0 <= k, "Bad Path. k < 0");
+                    assert.check(k < len, "Bad Path. k >= len");
                     const opt = loop(node.child(k), path.rest(), start, end);
                     return opt.choose(
                         (newChild:PNode):Option<PNode> => {
@@ -365,381 +447,67 @@ module pnodeEdits {
     }
 
     /** Copy all nodes in one selection over the selected nodes in another. */
-    export class CopyNodeEdit extends AbstractEdit<Selection> {
-        _newNodes : Array<PNode> ;
+    export class CopyEdit extends AbstractEdit<Selection> {
+        _srcNodes : Array<PNode> ;
 
-        constructor(selection:Selection) {
+        constructor(srcSelection:Selection) {
             super();
-
-            const loop = (node:PNode, path:List<number>,
-                          start:number, end:number) => {
-                if (path.isEmpty()) {
-                    //console.log("this._newNodes is " + this._newNodes ) ;
-                    this._newNodes = node.children(start, end);
-                }
-                else {
-                    const k = path.first();
-                    const len = node.count();
-                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
-                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
-                    loop(node.child(k), path.rest(), start, end);
-                }
-            };
-
-            // Determine the start and end
-            var start:number;
-            var end:number;
-            if (selection.anchor() <= selection.focus()) {
-                start = selection.anchor();
-                end = selection.focus();
-            }
-            else {
-                start = selection.focus();
-                end = selection.anchor();
-            }
-            // Loop down to find and modify the selections target node.
-            loop(selection.root(), selection.path(), start, end);
-
+            this._srcNodes = extractSelectedNodes( srcSelection );
         }
 
         applyEdit(selection:Selection):Option<Selection> {
-
-            var edit = new pnodeEdits.InsertChildrenEdit(this._newNodes);
-            return edit.applyEdit(selection);
+            return singleReplace( selection, this._srcNodes ) ;
         }
-
     }
 
-    /** Move nodes by first copying them and then deleting the originals.
-     * The nodes to be moved are indicated by the parameter to the constuctor.
+    /** Move nodes by copying them and, at the same time deleting, the originals.
+     * The nodes to be moved are indicated by the first parameter to the constuctor.
+     * The source is given as a constructor parameter.
+     * The target as a parameter to applyEdit.
+     * The source and target selections must share the same tree. Otherwise the edit will fail.
+     * The resuling selection will select the nodes inserted to overwrite the target selection.
      */
-    export class MoveNodeEdit extends AbstractEdit<Selection> {
-        _newNodes : Array<PNode> ;
-        _oldSelection : Selection;
+    export class MoveEdit extends AbstractEdit<Selection> {
+        _srcSelection : Selection ;
 
-        constructor(selection:Selection) {
+        constructor( srcSelection:Selection ) {
             super();
-            const loop = (node:PNode, path:List<number>,
-                          start:number, end:number) => {
-                if (path.isEmpty()) {
-                    //console.log("this._newNodes is " + this._newNodes ) ;
-                    this._newNodes = node.children(start, end);
-                }
-                else {
-                    const k = path.first();
-                    const len = node.count();
-                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
-                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
-                    loop(node.child(k), path.rest(), start, end);
-                }
-            };
-
-            // Determine the start and end
-            var start:number;
-            var end:number;
-            this._oldSelection = selection;
-            if (selection.anchor() <= selection.focus()) {
-                start = selection.anchor();
-                end = selection.focus();
-            }
-            else {
-                start = selection.focus();
-                end = selection.anchor();
-            }
-            // Loop down to find and modify the selections target node.
-            loop(selection.root(), selection.path(), start, end);
+            this._srcSelection = srcSelection ;
         }
 
-        applyEdit(selection:Selection):Option<Selection> {
-            if (selection.root().get(selection.path()).children(selection.anchor(), selection.focus()).length != 0){
-                //if you are moving to an occupied space, you cannot move
-                return new None<Selection>();
-            }
-            
-            var edit = new InsertChildrenEdit(this._newNodes);
-            var selwithchildren = edit.applyEdit(selection).choose(
-                p => p,
-                    () => {
-                        // TODO This assert is troubling.  I think the move
-                        // should fail if the copy can not be done.
-                        assert.check(false, "Error applying edit to node");
-                        return null;
-                    });
-            // TODO What if this selection violates the invariant.
-            // I think the move should fail.
-            var newSel = new Selection(selwithchildren.root(), this._oldSelection.path(), this._oldSelection.anchor(), this._oldSelection.focus());
-            var edit2 = new DeleteEdit();
-            return edit2.applyEdit(newSel);
+        applyEdit( trgSelection:Selection ) : Option<Selection> {
+            if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
+            const newNodes = extractSelectedNodes( this._srcSelection );
+            // Try filling in with the empty sequence first. Otherwise try some other defaults.
+            const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
+            // TODO add more choices for replacement, such as noType, noExp, etc.
+            return opt.recoverBy(
+                () => doubleReplace( this._srcSelection, [pnode.mkExprPH()], trgSelection, newNodes, true, false ) 
+            ) ;
         }
     }
 
-    /** Swap.  TODO document after code is reviewed. */
+    /** Swap.  Swap two selections that share the same root.
+     * For example we should be able to swap the then and else part of an if node.
+     * The source is given as a constructor parameter.
+     * The target as a parameter to applyEdit.
+     * The source and target selections must share the same tree. Otherwise the edit will fail.
+     * The resuling selection will select the nodes inserted to overwrite the target selection.
+    */
     export class SwapEdit extends AbstractEdit<Selection> {
-        _srcNodes:Array<PNode>;
-        _trgNodes:Array<PNode>;
         _srcSelection:Selection;
-        _trgSelection:Selection;
 
-        // TODO: Why does this need two constructor parameters?
-        constructor(srcSelection:Selection, trgSelection:Selection) {
+        constructor(srcSelection:Selection) {
             super();
 
             this._srcSelection = srcSelection;
-            this._trgSelection = trgSelection;
-            this._srcNodes = this.getChildrenToSwap(srcSelection);
-            this._trgNodes = this.getChildrenToSwap(trgSelection);
-
-            if (this._srcNodes == null) {
-                this._srcNodes = []; //TODO why would this ever be a thing??? It's been happening
-            }
-            if (this._trgNodes == null) {
-                this._trgNodes = [];
-            }
-
         }
 
-        canApply():boolean {
-            return this.applyEdit().choose(
-                a => true,
-                () => false);
-        }
-
-        getChildrenToSwap(selection:Selection):Array<PNode> {
-            const loop = (node:PNode, path:List<number>,
-                          start:number, end:number):Array<PNode> => {
-                if (path.isEmpty()) {
-                    //console.log("this._newNodes is " + this._newNodes ) ;
-                    return node.children(start, end);
-                }
-                else {
-                    const k = path.first();
-                    const len = node.count();
-                    assert.check(0 <= k, "Bad Path. k < 0 in applyEdit");
-                    assert.check(k < len, "Bad Path. k >= len in applyEdit");
-                    loop(node.child(k), path.rest(), start, end);
-                }
-            };
-
-            // Determine the start and end
-            var start:number;
-            var end:number;
-            if (selection.anchor() <= selection.focus()) {
-                start = selection.anchor();
-                end = selection.focus();
-            }
-            else {
-                start = selection.focus();
-                end = selection.anchor();
-            }
-            // Loop down to find and modify the selections target node.
-            return loop(selection.root(), selection.path(), start, end);
-        }
-
-        applyEdit():Option<Selection> {
-            // The following function dives down the tree following the path
-            // until it reaches the node to be changed.
-            // As it climbs back out of the recursion it generates new
-            // nodes along the path it followed.
-            const loop = (srcnode:PNode, srcpath:List<number>, trgpath:List<number>,
-                          srcstart:number, srcend:number, trgstart:number, trgend:number):Option<PNode> => {
-                if (srcpath.isEmpty() && trgpath.isEmpty()) {
-                    if (srcend <= trgstart) {
-                        var newchildren = srcnode.children(0, srcstart).concat(this._srcNodes).concat(
-                            srcnode.children(srcend, trgstart)).concat(this._trgNodes).concat(
-                            srcnode.children(trgend, srcnode.count()));
-
-                        return srcnode.tryModify(newchildren, 0, srcnode.count());
-                    }
-                    else if (trgstart <= srcend) {
-                        var newchildren = srcnode.children(0, trgstart).concat(this._srcNodes).concat(
-                            srcnode.children(trgend, srcstart)).concat(this._trgNodes).concat(
-                            srcnode.children(srcend, srcnode.count()));
-
-                        return srcnode.tryModify(newchildren, 0, srcnode.count());
-                    }
-                    else {
-                        //they overlap, fail
-                        return new None<PNode>();
-                    }
-                }
-                else if (srcpath.isEmpty() && !trgpath.isEmpty()) {
-                    if (trgpath.first() < srcstart) {
-                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
-                        var sel = new Selection(srcnode.child(trgpath.first()), trgpath.rest(), trgstart, trgend);
-                        var opt = singleReplaceTest.applyEdit(sel);
-
-                        var sel1 = opt.choose(
-                            p => p,
-                            () => {
-                                // TODO. What the FUCH is going on here?
-                                return null;
-                            });
-
-                        if (sel1 != null) {
-                            var newchildren = srcnode.children(0, trgpath.first()).concat(sel1.root()).concat(
-                                srcnode.children(trgpath.first() + 1, srcstart)).concat(this._srcNodes).concat(
-                                srcnode.children(srcend, srcnode.count()));
-
-                            return srcnode.tryModify(newchildren, 0, srcnode.count());
-                        }
-
-                    } else if (srcend <= trgpath.first()) {
-
-                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
-                        var sel = new Selection(srcnode.child(trgpath.first()), trgpath.rest(), trgstart, trgend);
-                        var opt = singleReplaceTest.applyEdit(sel);
-
-                        var sel1 = opt.choose(
-                            p => p,
-                            () => {
-                                // TODO. What the FUCH is going on here?
-                                return null;
-                            });
-
-                        if (sel1 != null) {
-                            var newchildren = srcnode.children(0, srcstart).concat(this._srcNodes).concat(
-                                srcnode.children(srcend, trgpath.first())).concat(sel1.root()).concat(
-                                srcnode.children(trgpath.first() + 1, srcnode.count()));
-
-                            return srcnode.tryModify(newchildren, 0, srcnode.count());
-                        }
-                    }
-                    else {
-                        // srcstart <= trgpath.first() and trgpath.first() < srcend
-                        return new None<PNode>();
-                    }
-                }
-                else if (!srcpath.isEmpty() && trgpath.isEmpty()) {
-                    if (srcpath.first() < trgstart) {
-                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
-                        var sel = new Selection(srcnode.child(srcpath.first()), srcpath.rest(), srcstart, srcend);
-                        var opt = singleReplaceTest.applyEdit(sel);
-
-                        var sel1 = opt.choose(
-                            p => p,
-                            () => {
-                                return null;
-                            });
-
-                        if (sel1 != null) {
-                            var newchildren = srcnode.children(0, srcpath.first()).concat(sel1.root()).concat(
-                                srcnode.children(srcpath.first() + 1, trgstart)).concat(this._srcNodes).concat(
-                                srcnode.children(trgend, srcnode.count()));
-
-                            return srcnode.tryModify(newchildren, 0, srcnode.count());
-                        }
-
-                    } else if (trgend <= srcpath.first()) {
-
-                        var singleReplaceTest = new InsertChildrenEdit(this._trgNodes);
-                        var sel = new Selection(srcnode.child(srcpath.first()), srcpath.rest(), srcstart, srcend);
-                        var opt = singleReplaceTest.applyEdit(sel);
-
-                        var sel1 = opt.choose(
-                            p => p,
-                            () => {
-                                return null;
-                            });
-
-                        if (sel1 != null) {
-                            var newchildren = srcnode.children(0, trgstart).concat(this._srcNodes).concat(
-                                srcnode.children(trgend, srcpath.first())).concat(sel1.root()).concat(
-                                srcnode.children(srcpath.first() + 1, srcnode.count()));
-
-                            return srcnode.tryModify(newchildren, 0, srcnode.count());
-                        }
-                        else {
-                            // trgstart <= src.first() and src.first() < trgend
-                            return new None<PNode>();
-                        }
-                    }
-                else if (srcpath.first() != trgpath.first()) {
-                        var singleReplaceTest = new InsertChildrenEdit(this._srcNodes);
-                        var sel = new Selection(srcnode.child(srcpath.first()), trgpath.rest(), trgstart, trgend);
-                        var opt = singleReplaceTest.applyEdit(sel);
-
-                        var sel1 = opt.choose(
-                            p => p,
-                            () => {
-                                return null;
-                            });
-
-                        if (sel1 != null) {
-                            var replace2 = new InsertChildrenEdit(this._trgNodes);
-                            var sel2 = new Selection(sel1.root(), srcpath.rest(), srcstart, srcend);
-                            var opt2 = singleReplaceTest.applyEdit(sel2);
-
-                            var sel3 = opt2.choose(
-                                p => p,
-                                () => {
-                                    return null;
-                                });
-
-                            if (sel3 != null) {
-                                return new Some(sel3);
-                            }
-                        }
-                        return new None<PNode>();
-                    }
-                }
-                else {
-                    const srck = srcpath.first();
-                    const srclen = srcnode.count();
-                    const trgk = trgpath.first();
-
-                    assert.check(0 <= srck && 0 <= trgk, "Bad Path. k < 0 in applyEdit");
-                    assert.check(srck < srclen && trgk < srclen, "Bad Path. k >= len in applyEdit");
-                    const opt = loop(srcnode.child(srck), srcpath.rest(), trgpath.rest(), srcstart, srcend, trgstart, trgend);
-                    return opt.choose(
-                        (newChild:PNode):Option<PNode> => {
-                            return srcnode.tryModify([newChild], trgk, trgk + 1);
-                        },
-                        () => {
-                            return new None<PNode>();
-                        });
-                }
-            };
-
-            if (this._trgNodes.length == 0){
-                //if the space you are moving to is unoccupied, then you can't swap
-                return new None<Selection>();
-            }
-
-            // Determine the start and end
-            var srcstart:number;
-            var srcend:number;
-            var trgstart:number;
-            var trgend:number;
-            if (this._srcSelection.anchor() <= this._srcSelection.focus()) {
-                srcstart = this. _srcSelection.anchor();
-                srcend = this._srcSelection.focus();
-            }
-            else {
-                srcstart = this. _srcSelection.focus();
-                srcend = this._srcSelection.anchor();
-            }
-            if (this._trgSelection.anchor() <= this._trgSelection.focus()) {
-                trgstart = this. _trgSelection.anchor();
-                trgend = this._trgSelection.focus();
-            }
-            else {
-                trgstart = this. _trgSelection.focus();
-                trgend = this._trgSelection.anchor();
-            }
-            // Loop down to find and modify the selections target node.
-            const opt = loop(this._srcSelection.root(), this._srcSelection.path(), this._trgSelection.path(), srcstart, srcend, trgstart, trgend);
-            // If successful, build a new Selection object.
-            return opt.choose(
-                (newRoot:PNode):Option<Selection> => {
-                    const f = srcstart;
-                    const newSelection = new Selection(newRoot,
-                        this._srcSelection.path(),
-                        f, f);
-                    return new Some(newSelection);
-                },
-                ():Option<Selection> => {
-                    return new None<Selection>();
-                });
+        applyEdit(trgSelection:Selection) : Option<Selection> {
+            if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
+            const newNodes4Trg = extractSelectedNodes( this._srcSelection ) ;
+            const newNodes4Src = extractSelectedNodes( trgSelection ) ;
+            return doubleReplace( this._srcSelection, newNodes4Src, trgSelection, newNodes4Trg, false, false ) ;
         }
     }
 }
