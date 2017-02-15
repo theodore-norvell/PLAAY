@@ -111,7 +111,7 @@ module pnodeEdits {
             assert.checkPrecondition( 0 <= start && start <= end && end <= node.count() ) ;
             const newChildren = node.children(0, start).concat( newNodes, node.children(end, node.count()) ) ;
             const opt =  pnode.tryMake( node.label(), newChildren ) ;
-            return opt.bind( newNode => collections.some( new Selection( newNode, path, start, start+newChildren.length ) ) ) ;
+            return opt.map( newNode => new Selection( newNode, path, start, start+newNodes.length ) ) ;
         } else {
             const k = path.first() ;
             const len = node.count() ;
