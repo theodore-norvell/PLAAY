@@ -469,27 +469,22 @@ module treeManager {
             return [deletedNode, edit.applyEdit(selection)];
         }
 
+        // TODO: I think this should return an array of [string, string, Selection]
         moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
 
-            var selectionList : Array< [string, string, Option<Selection>] > = [];
+            const selectionList : Array< [string, string, Option<Selection>] > = [];
 
-            var moveedit = new pnodeEdits.MoveNodeEdit(srcSelection);
-            if (moveedit.canApply(trgSelection)) {
-                var sel = moveedit.applyEdit(trgSelection);
-                selectionList.push(["Moved", "Move", sel]);
-            }
+            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
+            const moveResult = moveEdit.applyEdit(trgSelection);
+            selectionList.push(['Moved', "Move", moveResult]);
 
-            var copyedit = new pnodeEdits.CopyNodeEdit(srcSelection);
-            if (copyedit.canApply(trgSelection)) {
-                var sel = copyedit.applyEdit(trgSelection);
-                selectionList.push(['Copied', "Copy", sel]);
-            }
+            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
+            const copyResult = copyEdit.applyEdit( trgSelection ) ;
+            selectionList.push(['Copied', "Copy", copyResult]);
 
-           var swapedit = new pnodeEdits.SwapEdit(srcSelection, trgSelection);
-            if (swapedit.canApply()) {
-                var sel = swapedit.applyEdit();
-                selectionList.push(['Swapped', "Swap", sel]);
-            }
+            const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
+            const swapResult = swapEdit.applyEdit( trgSelection ) ;
+            selectionList.push(['Swapped', "Swap", swapResult]) ;
 
             return selectionList;
 
