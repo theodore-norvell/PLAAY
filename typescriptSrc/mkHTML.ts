@@ -851,17 +851,34 @@ module mkHTML {
             tolerance:"pointer",
             drop: function (event, ui)
             {
-                var selectionArray = [];
+                // TODO: Simplify the drag and drop code.
+                // It's not clear to me why the first two cases are different.
+                // Nor why we need to list so many box types in these if commands.
+                // Note that the way drag and drop should work when a selection is 
+                // dragged from one part of the main tree to another is given in the
+                // requirement in Trello.  Essentially the idea is that such a drag and
+                // drop represents one of the following operations move, copy, swap.
+                // If none of these is possible, the drop is a no-op.
+                // If one of these is possible, then that operation proceeds.
+                // If more than one is possible, then the first of these three (move, copy, swap)
+                // is done and the others are offered as alternatives in a popup dialog that
+                // disappears.
+
+                // First change the current selection to be the the drop target.
                 currentSelection = getPathToNode(currentSelection, $(this));
-                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
-                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
-                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
+                // Case: Dragged object is dropped on a node.
+                if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                      || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                      || (/assign/i.test(draggedObject)) )
+                   && (   (/ifBox/i.test($(this).attr("class")))
+                      || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
+                      || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")) ) ) )
                 {
-                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    // TODO fix the following
+                    const selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
                     selectionArray[0][2].choose(
                         sel => {
+                            // Move is possible. Do the move and offer any others as alternatives.
                             undostack.push(currentSelection);
                             currentSelection = sel;
                             generateHTML(currentSelection);
@@ -869,15 +886,23 @@ module mkHTML {
                             createSwapDialog(selectionArray);
                         },
                         ()=>{
+                            // TODO This makes no sense. If move is not possible, then
+                            // there are other possibilities.
                             generateHTML(currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
-                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
+                // Case: Dragged object is dropped on a dropzone.
+                else if (  (  (/ifBox/i.test(draggedObject))
+                           || (/lambdaBox/i.test(draggedObject))
+                           || (/whileBox/i.test(draggedObject))
+                           || (/callWorld/i.test(draggedObject))
+                           || (/assign/i.test(draggedObject)))
+                        && (/dropZone/i.test($(this).attr("class"))))
                 {
-                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    // TODO fix the following.
+                    // Also, why is this case different from the previous?
+                    const selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
                     selectionArray[0][2].choose(
                         sel => {
                             undostack.push(currentSelection);
@@ -891,6 +916,8 @@ module mkHTML {
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
+                // Case: Dragged object is dragged from the trash to a dropzone
+                // TODO Why only dropzones?
                 else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
                 {
                     undostack.push(currentSelection);
@@ -906,13 +933,15 @@ module mkHTML {
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
+                // Case default.  I think this is used for pallette items.
                 else
                 {
                     console.log(ui.draggable.attr("id"));
-                    undostack.push(currentSelection);
+                    // Add create a new node and use it to replace the current selection.
                     var selection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
                     selection.choose(
                         sel => {
+                            undostack.push(currentSelection);
                             currentSelection = sel;
                             generateHTML(currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
@@ -986,7 +1015,7 @@ module mkHTML {
         });
     }
 
-    function getPathToNode(select:Selection, self ) : Selection
+    function getPathToNode( select:Selection, self : JQuery ) : Selection
     {
         var array = [];
         var anchor;
