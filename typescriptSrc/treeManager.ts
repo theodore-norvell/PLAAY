@@ -104,10 +104,11 @@ module treeManager {
             }
         }
 
+        // TODO Change this name to insertNodes and change the type of the first
+        // parameter to an array of nodes.
         appendChild(srcSelection:Selection, trgSelection:Selection) : Option<Selection> {
             var edit = new pnodeEdits.InsertChildrenEdit([srcSelection.root()]);
             return edit.applyEdit(trgSelection);
-
         }
 
         private makeVarNode(selection:Selection) : Option<Selection> {
@@ -133,12 +134,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.WhileLabel.theWhileLabel, [cond, seq]);
 
-            var whilenode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var whilenode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
             return edit.applyEdit(selection);
@@ -152,12 +148,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.IfLabel.theIfLabel, [guard, thn, els]);
 
-            var ifnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var ifnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
             return edit.applyEdit(selection);
@@ -167,22 +158,13 @@ module treeManager {
 
             var header = pnode.mkParameterList([]);
             var lambdatype = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-            var dothis = pnode.mkExprSeq([]);
+            var ltype = lambdatype.first();
 
-            var ltype = lambdatype.choose(
-                p => p,
-                () => {
-                    return null;
-                });
+            var dothis : PNode = pnode.mkExprSeq([]);
 
             var opt = pnode.tryMake(pnode.LambdaLabel.theLambdaLabel, [header, ltype, dothis]);
 
-            var lambdanode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var lambdanode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
             return edit.applyEdit(selection);
@@ -197,12 +179,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.AssignLabel.theAssignLabel, [left, right]);
 
-            var assignnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var assignnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
             return edit.applyEdit(selection);
@@ -215,20 +192,11 @@ module treeManager {
             var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
             var val = pnode.mkExprOpt();
 
-            var ttype = typeNode.choose(
-                p => p,
-                () => {
-                    return null;
-                });
+            var ttype = typeNode.first() ;
 
             var opt = pnode.tryMake(pnode.VarDeclLabel.theVarDeclLabel, [varNode, ttype, val]);
 
-            var vardeclnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var vardeclnode = opt.first();
 
             var edit = new pnodeEdits.InsertChildrenEdit([vardeclnode]);
             return edit.applyEdit(selection);
@@ -242,12 +210,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.CallWorldLabel.theCallWorldLabel, [left, right]);
 
-            var worldcallnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var worldcallnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
             return edit.applyEdit(selection);
@@ -258,12 +221,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.CallLabel.theCallLabel, []);
 
-            var callnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var callnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([callnode]);
             return edit.applyEdit(selection);
@@ -273,12 +231,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
 
-            var typenode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var typenode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([typenode]);
            return edit.applyEdit(selection);
@@ -288,12 +241,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.StringLiteralLabel.theStringLiteralLabel, []);
 
-            var literalnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var literalnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
            return edit.applyEdit(selection);
@@ -303,12 +251,7 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
 
-            var literalnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var literalnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
@@ -317,13 +260,7 @@ module treeManager {
         private makeBooleanLiteralNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.BooleanLiteralLabel.theBooleanLiteralLabel, []);
-
-            var literalnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var literalnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
            return edit.applyEdit(selection);
@@ -333,17 +270,13 @@ module treeManager {
 
             var opt = pnode.tryMake(pnode.NullLiteralLabel.theNullLiteralLabel, []);
 
-            var literalnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            var literalnode = opt.first() ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makePenNode(selection:Selection) : Option<Selection> {
 
             var val = pnode.mkExprPH();
@@ -361,6 +294,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeForwardNode(selection:Selection) : Option<Selection> {
 
             var val = pnode.mkExprPH();
@@ -378,6 +312,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeRightNode(selection:Selection) : Option<Selection> {
 
             var val = pnode.mkExprPH();
@@ -395,6 +330,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeLeftNode(selection:Selection) : Option<Selection> {
 
             var val = pnode.mkExprPH();
@@ -412,6 +348,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeHideNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.HideLabel.theHideLabel, []);
@@ -427,6 +364,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeShowNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.ShowLabel.theShowLabel, []);
@@ -442,6 +380,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        // TODO: Use CallWorld.
         private makeClearNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.ClearLabel.theClearLabel, []);
@@ -460,7 +399,6 @@ module treeManager {
         changeNodeString(selection:Selection, newString:string) : Option<Selection> {
             var edit = new pnodeEdits.ChangeLabelEdit(newString);
             return edit.applyEdit(selection);
-
         }
 
         deleteNode(selection:Selection) : [Array<PNode>, Option<Selection>] {
@@ -469,7 +407,8 @@ module treeManager {
             return [deletedNode, edit.applyEdit(selection)];
         }
 
-        // TODO: I think this should return an array of [string, string, Selection]
+        // TODO: I think this would better return an array of [string, string, Selection]
+        // However, the current return type is what the UI code expects.
         moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
 
             const selectionList : Array< [string, string, Option<Selection>] > = [];
