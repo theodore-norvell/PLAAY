@@ -5,15 +5,15 @@
 import collections = require( './collections' );
 import sharedMkHtml = require('./sharedMkHtml');
 
-module createHtmlElements {
+module createHtmlElements 
+{
 
     import list = collections.list;
 
-	var currentSelection = sharedMkHtml.currentSelection;
 	var undostack = sharedMkHtml.undostack;
 
-	export function createHtmls () {
-		
+	export function createHtmls () 
+	{	
 		const bodyConst = $("body");
 		create("div", "sidebar evalHidden", "sidebar", bodyConst);
 		const sidebarConst = $("#sidebar");
@@ -64,7 +64,8 @@ module createHtmlElements {
 		}
 	}
 
-	function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery {
+	function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery 
+	{
 		var obj = $("<" + elementType + "></" + elementType + ">");
 		if (className) { obj.addClass(className); }
 		if (idName) { obj.attr("id", idName); }
@@ -72,26 +73,30 @@ module createHtmlElements {
 		return obj;
 	}
 	
-	function createTexted(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery {
+	function createTexted(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery 
+	{
 		var obj = create(elementType, className, idName, parentElement);
 		if (textContent) { obj.text(textContent); }
 		return obj;
 	}
 
-	function createValued(elementType: string, parentElement: JQuery, value: string) : JQuery {
+	function createValued(elementType: string, parentElement: JQuery, value: string) : JQuery 
+	{
 		var obj = $("<" + elementType + "></" + elementType + ">");
 		if (parentElement) { obj.appendTo(parentElement); }
 		if (value) { obj.val(value); }
 		return obj;
 	}
 
-	function createPrepended(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string, prependToThis: JQuery) : JQuery {
+	function createPrepended(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string, prependToThis: JQuery) : JQuery 
+	{
 		var obj = createTexted(elementType, className, idName, parentElement, textContent);
 		if (prependToThis) { obj.prependTo(prependToThis); }
 		return obj;
 	}
 
-	function createHidden(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery {
+	function createHidden(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string) : JQuery 
+	{
 		return createTexted(elementType, className, idName, parentElement, textContent).css("visibility", "hidden");
 	}
 

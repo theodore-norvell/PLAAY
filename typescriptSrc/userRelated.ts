@@ -15,7 +15,6 @@ module userRelated
     import list = collections.list;
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import Selection = pnodeEdits.Selection;
-	var currentSelection = sharedMkHtml.currentSelection;
 
 	export function userRelatedActions () 
 	{
@@ -281,8 +280,8 @@ module userRelated
         var programName = name;
         var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
             $("#dimScreen").remove();
-            currentSelection = unserialize(response.responseText);
-            //generateHTML(currentSelection);
+            sharedMkHtml.currentSelection = unserialize(response.responseText);
+            sharedMkHtml.generateHTML(sharedMkHtml.currentSelection);
             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         });
     }
@@ -291,7 +290,7 @@ module userRelated
     {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        var currentSel = serialize(currentSelection);
+        var currentSel = serialize(sharedMkHtml.currentSelection);
         var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
             function(){
                 console.log(response.responseText);
@@ -302,7 +301,7 @@ module userRelated
 
     function serialize(select : Selection) : string
     {
-        var json = pnode.fromPNodeToJSON(currentSelection.root());
+        var json = pnode.fromPNodeToJSON(sharedMkHtml.currentSelection.root());
         return json;
     }
 

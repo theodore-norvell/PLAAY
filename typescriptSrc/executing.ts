@@ -23,7 +23,6 @@ module executing
     import Value = vms.Value ;
 
     var currentvms;
-	var currentSelection = sharedMkHtml.currentSelection;
     var evaluation = new EvaluationManager();
     var turtle : boolean = false ;
     var highlighted = false;
@@ -43,9 +42,9 @@ module executing
     {
 		$(".evalHidden").css("visibility", "hidden");
 		$(".evalVisible").css("visibility", "visible");
-        currentvms = evaluation.PLAAY(currentSelection.root(), turtle ? turtleWorld : null );
+        currentvms = evaluation.PLAAY(sharedMkHtml.currentSelection.root(), turtle ? turtleWorld : null );
         $("#vms").empty()
-			.append(traverseAndBuild(currentSelection.root(), currentSelection.root().count(), true))
+			.append(traverseAndBuild(sharedMkHtml.currentSelection.root(), sharedMkHtml.currentSelection.root().count(), true))
         	.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
@@ -59,19 +58,23 @@ module executing
 			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true))
 			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
 		var root = $("#vms :first-child").get(0);
-        if (!highlighted && currentvms.getEval().ready) {
+        if (!highlighted && currentvms.getEval().ready) 
+        {
             const vms : HTMLElement = document.getElementById("vms") ;
             var list = arrayToList(currentvms.getEval().getPending());
             findInMap(root, currentvms.getEval().getVarMap());
             highlight(root, list);
             visualizeStack(currentvms.getEval().getStack());
             highlighted = true;
-        } else {
+        } 
+        else 
+        {
             findInMap(root, currentvms.getEval().getVarMap());
             visualizeStack(currentvms.getEval().getStack());
             highlighted = false;
         }
-        if(turtle) {
+        if(turtle) 
+        {
             redraw(currentvms);
         }
     }
@@ -79,7 +82,8 @@ module executing
     function stepTillDone() 
 	{
         currentvms = evaluation.next();
-        while(!currentvms.getEval().isDone()) {
+        while(!currentvms.getEval().isDone()) 
+        {
             currentvms = evaluation.next();
 		}
 		$("#vms").empty()
@@ -116,10 +120,12 @@ module executing
         if(pending.isEmpty())
         {
             var self = $(parent);
-            if(self.index() == 0) {
+            if(self.index() == 0) 
+            {
 				$("<div class='selected V'></div>").prependTo(self.parent());
 			}
-            else {
+            else 
+            {
 				$("<div class='selected V'></div>").insertBefore(self);
 			}
             self.detach().appendTo($(".selected"));
@@ -134,7 +140,8 @@ module executing
                 if(index != check) {
 					highlight(parent.children[index], pending.rest());
 				}
-                else {
+                else 
+                {
 					highlight(parent.children[check], pending.rest());
 				}
             }
@@ -182,7 +189,8 @@ module executing
             // HTML.
             self.replaceWith("<div class='inmap'>"+ value.toString() +"</div>");
         }
-        else{
+        else
+        {
             var child = $(root);
             if ( child.children('div[data-childNumber="' + path.first() + '"]').length > 0 )
             {
