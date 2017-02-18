@@ -1,3 +1,7 @@
+/** Collection types such as lists. 
+ * 
+ */
+
 module collections {
     export interface Collection<A> {
     
@@ -10,9 +14,11 @@ module collections {
         /** Precondition: !isEmpty() */
         first : () => A ;
         
+        /** Create a collection of the same kind by applying a function to all members of this collection. */
         map : <B> (f : (a:A) => B ) => Collection<B> ;
     }
     
+    /** A collection of 0 or one thing. */
     export interface Option<A> extends Collection<A> {
         choose : <B>( f: (a:A) => B, g : () => B ) => B ;
         map : <B> (f : (a:A) => B ) => Option<B> ;
@@ -69,7 +75,7 @@ module collections {
     export function none<A>() : Option<A> {
         return new None<A>() ; }
     
-    /** Lisp-like lists */
+    /** Lisp-like lists. */
     export abstract class List<A> implements Collection<A> {
         abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
         
