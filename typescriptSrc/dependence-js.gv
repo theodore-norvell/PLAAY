@@ -3,10 +3,12 @@ digraph Depends {
    gsize="8,6"; ratio=fill;
    node[fontsize=8, shape=rectangle];
 
-   createHtmlElements -> sharedMkHtml ;
-
    //edits -> assert ;
    //edits -> collections ;
+   
+   editing -> sharedMkHtml ;
+   editing -> pnodeEdits ;
+   editing -> treeManager ;
 
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
@@ -20,15 +22,10 @@ digraph Depends {
    //mkHtml -> collections ;
 
    mkHtml -> createHtmlElements ;
+   mkHtml -> editing ;
    mkHtml -> executing ;
    mkHtml -> pnodeEdits ;
-   mkHtml -> sharedMkHtml ;
-   mkHtml -> treeManager ;
    mkHtml -> userRelated ;
-
-   //playground -> collections ;
-   playground -> pnode ;
-   playground -> pnodeEdits ;
 
    //pnode -> assert ;
    //pnode -> collections ;
@@ -50,6 +47,10 @@ digraph Depends {
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
+   userRelated -> editing ;
+   userRelated -> pnodeEdits ;
+   userRelated -> pnode ;
+   userRelated -> sharedMkHtml ;
    //turtleTest -> seymour ;
 
    //valueTypes -> assert ;

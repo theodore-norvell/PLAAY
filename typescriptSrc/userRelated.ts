@@ -1,10 +1,12 @@
 /// <reference path="collections.ts" />
+/// <reference path="editing.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="jquery.d.ts" />
 
 import collections = require( './collections' );
+import editing = require( './editing' );
 import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
 import sharedMkHtml = require('./sharedMkHtml');
@@ -278,10 +280,11 @@ module userRelated
     {
         var currentUser = $('#userSettings :input').val();
         var programName = name;
-        var response = $.post("/LoadProgram", { username: currentUser, programname: programName }, function() {
+        var response = $.post("/LoadProgram", { username: currentUser, programname: programName },
+           function() { // TODO Move this callback function to the editor.
             $("#dimScreen").remove();
             sharedMkHtml.currentSelection = unserialize(response.responseText);
-            sharedMkHtml.generateHTML(sharedMkHtml.currentSelection);
+            editing.generateHTML(sharedMkHtml.currentSelection);
             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         });
     }

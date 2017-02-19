@@ -22,8 +22,7 @@ module executing
     import VarStack = vms.VarStack;
     import Value = vms.Value ;
 
-    var currentvms;
-    var evaluation = new EvaluationManager();
+    const evaluationMgr = new EvaluationManager();
     var turtle : boolean = false ;
     var highlighted = false;
 
@@ -42,7 +41,7 @@ module executing
     {
 		$(".evalHidden").css("visibility", "hidden");
 		$(".evalVisible").css("visibility", "visible");
-        currentvms = evaluation.PLAAY(sharedMkHtml.currentSelection.root(), turtle ? turtleWorld : null );
+        evaluationMgr.initialize(sharedMkHtml.currentSelection.root(), turtle ? turtleWorld : null );
         $("#vms").empty()
 			.append(traverseAndBuild(sharedMkHtml.currentSelection.root(), sharedMkHtml.currentSelection.root().count(), true))
         	.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
@@ -52,46 +51,46 @@ module executing
 
     function advanceOneStep() : void
     {
-        currentvms = evaluation.next();
+        evaluationMgr.next();
 		$("#stackVal").empty();
 		$("#vms").empty()
-			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true))
+			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), evaluationMgr.getTopEvaluation().getRoot().count(), true))
 			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
 		var root = $("#vms :first-child").get(0);
-        if (!highlighted && currentvms.getEval().ready) 
+        if (!highlighted && evaluationMgr.getTopEvaluation().ready) 
         {
             const vms : HTMLElement = document.getElementById("vms") ;
-            var list = arrayToList(currentvms.getEval().getPending());
-            findInMap(root, currentvms.getEval().getVarMap());
+            var list = arrayToList(evaluationMgr.getTopEvaluation().getPending());
+            findInMap(root, evaluationMgr.getTopEvaluation().getValMap());
             highlight(root, list);
-            visualizeStack(currentvms.getEval().getStack());
+            visualizeStack(evaluationMgr.getTopEvaluation().getStack());
             highlighted = true;
         } 
         else 
         {
-            findInMap(root, currentvms.getEval().getVarMap());
-            visualizeStack(currentvms.getEval().getStack());
+            findInMap(root, evaluationMgr.getTopEvaluation().getValMap());
+            visualizeStack(evaluationMgr.getTopEvaluation().getStack());
             highlighted = false;
         }
         if(turtle) 
         {
-            redraw(currentvms);
+            redraw(evaluationMgr.getVMS());
         }
     }
 
     function stepTillDone() 
 	{
-        currentvms = evaluation.next();
-        while(!currentvms.getEval().isDone()) 
+        evaluationMgr.next();
+        while(!evaluationMgr.getTopEvaluation().isDone()) 
         {
-            currentvms = evaluation.next();
+            evaluationMgr.next();
 		}
 		$("#vms").empty()
-			.append(traverseAndBuild(currentvms.getEval().getRoot(), currentvms.getEval().getRoot().count(), true)) 
+			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), evaluationMgr.getTopEvaluation().getRoot().count(), true)) 
 			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-		var root = $("#vms :first-child").get(0);
-        var list = arrayToList(currentvms.getEval().getPath());
-        var map = Object.create(currentvms.getEval().getVarMap());
+		const root = $("#vms :first-child").get(0);
+        const list : List<number>= arrayToList(evaluationMgr.getTopEvaluation().getPending());
+        const map : ValueMap = evaluationMgr.getTopEvaluation().getValMap();
         findInMap(root, map);
         highlight(root, list);
     }
@@ -152,11 +151,11 @@ module executing
         }
     }
 
-    function findInMap(root : HTMLElement, varmap : ValueMap) : void
+    function findInMap(root : HTMLElement, valueMap : ValueMap) : void
     {
-        for(let i=0; i < varmap.size; i++)
+        for(let i=0; i < valueMap.size; i++)
         {
-            setHTMLValue(root, arrayToList(varmap.entries[i].getPath()), Object.create(varmap.entries[i].getValue()));
+            setHTMLValue(root, arrayToList(valueMap.entries[i].getPath()), Object.create(valueMap.entries[i].getValue()));
         }
     }
 

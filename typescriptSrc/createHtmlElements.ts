@@ -1,16 +1,12 @@
 /// <reference path="collections.ts" />
 /// <reference path="jquery.d.ts" />
-/// <reference path="sharedMkHtml.ts" />
 
 import collections = require( './collections' );
-import sharedMkHtml = require('./sharedMkHtml');
 
 module createHtmlElements 
 {
 
     import list = collections.list;
-
-	var undostack = sharedMkHtml.undostack;
 
 	export function createHtmls () 
 	{	

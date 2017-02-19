@@ -2,32 +2,23 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="assert.ts" />
-/// <reference path="treeManager.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
-import treeManager = require('./treeManager');
 
 module sharedMkHtml 
 {
     import list = collections.list;
     import List = collections.List;
+    // path is an alias for list<number>
+    const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
-    export var currentSelection;
-    export var undostack = [];
-    var root = pnode.mkExprSeq([]);
-    var path : (  ...args : Array<number> ) => List<number> = list;
-    var select = new pnodeEdits.Selection(root,path(),0,0);
-    currentSelection = select;
-
-    export var draggedObject;
-    export var draggedSelection;
-
-    export var tree = new treeManager.TreeManager();
+    // TODO Move this to the editor and make it private.
+    export var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),path(),0,0);
 
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
     {
@@ -423,229 +414,6 @@ module sharedMkHtml
 
             return hideElement;
         }
-    }
-
-    function createCopyDialog(selectionArray)  : JQuery 
-    {
-        return $("<div></div>")
-            .dialog({
-                resizable: false,
-                dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
-                width: 75,
-                open: function(event, ui)
-                {
-                    var markup = selectionArray[0][0];
-                    $(this).html(markup);
-
-                    setTimeout(function() {
-                        $('.ui-dialog-content').dialog('destroy');
-                    },2000);
-                },
-                buttons: {
-                    "Copy": function()
-                    {
-                        selectionArray[1][2].choose(
-                            sel =>{
-                                undostack.push(currentSelection);
-                                currentSelection = sel;
-                                generateHTML(currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            },
-                            () =>{
-                                generateHTML(currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            }
-                        );
-                        $( this ).dialog( "destroy" );
-                    }
-                }
-            });
-    }
-
-    function createSwapDialog(selectionArray) 
-    {
-        return $("<div></div>")
-            .dialog({
-                resizable: false,
-                dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
-                width: 75,
-                open: function (event, ui) {
-                    var markup = selectionArray[0][0];
-                    $(this).html(markup);
-                    setTimeout(function () {
-                        $('.ui-dialog-content').dialog('destroy');
-                    }, 2000);
-                },
-                buttons: {
-                    "Swap": function () {
-                        selectionArray[2][2].choose(
-                            sel =>{
-                                undostack.push(currentSelection);
-                                currentSelection = sel;
-                                generateHTML(currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            },
-                        () =>{
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        }
-                        );
-                        $(this).dialog("destroy");
-                    }
-                }
-            });
-    }
-
-    export function generateHTML(select:Selection)
-    {
-        currentSelection = select;
-		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(select.root(), select.root().count(), false));
-
-        $( ".droppable" ).droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
-            greedy: true,
-            hoverClass: "hover",
-            tolerance:"pointer",
-            drop: function (event, ui)
-            {
-                var selectionArray = [];
-                currentSelection = getPathToNode(currentSelection, $(this));
-                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
-                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
-                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
-                {
-                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
-                    selectionArray[0][2].choose(
-                        sel => {
-                            undostack.push(currentSelection);
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            createSwapDialog(selectionArray);
-                        },
-                        ()=>{
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
-                }
-                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
-                {
-                    selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
-                    selectionArray[0][2].choose(
-                        sel => {
-                            undostack.push(currentSelection);
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            createCopyDialog(selectionArray);
-                        },
-                        ()=>{
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
-                }
-                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
-                {
-                    undostack.push(currentSelection);
-                    var selection = tree.appendChild(draggedSelection, currentSelection);
-                    selection.choose(
-                        sel => {
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        },
-                        ()=>{
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
-                }
-                else
-                {
-                    console.log(ui.draggable.attr("id"));
-                    undostack.push(currentSelection);
-                    var selection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
-                    selection.choose(
-                        sel => {
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        },
-                        ()=>{
-                            generateHTML(currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
-                }
-            }
-        });
-        enterBox();
-    }
-
-    export function enterBox()
-    {
-        $(".input").keyup(function (e) {
-            if (e.keyCode == 13) {
-                var text = $(this).val();
-                var selection = tree.changeNodeString(getPathToNode(currentSelection, $(this)), text);
-                selection.choose(
-                    sel => {
-                        undostack.push(currentSelection);
-                        currentSelection = sel;
-                        generateHTML(currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    },
-                    ()=>{
-                        generateHTML(currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    });
-                var label = $(this).attr("class");
-                if (/var/i.test(label)) {
-                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
-                }
-                else if (/stringLiteral/i.test(label)) {
-                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
-                }
-                else if (/op/i.test(label)) {
-                    $(this).replaceWith('<div class="op H click">' + text + '</div>');
-                }
-
-                $(".click").click(function(){
-                    var label = $(this).attr("class");
-                    var val = $(this).attr("data-childNumber");
-                    if (/var/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
-                    }
-                    else if (/stringLiteral/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
-                    }
-                    else if(/op/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
-                    }
-                    enterBox();
-                    //enterList();
-                });
-            }
-        });
-        $(".canDrag").draggable({
-            //helper:'clone',
-            //appendTo:'body',
-            revert:'invalid',
-            start: function(event,ui){
-                draggedObject = $(this).attr("class");
-                draggedSelection = getPathToNode(currentSelection, $(this));
-            }
-        });
     }
 
     export function getPathToNode(select:Selection, self ) : Selection
