@@ -52,7 +52,7 @@ module editing {
             tolerance: "pointer",
             drop: function (event, ui) {
                 console.log(ui.draggable.attr("id"));
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                sharedMkHtml.currentSelection = getPathToNode(sharedMkHtml.currentSelection, $(this));
                 undostack.push(sharedMkHtml.currentSelection);
                 var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
                 selection.choose(
@@ -75,7 +75,7 @@ module editing {
             tolerance:'pointer',
             greedy: true,
             drop: function(event, ui){
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
+                sharedMkHtml.currentSelection = getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
                 var selection = treeMgr.deleteNode(sharedMkHtml.currentSelection);
                 selection[1].choose(
                     sel => {
@@ -237,7 +237,7 @@ module editing {
             drop: function (event, ui)
             {
                 var selectionArray = [];
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                sharedMkHtml.currentSelection = getPathToNode(sharedMkHtml.currentSelection, $(this));
                 if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
                     || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
                     || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
@@ -317,7 +317,7 @@ module editing {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
-                var selection = treeMgr.changeNodeString( sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this)), 
+                var selection = treeMgr.changeNodeString( getPathToNode(sharedMkHtml.currentSelection, $(this)), 
                                                        text );
                 selection.choose(
                     sel => {
@@ -367,11 +367,82 @@ module editing {
             revert:'invalid',
             start: function(event,ui){
                 draggedObject = $(this).attr("class");
-                draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                draggedSelection = getPathToNode(sharedMkHtml.currentSelection, $(this));
             }
         });
     }
 
+    function getPathToNode(select:Selection, self ) : Selection
+    {
+        var array = [];
+        var anchor;
+        var focus;
+
+        var parent = $(self);
+        var child = Number(parent.attr("data-childNumber"));
+
+        if (isNaN(child))
+        {
+            var index = parent.index();
+            parent = parent.parent();
+            var num = parent.children().eq(index).prevAll(".dropZone").length;
+            child = Number(parent.attr("data-childNumber"));
+            var place = index - num;
+
+            var label = parent.attr("class");
+            if (/placeHolder/i.test(label) || /expOp/i.test(label))
+            {
+                anchor = child;
+                focus = anchor + 1;
+                parent = parent.parent();
+                child = Number(parent.attr("data-childNumber"));
+            }
+            else
+            {
+                anchor = place;
+                focus = anchor;
+            }
+        }
+        else
+        {
+            if(/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class")))
+            {
+                anchor = 0;
+                focus = anchor;
+            }
+            else
+            {
+                if ((/ifBox/i.test(parent.attr("class"))) || (/lambdaBox/i.test(parent.attr("class"))) ||
+                    (/whileBox/i.test(parent.attr("class"))) || (/callWorld/i.test(parent.attr("class")))
+                    || (/assign/i.test(parent.attr("class")))) {
+                    anchor = child;
+                    focus = child + 1;
+                    parent = parent.parent();
+                    child = Number(parent.attr("data-childNumber"));
+                }
+                else
+                {
+                    anchor = child;
+                    focus = anchor;
+                }
+            }
+        }
+        while (child != -1) {
+            if (!isNaN(child))
+            {
+                array.push(Number(parent.attr("data-childNumber")));
+            }
+            parent = parent.parent();
+            child = Number(parent.attr("data-childNumber"));
+        }
+        var tree = select.root();
+        var path = list<number>();
+        var i ;
+        for( i = 0 ; i < array.length ; i++ )
+            path = collections.cons( array[i], path ) ;
+
+        return new pnodeEdits.Selection(tree, path, anchor, focus);
+    }
 
 }
 
