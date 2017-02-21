@@ -250,7 +250,7 @@ module editing {
                 // disappears.
 
                 // First change the current selection to be the the drop target.
-                currentSelection = getPathToNode(currentSelection, $(this));
+                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
                 // Case: Dragged object is dropped on a node.
                 if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
                       || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
@@ -260,20 +260,20 @@ module editing {
                       || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")) ) ) )
                 {
                     // TODO fix the following
-                    const selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
                     selectionArray[0][2].choose(
                         sel => {
                             // Move is possible. Do the move and offer any others as alternatives.
-                            undostack.push(currentSelection);
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
+                            undostack.push(sharedMkHtml.currentSelection);
+                            sharedMkHtml.currentSelection = sel;
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             createSwapDialog(selectionArray);
                         },
                         ()=>{
                             // TODO This makes no sense. If move is not possible, then
                             // there are other possibilities.
-                            generateHTML(currentSelection);
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
@@ -287,17 +287,17 @@ module editing {
                 {
                     // TODO fix the following.
                     // Also, why is this case different from the previous?
-                    const selectionArray = tree.moveCopySwapEditList(draggedSelection, currentSelection);
+                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
                     selectionArray[0][2].choose(
                         sel => {
-                            undostack.push(currentSelection);
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
+                            undostack.push(sharedMkHtml.currentSelection);
+                            sharedMkHtml.currentSelection = sel;
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             createCopyDialog(selectionArray);
                         },
                         ()=>{
-                            generateHTML(currentSelection);
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
@@ -305,16 +305,16 @@ module editing {
                 // TODO Why only dropzones?
                 else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
                 {
-                    undostack.push(currentSelection);
-                    var selection = tree.appendChild(draggedSelection, currentSelection);
+                    undostack.push(sharedMkHtml.currentSelection);
+                    var selection = treeMgr.appendChild(draggedSelection, sharedMkHtml.currentSelection);
                     selection.choose(
                         sel => {
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
+                            sharedMkHtml.currentSelection = sel;
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         },
                         ()=>{
-                            generateHTML(currentSelection);
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
@@ -323,16 +323,16 @@ module editing {
                 {
                     console.log(ui.draggable.attr("id"));
                     // Add create a new node and use it to replace the current selection.
-                    var selection = tree.createNode(ui.draggable.attr("id") /*id*/, currentSelection);
+                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, sharedMkHtml.currentSelection);
                     selection.choose(
                         sel => {
-                            undostack.push(currentSelection);
-                            currentSelection = sel;
-                            generateHTML(currentSelection);
+                            undostack.push(sharedMkHtml.currentSelection);
+                            sharedMkHtml.currentSelection = sel;
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         },
                         ()=>{
-                            generateHTML(currentSelection);
+                            generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         });
                 }
