@@ -40,6 +40,7 @@ module vms{
         }
 
         getEval() : Evaluation {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top() ;
         }
 
@@ -78,7 +79,7 @@ module vms{
         // TODO root should be private
         root : PNode;
         private varStack : VarStack;
-        private pending : Array<number>;
+        private pending : Array<number>; // TODO Change this to a list.
         // TODO ready should be private
         ready : Boolean;
         // TODO map should be private
