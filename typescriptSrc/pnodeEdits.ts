@@ -150,7 +150,8 @@ module pnodeEdits {
     }
 
     /** Handle the case where the src path is empty but the target path is not.
-     * We return two selections. The first is for the new source and the second for the new target.
+     * The selection return either comprise the new nodes at the source or the
+     * new nodes at the target depending on the value of returnNewTargetSeln .
     */
     function doubleReplaceOnePathEmpty( node : PNode,
                             srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
@@ -336,7 +337,7 @@ module pnodeEdits {
     }
 
     /** Replace all selected nodes with another sequence of nodes. 
-     * 
+     * The resulting selection should comprise the inserted children.
      */
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
         _newNodes : Array<PNode> ;
@@ -352,12 +353,21 @@ module pnodeEdits {
             const end : number = Math.max( selection.anchor(), selection.focus() );
 
             // Try to make the replacement.
-            return singleReplace( selection, this._newNodes ) ;
+            const opt = singleReplace( selection, this._newNodes ) ;
+            if(  this._newNodes.length == 0 ) {
+                // Copy of zero nodes may require backfilling.
+                return opt.recoverBy (
+                    () => singleReplace( selection, [pnode.mkExprPH()] )
+                ) ;
+            } else {
+                return opt ;
+            }
         }
     }
 
     /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
-     * 
+     * The resulting selection indicates the position where the nodes
+     * used to be.
      */
     export class DeleteEdit extends AbstractEdit<Selection> {
 
@@ -446,7 +456,9 @@ module pnodeEdits {
         }
     }
 
-    /** Copy all nodes in one selection over the selected nodes in another. */
+    /** Copy all nodes in one selection over the selected nodes in another.
+     * The selection returned indicates the newly added nodes.
+    */
     export class CopyEdit extends AbstractEdit<Selection> {
         _srcNodes : Array<PNode> ;
 
@@ -456,7 +468,15 @@ module pnodeEdits {
         }
 
         applyEdit(selection:Selection):Option<Selection> {
-            return singleReplace( selection, this._srcNodes ) ;
+            const opt = singleReplace( selection, this._srcNodes ) ;
+            if(  this._srcNodes.length == 0 ) {
+                // Copy of zero nodes may require backfilling.
+                return opt.recoverBy (
+                    () => singleReplace( selection, [pnode.mkExprPH()] )
+                ) ;
+            } else {
+                return opt ;
+            }
         }
     }
 
