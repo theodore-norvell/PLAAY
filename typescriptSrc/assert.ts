@@ -57,6 +57,25 @@ module assert {
             raiseTheAlarm( message ) ;
         }
     }
+    
+    /** Check that two things are equal by === 
+     * 
+     * @param a a thing
+     * @param b  another thing
+     */
+    export function checkEqual( a, b ) {
+        if( !( a===b) ) {
+            let message = "Assertion failed: Expected " ;
+            if( a===undefined ) message += "undefined" ;
+            else if( a===null) message += "null" ;
+            else message += a.toString() ;
+            message += " === " ;
+            if( b===undefined ) message += "undefined" ;
+            else if( b===null) message += "null" ;
+            else message += b.toString() ;
+            raiseTheAlarm( message ) ;
+        }
+    }
 }
 
 export = assert ;
