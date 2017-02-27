@@ -25,6 +25,31 @@ module editing {
 
 	export function editingActions () 
     {
+        //Key bindings for editing area
+        $(document).on("keypress", function(e) { 
+            if (e.ctrlKey && (e.which === 120)) // ctrl-x
+            {
+                event.preventDefault();
+                //TODO: put current selection to trash and delete it
+            }
+            if (e.ctrlKey && (e.which === 99)) // ctrl-c
+            {
+                event.preventDefault();
+                //TODO: put current selection to trash and delete it
+            }
+            if (e.ctrlKey && (e.which === 118)) // ctrl-v
+            {
+                event.preventDefault();
+                //TODO: put current selection to trash and delete it
+            }
+            if (e.ctrlKey && (e.which === 98)) // ctrl-b
+            {
+                event.preventDefault();
+                //TODO: put current selection to trash and delete it
+            }
+        });
+
+
         $("#undo").click(function() 
         {
 			if (undostack.length != 0) 
