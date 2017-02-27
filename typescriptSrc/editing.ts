@@ -16,9 +16,9 @@ module editing {
     import list = collections.list;
     import Selection = pnodeEdits.Selection;
 
-    const redostack = [];
-    const undostack = [];
-    const trashArray = [];
+    const redostack : Array<Selection> = [];
+    const undostack  : Array<Selection> = [];
+    const trashArray : Array<Selection> = [];
     var pathToTrash = list<number>(); // TODO What is this for?
     var draggedObject;
     var draggedSelection;

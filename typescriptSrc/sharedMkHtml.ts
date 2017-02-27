@@ -416,7 +416,7 @@ module sharedMkHtml
         }
     }
 
-    export function getPathToNode(select:Selection, self ) : Selection
+    export function getPathToNode(select:Selection, self : JQuery ) : Selection
     {
         var array = [];
         var anchor;
