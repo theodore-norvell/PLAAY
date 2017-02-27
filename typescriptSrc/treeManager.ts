@@ -401,10 +401,9 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        deleteNode(selection:Selection) : [Array<PNode>, Option<Selection>] {
-            var deletedNode = selection.root().get(selection.path()).children(selection.anchor(), selection.focus());
-            var edit = new pnodeEdits.DeleteEdit();
-            return [deletedNode, edit.applyEdit(selection)];
+        deleteNode(selection:Selection) : Option<Selection> {
+            const edit = new pnodeEdits.DeleteEdit();
+            return edit.applyEdit(selection);
         }
 
         // TODO: I think this would better return an array of [string, string, Selection]

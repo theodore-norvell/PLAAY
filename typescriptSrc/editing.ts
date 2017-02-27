@@ -1,5 +1,6 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="treeManager.ts" />
@@ -8,6 +9,7 @@
 import assert = require('./assert') ;
 import sharedMkHtml = require('./sharedMkHtml');
 import collections = require( './collections' );
+import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require( './treeManager');
 
@@ -81,23 +83,30 @@ module editing {
             greedy: true,
             drop: function(event, ui){
                 console.log(">> Dropping into trash" );
+                console.log("   JQuery is " + ui.draggable.toString()  );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
-                var selection = treeMgr.deleteNode(sharedMkHtml.currentSelection);
-                assert.check( selection !== undefined ) ;
-                selection[1].choose(
+                console.log("   Dropping selection. " + sharedMkHtml.currentSelection.toString() );
+                var opt = treeMgr.deleteNode(sharedMkHtml.currentSelection);
+                assert.check( opt !== undefined ) ;
+                opt.choose(
                     sel => {
-                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
+                        console.log("   Dropping into trash a" );
+                        console.log("   New selection is. " + sharedMkHtml.currentSelection.toString() );
+                
+                        trashArray.push(sharedMkHtml.currentSelection);
                         undostack.push(sharedMkHtml.currentSelection);
                         sharedMkHtml.currentSelection = sel;
-                        trashArray.push(trashselect);
                         generateHTML(sharedMkHtml.currentSelection);
+                        console.log("   Dropping into trash b" );
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                        console.log("   Dropping into trash c" );
                     },
                     ()=>{
+                        console.log("   Deletion failed." );
                         generateHTML(sharedMkHtml.currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
-                console.log(">> Dropping into trash" );
+                console.log("<< Dropping into trash" );
             }
         });
 
@@ -128,15 +137,17 @@ module editing {
         var dialogDiv = $('#trashDialog');
 
         if (dialogDiv.length == 0) {
-            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
-            for(var i = 0; i < trashArray.length; i++) {
-				create("div", "trashitem", null, dialogDiv)
-					.attr("data-trashitem", i.toString())
-                	.append($(sharedMkHtml.traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
+            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body') ;
+            for(let i = 0; i < trashArray.length; i++) {
+				const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
+                const trashedSelection = trashArray[i] ;
+                const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
+                for( let j=0 ; j < a.length; ++j ) {
+                	trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
             }
             dialogDiv.dialog({
                 modal : true,
-                dialogClass: 'no-close success-dialog',
+                dialogClass : 'no-close success-dialog',
             });
         }else{
             dialogDiv.dialog("destroy");
