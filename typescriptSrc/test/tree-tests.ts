@@ -18,32 +18,30 @@ var ite0 = pnode.mkIf( a, s0, s1 )  ;
 // Uncomment to see whether it does.
 //var ite1 = pnode.mkIf( a, b, c )  ;
 
-describe( 'pnode.tryMake', () => {
-    it('should succeed making a valid if', () => {
+describe( 'pnode.tryMake', function() {
+    it('should succeed making a valid if', function() {
         var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, s0, s1] ) ;
         opt.choose(
             p => { assert.check( p.label() instanceof pnode.IfLabel ) ; },
-            () => { assert.check( false ) ; } ) } ) } ) ;
+            () => { assert.check( false ) ; } ) } );
 
-describe( 'pnode.tryMake', () => {
-    it('should fail making an invalid if', () => {
+    it('should fail making an invalid if', function() {
         var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, b, c] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
-            () => {  } ) } ) } ) ;
+            () => {  } ) } );
 
-describe( 'pnode.tryMake', () => {
-    it('should fail making an invalid if', () => {
+    it('should fail making an invalid if', function() {
         var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, s0] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
-            () => {  } ) } ) } ) ;
+            () => {  } ) } ) ; } ) ;
 
-describe( 'pnode.tryModify', () => {
-
+describe( 'pnode.tryModify', function() {
+    
     // Try to swap the then and else parts of ite0
 
-    it('should succeed swapping else and then parts', () => {
+    it('should succeed swapping else and then parts', function() {
         var opt = ite0.tryModify( [s1,s0], 1, 3 ) ;
         opt.choose(
             p => { assert.check( p.child(0) === a ) ;
@@ -53,7 +51,7 @@ describe( 'pnode.tryModify', () => {
 
     // Try to swap the guard and then parts of ite0
 
-    it('should fail swapping the guard and then parts' , () => {
+    it('should fail swapping the guard and then parts' , function() {
         var opt = ite0.tryModify( [s0, a], 0, 2 ) ;
         opt.choose(
             p => { assert.check( false ) ; },

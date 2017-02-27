@@ -1,9 +1,11 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="treeManager.ts" />
 
 
+import assert = require('./assert') ;
 import sharedMkHtml = require('./sharedMkHtml');
 import collections = require( './collections' );
 import pnodeEdits = require( './pnodeEdits');
@@ -47,14 +49,16 @@ module editing {
 		});
 
         $(".droppable").droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
             hoverClass: "hover",
             tolerance: "pointer",
             drop: function (event, ui) {
+                // TODO Why do we need this hendler?
+                console.log(">> Dropping into something of class .droppable." );
                 console.log(ui.draggable.attr("id"));
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
                 undostack.push(sharedMkHtml.currentSelection);
                 var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
+                assert.check( selection !== undefined ) ;
                 selection.choose(
                     sel => {
                         sharedMkHtml.currentSelection = sel;
@@ -65,6 +69,7 @@ module editing {
                         generateHTML(sharedMkHtml.currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
+                console.log("<< Dropping into something of class .droppable." );
             }
         });
 
@@ -75,8 +80,10 @@ module editing {
             tolerance:'pointer',
             greedy: true,
             drop: function(event, ui){
+                console.log(">> Dropping into trash" );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
                 var selection = treeMgr.deleteNode(sharedMkHtml.currentSelection);
+                assert.check( selection !== undefined ) ;
                 selection[1].choose(
                     sel => {
                         var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
@@ -90,6 +97,7 @@ module editing {
                         generateHTML(sharedMkHtml.currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
+                console.log(">> Dropping into trash" );
             }
         });
 
@@ -236,77 +244,145 @@ module editing {
             tolerance:"pointer",
             drop: function (event, ui)
             {
-                var selectionArray = [];
+                // TODO: Simplify the drag and drop code.
+                // It's not clear to me why the first two cases are different.
+                // Nor why we need to list so many box types in these if commands.
+                // Note that the way drag and drop should work when a selection is 
+                // dragged from one part of the main tree to another is given in the
+                // requirement in Trello.  Essentially the idea is that such a drag and
+                // drop represents one of the following operations move, copy, swap.
+                // If none of these is possible, the drop is a no-op.
+                // If one of these is possible, then that operation proceeds.
+                // If more than one is possible, then the first of these three (move, copy, swap)
+                // is done and the others are offered as alternatives in a popup dialog that
+                // disappears.
+
+                // First change the current selection to be the the drop target.
+                console.log(">> Dropping " + ui.draggable.attr("id") );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
-                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
-                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
-                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
+                console.log("  on current selection " + sharedMkHtml.currentSelection.toString() ) ;
+                // Case: Dragged object is dropped on a node.
+                if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
+                      || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
+                      || (/assign/i.test(draggedObject)) )
+                   && (   (/ifBox/i.test($(this).attr("class")))
+                      || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
+                      || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")) ) ) )
                 {
-                    selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
+                    // TODO fix the following
+                    console.log("  First case" ) ;
+                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
+                    assert.check( selectionArray[0][2] !== undefined ) ;
                     selectionArray[0][2].choose(
                         sel => {
+                            // Move is possible. Do the move and offer any others as alternatives.
+                            console.log("  Move is possible." ) ;
                             undostack.push(sharedMkHtml.currentSelection);
                             sharedMkHtml.currentSelection = sel;
+                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                             createSwapDialog(selectionArray);
+                            console.log("  Back from createSwapDialog." ) ;
                         },
                         ()=>{
+                            // TODO This makes no sense. If move is not possible, then
+                            // there are other possibilities.
+                            console.log("  Move is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         });
                 }
-                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
+                // Case: Dragged object is dropped on a dropzone.
+                else if (  (  (/ifBox/i.test(draggedObject))
+                           || (/lambdaBox/i.test(draggedObject))
+                           || (/whileBox/i.test(draggedObject))
+                           || (/callWorld/i.test(draggedObject))
+                           || (/assign/i.test(draggedObject)))
+                        && (/dropZone/i.test($(this).attr("class"))))
                 {
-                    selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
+                    // TODO fix the following.
+                    // Also, why is this case different from the previous?
+                    console.log("  Second case" ) ;
+                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
+                    assert.check( selectionArray[0][2] !== undefined ) ;
                     selectionArray[0][2].choose(
                         sel => {
+                            console.log("  Move is possible." ) ;
                             undostack.push(sharedMkHtml.currentSelection);
                             sharedMkHtml.currentSelection = sel;
+                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                             createCopyDialog(selectionArray);
+                            console.log("  Back from createCopyDialog." ) ;
                         },
                         ()=>{
+                            console.log("  Move is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         });
                 }
+                // Case: Dragged object is dragged from the trash to a dropzone
+                // TODO Why only dropzones?
                 else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
                 {
+                    console.log("  Third case. (Drag from trash)." ) ;
                     undostack.push(sharedMkHtml.currentSelection);
                     var selection = treeMgr.appendChild(draggedSelection, sharedMkHtml.currentSelection);
+                    assert.check( selection !== undefined ) ;
                     selection.choose(
                         sel => {
+                            console.log("  Insertion is possible." ) ;
                             sharedMkHtml.currentSelection = sel;
+                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         },
                         ()=>{
+                            console.log("  Insertion is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         });
                 }
-                else
+                // Case default.  I think this is used for pallette items.
+                else if( ui.draggable.attr("id") !== undefined )
                 {
-                    console.log(ui.draggable.attr("id"));
-                    undostack.push(sharedMkHtml.currentSelection);
+                    console.log("  Fourth case." ) ;
+                    console.log("  " + ui.draggable.attr("id"));
+                    // Add create a new node and use it to replace the current selection.
                     var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, sharedMkHtml.currentSelection);
+                    console.log("  selection is " + selection );
+                    assert.check( selection !== undefined ) ;
                     selection.choose(
                         sel => {
+                            console.log("  createNode is possible." ) ;
+                            undostack.push(sharedMkHtml.currentSelection);
                             sharedMkHtml.currentSelection = sel;
+                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         },
                         ()=>{
+                            console.log("  createNode is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                            console.log("  HTML generated" ) ;
                         });
+                } else {
+                    console.log("  Fifth case." ) ;
+                    generateHTML(sharedMkHtml.currentSelection);
+                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+                    console.log("  HTML generated" ) ;
                 }
+                console.log("<< Leaving drop handler" ) ;
             }
         });
         enterBox();
