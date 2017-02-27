@@ -22,6 +22,62 @@ const s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
 const ite0 = pnode.mkIf( a, s0, s1 )  ;
 //  ite0 is if( a, seq(a, b), seq(c)) 
 
+const seq0= pnode.mkExprSeq( [] ) ;
+const seq1= pnode.mkExprSeq( [a] ) ;
+const seq2 = pnode.mkExprSeq( [a,b] ) ;
+const seq3 = pnode.mkExprSeq( [a,b,c] ) ;
+
+
+describe( 'pnodeEdits.Selection', () => {
+    it('should fail to make a bad selection. Path too long.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(0,0), 0, 0 ) ) ;
+        try {
+            const badSel = new pnodeEdits.Selection( ite0, collections.list(0,0), 0, 0 ) ;
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+        
+    it('should fail to make a bad sselection. Path item too big.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,2), 0, 0 ) ) ;
+        try {
+            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,2), 0, 0 ) ;
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+        
+    it('should fail to make a bad selection. Anchor too small.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,1), -1, 0 ) ) ;
+        try {
+            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,1), -1, 0 );
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+        
+    it('should fail to make a bad selection. Anchor too big.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1), 3, 0 ) ) ;
+        try {
+            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1), 3, 0 ) ;
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+        
+    it('should fail to make a bad selection. Focus too small.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,1), 0, -1 ) ) ;
+        try {
+            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,1), 0, -1 ) ;
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+        
+    it('should fail to make a bad selection. Focus too big.', () => {
+        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1), 0, 3 ) ) ;
+        try {
+            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1), 0, 3 ) ;
+            assert.check( false ) ; }
+        catch( e  ) { }
+        } ) ;
+} ) ;
+
 // The next few tests build a tree top down using the InsertChildrenEdit
 
 const t0 = pnode.mkExprSeq( [] ) ;
@@ -379,8 +435,6 @@ describe( 'pnodeEdits.CopyEdit', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-
-
     it( 'should fail to make an invalid node', () => {
         // Select the then part
         const p0 = list<number>( ) ;
@@ -400,52 +454,343 @@ describe( 'pnodeEdits.CopyEdit', () => {
 
 } ) ;
 
-describe( 'pnodeEdits.Selection', () => {
-    it('should fail to make a bad selection. Path too long.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(0,0), 0, 0 ) ) ;
-        try {
-            const badSel = new pnodeEdits.Selection( ite0, collections.list(0,0), 0, 0 ) ;
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
-        
-    it('should fail to make a bad sselection. Path item too big.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,2), 0, 0 ) ) ;
-        try {
-            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,2), 0, 0 ) ;
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
-        
-    it('should fail to make a bad selection. Anchor too small.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,1), -1, 0 ) ) ;
-        try {
-            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,1), -1, 0 );
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
-        
-    it('should fail to make a bad selection. Anchor too big.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1), 3, 0 ) ) ;
-        try {
-            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1), 3, 0 ) ;
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
-        
-    it('should fail to make a bad selection. Focus too small.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1,1), 0, -1 ) ) ;
-        try {
-            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,1), 0, -1 ) ;
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
-        
-    it('should fail to make a bad selection. Focus too big.', () => {
-        assert.check( ! pnodeEdits.checkSelection( ite0, collections.list(1), 0, 3 ) ) ;
-        try {
-            const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1), 0, 3 ) ;
-            assert.check( false ) ; }
-        catch( e  ) { }
-        } ) ;
+describe( 'pnodeEdits.MoveEdit with common parent', () => {
+
+    it( 'should move 0 nodes of 0', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq0, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq0, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq()"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,0) to (0,0) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,0) to (1,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,0) to (0,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq()"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,1) to (0,0) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,1) to (1,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (0,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (0,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,1) to (1,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,2) to (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,2) to (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,2) to (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,2) to (0,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (2,1) to (1,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 2, 1 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1,2) to (0,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (0,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (1,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (0,2) to (0,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
 } ) ;
+
