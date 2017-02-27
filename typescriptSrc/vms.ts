@@ -4,73 +4,396 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="evaluation.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="stackManager.ts" />
-/// <reference path="value.ts" />
 /// <reference path="world.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import evaluation = require( './evaluation' ) ;
 import pnode = require('./pnode');
-import stack = require( './stackManager' ) ;
-import value = require('./value');
-import world = require('./world');
 
 module vms{
 
-    import Stack = stack.Stack ;
-    import Evaluation = evaluation.Evaluation;
-    import Value = value.Value;
-    import World = world.World;
     import PNode = pnode.PNode;
 
-    export class VMS{
+    /** The execution state of a virtual machine.
+     * 
+     * The state of the machine includes
+     * 
+     * * An evaluation stack.
+     */
+    export class VMS {
 
-        private stack : Stack ;
-        private evalu : Evaluation ;
-        private val : String ;
-        private world : World;
+        evalStack : EvalStack ;
 
-        constructor(root : PNode, worlds: Array<World>) {
-            this.evalu = new Evaluation(root, worlds, null);
-            this.stack = new Stack();
-            this.stack.push(this.evalu);
-            this.world = worlds[0];
+        constructor(root : PNode, worlds: Array<ObjectI>) {
+            assert.checkPrecondition( worlds.length > 0 ) ;
+            var varStack = null ;
+            for( let i = 0 ; i < worlds.length ; ++i ) {
+                varStack = new VarStack( worlds[i], varStack ) ; }
+            var evalu = new Evaluation(root, varStack);
+            this.evalStack = new EvalStack();
+            this.evalStack.push(evalu);
         }
 
         canAdvance() : boolean {
-            return this.stack.notEmpty();//TODO add notEmpty to stack why can't this file see members?
-        }
-
-        getStack(): Stack {
-            return this.stack;
+            return this.evalStack.notEmpty();
         }
 
         getEval() : Evaluation {
-            return this.evalu;
+            return this.evalStack.top() ;
         }
 
-        getWorld() : World {
-            return this.world;
-        }
-
+        // TODO.  Since advance will need to 
+        // call the interpreter, we should use 
+        // dependence inversion to avoid 
+        // circular dependence.  Instead the
+        // VMS can depend on an interface that
+        // the interpreter implements.
         advance(){
             if(this.canAdvance()){
-               if(this.stack.top().isDone()) {//TODO is done for evaluations?
-                  // eval = stack.top();
-                  var value = this.stack.pop().getVarMap().get([]); //TODO get value from evaluation?
-                   if(this.stack.notEmpty()){
-                       this.stack.top().setResult( value );
-                   }
-               }
-
-               else{
-                   this.stack.top().advance(this);
+                let ev = this.evalStack.top();
+                assert.check( ev.getStack() != null ) ;
+                
+                if( ev.isDone() ) {
+                    var value = ev.getValMap().get([]); //TODO get value from evaluation?
+                    this.evalStack.pop() ;
+                    if(this.evalStack.notEmpty()){
+                        this.evalStack.top().setResult( value );
+                    }
+                }
+                else{
+                    assert.check( ev.getStack() != null ) ;
+                    ev.advance(this);
+                    assert.check( ev.getStack() != null ) ;
                }
             }
         }
+    }
+
+    /** An evaluation is the state of evaluation of one PLAAY expression.
+     * Typically it will  be the evaluatio of one method body.
+     * See the run-time model documentation for details.
+     * */
+    export class Evaluation {
+        // TODO root should be private
+        root : PNode;
+        private varStack : VarStack;
+        private pending : Array<number>;
+        // TODO ready should be private
+        ready : Boolean;
+        // TODO map should be private
+        map : ValueMap;
+
+        next : Evaluation; // TODO eliminate this field.
+
+        constructor (root : PNode, varStack : VarStack) {
+            this.root = root;
+            this.pending = new Array();
+            this.ready = false;
+            this.varStack = varStack ;
+
+            this.map = new ValueMap();
+        }
+
+        getRoot()
+        {
+            return this.root;
+        }
+
+        getNext(){
+            return this.next;
+        }
+
+        getPending(){
+            return this.pending;
+        }
+
+        setPending(pending : Array<number>){
+            this.pending = pending;
+        }
+
+        getValMap(){
+            return this.map;
+        }
+
+        getStack(){
+            return this.varStack;
+        }
+
+        //setNext(next : Evaluation){
+            //this.next = next;
+        //}
+
+        finishStep( v : Value ){
+            if(this.pending != null && this.ready){
+
+                var pending2 = new Array<number>();
+                for (var i = 0; i < this.pending.length ; i ++){
+                    pending2.push(this.pending[i]);
+                }
+
+                this.map.put( pending2 , v);
+                if( this.pending.length == 0){
+                    this.pending = null;
+                }
+                else{
+                    this.pending.pop();
+                }
+                this.ready = false;
+            }
+        }
+
+        setResult(value : Value ){
+            var node = this.root.get( this.pending );
+            var closurePath = this.pending.concat([0]);
+            var closure : Value = this.map.get( closurePath );
+            assert.check( closure.isClosureV() ) ;
+            var lambda = (closure as ClosureI).getLambdaNode() ;
+            //TODO check if lambda has return type and make sure it is the same as value's type
+            this.finishStep( value );
+        }
+
+        // setVarMap(map : ValueMap){
+        //     this.map = map;
+        // }
+
+
+        isDone(){
+            return this.pending == null; //check if pending is null
+        }
+
+        advance( vms : VMS ){
+            assert.checkPrecondition( !this.isDone() ) ;
+
+            var pending2 = Object.create(this.pending);
+            var topNode = this.root.get( pending2 );
+            if( this.ready ){
+                assert.check( this.getStack() != null ) ;
+                topNode.label().step(vms);
+                assert.check( this.getStack() != null ) ;
+            }
+            else{
+                assert.check( this.getStack() != null ) ;
+                topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
+                assert.check( this.getStack() != null ) ;
+            }
+        }
+    }
+
+    /*private*/ class MapEntry {
+        path : Array<number>;
+        val : Value;
+
+        constructor (key : Array<number>, value : Value ){
+            this.path = key;
+            this.val = value;
+        }
+
+        getPath(){return this.path;}
+        getValue(){return this.val;}
+        setValue(v : Value ){this.val = v;}
+    }
+
+    /** A map from paths to values.
+     * Each evaluation has such a map to record the values of already evaluated nodes.
+     */
+    export class ValueMap {
+        // TODO: Lists of numbers would be better than arrays, owing to their immutability.
+        // But hy not just used pointers to nodes as keys instead of using sequences of numbers.
+        size : number ;
+        entries : Array<MapEntry>;
+
+        constructor(){
+            this.entries = new Array<MapEntry>();
+            this.size = 0;
+        }
+
+        private samePath(a : Array<number>, b : Array<number>){
+            if( a.length != b.length ) return false ;
+            for(var p = 0; p < a.length; p++){
+                if(a[p] != b[p]){
+                    return false;
+                }
+            }
+            return true ;
+        }
+
+        get(p : Array<number>) : Value {
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    return this.entries[i].getValue();
+                }
+            }
+            return null;
+        }
+
+        put(p : Array<number>, v : Value){
+            var notIn = true;
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    this.entries[i].setValue(v);
+                    notIn = false;
+                }
+            }
+            if(notIn){
+                var me = new MapEntry(p, v);
+                this.entries.push(me);
+                this.size++;
+            }
+        }
+
+        remove(p : Array<number>){
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    this.size--;
+                    const firstPart = this.entries.slice(0, i);
+                    const lastPart = this.entries.slice(i+1, this.entries.length);
+                    this.entries = firstPart.concat(lastPart);
+                }
+            }
+            return;
+        }
+
+        inMap(p : Array<number>){
+            for(var i = 0; i < this.size; i++){
+                var tmp = this.entries[i].getPath();
+                if(this.samePath(tmp, p)){
+                    return true;
+                }
+            }
+            return false;
+        }
+    }
+
+    /* A VarStack is the context for expression evaluation. I.e. it is where
+    * variables are looked up.  See the run-time model for more detail.
+    */
+    export class VarStack {
+
+        obj : ObjectI;
+        next : VarStack;
+
+        constructor(object : ObjectI, next : VarStack ){
+            this.obj = object;
+            this.next = next;
+        }
+
+        top() : ObjectI {
+            return this.obj;
+        }
+
+        getNext() : VarStack {
+            return this.next;
+        }
+
+        //Return true if value was correctly set
+        setField(name : string, val : Value) : boolean{
+            if( this.obj.hasField( name ) ) {
+                this.obj.getField(name).setValue( val ) ;
+                return true ;
+            } else if(this.next == null){
+                return false;
+            } else{
+                return this.next.setField(name, val);
+            }
+
+        }
+
+        getField(name : string) : FieldI {
+            if( this.obj.hasField( name ) ) {
+                return this.obj.getField( name ) ;
+            } else if(this.next == null){
+                return null;
+            } else{
+                return this.next.getField(name);
+            }
+        }
+
+        inStack(name : string) : boolean {
+            return this.obj.hasField( name ) 
+                   ||  (this.next != null)
+                       && this.next.inStack(name);
+        }
+    }
+
+    /** An EvalStack is simply a stack of evaluations.
+     * 
+     */
+    export class EvalStack { 
+
+        head : Evaluation;
+
+        constructor(){
+            this.head = null;
+        }
+
+        push(val : Evaluation ) {
+            if (this.notEmpty()) {
+                val.next = this.head;
+                this.head = val;
+            }
+            else {
+                this.head = val;
+            }
+        }
+
+        pop() : Evaluation{
+            var it = this.head;
+            this.head = this.head.getNext();
+            return it;
+        }
+
+        top() : Evaluation{
+            return this.head;
+        }
+
+        public notEmpty() : boolean{
+            if(this.head == null){return false;}
+            else{return true;}
+        }
+    }
+
+    /** A Value is a value of the PLAAY language.
+     * Concrete value classes can be found elsewhere.
+     */
+    export interface Value {
+        isClosureV : () => boolean ;
+        isBuiltInV : () => boolean ;
+        isStringV : () => boolean ;
+    }
+
+    export interface ClosureI extends Value {
+        getLambdaNode : () => PNode ;
+    }
+
+    export interface ObjectI extends Value {
+        numFields : () => number ;
+        hasField : (string) => boolean ;
+        getFieldByNumber : (i:number) => FieldI ;
+        /**
+         * Get Field by name
+         * Precondition: hasField( name ) ;
+         */
+        getField : (name:string) => FieldI ;
+    }
+
+    export interface FieldI  {
+        getName : () => string ;
+        getValue : () => Value ;
+        setValue : ( Value ) => void ;
+    }
+
+
+    export enum Type {
+        STRING,
+        BOOL,
+        NUMBER,
+        ANY,
+        METHOD,
+        NULL
     }
 }
 export = vms;

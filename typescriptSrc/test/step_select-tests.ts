@@ -4,7 +4,6 @@
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
 
 /*import collections = require( '../collections' ) ;

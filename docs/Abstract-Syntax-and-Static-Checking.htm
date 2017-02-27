@@ -66,6 +66,12 @@
    Params --&gt; params(VarDecl* )
 </pre>
 <p>  The value of a method literal is a closure. (See <a href="Run-time-model.html">Run-time-model</a> for more information on closures.)</p>
+<h3>Method literals for future implementation</h3>
+<p>A short form of lambda omits replaces the params with an optional type</p>
+<pre>   Method --&gt; <strong>shortLambda</strong>(OptType<sub></sub>, OptType, OptExp, Seq)</pre>
+<p>The single parameter is implicitly named &quot;?&quot; and the name &quot;??&quot; refers to the paramter of the containing short lambda, etc. (i.e. deBruin numbering). The OptExp is a boolean guard expression, so that we can make partial functions. Also for the future, regular lambda should also have an optional guard. </p>
+<pre>  Method --&gt; <strong>lambda</strong>(Params<sub></sub>, OptType, OptExp, Seq)</pre>
+<p>The types of parameters missing explicit types may be imposed by context if the context is an application of some sort. (E.g. a switch statement.) This should apply&nbsp;to all forms of lambda.</p>
 <h3>Control constructs</h3>
 <pre>   Seq --&gt; seq( SeqMember, SeqMember, ... ) 
    SeqMember --&gt; Exp | VarDecl
@@ -83,6 +89,12 @@ OptExp --&gt; noExp | Exp</pre>
 <p>OptTypes are optional types. If the type of a VarDecl is noType, then the checker will try to fill in the type.</p>
 <pre>   OptType --&gt; noType | Type
 </pre>
+<h3>Control constructs for future implementation</h3>
+<p>Note these are just ideas for implementation some day.</p>
+<p>The switch expression</p>
+<pre>   Exp --&gt; switch( Exp, Case, Case, ..., OptSeq)</pre>
+<p>Each Case is an an expression which must be a function. The semantics is that Exp and all the Cases are evaluated&nbsp;all the cases are checked for applicability (by evaluating their guards and also by run-time type checking). If none of the cases is applicable, the final Seq is executed&nbsp;if present. If none of the cases is applicable and there is no final&nbsp;Seq, it is an error. Otherwise an abitrary applicable case is picked and evaluated.&nbsp;</p>
+<p>Compile time type checking needs some thought, I think. It should be a&nbsp;compile time type error if there is no chance of a match. For example&nbsp;if Exp types as Num|Null, then a case with a parameter type of Bool should result in an error.</p>
 <h3>Assignment</h3>
 <pre>   Exp --&gt; assign( Exp, Exp )
 </pre>

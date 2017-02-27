@@ -6,7 +6,8 @@
   "scripts": {
     "pretest" : "tsc *.ts test/*.ts --module commonjs",
     "test": "mocha",
-    "preinstall": "tsc && browserify -o out.js -s mkHTML mkHTML.js"
+    "preinstall": "tsc && browserify -o out.js -s mkHTML mkHTML.js",
+    "doc": "typedoc --mode file --excludePrivate --out ../doc/ ."
   },
   "author": "",
   "license": "Copyright of the developers"

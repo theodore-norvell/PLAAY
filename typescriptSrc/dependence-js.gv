@@ -3,40 +3,58 @@ digraph Depends {
    gsize="8,6"; ratio=fill;
    node[fontsize=8, shape=rectangle];
 
-   mkHTML -> pnode ;
-   mkHTML -> treeManager ;
-   mkHTML -> evaluationManager ;
-   mkHTML -> seymour ;
-
-   evaluation -> stackManager ;
-   evaluation -> value ;
+   //edits -> assert ;
+   //edits -> collections ;
 
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
+   //mkHTML -> assert ;
+   //mkHTML -> collections ;
+   mkHTML -> pnode ;
+   mkHTML -> pnodeEdits ;
+   mkHTML -> treeManager ;
+   mkHTML -> evaluationManager ;
+   mkHTML -> seymour ;
+
+   //pageManipulation -> assert ;
+   //pageManipulation -> collections ;
+
+   //playground -> collections ;
    playground -> pnode ;
    playground -> pnodeEdits ;
 
-
-   pnode -> evaluation ;
+   //pnode -> assert ;
+   //pnode -> collections ;
    pnode -> stackManager ;
-   pnode -> value ;
+   pnode -> valueTypes ;
+   pnode -> vms ;
 
+   //pnodeEdits -> assert ;
+   //pnodeEdits -> collections ;
    pnodeEdits -> edits ;
    pnodeEdits -> pnode ;
 
+   //treeManager -> asssert ;
+   //treeManager -> collections ;
+   treeManager -> edits ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
    //turtleTest -> seymour ;
 
-   value -> pnode ;
+   //valueTypes -> assert ;
+   //valueTypes -> collections ;
+   valueTypes -> pnode ;
 
-   vms -> stackManager ;
-   vms -> evaluation ;
+   //vms -> assert ;
+   //vms -> collections ;
 
    workspace -> world ;
 
-   world -> value ;
+   //world -> assert ;
+   //world -> collections ;
+   world -> valueTypes ;
+   world -> vms ;
 }

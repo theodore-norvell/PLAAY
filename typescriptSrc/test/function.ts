@@ -2,30 +2,26 @@
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
+/// <reference path="../valueTypes.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
-/// <reference path="../value.ts" />
-/// <reference path="../stackManager.ts" />
 
 import assert = require( '../assert' ) ;
 import collections = require( '../collections' ) ;
 import pnode = require( '../pnode' ) ;
+import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
-import evaluation = require( '../evaluation' ) ;
 import world = require('../world') ;
-import value = require('../value') ;
-import stack = require('../stackManager') ;
-import Evaluation = evaluation.Evaluation;
+import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import varStrategy = pnode.varStrategy;
-import Field = value.Field;
-import Type = value.Type;
-import execStack = stack.execStack;
-import ObjectV = value.ObjectV;
-import ClosureV = value.ClosureV;
-import StringV = value.StringV;
+import Field = valueTypes.Field;
+import Type = vms.Type;
+import VarStack = vms.VarStack;
+import ObjectV = valueTypes.ObjectV;
+import ClosureV = valueTypes.ClosureV;
+import StringV = valueTypes.StringV;
 
 var wld = new World();
 var wlds : Array<ObjectV> = new Array();
@@ -35,8 +31,8 @@ var b : pnode.PNode = pnode.mkVar("b");
 var c : pnode.PNode = pnode.mkVar("c");
 
 
-var str = new value.StringV("3");
-var str2 = new value.StringV("2");
+var str = new valueTypes.StringV("3");
+var str2 = new valueTypes.StringV("2");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);//a=3
 var f2 : Field = new Field(b.label().getVal(), str2, Type.ANY , false);//b=2
 var cw : pnode.PNode = pnode.mkWorldCall(a, b);
@@ -59,7 +55,7 @@ vm.getEval().setPending([2]);
 describe( 'Lambda', () => {
     it('Should be selected', () => {
         lamb.label().strategy.select(vm, lamb.label());
-        assert.check(vm.evalu.ready);
+        assert.check(vm.getEval().ready);
     } );
 
     it('Should step', () => {
@@ -68,11 +64,11 @@ describe( 'Lambda', () => {
     } );
 
     it('Should have a closure value in stack when stepped', () => {
-        let val : value.Value = vm.evalu.getVarMap().get([2]) ;
+        let val : vms.Value = vm.getEval().getValMap().get([2]) ;
         assert.check( val.isClosureV() ) ;
         let close : ClosureV = <ClosureV> val ;
         assert.check(close.isClosureV());
-        assert.check(close.getContext() == vm.evalu.getStack());
+        assert.check(close.getContext() == vm.getEval().getStack());
         assert.check(close.getLambdaNode() == lamb);
     } );
 
@@ -81,16 +77,15 @@ describe( 'Lambda', () => {
 
 describe( 'Call', () => {
     it('Should be selected', () => {
-        vm.getEval().getVarMap().put([3,0], new StringV("3"));//throw children in varmap
-        vm.getEval().getVarMap().put([3,1], new StringV("2"));
+        vm.getEval().getValMap().put([3,0], new StringV("3"));//throw children in varmap
+        vm.getEval().getValMap().put([3,1], new StringV("2"));
 
-        vm.evalu.setPending([3]);//set pending to cw node
+        vm.getEval().setPending([3]);//set pending to cw node
         cw.label().strategy.select(vm, cw.label());
-        assert.check(vm.evalu.ready);
+        assert.check(vm.getEval().ready);
     } );
 
     it('Should step', () => {
-        var tmp = vm.stack.top();
         cw.label().step(vm);
 
       //  assert.check();

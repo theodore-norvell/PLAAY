@@ -4,11 +4,11 @@
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../evaluation.ts" />
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
+import vms = require( '../vms' ) ;
 import evaluationManager = require( '../evaluationManager' ) ;
 
 var varNode = pnode.mkStringLiteral("aa");
@@ -31,92 +31,106 @@ var root = opt.choose(
     });
 
 var evalmananger = new evaluationManager.EvaluationManager();
-var ms = evalmananger.PLAAY(root, null);
-describe ("initialize evaluation", () => {
-    it('should not have null stack', () => {
-        assert.check(ms.stack != null);
+var ms : vms.VMS  = evalmananger.PLAAY(root, null);
+
+describe ("initialize evaluation", function() {
+    it('should not have null stack', function() {
+        assert.check(ms.evalStack != null);
     });
-    it('should not be ready', () => {
+    it('should not be ready', function() {
         assert.check(ms.getEval().ready == false);
     });
-    it('should have a plus world call', () => {
-        assert.check(ms.getWorld().getField("+") != null);
-    });
-    it('should have nothing in the pending', () => {
+    it('should have nothing in the pending', function() {
         assert.check(ms.getEval().getPending().length == 0);
         console.log( ms.getEval().getPending() )
     });
 });
 
-var ms2 = evalmananger.next();
-describe('first step', () => {
-    it('should have pending as [0]', () => {
-        assert.check(ms2.getEval().getPending().length == 1);
+describe('first step', function() {
+
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as [0]', function() {
+        let pending = ms.getEval().getPending() ;
+        assert.check( pending.length == 1 );
+        assert.check( pending[0] == 0 ) ;
     });
-    it('should be ready', () => {
-        assert.check(ms2.getEval().ready == true);
+    it('should be ready', function() {
+        assert.check(ms.getEval().ready == true);
     });
 });
 
-var ms3 = evalmananger.next();
-describe('second step', () => {
-    it('should have pending as []', () => {
-        assert.check(ms3.getEval().getPending().length == 0);
+describe('second step', function() {
+
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as []', function() {
+        assert.check(ms.getEval().getPending().length == 0);
     });
-    it('should not be ready', () => {
-        assert.check(ms3.getEval().ready == false);
+    it('should not be ready', function() {
+        assert.check(ms.getEval().ready == false);
     });
-    it('should have 1 thing in varmap', () => {
-        assert.check(ms3.getEval().getVarMap().size == 1);
+    it('should have 1 thing in varmap', function() {
+        assert.check(ms.getEval().getValMap().size == 1);
     });
 });
 
-var ms4 = evalmananger.next();
-describe('third step', () => {
-    it('should have pending as [2]', () => {
-        assert.check(ms4.getEval().getPending().length == 1);
+describe('third step', function() {
+
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as [2]', function() {
+        let pending = ms.getEval().getPending() ;
+        assert.check( pending.length == 1 );
+        assert.check( pending[0] == 2 ) ;
     });
-    it('should be ready', () => {
-        assert.check(ms4.getEval().ready == true);
+    it('should be ready', function() {
+        assert.check(ms.getEval().ready == true);
     });
 });
 
-var ms5 = evalmananger.next();
-describe('fourth step', () => {
-    it('should have pending as []', () => {
-        assert.check(ms5.getEval().getPending().length == 0);
+describe('fourth step', function() {
+
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as []', function() {
+        assert.check(ms.getEval().getPending().length == 0);
     });
-    it('should not be ready', () => {
-        assert.check(ms5.getEval().ready == false);
+    it('should not be ready', function() {
+        assert.check(ms.getEval().ready == false);
     });
-    it('should have 2 things in varmap', () => {
-        assert.check(ms5.getEval().getVarMap().size == 2);
+    it('should have 2 things in varmap', function() {
+        assert.check(ms.getEval().getValMap().size == 2);
     });
 });
 
-var ms6 = evalmananger.next();
-describe('fifth step', () => {
-    it('should have pending as []', () => {
-        assert.check(ms6.getEval().getPending().length == 0);
+describe('fifth step', function() {
+
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as []', function() {
+        assert.check(ms.getEval().getPending().length == 0);
     });
-    it('should be ready', () => {
-        assert.check(ms6.getEval().ready == true);
+    it('should be ready', function() {
+        assert.check(ms.getEval().ready == true);
     });
 });
 
-var ms7 = evalmananger.next();
-describe('sixth step', () => {
-    it('should have pending as null', () => {
-        assert.check(ms5.getEval().getPending() == null);
+describe('sixth step', function() {
+    
+    before( function() { evalmananger.next() ; } ) ;
+
+    it('should have pending as null', function() {
+        assert.check(ms.getEval().getPending() == null);
     });
-    it('should be done', () => {
-        assert.check(ms5.getEval().isDone() == true);
+    it('should be done', function() {
+        assert.check(ms.getEval().isDone() == true);
     });
-    it('should have 3 things in varmap', () => {
-        assert.check(ms5.getEval().getVarMap().size == 3);
+    it('should have 3 things in varmap', function() {
+        assert.check(ms.getEval().getValMap().size == 3);
     });
-    it('should have something in stack named aa', () => {
-        assert.check(ms5.getEval().getStack().inStack("aa") == true);
+    it('should have something in stack named aa', function() {
+        assert.check(ms.getEval().getStack().inStack("aa") == true);
     });
 });
 
