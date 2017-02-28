@@ -285,7 +285,6 @@ module userRelated
             $("#dimScreen").remove();
             sharedMkHtml.currentSelection = unserialize(response.responseText);
             editing.generateHTML(sharedMkHtml.currentSelection);
-            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         });
     }
 

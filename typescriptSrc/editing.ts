@@ -33,7 +33,6 @@ module editing {
 	export function editingActions () 
     {
         generateHTML(sharedMkHtml.currentSelection);
-        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
 
         $("#undo").click(function() 
         {
@@ -42,7 +41,6 @@ module editing {
 				redostack.push(sharedMkHtml.currentSelection);
 				sharedMkHtml.currentSelection = undostack.pop();
 				generateHTML(sharedMkHtml.currentSelection);
-				$("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
 			}
 		});
         $("#redo").click(function() 
@@ -52,7 +50,6 @@ module editing {
                 undostack.push(sharedMkHtml.currentSelection);
                 sharedMkHtml.currentSelection = redostack.pop();
                 generateHTML(sharedMkHtml.currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
             }
 		});
 
@@ -74,11 +71,9 @@ module editing {
         //             sel => {
         //                 sharedMkHtml.currentSelection = sel;
         //                 generateHTML(sharedMkHtml.currentSelection);
-        //                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         //             },
         //             ()=>{
         //                 generateHTML(sharedMkHtml.currentSelection);
-        //                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
         //             });
         //         console.log("<< Dropping into something of class .droppable." );
         //     }
@@ -107,13 +102,11 @@ module editing {
                         sharedMkHtml.currentSelection = sel;
                         generateHTML(sharedMkHtml.currentSelection);
                         console.log("   Dropping into trash b" );
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         console.log("   Dropping into trash c" );
                     },
                     ()=>{
                         console.log("   Deletion failed." );
                         generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
                 console.log("<< Dropping into trash" );
             }
@@ -212,11 +205,9 @@ module editing {
                                 undostack.push(sharedMkHtml.currentSelection);
                                 sharedMkHtml.currentSelection = sel;
                                 generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             },
                             () =>{
                                 generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             }
                         );
                         $( this ).dialog( "destroy" );
@@ -248,11 +239,9 @@ module editing {
                                 undostack.push(sharedMkHtml.currentSelection);
                                 sharedMkHtml.currentSelection = sel;
                                 generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             },
                         () =>{
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                         }
                         );
                         $(this).dialog("destroy");
@@ -266,7 +255,7 @@ module editing {
     {
         sharedMkHtml.currentSelection = select;
 		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(select.root(), select.root().count(), false));
+			.append(sharedMkHtml.traverseAndBuild(select.root(), -1, false));
 
         $( ".droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -318,7 +307,6 @@ module editing {
                             sharedMkHtml.currentSelection = sel;
                             console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                             createSwapDialog(selectionArray);
                             console.log("  Back from createSwapDialog." ) ;
@@ -328,7 +316,6 @@ module editing {
                             // there are other possibilities.
                             console.log("  Move is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         });
                 }
@@ -352,7 +339,6 @@ module editing {
                             sharedMkHtml.currentSelection = sel;
                             console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                             createCopyDialog(selectionArray);
                             console.log("  Back from createCopyDialog." ) ;
@@ -360,7 +346,6 @@ module editing {
                         ()=>{
                             console.log("  Move is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         });
                 }
@@ -379,13 +364,11 @@ module editing {
                             sharedMkHtml.currentSelection = sel;
                             console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         },
                         ()=> {
                             console.log("  Insertion is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         });
                 }
@@ -404,19 +387,16 @@ module editing {
                             sharedMkHtml.currentSelection = sel;
                             console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         },
                         ()=>{
                             console.log("  createNode is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         });
                 } else {
                     console.log("  Fifth case.  This really should not happen." ) ;
                     generateHTML(sharedMkHtml.currentSelection);
-                    $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     console.log("  HTML generated" ) ;
                 }
                 console.log("<< Leaving drop handler" ) ;
@@ -440,11 +420,9 @@ module editing {
                         undostack.push(sharedMkHtml.currentSelection);
                         sharedMkHtml.currentSelection = sel;
                         generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     },
                     ()=>{
                         generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
                 const label = $(this).attr("class");
                 const childNumber = $(this).attr("data-childNumber") ;
