@@ -78,11 +78,9 @@ module sharedMkHtml
                 seqBox.setAttribute("class", "seqBox V");
                 seqBox.setAttribute("data-childNumber", childNumber.toString());
                 seqBox["childNumber"] = childNumber;
-
                 for (var i = 0; true; ++i) {
-                    var dropZone = document.createElement("div");
-                    dropZone.setAttribute("class", "dropZone H droppable");
-                    seqBox.appendChild(dropZone);
+                    const dz = makeLargeDropZone(i) ;
+                    seqBox.appendChild(dz);
                     if (i == children.length) break;
                     seqBox.appendChild(children[i]);
                 }
@@ -95,15 +93,6 @@ module sharedMkHtml
             var PHBox = document.createElement("div");
             PHBox.setAttribute("class", "placeHolder V");
             PHBox.setAttribute("data-childNumber", childNumber.toString());
-            //PHBox["childNumber"] = childNumber ;
-
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                PHBox.appendChild(dropZone);
-                if (i == children.length) break;
-                PHBox.appendChild(children[i]);
-            }
 
             return PHBox;
         }
@@ -115,9 +104,8 @@ module sharedMkHtml
             //PHBox["childNumber"] = childNumber ;
 
             for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                paramBox.appendChild(dropZone);
+                const dz = makeSmallDropZone(i) ;
+                paramBox.appendChild(dz);
                 if (i == children.length) break;
                 paramBox.appendChild(children[i]);
             }
@@ -146,53 +134,49 @@ module sharedMkHtml
         }
         else if(label.match("callWorld"))
         {
-            var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "callWorld H canDrag droppable" );
-            WorldBox.setAttribute("data-childNumber", childNumber.toString());
-            WorldBox.setAttribute("type", "text");
-            WorldBox.setAttribute("list", "oplist");
-
-            var dropZone = document.createElement("div");
-            dropZone.setAttribute("class", "dropZoneSmall H droppable");
+            const callBox = document.createElement("div");
+            callBox.setAttribute("class", "callWorld H canDrag droppable" );
+            callBox.setAttribute("data-childNumber", childNumber.toString());
+            callBox.setAttribute("type", "text");
+            callBox.setAttribute("list", "oplist");
 
             if((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
                 || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
                 || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
                 || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)) )
-                && node.label().getVal().length > 0)
+                && node.label().getVal().length > 0
+                && children.length == 2)
             {
                 var opval = document.createElement("div");
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[1]);
+                callBox.appendChild(children[0]);
+                callBox.appendChild(opval);
+                callBox.appendChild(children[1]);
             }
-            else if(node.label().getVal().length > 0)
-            {
-                var opval = document.createElement("div");
-                opval.setAttribute("class", "op H click");
-                opval.textContent = node.label().getVal();
-
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(children[1]);
+            else {
+                let opElement : Element ;
+                if(node.label().getVal().length > 0)
+                {
+                    opElement = document.createElement("div");
+                    opElement.setAttribute("class", "op H click");
+                    opElement.textContent = node.label().getVal();
+                }
+                else {
+                    var op = document.createElement("input");
+                    opElement.setAttribute("class", "op H input");
+                    opElement.setAttribute("type", "text");
+                    opElement.setAttribute("list", "oplist");
+                    opElement.textContent = "";
+                }
+                callBox.appendChild(opElement);
+                for( let i=0 ; i < children.length ; ++i) {
+                    callBox.appendChild( makeSmallDropZone(i) ) ;
+                    callBox.appendChild( children[i] ) ;
+                }
             }
-            else
-            {
-                var op = document.createElement("input");
-                op.setAttribute("class", "op H input");
-                op.setAttribute("type", "text");
-                op.setAttribute("list", "oplist");
-                op.textContent = "";
-
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(op);
-                WorldBox.appendChild(children[1]);
-            }
-
-            return WorldBox;
+            return callBox;
         }
         else if(label.match("assign"))
         {
@@ -200,12 +184,12 @@ module sharedMkHtml
             AssignBox.setAttribute("class", "assign H canDrag droppable" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var equals = document.createElement("div");
-            equals.setAttribute("class", "op H");
-            equals.textContent = ":=";
+            var lebel = document.createElement("div");
+            lebel.setAttribute("class", "op H");
+            lebel.textContent = ":=";
 
             AssignBox.appendChild(children[0]);
-            AssignBox.appendChild(equals);
+            AssignBox.appendChild(lebel);
             AssignBox.appendChild(children[1]);
 
             return AssignBox;
@@ -300,32 +284,15 @@ module sharedMkHtml
             noType.setAttribute("data-childNumber", childNumber.toString());
             noType["childNumber"] = childNumber ;
 
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                noType.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                noType.appendChild( children[i] ) ;
-            }
-
             return noType ;
         }
         else if(label.match("expOpt"))
         {
-            var OptType = document.createElement("div");
-            OptType.setAttribute("class", "expOp V");
-            OptType.setAttribute("data-childNumber", childNumber.toString());
+            var expOpt = document.createElement("div");
+            expOpt.setAttribute("class", "expOp V");
+            expOpt.setAttribute("data-childNumber", childNumber.toString());
 
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                OptType.appendChild(dropZone);
-                if (i == children.length) break;
-                OptType.appendChild(children[i]);
-            }
-
-            return OptType;
+            return expOpt;
         }
         else if(label.match("vdecl"))
         {
@@ -416,76 +383,81 @@ module sharedMkHtml
         }
     }
 
-    export function getPathToNode(select:Selection, self : JQuery ) : Selection
+    function makeLargeDropZone( childNumber : number ) : Element {
+        var dropZone = document.createElement("div");
+        dropZone.setAttribute("class", "dropZone H droppable");
+        dropZone.setAttribute("data-isDropZone", "yes");
+        dropZone.setAttribute("data-childNumber", childNumber.toString());
+        return dropZone ;
+    }
+
+    function makeSmallDropZone( childNumber : number ) : Element {
+        const dropZone = document.createElement("div");
+        dropZone.setAttribute("class", "dropZoneSmall H droppable");
+        dropZone.setAttribute("data-isDropZone", "yes");
+        dropZone.setAttribute("data-childNumber", childNumber.toString());
+        return dropZone ;
+    }
+
+    export function getPathToNode(root : PNode, self : JQuery ) : Selection
     {
-        var array = [];
-        var anchor;
-        var focus;
-
-        var parent = $(self);
-        var child = Number(parent.attr("data-childNumber"));
-
-        if (isNaN(child))
-        {
-            var index = parent.index();
-            parent = parent.parent();
-            var num = parent.children().eq(index).prevAll(".dropZone").length;
-            child = Number(parent.attr("data-childNumber"));
-            var place = index - num;
-
-            var label = parent.attr("class");
-            if (/placeHolder/i.test(label) || /expOp/i.test(label))
-            {
-                anchor = child;
-                focus = anchor + 1;
-                parent = parent.parent();
-                child = Number(parent.attr("data-childNumber"));
-            }
-            else
-            {
-                anchor = place;
-                focus = anchor;
-            }
+        let anchor;
+        let focus;
+        //console.log( ">> getPathToNode" ) ;
+        let jq : JQuery= $(self);
+        let childNumber = Number(jq.attr("data-childNumber"));
+        // Climb the tree until we reach a node with a data-childNumber attribute.
+        while( jq.length > 0 && isNaN( childNumber ) ) {
+            //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
+            //console.log( "Length is " + jq.length ) ;
+            //console.log( "childNumber is " + childNumber ) ;
+            jq = jq.parents() ;
+            childNumber = Number(jq.attr("data-childNumber"));
         }
-        else
-        {
-            if(/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class")))
-            {
-                anchor = 0;
-                focus = anchor;
-            }
-            else
-            {
-                if ((/ifBox/i.test(parent.attr("class"))) || (/lambdaBox/i.test(parent.attr("class"))) ||
-                    (/whileBox/i.test(parent.attr("class"))) || (/callWorld/i.test(parent.attr("class")))
-                    || (/assign/i.test(parent.attr("class")))) {
-                    anchor = child;
-                    focus = child + 1;
-                    parent = parent.parent();
-                    child = Number(parent.attr("data-childNumber"));
-                }
-                else
-                {
-                    anchor = child;
-                    focus = anchor;
-                }
-            }
+        if( jq.length == 0 ) {
+            //TODO handle this case elegantly
+            assert.check( false ) ;
         }
-        while (child != -1) {
-            if (!isNaN(child))
-            {
-                array.push(Number(parent.attr("data-childNumber")));
-            }
-            parent = parent.parent();
-            child = Number(parent.attr("data-childNumber"));
+        if( childNumber == -1 ) {
+            //TODO handle this case elegantly
+            assert.check( false ) ;
         }
-        var tree = select.root();
+        // childNumber is a number.  Is this a dropzone or not?
+        const isDropZone = jq.attr("data-isDropZone" ) ;
+        if( isDropZone == "yes" ) {
+            //console.log( "   it's a dropzone with number " +  childNumber) ;
+            anchor = focus = childNumber ;
+        } else {
+            //console.log( "   it's a node with number " +  childNumber) ;
+            anchor = childNumber ;
+            focus = anchor+1 ;
+        }
+        // Go up one level
+        jq = jq.parent() ;
+        childNumber = Number(jq.attr("data-childNumber"));
+
+
+        // Climb the tree until we reach a node with a data-childNumber attribute of -1.
+        const array = [];
+        while (jq.length > 0 && childNumber != -1 ) {
+            if (!isNaN(childNumber))
+            {
+                array.push( childNumber );
+                //console.log( "   pushing " +  childNumber) ;
+            }
+            // Go up one level
+            jq = jq.parents() ;
+            childNumber = Number(jq.attr("data-childNumber"));
+        }
+        assert.check( jq.length != 0 ) ; // Really should not happen
+        // Now make a path out of the array.
         var path = list<number>();
-        var i ;
-        for( i = 0 ; i < array.length ; i++ )
+        for( let i = 0 ; i < array.length ; i++ )
             path = collections.cons( array[i], path ) ;
-
-        return new pnodeEdits.Selection(tree, path, anchor, focus);
+        
+        // If making the selection fails, then the root passed in was not the root
+        // used to make the HTML.
+        return new pnodeEdits.Selection(root, path, anchor, focus);
     }
 }
 

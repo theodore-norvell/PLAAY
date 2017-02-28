@@ -29,6 +29,9 @@ module editing {
 
 	export function editingActions () 
     {
+        generateHTML(sharedMkHtml.currentSelection);
+        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+
         $("#undo").click(function() 
         {
 			if (undostack.length != 0) 
@@ -57,7 +60,7 @@ module editing {
                 // TODO Why do we need this hendler?
                 console.log(">> Dropping into something of class .droppable." );
                 console.log(ui.draggable.attr("id"));
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
                 undostack.push(sharedMkHtml.currentSelection);
                 var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
                 assert.check( selection !== undefined ) ;
@@ -84,15 +87,14 @@ module editing {
             drop: function(event, ui){
                 console.log(">> Dropping into trash" );
                 console.log("   JQuery is " + ui.draggable.toString()  );
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
+                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), ui.draggable);
                 console.log("   Dropping selection. " + sharedMkHtml.currentSelection.toString() );
                 var opt = treeMgr.deleteNode(sharedMkHtml.currentSelection);
                 assert.check( opt !== undefined ) ;
                 opt.choose(
                     sel => {
                         console.log("   Dropping into trash a" );
-                        console.log("   New selection is. " + sharedMkHtml.currentSelection.toString() );
-                
+                        console.log("   New selection is. " + sharedMkHtml.currentSelection.toString() );                
                         trashArray.push(sharedMkHtml.currentSelection);
                         undostack.push(sharedMkHtml.currentSelection);
                         sharedMkHtml.currentSelection = sel;
@@ -270,7 +272,7 @@ module editing {
 
                 // First change the current selection to be the the drop target.
                 console.log(">> Dropping " + ui.draggable.attr("id") );
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
                 console.log("  on current selection " + sharedMkHtml.currentSelection.toString() ) ;
                 // Case: Dragged object is dropped on a node.
                 if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
@@ -404,7 +406,7 @@ module editing {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
                 var text = $(this).val();
-                var selection = treeMgr.changeNodeString( sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this)), 
+                var selection = treeMgr.changeNodeString( sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this)), 
                                                        text );
                 selection.choose(
                     sel => {
@@ -454,7 +456,7 @@ module editing {
             revert:'invalid',
             start: function(event,ui){
                 draggedObject = $(this).attr("class");
-                draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
+                draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
             }
         });
     }
