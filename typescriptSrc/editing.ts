@@ -18,12 +18,15 @@ module editing {
     import list = collections.list;
     import Selection = pnodeEdits.Selection;
 
+    enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE } ;
+
     const redostack : Array<Selection> = [];
     const undostack  : Array<Selection> = [];
     const trashArray : Array<Selection> = [];
     var pathToTrash = list<number>(); // TODO What is this for?
-    var draggedObject;
-    var draggedSelection;
+    var draggedObject : string ; 
+    var draggedSelection : Selection ;
+    var dragKind : DragEnum  = DragEnum.NONE ;
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
@@ -53,30 +56,33 @@ module editing {
             }
 		});
 
-        $(".droppable").droppable({
-            hoverClass: "hover",
-            tolerance: "pointer",
-            drop: function (event, ui) {
-                // TODO Why do we need this hendler?
-                console.log(">> Dropping into something of class .droppable." );
-                console.log(ui.draggable.attr("id"));
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
-                undostack.push(sharedMkHtml.currentSelection);
-                var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
-                assert.check( selection !== undefined ) ;
-                selection.choose(
-                    sel => {
-                        sharedMkHtml.currentSelection = sel;
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    },
-                    ()=>{
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    });
-                console.log("<< Dropping into something of class .droppable." );
-            }
-        });
+        // $(".droppable").droppable({
+        //     hoverClass: "hover",
+        //     tolerance: "pointer",
+        //     drop: function (event, ui) {
+        //         // TODO Why do we need this hendler?
+        //         console.log(">> Dropping into something of class .droppable. (Mystery Handler)" );
+        //         console.log('ui.draggable.attr("id") is ' + ui.draggable.attr("id") );
+        //         console.log( "dragKind is " + dragKind ) ;
+        //         console.log( "draggedObject is " + draggedObject ) ;
+        //         console.log( "draggedSelection is " + draggedSelection ) ;
+        //         sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
+        //         undostack.push(sharedMkHtml.currentSelection);
+        //         var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
+        //         assert.check( selection !== undefined ) ;
+        //         selection.choose(
+        //             sel => {
+        //                 sharedMkHtml.currentSelection = sel;
+        //                 generateHTML(sharedMkHtml.currentSelection);
+        //                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        //             },
+        //             ()=>{
+        //                 generateHTML(sharedMkHtml.currentSelection);
+        //                 $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+        //             });
+        //         console.log("<< Dropping into something of class .droppable." );
+        //     }
+        // });
 
 		$(".trash").click(function() {visualizeTrash();});
         $(".trash").droppable({
@@ -86,10 +92,11 @@ module editing {
             greedy: true,
             drop: function(event, ui){
                 console.log(">> Dropping into trash" );
+                if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   JQuery is " + ui.draggable.toString()  );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), ui.draggable);
                 console.log("   Dropping selection. " + sharedMkHtml.currentSelection.toString() );
-                var opt = treeMgr.deleteNode(sharedMkHtml.currentSelection);
+                var opt = treeMgr.delete(sharedMkHtml.currentSelection);
                 assert.check( opt !== undefined ) ;
                 opt.choose(
                     sel => {
@@ -114,12 +121,18 @@ module editing {
 
         $( ".palette" ).draggable({
             helper:"clone" ,
+            revert: true ,
+            revertDuration: 500,
+            opacity: 0.5, 
             start : function(event, ui){
+                console.log( ">> Drag handler for things in pallette" ) ;
                 ui.helper.animate({
                     width: 40,
                     height: 40
                 });
+                dragKind = DragEnum.PALLETTE ;
                 draggedObject = $(this).attr("class");
+                console.log( "<< Drag handler for things in pallette" ) ;
             },
             cursorAt: {left:20, top:20},
             appendTo:"body"
@@ -155,15 +168,20 @@ module editing {
             dialogDiv.dialog("destroy");
         }
 
-        $(".canDrag").draggable({
+        $(".trashitem").draggable({
             //helper:'clone',
             //appendTo:'body',
-            revert:'invalid',
+            revert: true ,
+            revertDuration: 500,
+            opacity: 0.5, 
             appendTo: '#container',
             containment: false,
             start: function(event,ui){
+                console.log( ">> Drag handler for things in trash" ) ;
+                dragKind = DragEnum.TRASH ;
                 draggedObject = $(this).parent().attr("class");
-                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
+                draggedSelection = trashArray[$(this).attr("data-trashitem")];
+                console.log( "<< Drag handler for things in trash" ) ;
             }
         });
 	}
@@ -271,10 +289,16 @@ module editing {
                 // disappears.
 
                 // First change the current selection to be the the drop target.
+                console.log(">> Dropping into something of class .droppable. (Main drop handler)" );
+                console.log('ui.draggable.attr("id") is ' + ui.draggable.attr("id") );
+                console.log( "dragKind is " + dragKind ) ;
+                console.log( "draggedObject is " + draggedObject ) ;
+                console.log( "draggedSelection is " + draggedSelection ) ;
                 console.log(">> Dropping " + ui.draggable.attr("id") );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
                 console.log("  on current selection " + sharedMkHtml.currentSelection.toString() ) ;
                 // Case: Dragged object is dropped on a node.
+                // TODO: Use dragKind
                 if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
                       || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
                       || (/assign/i.test(draggedObject)) )
@@ -340,15 +364,16 @@ module editing {
                             console.log("  HTML generated" ) ;
                         });
                 }
-                // Case: Dragged object is dragged from the trash to a dropzone
-                // TODO Why only dropzones?
-                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
+                else if( dragKind == DragEnum.TRASH ) 
                 {
                     console.log("  Third case. (Drag from trash)." ) ;
+                    console.log("  Current Selection is " +  sharedMkHtml.currentSelection.toString() ) ;
                     undostack.push(sharedMkHtml.currentSelection);
-                    var selection = treeMgr.appendChild(draggedSelection, sharedMkHtml.currentSelection);
-                    assert.check( selection !== undefined ) ;
-                    selection.choose(
+                    console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
+                    var opt = treeMgr.copy(draggedSelection, sharedMkHtml.currentSelection);
+                    console.log("  opt is " + opt ) ;
+                    assert.check( opt !== undefined ) ;
+                    opt.choose(
                         sel => {
                             console.log("  Insertion is possible." ) ;
                             sharedMkHtml.currentSelection = sel;
@@ -357,15 +382,14 @@ module editing {
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         },
-                        ()=>{
+                        ()=> {
                             console.log("  Insertion is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                             console.log("  HTML generated" ) ;
                         });
                 }
-                // Case default.  I think this is used for pallette items.
-                else if( ui.draggable.attr("id") !== undefined )
+                else if( dragKind == DragEnum.PALLETTE ) 
                 {
                     console.log("  Fourth case." ) ;
                     console.log("  " + ui.draggable.attr("id"));
@@ -390,7 +414,7 @@ module editing {
                             console.log("  HTML generated" ) ;
                         });
                 } else {
-                    console.log("  Fifth case." ) ;
+                    console.log("  Fifth case.  This really should not happen." ) ;
                     generateHTML(sharedMkHtml.currentSelection);
                     $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     console.log("  HTML generated" ) ;
@@ -458,10 +482,14 @@ module editing {
         $(".canDrag").draggable({
             //helper:'clone',
             //appendTo:'body',
-            revert:'invalid',
+            revert: false ,
+            opacity: 0.5, 
             start: function(event,ui){
+                console.log( ">> Drag handler for things in tree" ) ;                
                 draggedObject = $(this).attr("class");
+                dragKind = DragEnum.CURRENT_TREE ;
                 draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
+                console.log( "<< Drag handler for things in tree" ) ;     
             }
         });
     }

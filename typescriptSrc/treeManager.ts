@@ -104,13 +104,6 @@ module treeManager {
             }
         }
 
-        // TODO Change this name to insertNodes and change the type of the first
-        // parameter to an array of nodes.
-        appendChild(srcSelection:Selection, trgSelection:Selection) : Option<Selection> {
-            var edit = new pnodeEdits.InsertChildrenEdit([srcSelection.root()]);
-            return edit.applyEdit(trgSelection);
-        }
-
         private makeVarNode(selection:Selection) : Option<Selection> {
 
             var opt = pnode.tryMake(pnode.VariableLabel.theVariableLabel, []);
@@ -401,9 +394,14 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        deleteNode(selection:Selection) : Option<Selection> {
+        delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
+        }
+
+        copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
+            return copyEdit.applyEdit( trgSelection ) ;
         }
 
         // TODO: I think this would better return an array of [string, string, Selection]
