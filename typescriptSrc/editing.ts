@@ -405,10 +405,13 @@ module editing {
     {
         $(".input").keyup(function (e) {
             if (e.keyCode == 13) {
-                var text = $(this).val();
-                var selection = treeMgr.changeNodeString( sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this)), 
-                                                       text );
-                selection.choose(
+                console.log( ">>keyup handler")
+                const text = $(this).val();
+                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this) )  ;
+                console.log( "  locationOfTarget is " + locationOfTarget ) ;
+                const opt = treeMgr.changeNodeString( locationOfTarget, text );
+                console.log( "  opt is " + opt) ;
+                opt.choose(
                     sel => {
                         undostack.push(sharedMkHtml.currentSelection);
                         sharedMkHtml.currentSelection = sel;
@@ -419,12 +422,14 @@ module editing {
                         generateHTML(sharedMkHtml.currentSelection);
                         $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
                     });
-                var label = $(this).attr("class");
+                const label = $(this).attr("class");
+                const childNumber = $(this).attr("data-childNumber") ;
+                console.log( "  opt is " + opt) ;
                 if (/var/i.test(label)) {
-                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
+                    $(this).replaceWith('<div class="var H click" data-childNumber ="' + childNumber + '">' + text + '</div>');
                 }
                 else if (/stringLiteral/i.test(label)) {
-                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
+                    $(this).replaceWith('<div class="stringLiteral H click" data-childNumber ="' + childNumber + '">' + text + '</div>');
                 }
                 else if (/op/i.test(label)) {
                     $(this).replaceWith('<div class="op H click">' + text + '</div>');
@@ -435,11 +440,11 @@ module editing {
                     var val = $(this).attr("data-childNumber");
                     if (/var/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
+                        $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '">');
                     }
                     else if (/stringLiteral/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
+                        $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '">');
                     }
                     else if(/op/i.test(label))
                     {
