@@ -141,25 +141,28 @@ module editing {
 		return obj;
 	}
 
+    // TODO. The trash should really be one UI element that might be expanded or collapsed.
+    // Whe expanded, we can see the trash items and drag them out. Whether
+    // collaped or expanded, we should be able to drop item from the tree into the trash.
+    // It should not be a modal dialog.
     function visualizeTrash() : void {
         var dialogDiv = $('#trashDialog');
 
-        if (dialogDiv.length == 0) {
-            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body') ;
-            for(let i = 0; i < trashArray.length; i++) {
-				const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
-                const trashedSelection = trashArray[i] ;
-                const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
-                for( let j=0 ; j < a.length; ++j ) {
-                	trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
-            }
-            dialogDiv.dialog({
-                modal : true,
-                dialogClass : 'no-close success-dialog',
-            });
-        }else{
-            dialogDiv.dialog("destroy");
+        if (dialogDiv.length != 0) { dialogDiv.dialog("destroy"); }
+        
+        // Make a dialog
+        dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body') ;
+        for(let i = 0; i < trashArray.length; i++) {
+            const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
+            const trashedSelection = trashArray[i] ;
+            const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
+            for( let j=0 ; j < a.length; ++j ) {
+                trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
         }
+        
+        dialogDiv.dialog({
+            dialogClass : 'no-close success-dialog',
+        });
 
         $(".trashitem").draggable({
             //helper:'clone',
