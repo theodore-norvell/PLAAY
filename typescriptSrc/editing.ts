@@ -436,23 +436,29 @@ module editing {
                     });
 
                 $("#container .click").click(function(){
+                    console.log( ">> Click Handler") ;
                     const label = $(this).attr("class");
+                    let text = $(this).text() ;
+                    text = text.replace( /&/g, "&amp;" ) ;
+                    text = text.replace( /"/g, "&quot;") ;
                     const val = $(this).attr("data-childNumber");
                     // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
                     if (/var/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '">');
+                        $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '" value="' + text +'">');
                     }
                     else if (/stringLiteral/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '">');
+                        $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '" value="' + text +'">');
                     }
                     else if(/op/i.test(label))
                     {
-                        $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
+                        $(this).replaceWith('<input type="text" class="op H input" list="oplist" value="' + text +'">');
                     }
                     enterBox();
+                    console.log( "<< Click Handler") ;
                 });
+                console.log( "<< keyup handler") ;
             }
         });
         $("#container .canDrag").draggable({
