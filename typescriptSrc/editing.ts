@@ -172,10 +172,10 @@ module editing {
 
     function installTrashItemDragHandler() {
         $(".trashitem").draggable({
-            //helper:'clone',
+            helper:'clone',
             //appendTo:'body',
             revert: true ,
-            revertDuration: 500,
+            revertDuration: 100,
             opacity: 0.5, 
             appendTo: '#container',
             containment: false,
@@ -434,23 +434,10 @@ module editing {
                     ()=>{
                         generateHTML(sharedMkHtml.currentSelection);
                     });
-                const label = $(this).attr("class");
-                const childNumber = $(this).attr("data-childNumber") ;
-                console.log( "  opt is " + opt) ;
-                // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
-                if (/var/i.test(label)) {
-                    $(this).replaceWith('<div class="var H click" data-childNumber ="' + childNumber + '">' + text + '</div>');
-                }
-                else if (/stringLiteral/i.test(label)) {
-                    $(this).replaceWith('<div class="stringLiteral H click" data-childNumber ="' + childNumber + '">' + text + '</div>');
-                }
-                else if (/op/i.test(label)) {
-                    $(this).replaceWith('<div class="op H click">' + text + '</div>');
-                }
 
                 $("#container .click").click(function(){
-                    var label = $(this).attr("class");
-                    var val = $(this).attr("data-childNumber");
+                    const label = $(this).attr("class");
+                    const val = $(this).attr("data-childNumber");
                     // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
                     if (/var/i.test(label))
                     {
@@ -469,9 +456,9 @@ module editing {
             }
         });
         $("#container .canDrag").draggable({
-            //helper:'clone',
+            helper:'clone',
             //appendTo:'body',
-            revert: false ,
+            revert: true,
             opacity: 0.5, 
             start: function(event,ui){
                 console.log( ">> Drag handler for things in or in the trash" ) ;   
