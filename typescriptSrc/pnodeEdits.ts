@@ -285,7 +285,7 @@ module pnodeEdits {
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const child = node.child( k ) ;
             const opt = doubleReplaceHelper( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
-            opt.bind( newSeln => {
+            return opt.bind( newSeln => {
                 const p0 = node.children( 0, k ) ;
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children( k+1, node.count()) ;
@@ -307,7 +307,7 @@ module pnodeEdits {
             const childTrg = node.child( kTrg ) ;
             const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
             const optTrg = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
+            return optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
                 let p0, p1, p2, p3, p4 ;
                 if( kSrc < kTrg ) {
                     p0 = node.children( 0, kSrc ) ;
