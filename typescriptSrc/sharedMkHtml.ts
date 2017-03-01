@@ -32,24 +32,24 @@ module sharedMkHtml
 
     function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
     {
-        var label = node.label().toString();
+        const label = node.label().toString();
         if(label.match('if'))
         {
             assert.check( children.length == 3 ) ;
 
-            var guardbox = document.createElement("div");
+            const guardbox = document.createElement("div");
             guardbox.setAttribute("class", "ifGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
-            var thenbox = document.createElement("div");
+            const thenbox = document.createElement("div");
             thenbox.setAttribute("class", "thenBox H workplace");
             thenbox.appendChild( children[1] ) ;
 
-            var elsebox = document.createElement("div");
+            const elsebox = document.createElement("div");
             elsebox.setAttribute("class", "elseBox H workplace");
             elsebox.appendChild( children[2] ) ;
 
-            var ifbox = document.createElement("div");
+            const ifbox = document.createElement("div");
             ifbox.setAttribute("data-childNumber", childNumber.toString());
             ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
             ifbox.appendChild(guardbox);
@@ -61,11 +61,11 @@ module sharedMkHtml
         {
             if(evaluating)
             {
-                var seqBox = document.createElement("div");
+                const seqBox = document.createElement("div");
                 seqBox.setAttribute("class", "seqBox V");
                 seqBox.setAttribute("data-childNumber", childNumber.toString());
 
-                for (var i = 0; true; ++i) {
+                for (let i = 0; true; ++i) {
                     if (i == children.length) break;
                     seqBox.appendChild(children[i]);
                 }
@@ -74,11 +74,11 @@ module sharedMkHtml
             }
             else {
 
-                var seqBox = document.createElement("div");
+                const seqBox = document.createElement("div");
                 seqBox.setAttribute("class", "seqBox V");
                 seqBox.setAttribute("data-childNumber", childNumber.toString());
                 seqBox["childNumber"] = childNumber;
-                for (var i = 0; true; ++i) {
+                for (let i = 0; true; ++i) {
                     const dz = makeLargeDropZone(i) ;
                     seqBox.appendChild(dz);
                     if (i == children.length) break;
@@ -90,20 +90,20 @@ module sharedMkHtml
         }
         else if(label.match("expPH"))
         {
-            var PHBox = document.createElement("div");
-            PHBox.setAttribute("class", "placeHolder V");
+            const PHBox = document.createElement("div");
+            PHBox.setAttribute("class", "placeHolder V droppable");
             PHBox.setAttribute("data-childNumber", childNumber.toString());
 
             return PHBox;
         }
         else if(label.match("param"))
         {
-            var paramBox = document.createElement("div");
+            const paramBox = document.createElement("div");
             paramBox.setAttribute("class", "paramlistOuter H");
             paramBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
-            for (var i = 0; true; ++i) {
+            for (let i = 0; true; ++i) {
                 const dz = makeSmallDropZone(i) ;
                 paramBox.appendChild(dz);
                 if (i == children.length) break;
@@ -116,15 +116,15 @@ module sharedMkHtml
         {
             assert.check( children.length == 2 ) ;
 
-            var guardbox = document.createElement("div");
+            const guardbox = document.createElement("div");
             guardbox.setAttribute("class", "whileGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
-            var thenbox = document.createElement("div");
+            const thenbox = document.createElement("div");
             thenbox.setAttribute("class", "thenBox H workplace");
             thenbox.appendChild( children[1] ) ;
 
-            var whileBox = document.createElement("div");
+            const whileBox = document.createElement("div");
             whileBox.setAttribute("data-childNumber", childNumber.toString());
             whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
             whileBox.appendChild(guardbox);
@@ -147,7 +147,7 @@ module sharedMkHtml
                 && node.label().getVal().length > 0
                 && children.length == 2)
             {
-                var opval = document.createElement("div");
+                const opval = document.createElement("div");
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
@@ -164,7 +164,7 @@ module sharedMkHtml
                     opElement.textContent = node.label().getVal();
                 }
                 else {
-                    var op = document.createElement("input");
+                    const op = document.createElement("input");
                     opElement.setAttribute("class", "op H input");
                     opElement.setAttribute("type", "text");
                     opElement.setAttribute("list", "oplist");
@@ -180,11 +180,11 @@ module sharedMkHtml
         }
         else if(label.match("assign"))
         {
-            var AssignBox = document.createElement("div");
+            const AssignBox = document.createElement("div");
             AssignBox.setAttribute("class", "assign H canDrag droppable" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var lebel = document.createElement("div");
+            const lebel = document.createElement("div");
             lebel.setAttribute("class", "op H");
             lebel.textContent = ":=";
 
@@ -196,16 +196,16 @@ module sharedMkHtml
         }
         else if(label.match("lambda"))
         {
-            var lambdahead = document.createElement("div");
+            const lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
             lambdahead.appendChild(children[1]);
 
-            var doBox = document.createElement("div");
+            const doBox = document.createElement("div");
             doBox.setAttribute("class", "doBox H");
             doBox.appendChild( children[2] ) ;
 
-            var string;
+            let string;
 
             if (node.label().getVal().length > 0)
             {
@@ -220,7 +220,7 @@ module sharedMkHtml
                 string.setAttribute("type", "text");
             }
 
-            var LambdaBox = document.createElement("div");
+            const LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
             LambdaBox.setAttribute("data-childNumber", childNumber.toString());
             LambdaBox.appendChild(string);
@@ -231,26 +231,27 @@ module sharedMkHtml
         }
         else if(label.match("null"))
         {
-            var NullBox = document.createElement("div");
+            const NullBox = document.createElement("div");
             NullBox.setAttribute("class", "nullLiteral H droppable");
             NullBox.textContent = "-";
+            NullBox.setAttribute("data-childNumber", childNumber.toString());
 
             return NullBox;
         }
         else if (label.match("var"))
         {
-            var VarBox;
+            let VarBox;
             if (node.label().getVal().length > 0)
             {
                 VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click canDrag");
+                VarBox.setAttribute("class", "var H click canDrag droppable");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.textContent = node.label().getVal();
             }
             else
             {
                 VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input canDrag");
+                VarBox.setAttribute("class", "var H input canDrag droppable");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
@@ -259,18 +260,18 @@ module sharedMkHtml
         }
         else if (label.match("string"))
         {
-            var StringBox;
+            let StringBox;
             if (node.label().getVal().length > 0)
             {
                 StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click canDrag");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag droppable");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.textContent = node.label().getVal();
             }
             else
             {
                 StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input canDrag");
+                StringBox.setAttribute("class", "stringLiteral H input canDrag droppable");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
@@ -279,8 +280,8 @@ module sharedMkHtml
         }
         else if(label.match("noType"))
         {
-            var noType = document.createElement("div");
-            noType.setAttribute( "class", "noReturnType V" ) ;
+            const noType = document.createElement("div");
+            noType.setAttribute( "class", "noReturnType V canDrag droppable" ) ;
             noType.setAttribute("data-childNumber", childNumber.toString());
             noType["childNumber"] = childNumber ;
 
@@ -288,22 +289,22 @@ module sharedMkHtml
         }
         else if(label.match("expOpt"))
         {
-            var expOpt = document.createElement("div");
-            expOpt.setAttribute("class", "expOp V");
+            const expOpt = document.createElement("div");
+            expOpt.setAttribute("class", "expOp V canDrag droppable");
             expOpt.setAttribute("data-childNumber", childNumber.toString());
 
             return expOpt;
         }
         else if(label.match("vdecl"))
         {
-            var VarDeclBox = document.createElement("div");
+            const VarDeclBox = document.createElement("div");
             VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
             VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var type = document.createElement("div");
+            const type = document.createElement("div");
             type.textContent = ":";
 
-            var equals = document.createElement("div");
+            const equals = document.createElement("div");
             equals.textContent = ":=";
 
             VarDeclBox.appendChild(children[0]);
@@ -316,7 +317,7 @@ module sharedMkHtml
         }
         else if(label.match("forward"))
         {
-            var forwardElement = document.createElement("div");
+            const forwardElement = document.createElement("div");
             forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
             forwardElement.setAttribute("data-childNumber", childNumber.toString());
             forwardElement.textContent = "Forward";
@@ -326,7 +327,7 @@ module sharedMkHtml
         }
         else if(label.match("right"))
         {
-            var rightElement = document.createElement("div");
+            const rightElement = document.createElement("div");
             rightElement.setAttribute("class", "turtleFunc canDrag droppable");
             rightElement.setAttribute("data-childNumber", childNumber.toString());
             rightElement.textContent = "Right";
@@ -336,7 +337,7 @@ module sharedMkHtml
         }
         else if(label.match("left"))
         {
-            var leftElement = document.createElement("div");
+            const leftElement = document.createElement("div");
             leftElement.setAttribute("class", "turtleFunc canDrag droppable");
             leftElement.setAttribute("data-childNumber", childNumber.toString());
             leftElement.textContent = "Left";
@@ -346,7 +347,7 @@ module sharedMkHtml
         }
         else if(label.match("pen"))
         {
-            var penElement = document.createElement("div");
+            const penElement = document.createElement("div");
             penElement.setAttribute("class", "turtleFunc canDrag droppable");
             penElement.setAttribute("data-childNumber", childNumber.toString());
             penElement.textContent = "Pen";
@@ -356,7 +357,7 @@ module sharedMkHtml
         }
         else if(label.match("clear"))
         {
-            var clearElement = document.createElement("div");
+            const clearElement = document.createElement("div");
             clearElement.setAttribute("class", "turtleFunc canDrag droppable");
             clearElement.setAttribute("data-childNumber", childNumber.toString());
             clearElement.textContent = "Clear";
@@ -365,7 +366,7 @@ module sharedMkHtml
         }
         else if(label.match("show"))
         {
-            var showElement = document.createElement("div");
+            const showElement = document.createElement("div");
             showElement.setAttribute("class", "turtleFunc canDrag droppable");
             showElement.setAttribute("data-childNumber", childNumber.toString());
             showElement.textContent = "Show";
@@ -374,7 +375,7 @@ module sharedMkHtml
         }
         else if(label.match("hide"))
         {
-            var hideElement = document.createElement("div");
+            const hideElement = document.createElement("div");
             hideElement.setAttribute("class", "turtleFunc canDrag droppable");
             hideElement.setAttribute("data-childNumber", childNumber.toString());
             hideElement.textContent = "Hide";
@@ -384,7 +385,7 @@ module sharedMkHtml
     }
 
     function makeLargeDropZone( childNumber : number ) : Element {
-        var dropZone = document.createElement("div");
+        const dropZone = document.createElement("div");
         dropZone.setAttribute("class", "dropZone H droppable");
         dropZone.setAttribute("data-isDropZone", "yes");
         dropZone.setAttribute("data-childNumber", childNumber.toString());
@@ -451,7 +452,7 @@ module sharedMkHtml
         }
         assert.check( jq.length != 0 ) ; // Really should not happen
         // Now make a path out of the array.
-        var path = list<number>();
+        let path = list<number>();
         for( let i = 0 ; i < array.length ; i++ )
             path = collections.cons( array[i], path ) ;
         
