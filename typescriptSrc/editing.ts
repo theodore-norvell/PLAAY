@@ -293,71 +293,32 @@ module editing {
                 console.log( "dragKind is " + dragKind ) ;
                 console.log( "draggedObject is " + draggedObject ) ;
                 console.log( "draggedSelection is " + draggedSelection ) ;
-                console.log(">> Dropping " + ui.draggable.attr("id") );
                 sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
                 console.log("  on current selection " + sharedMkHtml.currentSelection.toString() ) ;
-                // Case: Dragged object is dropped on a node.
-                // TODO: Use dragKind
-                if (  (  (/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                      || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                      || (/assign/i.test(draggedObject)) )
-                   && (   (/ifBox/i.test($(this).attr("class")))
-                      || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
-                      || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")) ) ) )
+                // Case: Dragged object is dropped on a node or drop zone of the current tree.
+                if (  dragKind == DragEnum.CURRENT_TREE )
                 {
-                    // TODO fix the following
                     console.log("  First case" ) ;
                     const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
-                    assert.check( selectionArray[0][2] !== undefined ) ;
-                    selectionArray[0][2].choose(
-                        sel => {
+                    console.log("  Back from moveCopySwapEditList" ) ;
+                    // Pick the first action that succeeded, if any
+                    if(  selectionArray.length > 0 ) {
                             // Move is possible. Do the move and offer any others as alternatives.
-                            console.log("  Move is possible." ) ;
+                            console.log("  Doing a " + selectionArray[0][0] ) ;
                             undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = sel;
+                            sharedMkHtml.currentSelection = selectionArray[0][2];
                             console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             console.log("  HTML generated" ) ;
-                            createSwapDialog(selectionArray);
-                            console.log("  Back from createSwapDialog." ) ;
-                        },
-                        ()=>{
-                            // TODO This makes no sense. If move is not possible, then
-                            // there are other possibilities.
+                            // TODO: Make sure the move-copy-swap dialog is working.
+                            //createSwapDialog(selectionArray);
+                            //console.log("  Back from createSwapDialog." ) ;
+                    }
+                    else {
                             console.log("  Move is NOT possible." ) ;
                             generateHTML(sharedMkHtml.currentSelection);
                             console.log("  HTML generated" ) ;
-                        });
-                }
-                // Case: Dragged object is dropped on a dropzone.
-                else if (  (  (/ifBox/i.test(draggedObject))
-                           || (/lambdaBox/i.test(draggedObject))
-                           || (/whileBox/i.test(draggedObject))
-                           || (/callWorld/i.test(draggedObject))
-                           || (/assign/i.test(draggedObject)))
-                        && (/dropZone/i.test($(this).attr("class"))))
-                {
-                    // TODO fix the following.
-                    // Also, why is this case different from the previous?
-                    console.log("  Second case" ) ;
-                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
-                    assert.check( selectionArray[0][2] !== undefined ) ;
-                    selectionArray[0][2].choose(
-                        sel => {
-                            console.log("  Move is possible." ) ;
-                            undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = sel;
-                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            console.log("  HTML generated" ) ;
-                            createCopyDialog(selectionArray);
-                            console.log("  Back from createCopyDialog." ) ;
-                        },
-                        ()=>{
-                            console.log("  Move is NOT possible." ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            console.log("  HTML generated" ) ;
-                        });
+                    }
                 }
                 else if( dragKind == DragEnum.TRASH ) 
                 {

@@ -404,23 +404,22 @@ module treeManager {
             return copyEdit.applyEdit( trgSelection ) ;
         }
 
-        // TODO: I think this would better return an array of [string, string, Selection]
-        // However, the current return type is what the UI code expects.
-        moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Option<Selection>] > {
+        /** Create a list of up to three possible actions. */
+        moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
 
-            const selectionList : Array< [string, string, Option<Selection>] > = [];
+            const selectionList : Array< [string, string, Selection] > = [];
 
             const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
             const moveResult = moveEdit.applyEdit(trgSelection);
-            selectionList.push(['Moved', "Move", moveResult]);
+            moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
 
             const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
             const copyResult = copyEdit.applyEdit( trgSelection ) ;
-            selectionList.push(['Copied', "Copy", copyResult]);
+            copyResult.map( newSel => selectionList.push(['Copied', "Copy", newSel]) ) ;
 
             const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
             const swapResult = swapEdit.applyEdit( trgSelection ) ;
-            selectionList.push(['Swapped', "Swap", swapResult]) ;
+            swapResult.map( newSel => selectionList.push(['Swapped', "Swap", newSel]) ) ;
 
             return selectionList;
 
