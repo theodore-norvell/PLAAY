@@ -267,7 +267,7 @@ module editing {
 		$("#container").empty()
 			.append(sharedMkHtml.traverseAndBuild(select.root(), -1, false));
 
-        $( ".droppable" ).droppable({
+        $( "#container .droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
             greedy: true,
             hoverClass: "hover",
@@ -417,7 +417,7 @@ module editing {
 
     export function enterBox()
     {
-        $(".input").keyup(function (e) {
+        $("#container .input").keyup(function (e) {
             if (e.keyCode == 13) {
                 console.log( ">>keyup handler")
                 const text = $(this).val();
@@ -437,6 +437,7 @@ module editing {
                 const label = $(this).attr("class");
                 const childNumber = $(this).attr("data-childNumber") ;
                 console.log( "  opt is " + opt) ;
+                // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
                 if (/var/i.test(label)) {
                     $(this).replaceWith('<div class="var H click" data-childNumber ="' + childNumber + '">' + text + '</div>');
                 }
@@ -447,9 +448,10 @@ module editing {
                     $(this).replaceWith('<div class="op H click">' + text + '</div>');
                 }
 
-                $(".click").click(function(){
+                $("#container .click").click(function(){
                     var label = $(this).attr("class");
                     var val = $(this).attr("data-childNumber");
+                    // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
                     if (/var/i.test(label))
                     {
                         $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '">');
@@ -463,11 +465,10 @@ module editing {
                         $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
                     }
                     enterBox();
-                    //enterList();
                 });
             }
         });
-        $(".canDrag").draggable({
+        $("#container .canDrag").draggable({
             //helper:'clone',
             //appendTo:'body',
             revert: false ,
