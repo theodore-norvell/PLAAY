@@ -97,7 +97,7 @@ module editing {
                     sel => {
                         console.log("   Dropping into trash a" );
                         console.log("   New selection is. " + sharedMkHtml.currentSelection.toString() );                
-                        trashArray.push(sharedMkHtml.currentSelection);
+                        trashArray.unshift( sharedMkHtml.currentSelection ) ;
                         undostack.push(sharedMkHtml.currentSelection);
                         sharedMkHtml.currentSelection = sel;
                         generateHTML(sharedMkHtml.currentSelection);
@@ -146,12 +146,16 @@ module editing {
     // collaped or expanded, we should be able to drop item from the tree into the trash.
     // It should not be a modal dialog.
     function visualizeTrash() : void {
-        var dialogDiv = $('#trashDialog');
+        let dialogDiv = $('#trashDialog');
 
-        if (dialogDiv.length != 0) { dialogDiv.dialog("destroy"); }
+        if( dialogDiv.length != 0 ) {
+            dialogDiv.dialog("close");
+            dialogDiv.dialog("destroy");
+            dialogDiv.remove() ;
+            return ; }
         
         // Make a dialog
-        dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body') ;
+        dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>").appendTo('body') ;
         for(let i = 0; i < trashArray.length; i++) {
             const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
             const trashedSelection = trashArray[i] ;
@@ -163,7 +167,10 @@ module editing {
         dialogDiv.dialog({
             dialogClass : 'no-close success-dialog',
         });
+        installTrashItemDragHandler() ;
+	}
 
+    function installTrashItemDragHandler() {
         $(".trashitem").draggable({
             //helper:'clone',
             //appendTo:'body',
@@ -180,7 +187,7 @@ module editing {
                 console.log( "<< Drag handler for things in trash" ) ;
             }
         });
-	}
+    }
 
     function createCopyDialog(selectionArray)  : JQuery 
     {
@@ -466,9 +473,10 @@ module editing {
             revert: false ,
             opacity: 0.5, 
             start: function(event,ui){
-                console.log( ">> Drag handler for things in tree" ) ;                
-                draggedObject = $(this).attr("class");
-                dragKind = DragEnum.CURRENT_TREE ;
+                console.log( ">> Drag handler for things in or in the trash" ) ;   
+                // TODO Check that we are in the main tree. 
+                dragKind = DragEnum.CURRENT_TREE ;            
+                draggedObject = undefined ;
                 draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
                 console.log( "<< Drag handler for things in tree" ) ;     
             }
