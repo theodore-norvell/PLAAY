@@ -17,9 +17,6 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
-    // TODO Move this to the editor and make it private.
-    export var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),path(),0,0);
-
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
     {
         var children = new Array<HTMLElement>() ;

@@ -23,63 +23,22 @@ module editing {
     const redostack : Array<Selection> = [];
     const undostack  : Array<Selection> = [];
     const trashArray : Array<Selection> = [];
-    var pathToTrash = list<number>(); // TODO What is this for?
     var draggedObject : string ; 
     var draggedSelection : Selection ;
     var dragKind : DragEnum  = DragEnum.NONE ;
+
+    var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
 	export function editingActions () 
     {
-        generateHTML(sharedMkHtml.currentSelection);
+        generateHTML();
 
-        $("#undo").click(function() 
-        {
-			if (undostack.length != 0) 
-            {
-				redostack.push(sharedMkHtml.currentSelection);
-				sharedMkHtml.currentSelection = undostack.pop();
-				generateHTML(sharedMkHtml.currentSelection);
-			}
-		});
-        $("#redo").click(function() 
-        {
-			if (redostack.length != 0) 
-            {
-                undostack.push(sharedMkHtml.currentSelection);
-                sharedMkHtml.currentSelection = redostack.pop();
-                generateHTML(sharedMkHtml.currentSelection);
-            }
-		});
-
-        // $(".droppable").droppable({
-        //     hoverClass: "hover",
-        //     tolerance: "pointer",
-        //     drop: function (event, ui) {
-        //         // TODO Why do we need this hendler?
-        //         console.log(">> Dropping into something of class .droppable. (Mystery Handler)" );
-        //         console.log('ui.draggable.attr("id") is ' + ui.draggable.attr("id") );
-        //         console.log( "dragKind is " + dragKind ) ;
-        //         console.log( "draggedObject is " + draggedObject ) ;
-        //         console.log( "draggedSelection is " + draggedSelection ) ;
-        //         sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
-        //         undostack.push(sharedMkHtml.currentSelection);
-        //         var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
-        //         assert.check( selection !== undefined ) ;
-        //         selection.choose(
-        //             sel => {
-        //                 sharedMkHtml.currentSelection = sel;
-        //                 generateHTML(sharedMkHtml.currentSelection);
-        //             },
-        //             ()=>{
-        //                 generateHTML(sharedMkHtml.currentSelection);
-        //             });
-        //         console.log("<< Dropping into something of class .droppable." );
-        //     }
-        // });
-
+        $("#undo").click( function()  { undo() ; } );
+        $("#redo").click(function() { redo() ; } ) ;
 		$(".trash").click(function() {visualizeTrash();});
+
         $(".trash").droppable({
             accept: ".canDrag",
             hoverClass: "hover",
@@ -89,24 +48,22 @@ module editing {
                 console.log(">> Dropping into trash" );
                 if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   JQuery is " + ui.draggable.toString()  );
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), ui.draggable);
-                console.log("   Dropping selection. " + sharedMkHtml.currentSelection.toString() );
-                var opt = treeMgr.delete(sharedMkHtml.currentSelection);
+                const selectionToDelete = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
+                console.log("   Dropping selection. " + selectionToDelete.toString() );
+                var opt = treeMgr.delete( selectionToDelete );
                 assert.check( opt !== undefined ) ;
                 opt.choose(
                     sel => {
                         console.log("   Dropping into trash a" );
-                        console.log("   New selection is. " + sharedMkHtml.currentSelection.toString() );                
-                        trashArray.unshift( sharedMkHtml.currentSelection ) ;
-                        undostack.push(sharedMkHtml.currentSelection);
-                        sharedMkHtml.currentSelection = sel;
-                        generateHTML(sharedMkHtml.currentSelection);
+                        console.log("   New selection is. " + sel.toString() );                
+                        trashArray.unshift( selectionToDelete ) ;
+                        update( sel ) ;
                         console.log("   Dropping into trash b" );
                         console.log("   Dropping into trash c" );
                     },
                     ()=>{
                         console.log("   Deletion failed." );
-                        generateHTML(sharedMkHtml.currentSelection);
+                        generateHTML( ); // TODO: DO we need this line?
                     });
                 console.log("<< Dropping into trash" );
             }
@@ -189,44 +146,7 @@ module editing {
         });
     }
 
-    function createCopyDialog(selectionArray)  : JQuery 
-    {
-        return $("<div></div>")
-            .dialog({
-                resizable: false,
-                dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
-                width: 75,
-                open: function(event, ui)
-                {
-                    var markup = selectionArray[0][0];
-                    $(this).html(markup);
-
-                    setTimeout(function() {
-                        $('.ui-dialog-content').dialog('destroy');
-                    },2000);
-                },
-                buttons: {
-                    "Copy": function()
-                    {
-                        selectionArray[1][2].choose(
-                            sel =>{
-                                undostack.push(sharedMkHtml.currentSelection);
-                                sharedMkHtml.currentSelection = sel;
-                                generateHTML(sharedMkHtml.currentSelection);
-                            },
-                            () =>{
-                                generateHTML(sharedMkHtml.currentSelection);
-                            }
-                        );
-                        $( this ).dialog( "destroy" );
-                    }
-                }
-            });
-    }
-
-    function createSwapDialog(selectionArray) 
+    function createSwapDialog(selectionArray)  // TODO Rewrite.
     {
         return $("<div></div>")
             .dialog({
@@ -246,12 +166,10 @@ module editing {
                     "Swap": function () {
                         selectionArray[2][2].choose(
                             sel =>{
-                                undostack.push(sharedMkHtml.currentSelection);
-                                sharedMkHtml.currentSelection = sel;
-                                generateHTML(sharedMkHtml.currentSelection);
+                                update( sel ) ;
                             },
                         () =>{
-                            generateHTML(sharedMkHtml.currentSelection);
+                            generateHTML();
                         }
                         );
                         $(this).dialog("destroy");
@@ -261,11 +179,10 @@ module editing {
     }
 
     // TODO: Make this function nonexported.
-    export function generateHTML(select:Selection)
+    export function generateHTML() : void
     {
-        sharedMkHtml.currentSelection = select;
 		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(select.root(), -1, false));
+			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
 
         $( "#container .droppable" ).droppable({
             //accept: ".ifBox", //potentially only accept after function call?
@@ -274,41 +191,24 @@ module editing {
             tolerance:"pointer",
             drop: function (event, ui)
             {
-                // TODO: Simplify the drag and drop code.
-                // It's not clear to me why the first two cases are different.
-                // Nor why we need to list so many box types in these if commands.
-                // Note that the way drag and drop should work when a selection is 
-                // dragged from one part of the main tree to another is given in the
-                // requirement in Trello.  Essentially the idea is that such a drag and
-                // drop represents one of the following operations move, copy, swap.
-                // If none of these is possible, the drop is a no-op.
-                // If one of these is possible, then that operation proceeds.
-                // If more than one is possible, then the first of these three (move, copy, swap)
-                // is done and the others are offered as alternatives in a popup dialog that
-                // disappears.
-
-                // First change the current selection to be the the drop target.
                 console.log(">> Dropping into something of class .droppable. (Main drop handler)" );
                 console.log('ui.draggable.attr("id") is ' + ui.draggable.attr("id") );
                 console.log( "dragKind is " + dragKind ) ;
                 console.log( "draggedObject is " + draggedObject ) ;
                 console.log( "draggedSelection is " + draggedSelection ) ;
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
-                console.log("  on current selection " + sharedMkHtml.currentSelection.toString() ) ;
+                const dropTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                console.log("  on current selection " + dropTarget.toString() ) ;
                 // Case: Dragged object is dropped on a node or drop zone of the current tree.
                 if (  dragKind == DragEnum.CURRENT_TREE )
                 {
                     console.log("  First case" ) ;
-                    const selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
+                    const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
                     console.log("  Back from moveCopySwapEditList" ) ;
                     // Pick the first action that succeeded, if any
                     if(  selectionArray.length > 0 ) {
-                            // Move is possible. Do the move and offer any others as alternatives.
+                            // Do the first action.
                             console.log("  Doing a " + selectionArray[0][0] ) ;
-                            undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = selectionArray[0][2];
-                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            update( selectionArray[0][2] ) ;
                             console.log("  HTML generated" ) ;
                             // TODO: Make sure the move-copy-swap dialog is working.
                             //createSwapDialog(selectionArray);
@@ -316,59 +216,50 @@ module editing {
                     }
                     else {
                             console.log("  Move is NOT possible." ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            generateHTML(); // TODO Is this needed?
                             console.log("  HTML generated" ) ;
                     }
                 }
                 else if( dragKind == DragEnum.TRASH ) 
                 {
-                    console.log("  Third case. (Drag from trash)." ) ;
-                    console.log("  Current Selection is " +  sharedMkHtml.currentSelection.toString() ) ;
-                    undostack.push(sharedMkHtml.currentSelection);
+                    console.log("  Second case. (Drag from trash)." ) ;
                     console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
-                    var opt = treeMgr.copy(draggedSelection, sharedMkHtml.currentSelection);
+                    var opt = treeMgr.copy( draggedSelection, dropTarget ) ;
                     console.log("  opt is " + opt ) ;
                     assert.check( opt !== undefined ) ;
                     opt.choose(
                         sel => {
                             console.log("  Insertion is possible." ) ;
-                            sharedMkHtml.currentSelection = sel;
-                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            update( sel ) ;
                             console.log("  HTML generated" ) ;
                         },
                         ()=> {
                             console.log("  Insertion is NOT possible." ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            generateHTML( ); // TODO: is this needed?
                             console.log("  HTML generated" ) ;
                         });
                 }
                 else if( dragKind == DragEnum.PALLETTE ) 
                 {
-                    console.log("  Fourth case." ) ;
+                    console.log("  Third case." ) ;
                     console.log("  " + ui.draggable.attr("id"));
                     // Add create a new node and use it to replace the current selection.
-                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, sharedMkHtml.currentSelection);
+                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
                     console.log("  selection is " + selection );
                     assert.check( selection !== undefined ) ;
                     selection.choose(
                         sel => {
                             console.log("  createNode is possible." ) ;
-                            undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = sel;
-                            console.log("  New current selection " + sharedMkHtml.currentSelection.toString() ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            update( sel ) ;
                             console.log("  HTML generated" ) ;
                         },
                         ()=>{
                             console.log("  createNode is NOT possible." ) ;
-                            generateHTML(sharedMkHtml.currentSelection);
+                            generateHTML( ); // TO DO. Is this needed?
                             console.log("  HTML generated" ) ;
                         });
                 } else {
-                    console.log("  Fifth case.  This really should not happen." ) ;
-                    generateHTML(sharedMkHtml.currentSelection);
-                    console.log("  HTML generated" ) ;
+                    assert.check( false, "Drop without a drag.") ;
                 }
                 console.log("<< Leaving drop handler" ) ;
             }
@@ -382,18 +273,14 @@ module editing {
             if (e.keyCode == 13) {
                 console.log( ">>keyup handler")
                 const text = $(this).val();
-                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this) )  ;
+                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
                 console.log( "  locationOfTarget is " + locationOfTarget ) ;
                 const opt = treeMgr.changeNodeString( locationOfTarget, text );
                 console.log( "  opt is " + opt) ;
                 opt.choose(
-                    sel => {
-                        undostack.push(sharedMkHtml.currentSelection);
-                        sharedMkHtml.currentSelection = sel;
-                        generateHTML(sharedMkHtml.currentSelection);
-                    },
+                    sel => update(sel),
                     ()=>{
-                        generateHTML(sharedMkHtml.currentSelection);
+                        generateHTML(); // TODO: Is this needed?
                     });
 
                 $("#container .click").click(function(){
@@ -432,10 +319,37 @@ module editing {
                 // TODO Check that we are in the main tree. 
                 dragKind = DragEnum.CURRENT_TREE ;            
                 draggedObject = undefined ;
-                draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection.root(), $(this));
+                draggedSelection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this));
                 console.log( "<< Drag handler for things in tree" ) ;     
             }
         });
+    }
+
+    export function update( sel : Selection ) : void {
+            undostack.push(currentSelection);
+            currentSelection = sel ;
+            redostack.length = 0 ;
+            generateHTML();
+    }
+
+    export function getCurrentSelection() : Selection {
+        return currentSelection ;
+    }
+
+    function undo() : void {
+        if (undostack.length != 0)  {
+            redostack.push(currentSelection);
+            currentSelection = undostack.pop();
+            generateHTML();
+        }
+    }
+
+    function redo() : void {
+        if (redostack.length != 0) {
+            undostack.push(currentSelection);
+            currentSelection = redostack.pop();
+            generateHTML();
+        }
     }
 
 
