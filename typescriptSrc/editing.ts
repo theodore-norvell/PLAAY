@@ -1,3 +1,4 @@
+
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
@@ -37,34 +38,9 @@ module editing {
 
         $("#undo").click( function()  { undo() ; } );
         $("#redo").click(function() { redo() ; } ) ;
-		$(".trash").click(function() {visualizeTrash();});
+		$(".trash").click(function() {toggleTrash();});
 
-        $(".trash").droppable({
-            accept: ".canDrag",
-            hoverClass: "hover",
-            tolerance:'pointer',
-            greedy: true,
-            drop: function(event, ui){
-                console.log(">> Dropping into trash" );
-                if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
-                console.log("   JQuery is " + ui.draggable.toString()  );
-                const selectionToDelete = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
-                console.log("   Dropping selection. " + selectionToDelete.toString() );
-                var opt = treeMgr.delete( selectionToDelete );
-                assert.check( opt !== undefined ) ;
-                opt.map(
-                    sel => {
-                        console.log("   Dropping into trash a" );
-                        console.log("   New selection is. " + sel.toString() );                
-                        trashArray.unshift( selectionToDelete ) ;
-                        update( sel ) ;
-                        console.log("   Dropping into trash b" );
-                        console.log("   Dropping into trash c" );
-                    } );
-                console.log("<< Dropping into trash" );
-            }
-        });
-
+        makeTrashDroppable( $(".trash") ) ;
         $( ".palette" ).draggable({
             helper:"clone" ,
             revert: true ,
@@ -94,31 +70,47 @@ module editing {
 		return obj;
 	}
 
-    // TODO. Make this better.
-    function visualizeTrash() : void {
-        let dialogDiv = $('#trashDialog');
+    function addToTrash( sel : Selection ) {                
+        trashArray.unshift( sel ) ;
+        if( trashArray.length > 10 ) trashArray.length = 10 ;
+        refreshTheTrash() ;
+    }
 
-        if( dialogDiv.length != 0 ) {
-            dialogDiv.dialog("close");
-            dialogDiv.dialog("destroy");
-            dialogDiv.remove() ;
+    function toggleTrash() : void {
+        let dialogDiv : JQuery = $('#trashDialog');
+        if( dialogDiv.length == 0 ) {
+            dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>") ;
+            dialogDiv.appendTo('body') ;
+            dialogDiv.dialog({ dialogClass : 'no-close success-dialog' });
+            dialogDiv.dialog( 'close' ) ;
             return ; }
         
-        // Make a dialog
-        dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>").appendTo('body') ;
-        for(let i = 0; i < trashArray.length; i++) {
-            const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
-            const trashedSelection = trashArray[i] ;
-            const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
-            for( let j=0 ; j < a.length; ++j ) {
-                trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
+        if( dialogDiv.dialog( 'isOpen' )  ) {
+            dialogDiv.dialog( 'close' ) ; 
+        } else {
+            dialogDiv.dialog( 'open' ) ; 
+            refreshTheTrash( ) ; 
+            makeTrashDroppable( dialogDiv ) ;
         }
         
-        dialogDiv.dialog({
-            dialogClass : 'no-close success-dialog',
-        });
-        installTrashItemDragHandler() ;
+        // Make a dialog
 	}
+
+    function refreshTheTrash() {
+        let dialogDiv : JQuery = $('#trashDialog');
+        if( dialogDiv.dialog( 'isOpen' )  ) {
+            dialogDiv.empty() ;
+            for(let i = 0; i < trashArray.length; i++)
+            {
+                const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
+                const trashedSelection = trashArray[i] ;
+                const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
+                for( let j=0 ; j < a.length; ++j ) {
+                    trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
+            }    
+            installTrashItemDragHandler() ;
+        }
+    }
 
     function installTrashItemDragHandler() {
         $(".trashitem").draggable({
@@ -135,6 +127,34 @@ module editing {
                 draggedObject = $(this).parent().attr("class");
                 draggedSelection = trashArray[$(this).attr("data-trashitem")];
                 console.log( "<< Drag handler for things in trash" ) ;
+            }
+        });
+    }
+
+    function makeTrashDroppable( trash : JQuery ) {
+        trash.droppable({
+            accept: ".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            greedy: true,
+            drop: function(event, ui){
+                console.log(">> Dropping into trash" );
+                if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
+                console.log("   JQuery is " + ui.draggable.toString()  );
+                const selectionToDelete = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
+                console.log("   Dropping selection. " + selectionToDelete.toString() );
+                var opt = treeMgr.delete( selectionToDelete );
+                assert.check( opt !== undefined ) ;
+                opt.map(
+                    sel => {
+                        console.log("   Dropping into trash a" );
+                        console.log("   New selection is. " + sel.toString() );
+                        addToTrash( selectionToDelete ) ;
+                        update( sel ) ;
+                        console.log("   Dropping into trash b" );
+                        console.log("   Dropping into trash c" );
+                    } );
+                console.log("<< Dropping into trash" );
             }
         });
     }
@@ -176,7 +196,6 @@ module editing {
 			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
 
         $( "#container .droppable" ).droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
             greedy: true,
             hoverClass: "hover",
             tolerance:"pointer",
