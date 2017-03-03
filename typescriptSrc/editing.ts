@@ -52,7 +52,7 @@ module editing {
                 console.log("   Dropping selection. " + selectionToDelete.toString() );
                 var opt = treeMgr.delete( selectionToDelete );
                 assert.check( opt !== undefined ) ;
-                opt.choose(
+                opt.map(
                     sel => {
                         console.log("   Dropping into trash a" );
                         console.log("   New selection is. " + sel.toString() );                
@@ -60,11 +60,7 @@ module editing {
                         update( sel ) ;
                         console.log("   Dropping into trash b" );
                         console.log("   Dropping into trash c" );
-                    },
-                    ()=>{
-                        console.log("   Deletion failed." );
-                        generateHTML( ); // TODO: DO we need this line?
-                    });
+                    } );
                 console.log("<< Dropping into trash" );
             }
         });
@@ -98,10 +94,7 @@ module editing {
 		return obj;
 	}
 
-    // TODO. The trash should really be one UI element that might be expanded or collapsed.
-    // Whe expanded, we can see the trash items and drag them out. Whether
-    // collaped or expanded, we should be able to drop item from the tree into the trash.
-    // It should not be a modal dialog.
+    // TODO. Make this better.
     function visualizeTrash() : void {
         let dialogDiv = $('#trashDialog');
 
@@ -146,40 +139,38 @@ module editing {
         });
     }
 
-    function createSwapDialog(selectionArray)  // TODO Rewrite.
+    function showAlternativesDialog(selectionArray : Array< [string, string, Selection] >)  : void
     {
-        return $("<div></div>")
-            .dialog({
+        if( selectionArray.length < 1 ) return ;
+
+        // Make an object representing all the buttons we need.
+        const buttonsObj = {} ;
+        for( let i = 1 ; i < selectionArray.length ; ++i ) {
+            buttonsObj[ selectionArray[i][1] ] = function () { update( selectionArray[i][2] ) ; }
+        }
+
+        const dialogDiv : JQuery = $("<div></div>") ;
+        dialogDiv.dialog({
+                title: selectionArray[0][0],
                 resizable: false,
                 dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
+                modal: false,
+                show: "slideDown",
+                height: 25,
                 width: 75,
                 open: function (event, ui) {
                     var markup = selectionArray[0][0];
                     $(this).html(markup);
                     setTimeout(function () {
-                        $('.ui-dialog-content').dialog('destroy');
-                    }, 2000);
+                        dialogDiv.dialog('destroy');
+                        dialogDiv.remove() ;
+                    }, 5000);
                 },
-                buttons: {
-                    "Swap": function () {
-                        selectionArray[2][2].choose(
-                            sel =>{
-                                update( sel ) ;
-                            },
-                        () =>{
-                            generateHTML();
-                        }
-                        );
-                        $(this).dialog("destroy");
-                    }
-                }
+                buttons: buttonsObj 
             });
     }
 
-    // TODO: Make this function nonexported.
-    export function generateHTML() : void
+    function generateHTML() : void
     {
 		$("#container").empty()
 			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
@@ -210,14 +201,7 @@ module editing {
                             console.log("  Doing a " + selectionArray[0][0] ) ;
                             update( selectionArray[0][2] ) ;
                             console.log("  HTML generated" ) ;
-                            // TODO: Make sure the move-copy-swap dialog is working.
-                            //createSwapDialog(selectionArray);
-                            //console.log("  Back from createSwapDialog." ) ;
-                    }
-                    else {
-                            console.log("  Move is NOT possible." ) ;
-                            generateHTML(); // TODO Is this needed?
-                            console.log("  HTML generated" ) ;
+                            showAlternativesDialog(selectionArray);
                     }
                 }
                 else if( dragKind == DragEnum.TRASH ) 
@@ -227,17 +211,12 @@ module editing {
                     var opt = treeMgr.copy( draggedSelection, dropTarget ) ;
                     console.log("  opt is " + opt ) ;
                     assert.check( opt !== undefined ) ;
-                    opt.choose(
+                    opt.map(
                         sel => {
                             console.log("  Insertion is possible." ) ;
                             update( sel ) ;
                             console.log("  HTML generated" ) ;
-                        },
-                        ()=> {
-                            console.log("  Insertion is NOT possible." ) ;
-                            generateHTML( ); // TODO: is this needed?
-                            console.log("  HTML generated" ) ;
-                        });
+                        } );
                 }
                 else if( dragKind == DragEnum.PALLETTE ) 
                 {
@@ -247,17 +226,12 @@ module editing {
                     var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
                     console.log("  selection is " + selection );
                     assert.check( selection !== undefined ) ;
-                    selection.choose(
+                    selection.map(
                         sel => {
                             console.log("  createNode is possible." ) ;
                             update( sel ) ;
                             console.log("  HTML generated" ) ;
-                        },
-                        ()=>{
-                            console.log("  createNode is NOT possible." ) ;
-                            generateHTML( ); // TO DO. Is this needed?
-                            console.log("  HTML generated" ) ;
-                        });
+                        } );
                 } else {
                     assert.check( false, "Drop without a drag.") ;
                 }
@@ -277,11 +251,7 @@ module editing {
                 console.log( "  locationOfTarget is " + locationOfTarget ) ;
                 const opt = treeMgr.changeNodeString( locationOfTarget, text );
                 console.log( "  opt is " + opt) ;
-                opt.choose(
-                    sel => update(sel),
-                    ()=>{
-                        generateHTML(); // TODO: Is this needed?
-                    });
+                opt.map( sel => update(sel) );
 
                 $("#container .click").click(function(){
                     console.log( ">> Click Handler") ;

@@ -409,13 +409,13 @@ module treeManager {
 
             const selectionList : Array< [string, string, Selection] > = [];
 
-            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
-            const moveResult = moveEdit.applyEdit(trgSelection);
-            moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
-
             const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
             const copyResult = copyEdit.applyEdit( trgSelection ) ;
             copyResult.map( newSel => selectionList.push(['Copied', "Copy", newSel]) ) ;
+
+            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
+            const moveResult = moveEdit.applyEdit(trgSelection);
+            moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
 
             const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
             const swapResult = swapEdit.applyEdit( trgSelection ) ;
