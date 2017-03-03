@@ -412,7 +412,7 @@ module sharedMkHtml
             //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
             //console.log( "Length is " + jq.length ) ;
             //console.log( "childNumber is " + childNumber ) ;
-            jq = jq.parents() ;
+            jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
         if( jq.length == 0 ) {
@@ -447,10 +447,10 @@ module sharedMkHtml
                 //console.log( "   pushing " +  childNumber) ;
             }
             // Go up one level
-            jq = jq.parents() ;
+            jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        assert.check( jq.length != 0 ) ; // Really should not happen
+        assert.check( jq.length != 0 ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
         // Now make a path out of the array.
         let path = list<number>();
         for( let i = 0 ; i < array.length ; i++ )
