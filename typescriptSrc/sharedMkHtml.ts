@@ -258,6 +258,8 @@ module sharedMkHtml
         else if (label.match("string"))
         {
             let StringBox;
+            // TODO This is just not good. Since it doesn't allow 0 length strings.
+            // Instead the node label could carry the information about whether it is being edited or not.
             if (node.label().getVal().length > 0)
             {
                 StringBox = document.createElement("div");
