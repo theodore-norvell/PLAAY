@@ -81,7 +81,7 @@ module editing {
         if( dialogDiv.length == 0 ) {
             dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>") ;
             dialogDiv.appendTo('body') ;
-            dialogDiv.dialog({ dialogClass : 'no-close success-dialog' });
+            dialogDiv.dialog({ dialogClass : 'no-close success-dialog', title: 'Trash' } );
             dialogDiv.dialog( 'close' ) ;
             return ; }
         
@@ -192,9 +192,11 @@ module editing {
 
     function generateHTML() : void
     {
+        // Refresh the view of the current selection
 		$("#container").empty()
 			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
-
+        
+        // Handle drops
         $( "#container .droppable" ).droppable({
             greedy: true,
             hoverClass: "hover",
@@ -257,47 +259,11 @@ module editing {
                 console.log("<< Leaving drop handler" ) ;
             }
         });
-        enterBox();
-    }
 
-    export function enterBox()
-    {
-        $("#container .input").keyup(function (e) {
-            if (e.keyCode == 13) {
-                console.log( ">>keyup handler")
-                const text = $(this).val();
-                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
-                console.log( "  locationOfTarget is " + locationOfTarget ) ;
-                const opt = treeMgr.changeNodeString( locationOfTarget, text );
-                console.log( "  opt is " + opt) ;
-                opt.map( sel => update(sel) );
+        // Handle Returns on input items.
+        $("#container .input").keyup(keyUpHandler);
 
-                $("#container .click").click(function(){
-                    console.log( ">> Click Handler") ;
-                    const label = $(this).attr("class");
-                    let text = $(this).text() ;
-                    text = text.replace( /&/g, "&amp;" ) ;
-                    text = text.replace( /"/g, "&quot;") ;
-                    const val = $(this).attr("data-childNumber");
-                    // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
-                    if (/var/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '" value="' + text +'">');
-                    }
-                    else if (/stringLiteral/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '" value="' + text +'">');
-                    }
-                    else if(/op/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="op H input" list="oplist" value="' + text +'">');
-                    }
-                    enterBox();
-                    console.log( "<< Click Handler") ;
-                });
-                console.log( "<< keyup handler") ;
-            }
-        });
+        // Handle drags
         $("#container .canDrag").draggable({
             helper:'clone',
             //appendTo:'body',
@@ -312,7 +278,45 @@ module editing {
                 console.log( "<< Drag handler for things in tree" ) ;     
             }
         });
+
+        // Handle clicks on vars etc.
+        $("#container .click").click(function(){
+            console.log( ">> Click Handler") ;
+            // TODO: A better way to do this is to change the label to a state of being edited.
+            const label = $(this).attr("class");
+            let text = $(this).text() ;
+            text = text.replace( /&/g, "&amp;" ) ;
+            text = text.replace( /"/g, "&quot;") ;
+            const val = $(this).attr("data-childNumber");
+            // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
+            if (/var/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '" value="' + text +'">');
+            }
+            else if (/stringLiteral/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '" value="' + text +'">');
+            }
+            else if(/op/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="op H input" list="oplist" value="' + text +'">');
+            }
+            $("#container .input").keyup(keyUpHandler);
+            console.log( "<< Click Handler") ;
+        });
     }
+
+    const keyUpHandler = function (e) {
+            if (e.keyCode == 13) {
+                console.log( ">>keyup handler")
+                const text = $(this).val();
+                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
+                console.log( "  locationOfTarget is " + locationOfTarget ) ;
+                const opt = treeMgr.changeNodeString( locationOfTarget, text );
+                console.log( "  opt is " + opt) ;
+                opt.map( sel => update(sel) );
+                console.log( "<< keyup handler") ;
+            } } ;
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
