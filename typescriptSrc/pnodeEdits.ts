@@ -71,6 +71,24 @@ module pnodeEdits {
         anchor() : number { return this._anchor ; }
         
         focus() : number { return this._focus ; }
+
+        start() : number { return Math.min( this._anchor, this._focus ) ; }
+
+        end() : number { return Math.max( this._anchor, this._focus ) ; }
+
+        parent() : PNode {
+            var node : PNode = this._root ;
+            var path : List<number> = this._path ;
+            while( ! path.isEmpty() ) {
+                node = node.child( path.first() ) ;
+                path = path.rest() ;
+            }
+            return node ;
+        }
+
+        selectedNodes() : Array<PNode> {
+            return this.parent().children( this.start(), this.end() ) ;
+        }
         
         toString() : string { return "Selection( " + "_root:" + this._root.toString() +
                             " _path:" + this._path.toString() +
@@ -118,13 +136,13 @@ module pnodeEdits {
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
-            return opt.bind( newSeln => {
+            return opt.bind<Selection>( (newSeln : Selection)  => {
                 const p0 = node.children(0, k ) ;
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
                 const newChildren = p0.concat( p1, p2 ) ;
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
-                return opt.map( newNode => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
+                return opt.map( (newNode : PNode) => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
             } ) ;
         }
     }
@@ -134,13 +152,11 @@ module pnodeEdits {
                             trgSelection, newNodes4Trg : Array<PNode>,
                             allowSrcAncestorOverwrite : boolean = true, 
                             allowTrgAncestorOverwrite : boolean = true ) : Option<Selection> {
-        let srcStart = srcSelection.anchor() ;
-        let srcEnd = srcSelection.focus() ;
-        if( srcEnd < srcStart ) { const t = srcStart ; srcStart = srcEnd ; srcEnd = t ; }
+        let srcStart = srcSelection.start() ;
+        let srcEnd = srcSelection.end() ;
 
-        let trgStart = trgSelection.anchor() ;
-        let trgEnd = trgSelection.focus() ;
-        if( trgEnd < trgStart ) { const t = trgStart ; trgStart = trgEnd ; trgEnd = t ; }
+        let trgStart = trgSelection.start() ;
+        let trgEnd = trgSelection.end() ;
 
         const node = srcSelection.root() ;
         assert.checkPrecondition( node == trgSelection.root() ) ;
@@ -166,7 +182,7 @@ module pnodeEdits {
         const child = node.child(k) ;
         if( k < srcStart ) {
             const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind( newSeln => {
+            return opt.bind<Selection>( newSeln => {
                 const p0 = node.children(0, k) ;
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children(k+1, srcStart ) ;
@@ -181,7 +197,7 @@ module pnodeEdits {
             } ) ;
         } else if( srcEnd <= k ) {
             const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind( newSeln => {
+            return opt.bind<Selection>( newSeln => {
                 const p0 = node.children(0, srcStart) ;
                 const p1 = newNodes4Src ;
                 const p2 = node.children( srcEnd, k ) ;
@@ -269,7 +285,7 @@ module pnodeEdits {
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const child = node.child( k ) ;
             const opt = doubleReplaceHelper( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
-            opt.bind( newSeln => {
+            return opt.bind( newSeln => {
                 const p0 = node.children( 0, k ) ;
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children( k+1, node.count()) ;
@@ -291,7 +307,7 @@ module pnodeEdits {
             const childTrg = node.child( kTrg ) ;
             const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
             const optTrg = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
+            return optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
                 let p0, p1, p2, p3, p4 ;
                 if( kSrc < kTrg ) {
                     p0 = node.children( 0, kSrc ) ;
@@ -312,30 +328,6 @@ module pnodeEdits {
             } ) ) ; }
     }
 
-    function extractSelectedNodes(selection : Selection) : Array<PNode> {
-        function loop(node:PNode, path:List<number>,
-                          start:number, end:number) : Array<PNode> {
-            if (path.isEmpty()) {
-                return node.children(start, end); }
-            else {
-                const k = path.first();
-                const len = node.count();
-                assert.check(0 <= k, "Bad Path. k < 0");
-                assert.check(k < len, "Bad Path. k >= len");
-                return loop(node.child(k), path.rest(), start, end); }
-        }
-        // Determine the start and end
-        var start:number;
-        var end:number;
-        if (selection.anchor() <= selection.focus()) {
-            start = selection.anchor();
-            end = selection.focus(); }
-        else {
-            start = selection.focus();
-            end = selection.anchor(); }
-        return loop( selection.root(), selection.path(), start, end ) ;
-    }
-
     /** Replace all selected nodes with another sequence of nodes. 
      * The resulting selection should comprise the inserted children.
      */
@@ -347,10 +339,6 @@ module pnodeEdits {
             this._newNodes = newNodes ; }
 
         applyEdit( selection : Selection ) : Option<Selection> {
-
-            // Determine the start and end
-            const start : number = Math.min( selection.anchor(), selection.focus() );
-            const end : number = Math.max( selection.anchor(), selection.focus() );
 
             // Try to make the replacement.
             const opt = singleReplace( selection, this._newNodes ) ;
@@ -387,10 +375,6 @@ module pnodeEdits {
      *  
      */
     export class ChangeLabelEdit extends AbstractEdit<Selection> {
-        // TODO:  This edit applies not to the selected nodes, but
-        // to their parent.  I think that's against the spirit of selections.
-        // Furthermore I'm not thrilled that there is a changeValue method
-        // that can be applied to any label.
         _newString:string;
 
         constructor(newString:string) {
@@ -399,60 +383,21 @@ module pnodeEdits {
         }
 
         applyEdit(selection:Selection):Option<Selection> {
-            const loop = (node:PNode, path:List<number>,
-                          start:number, end:number):Option<PNode> => {
-                if (path.isEmpty()) {
-                    //console.log("this._newNodes is " + this._newNodes ) ;
-                    var opt = node.label().changeValue(this._newString);
-                    return opt.choose(
-                        (label:Label):Option<PNode> => {
-                        return node.tryModifyLabel(label);
-                        },
-                        () => {
-                            return new None<PNode>();
-                        });
-                }
-                else {
-                    const k = path.first();
-                    const len = node.count();
-                    assert.check(0 <= k, "Bad Path. k < 0");
-                    assert.check(k < len, "Bad Path. k >= len");
-                    const opt = loop(node.child(k), path.rest(), start, end);
-                    return opt.choose(
-                        (newChild:PNode):Option<PNode> => {
-                            return node.tryModify([newChild], k, k + 1);
-                        },
-                        () => {
-                            return new None<PNode>();
-                        });
-                }
-            };
-
-            // Determine the start and end
-            var start:number;
-            var end:number;
-            if (selection.anchor() <= selection.focus()) {
-                start = selection.anchor();
-                end = selection.focus();
+            const nodes = selection.selectedNodes() ;
+            const newNodes : Array<PNode> = [] ;
+            let fail = false ;
+            // Loop through all the nodes, changing the label on each.
+            // Set fail to true if at least on label can not be changed.
+            for( let i = 0 ; ! fail && i < nodes.length; ++i ) {
+                const optLabel = nodes[i].label().changeValue( this._newString ) ;
+                const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
+                fail = optNode.choose(
+                    (node:PNode) => {newNodes.push( node ); return false;},
+                    () => true
+                ) ;
             }
-            else {
-                start = selection.focus();
-                end = selection.anchor();
-            }
-            // Loop down to find and modify the selections target node.
-            const opt = loop(selection.root(), selection.path(), start, end);
-            // If successful, build a new Selection object.
-            return opt.choose(
-                (newRoot:PNode):Option<Selection> => {
-                    const f = start;
-                    const newSelection = new Selection(newRoot,
-                        selection.path(),
-                        f, f);
-                    return new Some(newSelection);
-                },
-                ():Option<Selection> => {
-                    return new None<Selection>();
-                });
+            if( fail ) return collections.none<Selection>() ;
+            else return singleReplace( selection, newNodes ) ;
         }
     }
 
@@ -464,7 +409,7 @@ module pnodeEdits {
 
         constructor(srcSelection:Selection) {
             super();
-            this._srcNodes = extractSelectedNodes( srcSelection );
+            this._srcNodes = srcSelection.selectedNodes() ;
         }
 
         applyEdit(selection:Selection):Option<Selection> {
@@ -497,7 +442,7 @@ module pnodeEdits {
 
         applyEdit( trgSelection:Selection ) : Option<Selection> {
             if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
-            const newNodes = extractSelectedNodes( this._srcSelection );
+            const newNodes = this._srcSelection.selectedNodes();
             // Try filling in with the empty sequence first. Otherwise try some other defaults.
             const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
             // TODO add more choices for replacement, such as noType, noExp, etc.
@@ -525,8 +470,8 @@ module pnodeEdits {
 
         applyEdit(trgSelection:Selection) : Option<Selection> {
             if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
-            const newNodes4Trg = extractSelectedNodes( this._srcSelection ) ;
-            const newNodes4Src = extractSelectedNodes( trgSelection ) ;
+            const newNodes4Trg = this._srcSelection.selectedNodes()
+            const newNodes4Src = trgSelection.selectedNodes() ;
             return doubleReplace( this._srcSelection, newNodes4Src, trgSelection, newNodes4Trg, false, false ) ;
         }
     }

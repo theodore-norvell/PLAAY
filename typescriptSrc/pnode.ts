@@ -768,7 +768,7 @@ module pnode {
         }
 
         toString():string {
-            return "variable";
+            return " variable["+this._val+"]" ;
         }
 
         getVal() : string {

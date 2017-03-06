@@ -283,9 +283,7 @@ module userRelated
         var response = $.post("/LoadProgram", { username: currentUser, programname: programName },
            function() { // TODO Move this callback function to the editor.
             $("#dimScreen").remove();
-            sharedMkHtml.currentSelection = unserialize(response.responseText);
-            editing.generateHTML(sharedMkHtml.currentSelection);
-            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+            editing.update( unserialize(response.responseText) );
         });
     }
 
@@ -293,7 +291,7 @@ module userRelated
     {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        var currentSel = serialize(sharedMkHtml.currentSelection);
+        var currentSel = serialize( editing.getCurrentSelection() );
         var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
             function(){
                 console.log(response.responseText);
@@ -304,15 +302,13 @@ module userRelated
 
     function serialize(select : Selection) : string
     {
-        var json = pnode.fromPNodeToJSON(sharedMkHtml.currentSelection.root());
-        return json;
+        return pnode.fromPNodeToJSON(select.root());
     }
 
     function unserialize(string:string) : Selection
     {
         var path = list<number>();
-        var newSelection = new Selection(fromJSONToPNode(string),path,0,0)
-        return newSelection;
+        return new Selection(fromJSONToPNode(string),path,0,0) ;
     }
 
 }

@@ -1,11 +1,15 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="sharedMkHtml.ts" />
+/// <reference path="editing.ts" />
 /// <reference path="evaluationManager.ts" />
+/// <reference path="sharedMkHtml.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="vms.ts" />
 /// <reference path="jquery.d.ts" />
 
+import assert = require( './assert' );
 import collections = require( './collections' );
+import editing = require('./editing');
 import sharedMkHtml = require('./sharedMkHtml');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
@@ -41,10 +45,9 @@ module executing
     {
 		$(".evalHidden").css("visibility", "hidden");
 		$(".evalVisible").css("visibility", "visible");
-        evaluationMgr.initialize(sharedMkHtml.currentSelection.root(), turtle ? turtleWorld : null );
+        evaluationMgr.initialize(editing.getCurrentSelection().root(), turtle ? turtleWorld : null );
         $("#vms").empty()
-			.append(traverseAndBuild(sharedMkHtml.currentSelection.root(), sharedMkHtml.currentSelection.root().count(), true))
-        	.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -54,8 +57,7 @@ module executing
         evaluationMgr.next();
 		$("#stackVal").empty();
 		$("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), evaluationMgr.getTopEvaluation().getRoot().count(), true))
-			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
 		var root = $("#vms :first-child").get(0);
         if (!highlighted && evaluationMgr.getTopEvaluation().ready) 
         {
@@ -81,13 +83,13 @@ module executing
     function stepTillDone() 
 	{
         evaluationMgr.next();
+        // TODO Guard against infinite loops.
         while(!evaluationMgr.getTopEvaluation().isDone()) 
         {
             evaluationMgr.next();
 		}
 		$("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), evaluationMgr.getTopEvaluation().getRoot().count(), true)) 
-			.find('.seqBox')[0].setAttribute("data-childNumber", "-1");
+			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
 		const root = $("#vms :first-child").get(0);
         const list : List<number>= arrayToList(evaluationMgr.getTopEvaluation().getPending());
         const map : ValueMap = evaluationMgr.getTopEvaluation().getValMap();
