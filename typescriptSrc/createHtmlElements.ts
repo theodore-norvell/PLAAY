@@ -51,8 +51,6 @@ module createHtmlElements
 
 		create("div", "container evalHidden", "container", bodyConst); 
 		createHidden("div", "vms evalVisible", "vms", bodyConst, null); 
-		create("div", null, "seq", $("#container")).attr("data-childNumber", "-1");
-		create("div", "dropZone H droppable", "dropZone", $("#seq")); 
 
 		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
 		for (var i = 0; i < optionList.length; i++) {

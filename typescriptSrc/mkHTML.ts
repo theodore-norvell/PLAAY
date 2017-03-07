@@ -20,7 +20,6 @@ module mkHTML {
 		executing.executingActions();
 		userRelated.userRelatedActions();
         editing.editingActions();
-		editing.enterBox();
     }
 
 }

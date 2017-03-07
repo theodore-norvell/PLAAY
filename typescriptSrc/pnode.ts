@@ -768,7 +768,7 @@ module pnode {
         }
 
         toString():string {
-            return "variable";
+            return " variable["+this._val+"]" ;
         }
 
         getVal() : string {
@@ -1369,6 +1369,7 @@ module pnode {
 
         }
 
+        // TODO: The following line makes no sense.
         public static theNumberLiteralLabel = new NumberLiteralLabel( "" );
 
         public toJSON() : any {
@@ -1410,7 +1411,7 @@ module pnode {
 
         }
 
-        // The following line makes no sense.
+        // TODO The following line makes no sense.
         public static theBooleanLiteralLabel = new BooleanLiteralLabel( "" );
 
         public toJSON() : any {

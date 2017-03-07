@@ -1,11 +1,16 @@
+
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="treeManager.ts" />
 
 
+import assert = require('./assert') ;
 import sharedMkHtml = require('./sharedMkHtml');
 import collections = require( './collections' );
+import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require( './treeManager');
 
@@ -14,118 +19,42 @@ module editing {
     import list = collections.list;
     import Selection = pnodeEdits.Selection;
 
-    const redostack = [];
-    const undostack = [];
-    const trashArray = [];
-    var pathToTrash = list<number>(); // TODO What is this for?
-    var draggedObject;
-    var draggedSelection;
+    enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE } ;
+
+    const redostack : Array<Selection> = [];
+    const undostack  : Array<Selection> = [];
+    const trashArray : Array<Selection> = [];
+    var draggedObject : string ; 
+    var draggedSelection : Selection ;
+    var dragKind : DragEnum  = DragEnum.NONE ;
+
+    var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
 	export function editingActions () 
     {
-        //Key bindings for editing area
-        $(document).on("keypress", function(e) { 
-            if (e.ctrlKey && (e.which === 120)) // ctrl-x
-            {
-                event.preventDefault();
-                //TODO: put current selection to trash and delete it
-            }
-            if (e.ctrlKey && (e.which === 99)) // ctrl-c
-            {
-                event.preventDefault();
-                //TODO: put current selection to trash and delete it
-            }
-            if (e.ctrlKey && (e.which === 118)) // ctrl-v
-            {
-                event.preventDefault();
-                //TODO: put current selection to trash and delete it
-            }
-            if (e.ctrlKey && (e.which === 98)) // ctrl-b
-            {
-                event.preventDefault();
-                //TODO: put current selection to trash and delete it
-            }
-        });
+        generateHTML();
 
+        $("#undo").click( function()  { undo() ; } );
+        $("#redo").click(function() { redo() ; } ) ;
+		$(".trash").click(function() {toggleTrash();});
 
-        $("#undo").click(function() 
-        {
-			if (undostack.length != 0) 
-            {
-				redostack.push(sharedMkHtml.currentSelection);
-				sharedMkHtml.currentSelection = undostack.pop();
-				generateHTML(sharedMkHtml.currentSelection);
-				$("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-			}
-		});
-        $("#redo").click(function() 
-        {
-			if (redostack.length != 0) 
-            {
-                undostack.push(sharedMkHtml.currentSelection);
-                sharedMkHtml.currentSelection = redostack.pop();
-                generateHTML(sharedMkHtml.currentSelection);
-                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-            }
-		});
-
-        $(".droppable").droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
-            hoverClass: "hover",
-            tolerance: "pointer",
-            drop: function (event, ui) {
-                console.log(ui.draggable.attr("id"));
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
-                undostack.push(sharedMkHtml.currentSelection);
-                var selection = treeMgr.createNode(ui.draggable.attr("id"), sharedMkHtml.currentSelection);
-                selection.choose(
-                    sel => {
-                        sharedMkHtml.currentSelection = sel;
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    },
-                    ()=>{
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    });
-            }
-        });
-
-		$(".trash").click(function() {visualizeTrash();});
-        $(".trash").droppable({
-            accept: ".canDrag",
-            hoverClass: "hover",
-            tolerance:'pointer',
-            greedy: true,
-            drop: function(event, ui){
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, ui.draggable);
-                var selection = treeMgr.deleteNode(sharedMkHtml.currentSelection);
-                selection[1].choose(
-                    sel => {
-                        var trashselect = new Selection(selection[0][0],pathToTrash,0,0);
-                        undostack.push(sharedMkHtml.currentSelection);
-                        sharedMkHtml.currentSelection = sel;
-                        trashArray.push(trashselect);
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    },
-                    ()=>{
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    });
-            }
-        });
-
+        makeTrashDroppable( $(".trash") ) ;
         $( ".palette" ).draggable({
             helper:"clone" ,
+            revert: true ,
+            revertDuration: 500,
+            opacity: 0.5, 
             start : function(event, ui){
+                console.log( ">> Drag handler for things in pallette" ) ;
                 ui.helper.animate({
                     width: 40,
                     height: 40
                 });
+                dragKind = DragEnum.PALLETTE ;
                 draggedObject = $(this).attr("class");
+                console.log( "<< Drag handler for things in pallette" ) ;
             },
             cursorAt: {left:20, top:20},
             appendTo:"body"
@@ -141,260 +70,279 @@ module editing {
 		return obj;
 	}
 
-    function visualizeTrash() : void {
-        var dialogDiv = $('#trashDialog');
+    function addToTrash( sel : Selection ) {                
+        trashArray.unshift( sel ) ;
+        if( trashArray.length > 10 ) trashArray.length = 10 ;
+        refreshTheTrash() ;
+    }
 
-        if (dialogDiv.length == 0) {
-            dialogDiv = $("<div id='dialogDiv' style='overflow:visible'><div/>").appendTo('body');
-            for(var i = 0; i < trashArray.length; i++) {
-				create("div", "trashitem", null, dialogDiv)
-					.attr("data-trashitem", i.toString())
-                	.append($(sharedMkHtml.traverseAndBuild(trashArray[i].root(), trashArray[i].root().count(),false)));
-            }
-            dialogDiv.dialog({
-                modal : true,
-                dialogClass: 'no-close success-dialog',
-            });
-        }else{
-            dialogDiv.dialog("destroy");
+    function toggleTrash() : void {
+        let dialogDiv : JQuery = $('#trashDialog');
+        if( dialogDiv.length == 0 ) {
+            dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>") ;
+            dialogDiv.appendTo('body') ;
+            dialogDiv.dialog({ dialogClass : 'no-close success-dialog', title: 'Trash' } );
+            dialogDiv.dialog( 'close' ) ;
+            return ; }
+        
+        if( dialogDiv.dialog( 'isOpen' )  ) {
+            dialogDiv.dialog( 'close' ) ; 
+        } else {
+            dialogDiv.dialog( 'open' ) ; 
+            refreshTheTrash( ) ; 
+            makeTrashDroppable( dialogDiv ) ;
         }
+        
+        // Make a dialog
+	}
 
-        $(".canDrag").draggable({
-            //helper:'clone',
+    function refreshTheTrash() {
+        let dialogDiv : JQuery = $('#trashDialog');
+        if( dialogDiv.dialog( 'isOpen' )  ) {
+            dialogDiv.empty() ;
+            for(let i = 0; i < trashArray.length; i++)
+            {
+                const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
+                const trashedSelection = trashArray[i] ;
+                const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
+                for( let j=0 ; j < a.length; ++j ) {
+                    trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
+            }    
+            installTrashItemDragHandler() ;
+        }
+    }
+
+    function installTrashItemDragHandler() {
+        $(".trashitem").draggable({
+            helper:'clone',
             //appendTo:'body',
-            revert:'invalid',
+            revert: true ,
+            revertDuration: 100,
+            opacity: 0.5, 
             appendTo: '#container',
             containment: false,
             start: function(event,ui){
+                console.log( ">> Drag handler for things in trash" ) ;
+                dragKind = DragEnum.TRASH ;
                 draggedObject = $(this).parent().attr("class");
-                draggedSelection = trashArray[$(this).parent().attr("data-trashitem")];
+                draggedSelection = trashArray[$(this).attr("data-trashitem")];
+                console.log( "<< Drag handler for things in trash" ) ;
             }
         });
-	}
-
-    function createCopyDialog(selectionArray)  : JQuery 
-    {
-        return $("<div></div>")
-            .dialog({
-                resizable: false,
-                dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
-                width: 75,
-                open: function(event, ui)
-                {
-                    var markup = selectionArray[0][0];
-                    $(this).html(markup);
-
-                    setTimeout(function() {
-                        $('.ui-dialog-content').dialog('destroy');
-                    },2000);
-                },
-                buttons: {
-                    "Copy": function()
-                    {
-                        selectionArray[1][2].choose(
-                            sel =>{
-                                undostack.push(sharedMkHtml.currentSelection);
-                                sharedMkHtml.currentSelection = sel;
-                                generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            },
-                            () =>{
-                                generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            }
-                        );
-                        $( this ).dialog( "destroy" );
-                    }
-                }
-            });
     }
 
-    function createSwapDialog(selectionArray) 
+    function makeTrashDroppable( trash : JQuery ) {
+        trash.droppable({
+            accept: ".canDrag",
+            hoverClass: "hover",
+            tolerance:'pointer',
+            greedy: true,
+            drop: function(event, ui){
+                console.log(">> Dropping into trash" );
+                if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
+                console.log("   JQuery is " + ui.draggable.toString()  );
+                const selectionToDelete = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
+                console.log("   Dropping selection. " + selectionToDelete.toString() );
+                var opt = treeMgr.delete( selectionToDelete );
+                assert.check( opt !== undefined ) ;
+                opt.map(
+                    sel => {
+                        console.log("   Dropping into trash a" );
+                        console.log("   New selection is. " + sel.toString() );
+                        addToTrash( selectionToDelete ) ;
+                        update( sel ) ;
+                        console.log("   Dropping into trash b" );
+                        console.log("   Dropping into trash c" );
+                    } );
+                console.log("<< Dropping into trash" );
+            }
+        });
+    }
+
+    function showAlternativesDialog(selectionArray : Array< [string, string, Selection] >)  : void
     {
-        return $("<div></div>")
-            .dialog({
+        if( selectionArray.length < 1 ) return ;
+
+        // Make an object representing all the buttons we need.
+        const buttonsObj = {} ;
+        for( let i = 1 ; i < selectionArray.length ; ++i ) {
+            buttonsObj[ selectionArray[i][1] ] = function () { update( selectionArray[i][2] ) ; }
+        }
+
+        const dialogDiv : JQuery = $("<div></div>") ;
+        dialogDiv.dialog({
+                title: selectionArray[0][0],
                 resizable: false,
                 dialogClass: 'no-close success-dialog',
-                modal: true,
-                height: 75,
+                modal: false,
+                show: "slideDown",
+                height: 25,
                 width: 75,
                 open: function (event, ui) {
                     var markup = selectionArray[0][0];
                     $(this).html(markup);
                     setTimeout(function () {
-                        $('.ui-dialog-content').dialog('destroy');
-                    }, 2000);
+                        dialogDiv.dialog('destroy');
+                        dialogDiv.remove() ;
+                    }, 5000);
                 },
-                buttons: {
-                    "Swap": function () {
-                        selectionArray[2][2].choose(
-                            sel =>{
-                                undostack.push(sharedMkHtml.currentSelection);
-                                sharedMkHtml.currentSelection = sel;
-                                generateHTML(sharedMkHtml.currentSelection);
-                                $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            },
-                        () =>{
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        }
-                        );
-                        $(this).dialog("destroy");
-                    }
-                }
+                buttons: buttonsObj 
             });
     }
 
-    // TODO: Make this function nonexported.
-    export function generateHTML(select:Selection)
+    function generateHTML() : void
     {
-        sharedMkHtml.currentSelection = select;
+        // Refresh the view of the current selection
 		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(select.root(), select.root().count(), false));
-
-        $( ".droppable" ).droppable({
-            //accept: ".ifBox", //potentially only accept after function call?
+			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
+        
+        // Handle drops
+        $( "#container .droppable" ).droppable({
             greedy: true,
             hoverClass: "hover",
             tolerance:"pointer",
             drop: function (event, ui)
             {
-                var selectionArray = [];
-                sharedMkHtml.currentSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
-                if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && ((/ifBox/i.test($(this).attr("class")))
-                    || (/lambdaBox/i.test($(this).attr("class"))) || (/whileBox/i.test($(this).attr("class")))
-                    || (/callWorld/i.test($(this).attr("class"))) || (/assign/i.test($(this).attr("class")))))
+                console.log(">> Dropping into something of class .droppable. (Main drop handler)" );
+                console.log('ui.draggable.attr("id") is ' + ui.draggable.attr("id") );
+                console.log( "dragKind is " + dragKind ) ;
+                console.log( "draggedObject is " + draggedObject ) ;
+                console.log( "draggedSelection is " + draggedSelection ) ;
+                const dropTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                console.log("  on current selection " + dropTarget.toString() ) ;
+                // Case: Dragged object is dropped on a node or drop zone of the current tree.
+                if (  dragKind == DragEnum.CURRENT_TREE )
                 {
-                    selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
-                    selectionArray[0][2].choose(
-                        sel => {
-                            undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = sel;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            createSwapDialog(selectionArray);
-                        },
-                        ()=>{
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
+                    console.log("  First case" ) ;
+                    const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
+                    console.log("  Back from moveCopySwapEditList" ) ;
+                    // Pick the first action that succeeded, if any
+                    if(  selectionArray.length > 0 ) {
+                            // Do the first action.
+                            console.log("  Doing a " + selectionArray[0][0] ) ;
+                            update( selectionArray[0][2] ) ;
+                            console.log("  HTML generated" ) ;
+                            showAlternativesDialog(selectionArray);
+                    }
                 }
-                else if (((/ifBox/i.test(draggedObject)) || (/lambdaBox/i.test(draggedObject))
-                    || (/whileBox/i.test(draggedObject)) || (/callWorld/i.test(draggedObject))
-                    || (/assign/i.test(draggedObject))) && (/dropZone/i.test($(this).attr("class"))))
+                else if( dragKind == DragEnum.TRASH ) 
                 {
-                    selectionArray = treeMgr.moveCopySwapEditList(draggedSelection, sharedMkHtml.currentSelection);
-                    selectionArray[0][2].choose(
+                    console.log("  Second case. (Drag from trash)." ) ;
+                    console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
+                    var opt = treeMgr.copy( draggedSelection, dropTarget ) ;
+                    console.log("  opt is " + opt ) ;
+                    assert.check( opt !== undefined ) ;
+                    opt.map(
                         sel => {
-                            undostack.push(sharedMkHtml.currentSelection);
-                            sharedMkHtml.currentSelection = sel;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                            createCopyDialog(selectionArray);
-                        },
-                        ()=>{
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
+                            console.log("  Insertion is possible." ) ;
+                            update( sel ) ;
+                            console.log("  HTML generated" ) ;
+                        } );
                 }
-                else if((/trashitem/i.test(draggedObject)) && (/dropZone/i.test($(this).attr("class"))))
+                else if( dragKind == DragEnum.PALLETTE ) 
                 {
-                    undostack.push(sharedMkHtml.currentSelection);
-                    var selection = treeMgr.appendChild(draggedSelection, sharedMkHtml.currentSelection);
-                    selection.choose(
+                    console.log("  Third case." ) ;
+                    console.log("  " + ui.draggable.attr("id"));
+                    // Add create a new node and use it to replace the current selection.
+                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
+                    console.log("  selection is " + selection );
+                    assert.check( selection !== undefined ) ;
+                    selection.map(
                         sel => {
-                            sharedMkHtml.currentSelection = sel;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        },
-                        ()=>{
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
+                            console.log("  createNode is possible." ) ;
+                            update( sel ) ;
+                            console.log("  HTML generated" ) ;
+                        } );
+                } else {
+                    assert.check( false, "Drop without a drag.") ;
                 }
-                else
-                {
-                    console.log(ui.draggable.attr("id"));
-                    undostack.push(sharedMkHtml.currentSelection);
-                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, sharedMkHtml.currentSelection);
-                    selection.choose(
-                        sel => {
-                            sharedMkHtml.currentSelection = sel;
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        },
-                        ()=>{
-                            generateHTML(sharedMkHtml.currentSelection);
-                            $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                        });
-                }
+                console.log("<< Leaving drop handler" ) ;
             }
         });
-        enterBox();
+
+        // Handle Returns on input items.
+        $("#container .input").keyup(keyUpHandler);
+
+        // Handle drags
+        $("#container .canDrag").draggable({
+            helper:'clone',
+            //appendTo:'body',
+            revert: true,
+            opacity: 0.5, 
+            start: function(event,ui){
+                console.log( ">> Drag handler for things in or in the trash" ) ;   
+                // TODO Check that we are in the main tree. 
+                dragKind = DragEnum.CURRENT_TREE ;            
+                draggedObject = undefined ;
+                draggedSelection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this));
+                console.log( "<< Drag handler for things in tree" ) ;     
+            }
+        });
+
+        // Handle clicks on vars etc.
+        $("#container .click").click(function(){
+            console.log( ">> Click Handler") ;
+            // TODO: A better way to do this is to change the label to a state of being edited.
+            const label = $(this).attr("class");
+            let text = $(this).text() ;
+            text = text.replace( /&/g, "&amp;" ) ;
+            text = text.replace( /"/g, "&quot;") ;
+            const val = $(this).attr("data-childNumber");
+            // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
+            if (/var/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '" value="' + text +'">');
+            }
+            else if (/stringLiteral/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '" value="' + text +'">');
+            }
+            else if(/op/i.test(label))
+            {
+                $(this).replaceWith('<input type="text" class="op H input" list="oplist" value="' + text +'">');
+            }
+            $("#container .input").keyup(keyUpHandler);
+            console.log( "<< Click Handler") ;
+        });
     }
 
-    export function enterBox()
-    {
-        $(".input").keyup(function (e) {
+    const keyUpHandler = function (e) {
             if (e.keyCode == 13) {
-                var text = $(this).val();
-                var selection = treeMgr.changeNodeString( sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this)), 
-                                                       text );
-                selection.choose(
-                    sel => {
-                        undostack.push(sharedMkHtml.currentSelection);
-                        sharedMkHtml.currentSelection = sel;
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    },
-                    ()=>{
-                        generateHTML(sharedMkHtml.currentSelection);
-                        $("#container").find('.seqBox')[0].setAttribute("data-childNumber", "-1");
-                    });
-                var label = $(this).attr("class");
-                if (/var/i.test(label)) {
-                    $(this).replaceWith('<div class="var H click">' + text + '</div>');
-                }
-                else if (/stringLiteral/i.test(label)) {
-                    $(this).replaceWith('<div class="stringLiteral H click">' + text + '</div>');
-                }
-                else if (/op/i.test(label)) {
-                    $(this).replaceWith('<div class="op H click">' + text + '</div>');
-                }
+                console.log( ">>keyup handler")
+                const text = $(this).val();
+                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
+                console.log( "  locationOfTarget is " + locationOfTarget ) ;
+                const opt = treeMgr.changeNodeString( locationOfTarget, text );
+                console.log( "  opt is " + opt) ;
+                opt.map( sel => update(sel) );
+                console.log( "<< keyup handler") ;
+            } } ;
 
-                $(".click").click(function(){
-                    var label = $(this).attr("class");
-                    var val = $(this).attr("data-childNumber");
-                    if (/var/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="var H input"' + 'data-childNumber="' + val + '">');
-                    }
-                    else if (/stringLiteral/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="stringLiteral H input"'+'data-childNumber="' + val + '">');
-                    }
-                    else if(/op/i.test(label))
-                    {
-                        $(this).replaceWith('<input type="text" class="op H input" list="oplist">');
-                    }
-                    enterBox();
-                    //enterList();
-                });
-            }
-        });
-        $(".canDrag").draggable({
-            //helper:'clone',
-            //appendTo:'body',
-            revert:'invalid',
-            start: function(event,ui){
-                draggedObject = $(this).attr("class");
-                draggedSelection = sharedMkHtml.getPathToNode(sharedMkHtml.currentSelection, $(this));
-            }
-        });
+    export function update( sel : Selection ) : void {
+            undostack.push(currentSelection);
+            currentSelection = sel ;
+            redostack.length = 0 ;
+            generateHTML();
+    }
+
+    export function getCurrentSelection() : Selection {
+        return currentSelection ;
+    }
+
+    function undo() : void {
+        if (undostack.length != 0)  {
+            redostack.push(currentSelection);
+            currentSelection = undostack.pop();
+            generateHTML();
+        }
+    }
+
+    function redo() : void {
+        if (redostack.length != 0) {
+            undostack.push(currentSelection);
+            currentSelection = redostack.pop();
+            generateHTML();
+        }
     }
 
 

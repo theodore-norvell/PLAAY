@@ -17,9 +17,6 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
-    // TODO Move this to the editor and make it private.
-    export var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),path(),0,0);
-
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
     {
         var children = new Array<HTMLElement>() ;
@@ -32,24 +29,24 @@ module sharedMkHtml
 
     function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
     {
-        var label = node.label().toString();
+        const label = node.label().toString();
         if(label.match('if'))
         {
             assert.check( children.length == 3 ) ;
 
-            var guardbox = document.createElement("div");
+            const guardbox = document.createElement("div");
             guardbox.setAttribute("class", "ifGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
-            var thenbox = document.createElement("div");
+            const thenbox = document.createElement("div");
             thenbox.setAttribute("class", "thenBox H workplace");
             thenbox.appendChild( children[1] ) ;
 
-            var elsebox = document.createElement("div");
+            const elsebox = document.createElement("div");
             elsebox.setAttribute("class", "elseBox H workplace");
             elsebox.appendChild( children[2] ) ;
 
-            var ifbox = document.createElement("div");
+            const ifbox = document.createElement("div");
             ifbox.setAttribute("data-childNumber", childNumber.toString());
             ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
             ifbox.appendChild(guardbox);
@@ -61,11 +58,11 @@ module sharedMkHtml
         {
             if(evaluating)
             {
-                var seqBox = document.createElement("div");
+                const seqBox = document.createElement("div");
                 seqBox.setAttribute("class", "seqBox V");
                 seqBox.setAttribute("data-childNumber", childNumber.toString());
 
-                for (var i = 0; true; ++i) {
+                for (let i = 0; true; ++i) {
                     if (i == children.length) break;
                     seqBox.appendChild(children[i]);
                 }
@@ -74,15 +71,13 @@ module sharedMkHtml
             }
             else {
 
-                var seqBox = document.createElement("div");
+                const seqBox = document.createElement("div");
                 seqBox.setAttribute("class", "seqBox V");
                 seqBox.setAttribute("data-childNumber", childNumber.toString());
                 seqBox["childNumber"] = childNumber;
-
-                for (var i = 0; true; ++i) {
-                    var dropZone = document.createElement("div");
-                    dropZone.setAttribute("class", "dropZone H droppable");
-                    seqBox.appendChild(dropZone);
+                for (let i = 0; true; ++i) {
+                    const dz = makeLargeDropZone(i) ;
+                    seqBox.appendChild(dz);
                     if (i == children.length) break;
                     seqBox.appendChild(children[i]);
                 }
@@ -92,32 +87,22 @@ module sharedMkHtml
         }
         else if(label.match("expPH"))
         {
-            var PHBox = document.createElement("div");
-            PHBox.setAttribute("class", "placeHolder V");
+            const PHBox = document.createElement("div");
+            PHBox.setAttribute("class", "placeHolder V droppable");
             PHBox.setAttribute("data-childNumber", childNumber.toString());
-            //PHBox["childNumber"] = childNumber ;
-
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                PHBox.appendChild(dropZone);
-                if (i == children.length) break;
-                PHBox.appendChild(children[i]);
-            }
 
             return PHBox;
         }
         else if(label.match("param"))
         {
-            var paramBox = document.createElement("div");
+            const paramBox = document.createElement("div");
             paramBox.setAttribute("class", "paramlistOuter H");
             paramBox.setAttribute("data-childNumber", childNumber.toString());
             //PHBox["childNumber"] = childNumber ;
 
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                paramBox.appendChild(dropZone);
+            for (let i = 0; true; ++i) {
+                const dz = makeSmallDropZone(i) ;
+                paramBox.appendChild(dz);
                 if (i == children.length) break;
                 paramBox.appendChild(children[i]);
             }
@@ -128,15 +113,15 @@ module sharedMkHtml
         {
             assert.check( children.length == 2 ) ;
 
-            var guardbox = document.createElement("div");
+            const guardbox = document.createElement("div");
             guardbox.setAttribute("class", "whileGuardBox H workplace");
             guardbox.appendChild( children[0] ) ;
 
-            var thenbox = document.createElement("div");
+            const thenbox = document.createElement("div");
             thenbox.setAttribute("class", "thenBox H workplace");
             thenbox.appendChild( children[1] ) ;
 
-            var whileBox = document.createElement("div");
+            const whileBox = document.createElement("div");
             whileBox.setAttribute("data-childNumber", childNumber.toString());
             whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
             whileBox.appendChild(guardbox);
@@ -146,82 +131,78 @@ module sharedMkHtml
         }
         else if(label.match("callWorld"))
         {
-            var WorldBox = document.createElement("div");
-            WorldBox.setAttribute("class", "callWorld H canDrag droppable" );
-            WorldBox.setAttribute("data-childNumber", childNumber.toString());
-            WorldBox.setAttribute("type", "text");
-            WorldBox.setAttribute("list", "oplist");
-
-            var dropZone = document.createElement("div");
-            dropZone.setAttribute("class", "dropZoneSmall H droppable");
+            const callBox = document.createElement("div");
+            callBox.setAttribute("class", "callWorld H canDrag droppable" );
+            callBox.setAttribute("data-childNumber", childNumber.toString());
+            callBox.setAttribute("type", "text");
+            callBox.setAttribute("list", "oplist");
 
             if((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
                 || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
                 || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
                 || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)) )
-                && node.label().getVal().length > 0)
+                && node.label().getVal().length > 0
+                && children.length == 2)
             {
-                var opval = document.createElement("div");
+                const opval = document.createElement("div");
                 opval.setAttribute("class", "op H click");
                 opval.textContent = node.label().getVal();
 
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[1]);
+                callBox.appendChild(children[0]);
+                callBox.appendChild(opval);
+                callBox.appendChild(children[1]);
             }
-            else if(node.label().getVal().length > 0)
-            {
-                var opval = document.createElement("div");
-                opval.setAttribute("class", "op H click");
-                opval.textContent = node.label().getVal();
-
-                WorldBox.appendChild(opval);
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(children[1]);
+            else {
+                let opElement : Element ;
+                if(node.label().getVal().length > 0)
+                {
+                    opElement = document.createElement("div");
+                    opElement.setAttribute("class", "op H click");
+                    opElement.textContent = node.label().getVal();
+                }
+                else {
+                    const op = document.createElement("input");
+                    opElement.setAttribute("class", "op H input");
+                    opElement.setAttribute("type", "text");
+                    opElement.setAttribute("list", "oplist");
+                    opElement.textContent = "";
+                }
+                callBox.appendChild(opElement);
+                for( let i=0 ; i < children.length ; ++i) {
+                    callBox.appendChild( makeSmallDropZone(i) ) ;
+                    callBox.appendChild( children[i] ) ;
+                }
             }
-            else
-            {
-                var op = document.createElement("input");
-                op.setAttribute("class", "op H input");
-                op.setAttribute("type", "text");
-                op.setAttribute("list", "oplist");
-                op.textContent = "";
-
-                WorldBox.appendChild(children[0]);
-                WorldBox.appendChild(op);
-                WorldBox.appendChild(children[1]);
-            }
-
-            return WorldBox;
+            return callBox;
         }
         else if(label.match("assign"))
         {
-            var AssignBox = document.createElement("div");
+            const AssignBox = document.createElement("div");
             AssignBox.setAttribute("class", "assign H canDrag droppable" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var equals = document.createElement("div");
-            equals.setAttribute("class", "op H");
-            equals.textContent = ":=";
+            const lebel = document.createElement("div");
+            lebel.setAttribute("class", "op H");
+            lebel.textContent = ":=";
 
             AssignBox.appendChild(children[0]);
-            AssignBox.appendChild(equals);
+            AssignBox.appendChild(lebel);
             AssignBox.appendChild(children[1]);
 
             return AssignBox;
         }
         else if(label.match("lambda"))
         {
-            var lambdahead = document.createElement("div");
+            const lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
             lambdahead.appendChild(children[1]);
 
-            var doBox = document.createElement("div");
+            const doBox = document.createElement("div");
             doBox.setAttribute("class", "doBox H");
             doBox.appendChild( children[2] ) ;
 
-            var string;
+            let string;
 
             if (node.label().getVal().length > 0)
             {
@@ -236,7 +217,7 @@ module sharedMkHtml
                 string.setAttribute("type", "text");
             }
 
-            var LambdaBox = document.createElement("div");
+            const LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
             LambdaBox.setAttribute("data-childNumber", childNumber.toString());
             LambdaBox.appendChild(string);
@@ -247,26 +228,27 @@ module sharedMkHtml
         }
         else if(label.match("null"))
         {
-            var NullBox = document.createElement("div");
+            const NullBox = document.createElement("div");
             NullBox.setAttribute("class", "nullLiteral H droppable");
             NullBox.textContent = "-";
+            NullBox.setAttribute("data-childNumber", childNumber.toString());
 
             return NullBox;
         }
         else if (label.match("var"))
         {
-            var VarBox;
+            let VarBox;
             if (node.label().getVal().length > 0)
             {
                 VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click canDrag");
+                VarBox.setAttribute("class", "var H click canDrag droppable");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.textContent = node.label().getVal();
             }
             else
             {
                 VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input canDrag");
+                VarBox.setAttribute("class", "var H input canDrag droppable");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.setAttribute("type", "text");
                 VarBox.textContent = "";
@@ -275,18 +257,20 @@ module sharedMkHtml
         }
         else if (label.match("string"))
         {
-            var StringBox;
+            let StringBox;
+            // TODO This is just not good. Since it doesn't allow 0 length strings.
+            // Instead the node label could carry the information about whether it is being edited or not.
             if (node.label().getVal().length > 0)
             {
                 StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click canDrag");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag droppable");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.textContent = node.label().getVal();
             }
             else
             {
                 StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input canDrag");
+                StringBox.setAttribute("class", "stringLiteral H input canDrag droppable");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.setAttribute("type", "text");
                 StringBox.textContent = "";
@@ -295,48 +279,31 @@ module sharedMkHtml
         }
         else if(label.match("noType"))
         {
-            var noType = document.createElement("div");
-            noType.setAttribute( "class", "noReturnType V" ) ;
+            const noType = document.createElement("div");
+            noType.setAttribute( "class", "noReturnType V canDrag droppable" ) ;
             noType.setAttribute("data-childNumber", childNumber.toString());
             noType["childNumber"] = childNumber ;
-
-            for( var i=0 ; true ; ++i )
-            {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                noType.appendChild( dropZone ) ;
-                if( i == children.length ) break ;
-                noType.appendChild( children[i] ) ;
-            }
 
             return noType ;
         }
         else if(label.match("expOpt"))
         {
-            var OptType = document.createElement("div");
-            OptType.setAttribute("class", "expOp V");
-            OptType.setAttribute("data-childNumber", childNumber.toString());
+            const expOpt = document.createElement("div");
+            expOpt.setAttribute("class", "expOp V canDrag droppable");
+            expOpt.setAttribute("data-childNumber", childNumber.toString());
 
-            for (var i = 0; true; ++i) {
-                var dropZone = document.createElement("div");
-                dropZone.setAttribute("class", "dropZoneSmall H droppable");
-                OptType.appendChild(dropZone);
-                if (i == children.length) break;
-                OptType.appendChild(children[i]);
-            }
-
-            return OptType;
+            return expOpt;
         }
         else if(label.match("vdecl"))
         {
-            var VarDeclBox = document.createElement("div");
+            const VarDeclBox = document.createElement("div");
             VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
             VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
 
-            var type = document.createElement("div");
+            const type = document.createElement("div");
             type.textContent = ":";
 
-            var equals = document.createElement("div");
+            const equals = document.createElement("div");
             equals.textContent = ":=";
 
             VarDeclBox.appendChild(children[0]);
@@ -349,7 +316,7 @@ module sharedMkHtml
         }
         else if(label.match("forward"))
         {
-            var forwardElement = document.createElement("div");
+            const forwardElement = document.createElement("div");
             forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
             forwardElement.setAttribute("data-childNumber", childNumber.toString());
             forwardElement.textContent = "Forward";
@@ -359,7 +326,7 @@ module sharedMkHtml
         }
         else if(label.match("right"))
         {
-            var rightElement = document.createElement("div");
+            const rightElement = document.createElement("div");
             rightElement.setAttribute("class", "turtleFunc canDrag droppable");
             rightElement.setAttribute("data-childNumber", childNumber.toString());
             rightElement.textContent = "Right";
@@ -369,7 +336,7 @@ module sharedMkHtml
         }
         else if(label.match("left"))
         {
-            var leftElement = document.createElement("div");
+            const leftElement = document.createElement("div");
             leftElement.setAttribute("class", "turtleFunc canDrag droppable");
             leftElement.setAttribute("data-childNumber", childNumber.toString());
             leftElement.textContent = "Left";
@@ -379,7 +346,7 @@ module sharedMkHtml
         }
         else if(label.match("pen"))
         {
-            var penElement = document.createElement("div");
+            const penElement = document.createElement("div");
             penElement.setAttribute("class", "turtleFunc canDrag droppable");
             penElement.setAttribute("data-childNumber", childNumber.toString());
             penElement.textContent = "Pen";
@@ -389,7 +356,7 @@ module sharedMkHtml
         }
         else if(label.match("clear"))
         {
-            var clearElement = document.createElement("div");
+            const clearElement = document.createElement("div");
             clearElement.setAttribute("class", "turtleFunc canDrag droppable");
             clearElement.setAttribute("data-childNumber", childNumber.toString());
             clearElement.textContent = "Clear";
@@ -398,7 +365,7 @@ module sharedMkHtml
         }
         else if(label.match("show"))
         {
-            var showElement = document.createElement("div");
+            const showElement = document.createElement("div");
             showElement.setAttribute("class", "turtleFunc canDrag droppable");
             showElement.setAttribute("data-childNumber", childNumber.toString());
             showElement.textContent = "Show";
@@ -407,7 +374,7 @@ module sharedMkHtml
         }
         else if(label.match("hide"))
         {
-            var hideElement = document.createElement("div");
+            const hideElement = document.createElement("div");
             hideElement.setAttribute("class", "turtleFunc canDrag droppable");
             hideElement.setAttribute("data-childNumber", childNumber.toString());
             hideElement.textContent = "Hide";
@@ -416,76 +383,81 @@ module sharedMkHtml
         }
     }
 
-    export function getPathToNode(select:Selection, self ) : Selection
+    function makeLargeDropZone( childNumber : number ) : Element {
+        const dropZone = document.createElement("div");
+        dropZone.setAttribute("class", "dropZone H droppable");
+        dropZone.setAttribute("data-isDropZone", "yes");
+        dropZone.setAttribute("data-childNumber", childNumber.toString());
+        return dropZone ;
+    }
+
+    function makeSmallDropZone( childNumber : number ) : Element {
+        const dropZone = document.createElement("div");
+        dropZone.setAttribute("class", "dropZoneSmall H droppable");
+        dropZone.setAttribute("data-isDropZone", "yes");
+        dropZone.setAttribute("data-childNumber", childNumber.toString());
+        return dropZone ;
+    }
+
+    export function getPathToNode(root : PNode, self : JQuery ) : Selection
     {
-        var array = [];
-        var anchor;
-        var focus;
-
-        var parent = $(self);
-        var child = Number(parent.attr("data-childNumber"));
-
-        if (isNaN(child))
-        {
-            var index = parent.index();
-            parent = parent.parent();
-            var num = parent.children().eq(index).prevAll(".dropZone").length;
-            child = Number(parent.attr("data-childNumber"));
-            var place = index - num;
-
-            var label = parent.attr("class");
-            if (/placeHolder/i.test(label) || /expOp/i.test(label))
-            {
-                anchor = child;
-                focus = anchor + 1;
-                parent = parent.parent();
-                child = Number(parent.attr("data-childNumber"));
-            }
-            else
-            {
-                anchor = place;
-                focus = anchor;
-            }
+        let anchor;
+        let focus;
+        //console.log( ">> getPathToNode" ) ;
+        let jq : JQuery= $(self);
+        let childNumber = Number(jq.attr("data-childNumber"));
+        // Climb the tree until we reach a node with a data-childNumber attribute.
+        while( jq.length > 0 && isNaN( childNumber ) ) {
+            //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
+            //console.log( "Length is " + jq.length ) ;
+            //console.log( "childNumber is " + childNumber ) ;
+            jq = jq.parent() ;
+            childNumber = Number(jq.attr("data-childNumber"));
         }
-        else
-        {
-            if(/var/i.test(parent.attr("class")) || /stringLiteral/i.test(parent.attr("class")))
-            {
-                anchor = 0;
-                focus = anchor;
-            }
-            else
-            {
-                if ((/ifBox/i.test(parent.attr("class"))) || (/lambdaBox/i.test(parent.attr("class"))) ||
-                    (/whileBox/i.test(parent.attr("class"))) || (/callWorld/i.test(parent.attr("class")))
-                    || (/assign/i.test(parent.attr("class")))) {
-                    anchor = child;
-                    focus = child + 1;
-                    parent = parent.parent();
-                    child = Number(parent.attr("data-childNumber"));
-                }
-                else
-                {
-                    anchor = child;
-                    focus = anchor;
-                }
-            }
+        if( jq.length == 0 ) {
+            //TODO handle this case elegantly
+            assert.check( false ) ;
         }
-        while (child != -1) {
-            if (!isNaN(child))
-            {
-                array.push(Number(parent.attr("data-childNumber")));
-            }
-            parent = parent.parent();
-            child = Number(parent.attr("data-childNumber"));
+        if( childNumber == -1 ) {
+            //TODO handle this case elegantly
+            assert.check( false ) ;
         }
-        var tree = select.root();
-        var path = list<number>();
-        var i ;
-        for( i = 0 ; i < array.length ; i++ )
+        // childNumber is a number.  Is this a dropzone or not?
+        const isDropZone = jq.attr("data-isDropZone" ) ;
+        if( isDropZone == "yes" ) {
+            //console.log( "   it's a dropzone with number " +  childNumber) ;
+            anchor = focus = childNumber ;
+        } else {
+            //console.log( "   it's a node with number " +  childNumber) ;
+            anchor = childNumber ;
+            focus = anchor+1 ;
+        }
+        // Go up one level
+        jq = jq.parent() ;
+        childNumber = Number(jq.attr("data-childNumber"));
+
+
+        // Climb the tree until we reach a node with a data-childNumber attribute of -1.
+        const array = [];
+        while (jq.length > 0 && childNumber != -1 ) {
+            if (!isNaN(childNumber))
+            {
+                array.push( childNumber );
+                //console.log( "   pushing " +  childNumber) ;
+            }
+            // Go up one level
+            jq = jq.parent() ;
+            childNumber = Number(jq.attr("data-childNumber"));
+        }
+        assert.check( jq.length != 0 ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
+        // Now make a path out of the array.
+        let path = list<number>();
+        for( let i = 0 ; i < array.length ; i++ )
             path = collections.cons( array[i], path ) ;
-
-        return new pnodeEdits.Selection(tree, path, anchor, focus);
+        
+        // If making the selection fails, then the root passed in was not the root
+        // used to make the HTML.
+        return new pnodeEdits.Selection(root, path, anchor, focus);
     }
 }
 
