@@ -8,7 +8,7 @@ import collections = require( './collections' ) ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 
-enum labelTypes {
+enum labelTypes {  // Call them kinds.
     //concrete implementation types
     EXPR_SEQ,
     PARAMETER_LIST,
