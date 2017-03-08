@@ -23,6 +23,8 @@ module collections {
         choose : <B>( f: (a:A) => B, g : () => B ) => B ;
         map : <B> (f : (a:A) => B ) => Option<B> ;
         bind : <B> (f : (a:A) => Option<B> ) => Option<B> ;
+        orElse : ( that : Option<A> ) => Option<A> ;
+        recoverBy : ( backup : () => Option<A> ) => Option<A> ;
     }
 
     export class Some<A> implements Option<A>{
@@ -44,8 +46,13 @@ module collections {
     
         bind<B>(f : (a:A) => Option<B> ) : Option<B> {
             return f( this._val ) ; }
+    
+        orElse( that : Option<A> ) : Option<A> {
+            return this }
 
         toString() : string { return "Some(" + this._val.toString() + ")" ; }
+
+        recoverBy( backup : () => Option<A> ) : Option<A> { return this ; }
     }
 
     export class None<A> implements Option<A> {
@@ -65,6 +72,11 @@ module collections {
 
         bind<B>(f : (a:A) => Option<B> ) : Option<B> {
             return new None<B>() ; }
+    
+        orElse( that : Option<A> ) : Option<A> {
+            return that }
+
+        recoverBy( backup : () => Option<A> ) : Option<A> { return backup() ; }
     
         toString() : string { return "None" ; }
     }

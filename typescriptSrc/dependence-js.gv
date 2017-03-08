@@ -5,25 +5,28 @@ digraph Depends {
 
    //edits -> assert ;
    //edits -> collections ;
+   
+   editing -> sharedMkHtml ;
+   editing -> pnodeEdits ;
+   editing -> treeManager ;
 
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
-   //mkHTML -> assert ;
-   //mkHTML -> collections ;
-   mkHTML -> pnode ;
-   mkHTML -> pnodeEdits ;
-   mkHTML -> treeManager ;
-   mkHTML -> evaluationManager ;
-   mkHTML -> seymour ;
+   executing -> sharedMkHtml ;
+   executing -> editing ;
+   executing -> evaluationManager ;
+   executing -> seymour ;
 
-   //pageManipulation -> assert ;
-   //pageManipulation -> collections ;
+   //mkHtml -> assert ;
+   //mkHtml -> collections ;
 
-   //playground -> collections ;
-   playground -> pnode ;
-   playground -> pnodeEdits ;
+   mkHtml -> createHtmlElements ;
+   mkHtml -> editing ;
+   mkHtml -> executing ;
+   mkHtml -> pnodeEdits ;
+   mkHtml -> userRelated ;
 
    //pnode -> assert ;
    //pnode -> collections ;
@@ -36,12 +39,19 @@ digraph Depends {
    pnodeEdits -> edits ;
    pnodeEdits -> pnode ;
 
+   sharedMkHtml -> pnode ;
+   sharedMkHtml -> pnodeEdits ;
+
    //treeManager -> asssert ;
    //treeManager -> collections ;
    treeManager -> edits ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
+   userRelated -> editing ;
+   userRelated -> pnodeEdits ;
+   userRelated -> pnode ;
+   userRelated -> sharedMkHtml ;
    //turtleTest -> seymour ;
 
    //valueTypes -> assert ;

@@ -29,19 +29,25 @@ module evaluationManager {
             this.workspace = new Workspace();
         }
 
-        PLAAY(root : PNode, turtleWorld : seymour.TurtleWorld ) : VMS {
+        initialize(root : PNode, turtleWorld : seymour.TurtleWorld ) : void {
             var worlds = new Array();
             worlds.push(this.workspace.getWorld());
             if (turtleWorld !=  null ) {
                 worlds.push( new world.TurtleWorldObject( turtleWorld ) ) ;
             }
             this._vms = new VMS(root, worlds);
-            return this._vms;
         }
 
-        next() : VMS {
+        next() : void {
             this._vms.advance();
-            return this._vms;
+        }
+
+        getVMS() : VMS {
+            return this._vms ;
+        }
+
+        getTopEvaluation() : Evaluation {
+            return this._vms.getEval() ;
         }
 
     }
