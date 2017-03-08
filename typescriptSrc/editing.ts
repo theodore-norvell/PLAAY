@@ -34,6 +34,35 @@ module editing {
 
 	export function editingActions () 
     {
+        
+        $(document).keydown(function(e) { 
+            if (e.ctrlKey && e.which == 88) //Ctrl-x
+            {
+                //TODO: push the current selection to the trash and delete it
+            }
+            else if (e.ctrlKey && e.which == 67) //Ctrl-c
+            {
+                //TODO: push the current selection to the trash
+            }
+            else if (e.ctrlKey && e.which == 86) //Ctrl-v
+            {
+                //TODO: should insert the top selection on the trash at the current selection
+            }
+            else if (e.ctrlKey && e.which == 66) //Ctrl-b
+            {
+                //TODO: swap the current selection with the top of the trash. I.e. we should be able to do Cntl-C, move the selection, Cntl-B to swap
+            }
+            else if (e.which == 38) // up arrow
+            {
+                //TODO: set selection above as the current selection
+            }
+            else if (e.which == 40) // down arrow
+            {
+                //TODO: set selection down as the current selection
+            }
+            e.preventDefault(); 
+        });
+        
         generateHTML();
 
         $("#undo").click( function()  { undo() ; } );
