@@ -36,15 +36,19 @@ module editing {
     {
 
         $(document).keydown(function(e) { 
-            if (e.ctrlKey && e.which == 88) //Ctrl-x
+            if (e.ctrlKey && e.which == 88 || (e.which == 127) ) //Ctrl-x or DEL
             {
-                //TODO: push the current selection to the trash and delete it
+                const opt = treeMgr.delete( currentSelection ) ;
+                opt.map( (sel : Selection) => {
+                    addToTrash(currentSelection) ;
+                    update( sel ) ;
+                } ) ;
             }
-            else if ((e.ctrlKey && e.which == 67) || (e.which == 127)) //Ctrl-c or DEL
+            else if ((e.ctrlKey && e.which == 67) ) //Ctrl-c 
             {
                 addToTrash(currentSelection);
                 // Need to set the current selection to the one above the selection just trashed
-                generateHTML();
+                //generateHTML(); // Not needed.
 
                 //TODO: push the current selection to the trash
                 //TODO: DEL key not working 
