@@ -6,7 +6,25 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import valueTypes = require( './valueTypes' ) ;
-import vms = require('./vms' ) ;
+import vms = require('./vms');
+
+enum labelTypes {
+    //concrete implementation types
+    EXPR_SEQ,
+    PARAMETER_LIST,
+
+    //ExprLabel types
+    VARIABLE, VAR_DECL, ASSIGN, CALL_WORLD, EXPR_PH, EXPR_OPT, LAMBDA, IF, WHILE, STRING_LITERAL,
+    NUMBER_LITERAL, BOOLEAN_LITERAL, NULL_LITERAL, CALL, PEN, FORWARD, RIGHT, CLEAR, HIDE, SHOW,
+    LEFT,
+
+    //TODO just wondering... Do we need both a concrete and an extension thereof?
+    TYPE,
+    //TypeLabel types
+    NO_TYPE
+
+}
+
 
 /** Module pnode contains the PNode class and the implementations of the labels. */
 module pnode {
