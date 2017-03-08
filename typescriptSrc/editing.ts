@@ -34,15 +34,20 @@ module editing {
 
 	export function editingActions () 
     {
-        
+
         $(document).keydown(function(e) { 
             if (e.ctrlKey && e.which == 88) //Ctrl-x
             {
                 //TODO: push the current selection to the trash and delete it
             }
-            else if (e.ctrlKey && e.which == 67) //Ctrl-c
+            else if ((e.ctrlKey && e.which == 67) || (e.which == 127)) //Ctrl-c or DEL
             {
+                addToTrash(currentSelection);
+                // Need to set the current selection to the one above the selection just trashed
+                generateHTML();
+
                 //TODO: push the current selection to the trash
+                //TODO: DEL key not working 
             }
             else if (e.ctrlKey && e.which == 86) //Ctrl-v
             {
@@ -54,11 +59,11 @@ module editing {
             }
             else if (e.which == 38) // up arrow
             {
-                //TODO: set selection above as the current selection
+                //TODO: set the selection above as the current selection
             }
             else if (e.which == 40) // down arrow
             {
-                //TODO: set selection down as the current selection
+                //TODO: set the selection below as the current selection
             }
             e.preventDefault(); 
         });
