@@ -13,7 +13,7 @@ import evaluationManager = require( '../evaluationManager' ) ;
 
 var varNode = pnode.mkStringLiteral("aa");
 var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-var val = pnode.mkExprOpt();
+var val = pnode.mkNoExpNd();
 
 var ttype = typeNode.choose(
     p => p,
@@ -21,14 +21,7 @@ var ttype = typeNode.choose(
         return null;
     });
 
-var opt = pnode.tryMake(pnode.VarDeclLabel.theVarDeclLabel, [varNode, ttype, val]);
-
-var root = opt.choose(
-    p => p,
-    () => {
-        assert.check(false, "Precondition violation on PNode.modify");
-        return null;
-    });
+var root = pnode.mkVar( "hello" ) ;
 
 var evalmananger = new evaluationManager.EvaluationManager();
 evalmananger.initialize(root, null);
