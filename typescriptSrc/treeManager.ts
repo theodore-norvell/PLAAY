@@ -61,8 +61,10 @@ module treeManager {
                     return this.makeStringLiteralNode(selection);
                 case "numberliteral":
                     return this.makeNumberLiteralNode(selection);
-                case "booleanliteral":
-                    return this.makeBooleanLiteralNode(selection);
+                case "trueliteral":
+                    return this.makeTrueBooleanLiteralNode(selection);
+                case "falseiteral":
+                    return this.makeFalseBooleanLiteralNode(selection);
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);
 
@@ -84,7 +86,7 @@ module treeManager {
                 case "method":
                     break;
                 case "type":
-                    return this.makeTypeNode(selection);
+                    return this.makeNoTypeNode(selection);
 
                 //turtleworldfunctions
                 case "pen":
@@ -106,17 +108,9 @@ module treeManager {
 
         private makeVarNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(pnode.VariableLabel.theVariableLabel, []);
-
-            var varnode = opt.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var edit = new pnodeEdits.InsertChildrenEdit([varnode]);
-            return edit.applyEdit(selection);
+            const varnode = pnode.mkVar( "" ) ;
+            const edit = new pnodeEdits.InsertChildrenEdit( [varnode] ) ;
+            return edit.applyEdit(selection) ;
         }
 
         // Loop and If Nodes
@@ -181,82 +175,66 @@ module treeManager {
 
         private makeVarDeclNode(selection:Selection) : Option<Selection> {
 
-            var varNode = pnode.mkStringLiteral("");
-            var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-            var val = pnode.mkExprOpt();
+            const varNode = pnode.mkVar("");
+            const noTypeNode = pnode.mkNoTypeNd();
+            const initExp = pnode.mkNoExpNd();
 
-            var ttype = typeNode.first() ;
+            const vardeclnode = pnode.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
-            var opt = pnode.tryMake(pnode.VarDeclLabel.theVarDeclLabel, [varNode, ttype, val]);
-
-            var vardeclnode = opt.first();
-
-            var edit = new pnodeEdits.InsertChildrenEdit([vardeclnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([vardeclnode]);
             return edit.applyEdit(selection);
 
         }
 
         private makeWorldCallNode(selection:Selection) : Option<Selection> {
 
-            var left = pnode.mkExprPH();
-            var right = pnode.mkExprPH();
-
-            var opt = pnode.tryMake(pnode.CallWorldLabel.theCallWorldLabel, [left, right]);
-
-            var worldcallnode = opt.first() ;
-
-            var edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
+            const left = pnode.mkExprPH();
+            const right = pnode.mkExprPH();
+            const worldcallnode = pnode.mkCallWorld( name, left, right);
+            const edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
             return edit.applyEdit(selection);
 
         }
 
         private makeCallNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(pnode.CallLabel.theCallLabel, []);
-
-            var callnode = opt.first() ;
-
-            var edit = new pnodeEdits.InsertChildrenEdit([callnode]);
+            const callnode = pnode.mkCall() ;
+            const edit = new pnodeEdits.InsertChildrenEdit([callnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeTypeNode(selection:Selection) : Option<Selection> {
+        private makeNoTypeNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-
-            var typenode = opt.first() ;
-
-            var edit = new pnodeEdits.InsertChildrenEdit([typenode]);
-           return edit.applyEdit(selection);
+            const typenode = pnode.mkNoTypeNd() ;
+            const edit = new pnodeEdits.InsertChildrenEdit([typenode]);
+            return edit.applyEdit(selection);
         }
 
         private makeStringLiteralNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(pnode.StringLiteralLabel.theStringLiteralLabel, []);
-
-            var literalnode = opt.first() ;
-
-            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-           return edit.applyEdit(selection);
+            const literalnode = pnode.mkStringLiteral( "hello" ) ;
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            return edit.applyEdit(selection);
         }
 
         private makeNumberLiteralNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(pnode.NumberLiteralLabel.theNumberLiteralLabel, []);
-
-            var literalnode = opt.first() ;
+            var literalnode = pnode.mkNumberLiteral("123") ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeBooleanLiteralNode(selection:Selection) : Option<Selection> {
+        private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
+            const literalnode = pnode.mkNoTypeNd() ;
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            return edit.applyEdit(selection);
+        }
 
-            var opt = pnode.tryMake(pnode.BooleanLiteralLabel.theBooleanLiteralLabel, []);
-            var literalnode = opt.first() ;
-
-            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
-           return edit.applyEdit(selection);
+        private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
+            const literalnode = pnode.mkNoTypeNd() ;
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            return edit.applyEdit(selection);
         }
 
         private makeNullLiteralNode(selection:Selection) : Option<Selection> {

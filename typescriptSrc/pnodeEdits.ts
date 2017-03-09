@@ -389,7 +389,7 @@ module pnodeEdits {
             // Loop through all the nodes, changing the label on each.
             // Set fail to true if at least on label can not be changed.
             for( let i = 0 ; ! fail && i < nodes.length; ++i ) {
-                const optLabel = nodes[i].label().changeValue( this._newString ) ;
+                const optLabel = nodes[i].label().changeString( this._newString ) ;
                 const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
                 fail = optNode.choose(
                     (node:PNode) => {newNodes.push( node ); return false;},

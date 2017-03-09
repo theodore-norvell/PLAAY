@@ -36,9 +36,9 @@ var str2 = new valueTypes.StringV("2");
 var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);//a=3
 var f2 : Field = new Field(b.label().getVal(), str2, Type.ANY , false);//b=2
 var cw : pnode.PNode = pnode.mkWorldCall(a, b);
-cw.label().changeValue("F");
+cw.label().changeString("F");
 
-var t : pnode.PNode = pnode.mkType();
+var t : pnode.PNode = pnode.mkNoTypeNd();
 var body : pnode.PNode = pnode.mkExprSeq([c]);
 
 
