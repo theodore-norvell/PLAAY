@@ -466,7 +466,6 @@ div.dropZone {
 
 div.dropZone:hover {
     background-color: slategrey;
-    min-height: 2ex ;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */

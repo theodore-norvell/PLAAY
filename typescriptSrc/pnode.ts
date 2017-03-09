@@ -726,10 +726,7 @@ module pnode {
     /** A parameter list.  */
     export class ParameterListLabel  extends AbstractLabel{
         isValid(children:Array<PNode>) {
-            return children.every(function (c:PNode) {
-                // TODO Shouldn't these all be VarDecls?
-                return c.isExprNode()
-            });
+            return children.every( (c:PNode) : boolean => c.label() instanceof VarDeclLabel );
         }
 
         strategy : lrStrategy = new lrStrategy();
