@@ -116,7 +116,7 @@ module executing
         turtleWorld.redraw() ;
     }
 
-    function highlight(parent, pending) : void
+    function highlight(parent : JQuery, pending : List<number> ) : void
     {
         if(pending.isEmpty())
         {
