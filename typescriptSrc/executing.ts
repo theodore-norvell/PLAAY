@@ -64,7 +64,7 @@ module executing
             const vms : HTMLElement = document.getElementById("vms") ;
             var list = arrayToList(evaluationMgr.getTopEvaluation().getPending());
             findInMap(root, evaluationMgr.getTopEvaluation().getValMap());
-            highlight(root, list);
+            highlight($(root), list);
             visualizeStack(evaluationMgr.getTopEvaluation().getStack());
             highlighted = true;
         } 
@@ -94,7 +94,7 @@ module executing
         const list : List<number>= arrayToList(evaluationMgr.getTopEvaluation().getPending());
         const map : ValueMap = evaluationMgr.getTopEvaluation().getValMap();
         findInMap(root, map);
-        highlight(root, list);
+        highlight($(root), list);
     }
 
     function multiStep() 
@@ -116,7 +116,7 @@ module executing
         turtleWorld.redraw() ;
     }
 
-    function highlight(parent, pending) : void
+    function highlight(parent : JQuery, pending : List<number> ) : void
     {
         if(pending.isEmpty())
         {
