@@ -386,10 +386,12 @@ module treeManager {
 
             const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
             const moveResult = moveEdit.applyEdit(trgSelection);
+            // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
 
             const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
             const swapResult = swapEdit.applyEdit( trgSelection ) ;
+            // TODO: Suppress the push if newSel equals an earlier result
             swapResult.map( newSel => selectionList.push(['Swapped', "Swap", newSel]) ) ;
 
             return selectionList;

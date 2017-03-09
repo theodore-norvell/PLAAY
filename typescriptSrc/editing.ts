@@ -290,6 +290,9 @@ module editing {
             $("#container .input").keyup(keyUpHandler);
             console.log( "<< Click Handler") ;
         });
+
+        // Set focus to any elements of class "input" in the tree
+        $("#container .input").focus();
     }
 
     const keyUpHandler = function (e) {
