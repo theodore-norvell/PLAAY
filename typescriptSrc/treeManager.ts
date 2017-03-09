@@ -103,6 +103,8 @@ module treeManager {
                     return this.makeShowNode(selection);
                 case "clear":
                     return this.makeClearNode(selection);
+                default:
+                    assert.check( false, "Unexpected parameter to createNode" ) ;
             }
         }
 
@@ -142,23 +144,14 @@ module treeManager {
         }
 
         private makeLambdaNode(selection:Selection) : Option<Selection> {
-
-            var header = pnode.mkParameterList([]);
-            var lambdatype = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-            var ltype = lambdatype.first();
-
-            var dothis : PNode = pnode.mkExprSeq([]);
-
-            var opt = pnode.tryMake(pnode.LambdaLabel.theLambdaLabel, [header, ltype, dothis]);
-
-            var lambdanode = opt.first() ;
-
+            var paramList = pnode.mkParameterList([]);
+            var noTypeNode = pnode.mkNoTypeNd() ;
+            var body : PNode = pnode.mkExprSeq([]);
+            var lambdanode = pnode.mkLambda("", paramList, noTypeNode, body ) ;
             var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
             return edit.applyEdit(selection);
-
         }
 
-        //Arithmetic Nodes
         private makeAssignNode(selection:Selection) : Option<Selection> {
 
             var left = pnode.mkExprPH();

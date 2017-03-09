@@ -862,9 +862,10 @@ module pnode {
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 3) return false ;
-            if( ! (children[0] instanceof VariableLabel) ) return false ;
+            if( ! (children[0].label() instanceof VariableLabel) ) return false ;
             if( ! children[1].isTypeNode()) return false ;
-            if( ! children[2].isExprNode()) return false ;
+            if( ! ( children[2].isExprNode()
+                  || children[2].label() instanceof NoExprLabel) ) return false ;
             return true;
         }
 
@@ -1142,9 +1143,8 @@ module pnode {
         strategy : lambdaStrategy = new lambdaStrategy();
 
         isValid( children : Array<PNode> ) {
-            // TODO: Lambdas should have 4 children. See AST docs.
              if( children.length != 3 ) return false ;
-             if ( ! children[0].isExprSeqNode() ) return false ;
+             if ( ! (children[0].label() instanceof ParameterListLabel) ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
              return true;

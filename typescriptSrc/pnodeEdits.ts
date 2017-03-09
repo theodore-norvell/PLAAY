@@ -385,18 +385,46 @@ module pnodeEdits {
         applyEdit(selection:Selection):Option<Selection> {
             const nodes = selection.selectedNodes() ;
             const newNodes : Array<PNode> = [] ;
-            let fail = false ;
-            // Loop through all the nodes, changing the label on each.
-            // Set fail to true if at least on label can not be changed.
-            for( let i = 0 ; ! fail && i < nodes.length; ++i ) {
+            let count = 0 ;
+            // Loop through all the nodes, attempting to change the label on each.
+            for( let i = 0 ; i < nodes.length; ++i ) {
                 const optLabel = nodes[i].label().changeString( this._newString ) ;
                 const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
-                fail = optNode.choose(
-                    (node:PNode) => {newNodes.push( node ); return false;},
-                    () => true
+                optNode.choose(
+                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    () => { newNodes.push( nodes[i] ) ; }
                 ) ;
             }
-            if( fail ) return collections.none<Selection>() ;
+            // Fail if no labels changed.
+            if( count == 0 ) return collections.none<Selection>() ;
+            else return singleReplace( selection, newNodes ) ;
+        }
+    }
+
+    /**  Open the labels of a selection.  Opening a label will make it editable in the editor.
+     *  
+     */
+    export class OpenLabelEdit extends AbstractEdit<Selection> {
+
+        constructor() {
+            super();
+        }
+
+        applyEdit(selection:Selection):Option<Selection> {
+            const nodes = selection.selectedNodes() ;
+            const newNodes : Array<PNode> = [] ;
+            let count = 0 ;
+            // Loop through all the nodes, attempting to open the label on each.
+            for( let i = 0 ; i < nodes.length; ++i ) {
+                const optLabel = nodes[i].label().open() ;
+                const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
+                optNode.choose(
+                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    () => { newNodes.push( nodes[i] ) ; }
+                ) ;
+            }
+            // Fail if no labels changed.
+            if( count == 0 ) return collections.none<Selection>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
