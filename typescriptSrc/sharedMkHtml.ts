@@ -148,12 +148,7 @@ module sharedMkHtml
                 opElement.textContent = node.label().getVal();
             }
             else {
-                // TODO Preserve current value 
-                const op = document.createElement("input");
-                opElement.setAttribute("class", "op H input");
-                opElement.setAttribute("type", "text");
-                opElement.setAttribute("list", "oplist");
-                opElement.textContent = "";
+                opElement = makeTextInputElement( node, "op H input", collections.none<number>() ) ;
             }
             callBox.appendChild(opElement);
             for( let i=0 ; i < children.length ; ++i) {
@@ -218,12 +213,7 @@ module sharedMkHtml
             }
             else
             {
-                // TODO Preserve current value 
-                VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input canDrag droppable");
-                VarBox.setAttribute("data-childNumber", childNumber.toString());
-                VarBox.setAttribute("type", "text");
-                VarBox.textContent = "";
+                VarBox = makeTextInputElement( node, "var H input canDrag droppable", collections.some(childNumber) ) ;
             }
             return VarBox;
         }
@@ -239,12 +229,7 @@ module sharedMkHtml
             }
             else
             {
-                // TODO Preserve current value 
-                StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input canDrag droppable");
-                StringBox.setAttribute("data-childNumber", childNumber.toString());
-                StringBox.setAttribute("type", "text");
-                StringBox.textContent = "";
+                StringBox = makeTextInputElement( node, "stringLiteral H input canDrag droppable", collections.some(childNumber) ) ;
             }
             return StringBox;
         }
@@ -368,6 +353,19 @@ module sharedMkHtml
         dropZone.setAttribute("data-isDropZone", "yes");
         dropZone.setAttribute("data-childNumber", childNumber.toString());
         return dropZone ;
+    }
+
+    function makeTextInputElement( node : PNode, classes : string, childNumber : collections.Option<number> ) : Element {
+            let text = node.label().getVal() ;
+            text = text.replace( /&/g, "&amp;" ) ;
+            text = text.replace( /"/g, "&quot;") ;
+
+            const element = document.createElement("input");
+            element.setAttribute("class", classes);
+            childNumber.map( n => element.setAttribute("data-childNumber", n.toString() ) ) ;
+            element.setAttribute("type", "text");
+            element.setAttribute("value", text) ;
+            return element ;
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Selection
