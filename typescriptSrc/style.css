@@ -411,42 +411,17 @@ div.paramlistInner {
     border: thin solid rgb(135,206,250) ;
 }
 
-div.noReturnType {
+div.noType {
     margin: 2px 0px 2px 0px ;
     min-height: 1ex ;
-    min-width: 10ex ;
+    min-width: 2ex ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.noReturnType:hover {
+div.noType:hover {
     background-color: slategrey;
     min-height: 2ex ;
-}
-
-
-div.returnTypeOuter {
-}
-
-div.returnTypeInner {
-    margin: 2px 0px 2px 5px ;
-}
-
-div.dialog
-{
-    position:fixed;
-    width: 50px;
-    height: 50px;
-    z-index: 999;
-    background-color: darkred;
-}
-
-
-div.returnTypeOuter:before { content: "\2192" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(135,206,250) ;
-    font-size: large ;
 }
 
 div.seqBox {
@@ -515,7 +490,8 @@ div.hCont, div.var, div.assign {
     margin: 1px 2px 1px 2px ;
 }
 
-div.vardecl:before { content: "Var" ;
+div.vardecl:before {
+    content: "\0003B4" ;
     display: inline ;
     vertical-align: top ;
     color: ghostwhite ;
@@ -675,6 +651,15 @@ div.selection {
     padding: 0.1em .5em;
     position: relative;
     font-size: 1em;
+}
+
+div.dialog
+{
+    position:fixed;
+    width: 50px;
+    height: 50px;
+    z-index: 999;
+    background-color: darkred;
 }
 
 table
