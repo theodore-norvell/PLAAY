@@ -30,6 +30,7 @@ module sharedMkHtml
     function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
     {
         const label = node.label().toString();
+        // TODO: Change to a switch on the LabelKind
         if(label.match('if'))
         {
             assert.check( children.length == 3 ) ;
@@ -136,42 +137,23 @@ module sharedMkHtml
             callBox.setAttribute("data-childNumber", childNumber.toString());
             callBox.setAttribute("type", "text");
             callBox.setAttribute("list", "oplist");
+            
+            // TODO Allow infix operators again some day.
 
-            if((node.label().getVal().match(/\+/gi) || node.label().getVal().match(/\-/gi)
-                || node.label().getVal().match(/\*/gi) || node.label().getVal().match(/\//gi) || (node.label().getVal().match(/==/gi))
-                || (node.label().getVal().match(/>/gi)) || (node.label().getVal().match(/</gi)) || (node.label().getVal().match(/>=/gi))
-                || (node.label().getVal().match(/<=/gi)) || (node.label().getVal().match(/&/gi)) || (node.label().getVal().match(/\|/gi)) )
-                && node.label().getVal().length > 0
-                && children.length == 2)
+            let opElement : Element ;
+            if(! node.label().isOpen() )
             {
-                const opval = document.createElement("div");
-                opval.setAttribute("class", "op H click");
-                opval.textContent = node.label().getVal();
-
-                callBox.appendChild(children[0]);
-                callBox.appendChild(opval);
-                callBox.appendChild(children[1]);
+                opElement = document.createElement("div");
+                opElement.setAttribute("class", "op H click");
+                opElement.textContent = node.label().getVal();
             }
             else {
-                let opElement : Element ;
-                if(node.label().getVal().length > 0)
-                {
-                    opElement = document.createElement("div");
-                    opElement.setAttribute("class", "op H click");
-                    opElement.textContent = node.label().getVal();
-                }
-                else {
-                    const op = document.createElement("input");
-                    opElement.setAttribute("class", "op H input");
-                    opElement.setAttribute("type", "text");
-                    opElement.setAttribute("list", "oplist");
-                    opElement.textContent = "";
-                }
-                callBox.appendChild(opElement);
-                for( let i=0 ; i < children.length ; ++i) {
-                    callBox.appendChild( makeSmallDropZone(i) ) ;
-                    callBox.appendChild( children[i] ) ;
-                }
+                opElement = makeTextInputElement( node, "op H input", collections.none<number>() ) ;
+            }
+            callBox.appendChild(opElement);
+            for( let i=0 ; i < children.length ; ++i) {
+                callBox.appendChild( makeSmallDropZone(i) ) ;
+                callBox.appendChild( children[i] ) ;
             }
             return callBox;
         }
@@ -196,31 +178,15 @@ module sharedMkHtml
             const lambdahead = document.createElement("div");
             lambdahead.setAttribute("class", "lambdaHeader V ");
             lambdahead.appendChild( children[0] ) ;
-            lambdahead.appendChild(children[1]);
+            lambdahead.appendChild( children[1]);
 
             const doBox = document.createElement("div");
             doBox.setAttribute("class", "doBox H");
             doBox.appendChild( children[2] ) ;
 
-            let string;
-
-            if (node.label().getVal().length > 0)
-            {
-                string = document.createElement("div");
-                string.setAttribute("class", "stringLiteral H click canDrag");
-                string.textContent = node.label().getVal();
-            }
-            else
-            {
-                string = document.createElement("input");
-                string.setAttribute("class", "stringLiteral H input canDrag");
-                string.setAttribute("type", "text");
-            }
-
             const LambdaBox = document.createElement("div");
             LambdaBox.setAttribute("class", "lambdaBox V droppable");
             LambdaBox.setAttribute("data-childNumber", childNumber.toString());
-            LambdaBox.appendChild(string);
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
 
@@ -238,7 +204,7 @@ module sharedMkHtml
         else if (label.match("var"))
         {
             let VarBox;
-            if (node.label().getVal().length > 0)
+            if( ! node.label().isOpen() ) 
             {
                 VarBox = document.createElement("div");
                 VarBox.setAttribute("class", "var H click canDrag droppable");
@@ -247,20 +213,14 @@ module sharedMkHtml
             }
             else
             {
-                VarBox = document.createElement("input");
-                VarBox.setAttribute("class", "var H input canDrag droppable");
-                VarBox.setAttribute("data-childNumber", childNumber.toString());
-                VarBox.setAttribute("type", "text");
-                VarBox.textContent = "";
+                VarBox = makeTextInputElement( node, "var H input canDrag droppable", collections.some(childNumber) ) ;
             }
             return VarBox;
         }
         else if (label.match("string"))
         {
             let StringBox;
-            // TODO This is just not good. Since it doesn't allow 0 length strings.
-            // Instead the node label could carry the information about whether it is being edited or not.
-            if (node.label().getVal().length > 0)
+            if (! node.label().isOpen() )
             {
                 StringBox = document.createElement("div");
                 StringBox.setAttribute("class", "stringLiteral H click canDrag droppable");
@@ -269,11 +229,7 @@ module sharedMkHtml
             }
             else
             {
-                StringBox = document.createElement("input");
-                StringBox.setAttribute("class", "stringLiteral H input canDrag droppable");
-                StringBox.setAttribute("data-childNumber", childNumber.toString());
-                StringBox.setAttribute("type", "text");
-                StringBox.textContent = "";
+                StringBox = makeTextInputElement( node, "stringLiteral H input canDrag droppable", collections.some(childNumber) ) ;
             }
             return StringBox;
         }
@@ -286,7 +242,7 @@ module sharedMkHtml
 
             return noType ;
         }
-        else if(label.match("expOpt"))
+        else if(label.match("noExp"))
         {
             const expOpt = document.createElement("div");
             expOpt.setAttribute("class", "expOp V canDrag droppable");
@@ -397,6 +353,19 @@ module sharedMkHtml
         dropZone.setAttribute("data-isDropZone", "yes");
         dropZone.setAttribute("data-childNumber", childNumber.toString());
         return dropZone ;
+    }
+
+    function makeTextInputElement( node : PNode, classes : string, childNumber : collections.Option<number> ) : Element {
+            let text = node.label().getVal() ;
+            text = text.replace( /&/g, "&amp;" ) ;
+            text = text.replace( /"/g, "&quot;") ;
+
+            const element = document.createElement("input");
+            element.setAttribute("class", classes);
+            childNumber.map( n => element.setAttribute("data-childNumber", n.toString() ) ) ;
+            element.setAttribute("type", "text");
+            element.setAttribute("value", text) ;
+            return element ;
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Selection
