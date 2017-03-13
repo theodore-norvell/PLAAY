@@ -50,24 +50,30 @@ module editing {
                 } ) ;
             }
             // Copy: Cntl-X or Cmd-X
-            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) //Ctrl-c 
+            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
             {
                 addToTrash(currentSelection);
             }
             // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && e.which == 86) //Ctrl-v
+            else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
             {
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
             }
             // Swap: Cntl-B or Cmd-B
-            else if ((e.ctrlKey || e.metaKey) && e.which == 66) //Ctrl-b
+            else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
             {
             
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
+            }
+            // Select all: Cntl-A or Cmd-A
+            else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
+            {
+                treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
             }
             else if (e.which == 38) // up arrow
             {
