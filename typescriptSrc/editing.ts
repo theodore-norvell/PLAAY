@@ -17,6 +17,10 @@ import treeManager = require( './treeManager');
 module editing {
 
     import list = collections.list;
+    import Option = collections.Option ;
+    import some = collections.some ;
+    import none = collections.none ;
+
     import Selection = pnodeEdits.Selection;
 
     enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE } ;
@@ -36,7 +40,8 @@ module editing {
     {
 
         $(document).keydown(function(e) { 
-            if (e.ctrlKey && e.which == 88 || (e.which == 127) ) //Ctrl-x or DEL
+            // Cut: Control X, command X, delete, backspace
+            if ((e.ctrlKey || e.metaKey) && e.which == 88 || e.which == 8 || e.which == 46 ) 
             {
                 const opt = treeMgr.delete( currentSelection ) ;
                 opt.map( (sel : Selection) => {
@@ -44,22 +49,25 @@ module editing {
                     update( sel ) ;
                 } ) ;
             }
-            else if ((e.ctrlKey && e.which == 67) ) //Ctrl-c 
+            // Copy: Cntl-X or Cmd-X
+            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) //Ctrl-c 
             {
                 addToTrash(currentSelection);
-                // Need to set the current selection to the one above the selection just trashed
-                //generateHTML(); // Not needed.
-
-                //TODO: push the current selection to the trash
-                //TODO: DEL key not working 
             }
-            else if (e.ctrlKey && e.which == 86) //Ctrl-v
+            // Paste: Cntl-V or Cmd-V
+            else if ((e.ctrlKey || e.metaKey) && e.which == 86) //Ctrl-v
             {
-                //TODO: should insert the top selection on the trash at the current selection
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
             }
-            else if (e.ctrlKey && e.which == 66) //Ctrl-b
+            // Swap: Cntl-B or Cmd-B
+            else if ((e.ctrlKey || e.metaKey) && e.which == 66) //Ctrl-b
             {
-                //TODO: swap the current selection with the top of the trash. I.e. we should be able to do Cntl-C, move the selection, Cntl-B to swap
+            
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
             }
             else if (e.which == 38) // up arrow
             {
@@ -69,7 +77,7 @@ module editing {
             {
                 //TODO: set the selection below as the current selection
             }
-            e.preventDefault(); 
+            //e.preventDefault(); 
         });
         
         generateHTML();
@@ -112,6 +120,11 @@ module editing {
         trashArray.unshift( sel ) ;
         if( trashArray.length > 10 ) trashArray.length = 10 ;
         refreshTheTrash() ;
+    }
+
+    function getFromTrash( ) : Option< Selection > {
+        if( trashArray.length == 0 ) return none<Selection>() ;
+        else return some( trashArray[0] ) ;
     }
 
     function toggleTrash() : void {
