@@ -302,12 +302,23 @@ module sharedMkHtml
     function  localHighlightSlection( pn : PNode, path : List<number>, start : number, end : number, jq : JQuery ) : void {
         if( path.isEmpty() ) {
             if( start == end ) {
-                // TODO
+                const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
+                assert.check( zones != null ) ;
+                const dz : JQuery = start < zones.length ? zones[start] : null ;
+                if( dz!= null ) dz.addClass( "selected" ) ;
             } else {
-                //TODO
+                const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+                assert.check( children != null ) ;
+                for( let i = start ; i < end ; ++i ) {
+                    children[i].addClass( "selected" ) ;
+                }
             }
         } else {
-            //TODO
+            const i = path.first() ;
+            const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+            assert.check( children != null ) ;
+            assert.check( i < children.length ) ;
+            localHighlightSlection( pn.child(i), path.rest(), start, end, children[i] ) ;
         }
     }
 

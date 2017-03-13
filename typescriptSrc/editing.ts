@@ -193,9 +193,9 @@ module editing {
     function generateHTML() : void
     {
         // Refresh the view of the current selection
-		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
-        
+        const newHTML : JQuery = sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false)
+		$("#container").empty().append(newHTML);
+        sharedMkHtml.highlightSelection( currentSelection, newHTML ) ;
         // Handle drops
         $( "#container .droppable" ).droppable({
             greedy: true,

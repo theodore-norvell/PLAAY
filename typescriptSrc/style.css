@@ -20,10 +20,12 @@
     right: 20px;
 }
 
-div.selected {
-     border: thin solid rgb(255,0,0) ;
-     padding: 2px ;
-     margin: 2px ;
+input.selected {
+     color: white ;
+}
+
+.selected {
+     background-color: slategray ;
 }
 
 div.trashitem {
@@ -420,7 +422,7 @@ div.noType {
 }
 
 div.noType:hover {
-    background-color: slategrey;
+    background-color: lightgrey;
     min-height: 2ex ;
 }
 
@@ -440,7 +442,7 @@ div.dropZone {
 }
 
 div.dropZone:hover {
-    background-color: slategrey;
+    background-color: lightgray  ;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
@@ -452,7 +454,8 @@ div.dropZoneSmall {
 }
 
 div.dropZoneSmall:hover {
-    background-color: slategrey;
+    background-color: white  ;
+    border-color: white ;
     min-width: 2ex ;
 }
 
@@ -607,7 +610,7 @@ div.selection {
 }
 
 .hover {
-    background-color: rgb(122,122,0) !important;
+    background-color: white !important;
 }
 
 .ui-widget.success-dialog {
