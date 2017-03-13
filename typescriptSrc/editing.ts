@@ -318,7 +318,12 @@ module editing {
         });
 
         // Handle clicks on vars etc.
-        $("#container .click").click(function(){
+        $("#container .selectable").click(function(){
+            $("#container .selectable").css("background-color","black");
+            $(this).css("background-color","56071f");
+        });
+
+        $("#container .click").dblclick(function(){
             console.log( ">> Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
             const edit = new pnodeEdits.OpenLabelEdit() ;

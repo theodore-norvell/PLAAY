@@ -49,7 +49,7 @@ module sharedMkHtml
 
             const ifbox = document.createElement("div");
             ifbox.setAttribute("data-childNumber", childNumber.toString());
-            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
+            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable selectable");
             ifbox.appendChild(guardbox);
             ifbox.appendChild(thenbox);
             ifbox.appendChild(elsebox);
@@ -124,7 +124,7 @@ module sharedMkHtml
 
             const whileBox = document.createElement("div");
             whileBox.setAttribute("data-childNumber", childNumber.toString());
-            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
+            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable selectable");
             whileBox.appendChild(guardbox);
             whileBox.appendChild(thenbox);
 
@@ -133,7 +133,7 @@ module sharedMkHtml
         else if(label.match("callWorld"))
         {
             const callBox = document.createElement("div");
-            callBox.setAttribute("class", "callWorld H canDrag droppable" );
+            callBox.setAttribute("class", "callWorld H canDrag droppable selectable" );
             callBox.setAttribute("data-childNumber", childNumber.toString());
             callBox.setAttribute("type", "text");
             callBox.setAttribute("list", "oplist");
@@ -160,7 +160,7 @@ module sharedMkHtml
         else if(label.match("assign"))
         {
             const AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "assign H canDrag droppable" );
+            AssignBox.setAttribute("class", "assign H canDrag droppable selectable" );
             AssignBox.setAttribute("data-childNumber", childNumber.toString());
 
             const lebel = document.createElement("div");
@@ -185,7 +185,7 @@ module sharedMkHtml
             doBox.appendChild( children[2] ) ;
 
             const LambdaBox = document.createElement("div");
-            LambdaBox.setAttribute("class", "lambdaBox V droppable");
+            LambdaBox.setAttribute("class", "lambdaBox V droppable selectable");
             LambdaBox.setAttribute("data-childNumber", childNumber.toString());
             LambdaBox.appendChild(lambdahead);
             LambdaBox.appendChild(doBox);
@@ -207,13 +207,13 @@ module sharedMkHtml
             if( ! node.label().isOpen() ) 
             {
                 VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click canDrag droppable");
+                VarBox.setAttribute("class", "var H click canDrag droppable selectable");
                 VarBox.setAttribute("data-childNumber", childNumber.toString());
                 VarBox.textContent = node.label().getVal();
             }
             else
             {
-                VarBox = makeTextInputElement( node, "var H input canDrag droppable", collections.some(childNumber) ) ;
+                VarBox = makeTextInputElement( node, "var H input canDrag droppable selectable", collections.some(childNumber) ) ;
             }
             return VarBox;
         }
@@ -223,13 +223,13 @@ module sharedMkHtml
             if (! node.label().isOpen() )
             {
                 StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click canDrag droppable");
+                StringBox.setAttribute("class", "stringLiteral H click canDrag droppable selectable");
                 StringBox.setAttribute("data-childNumber", childNumber.toString());
                 StringBox.textContent = node.label().getVal();
             }
             else
             {
-                StringBox = makeTextInputElement( node, "stringLiteral H input canDrag droppable", collections.some(childNumber) ) ;
+                StringBox = makeTextInputElement( node, "stringLiteral H input canDrag droppable selectable", collections.some(childNumber) ) ;
             }
             return StringBox;
         }
@@ -253,7 +253,7 @@ module sharedMkHtml
         else if(label.match("vdecl"))
         {
             const VarDeclBox = document.createElement("div");
-            VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
+            VarDeclBox.setAttribute("class", "vardecl H canDrag droppable selectable" );
             VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
 
             const type = document.createElement("div");
