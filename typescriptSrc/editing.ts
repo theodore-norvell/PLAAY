@@ -34,6 +34,44 @@ module editing {
 
 	export function editingActions () 
     {
+
+        $(document).keydown(function(e) { 
+            if (e.ctrlKey && e.which == 88 || (e.which == 127) ) //Ctrl-x or DEL
+            {
+                const opt = treeMgr.delete( currentSelection ) ;
+                opt.map( (sel : Selection) => {
+                    addToTrash(currentSelection) ;
+                    update( sel ) ;
+                } ) ;
+            }
+            else if ((e.ctrlKey && e.which == 67) ) //Ctrl-c 
+            {
+                addToTrash(currentSelection);
+                // Need to set the current selection to the one above the selection just trashed
+                //generateHTML(); // Not needed.
+
+                //TODO: push the current selection to the trash
+                //TODO: DEL key not working 
+            }
+            else if (e.ctrlKey && e.which == 86) //Ctrl-v
+            {
+                //TODO: should insert the top selection on the trash at the current selection
+            }
+            else if (e.ctrlKey && e.which == 66) //Ctrl-b
+            {
+                //TODO: swap the current selection with the top of the trash. I.e. we should be able to do Cntl-C, move the selection, Cntl-B to swap
+            }
+            else if (e.which == 38) // up arrow
+            {
+                //TODO: set the selection above as the current selection
+            }
+            else if (e.which == 40) // down arrow
+            {
+                //TODO: set the selection below as the current selection
+            }
+            e.preventDefault(); 
+        });
+        
         generateHTML();
 
         $("#undo").click( function()  { undo() ; } );
@@ -280,7 +318,16 @@ module editing {
         });
 
         // Handle clicks on vars etc.
-        $("#container .click").click(function(){
+        $("#container .selectable").click(function(){
+            $("#container .selectable").css("background-color","black");
+            $(this).css("background-color","56071f");
+            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+            const edit = new pnodeEdits.OpenLabelEdit() ;
+            const opt = edit.applyEdit( clickTarget ) ;
+            opt.map( (sel : Selection) => update( sel ) ) ;
+        });
+
+        $("#container .click").dblclick(function(){
             console.log( ">> Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
             const edit = new pnodeEdits.OpenLabelEdit() ;
