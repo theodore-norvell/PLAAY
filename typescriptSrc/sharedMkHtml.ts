@@ -285,12 +285,15 @@ module sharedMkHtml
         else {
             assert.check( false, "Unknown label in buildHTML.") ;
         }
+        // Give the result a number. // TODO Use data instead of attr.
         result.attr( "data-childNumber", childNumber.toString() ) ; 
         // Attach the JQueries representing the children elements to the root element representing this node.
         result.data("children", children ) ;
         // Attach the JQueries representing the dropzones to the root element representing this node.
         // Note these may not be present in which case they are nulls in the array or the array is short.
         result.data("dropzones", dropzones ) ;
+        // Make it selectable by a click
+        result.addClass( "selectable" ) ;
         return result ;
     }
 
@@ -327,6 +330,8 @@ module sharedMkHtml
         dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
         dropZone.addClass( "H" ) ;
         dropZone.addClass( "droppable" ) ;
+        // Make it selectable by a click
+        dropZone.addClass( "selectable" ) ;
         dropZone.attr("data-isDropZone", "yes");
         dropZone.attr("data-childNumber", childNumber.toString());
         return dropZone ;
@@ -363,11 +368,11 @@ module sharedMkHtml
         }
         if( jq.length == 0 ) {
             //TODO handle this case elegantly
-            assert.check( false ) ;
+            assert.check( false, "JQ length is 0" ) ;
         }
         if( childNumber == -1 ) {
             //TODO handle this case elegantly
-            assert.check( false ) ;
+            assert.check( false, "first childNumber is -1" ) ;
         }
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;
@@ -396,7 +401,7 @@ module sharedMkHtml
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        assert.check( jq.length != 0 ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
+        assert.check( jq.length != 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
         // Now make a path out of the array.
         let path = list<number>();
         for( let i = 0 ; i < array.length ; i++ )

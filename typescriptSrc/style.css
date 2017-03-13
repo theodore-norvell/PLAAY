@@ -454,8 +454,7 @@ div.dropZoneSmall {
 }
 
 div.dropZoneSmall:hover {
-    background-color: white  ;
-    border-color: white ;
+    background-color: lightgray  ;
     min-width: 2ex ;
 }
 
@@ -597,7 +596,6 @@ div.nullLiteral {
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
-
 
 
 div.selection {

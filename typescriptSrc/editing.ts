@@ -317,16 +317,13 @@ module editing {
             }
         });
 
-        // Handle clicks on vars etc.
-        $("#container .selectable").click(function(){
-            $("#container .selectable").css("background-color","black");
-            $(this).css("background-color","56071f");
+        // Single clicks on the view should change the current selection.
+        $("#container .selectable").click( function() {
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-            const edit = new pnodeEdits.OpenLabelEdit() ;
-            const opt = edit.applyEdit( clickTarget ) ;
-            opt.map( (sel : Selection) => update( sel ) ) ;
-        });
+            update( clickTarget ) ;
+        } );
 
+        // Handle double clicks on vars etc.
         $("#container .click").dblclick(function(){
             console.log( ">> Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
