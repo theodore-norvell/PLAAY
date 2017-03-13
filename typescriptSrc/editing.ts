@@ -321,6 +321,10 @@ module editing {
         $("#container .selectable").click(function(){
             $("#container .selectable").css("background-color","black");
             $(this).css("background-color","56071f");
+            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+            const edit = new pnodeEdits.OpenLabelEdit() ;
+            const opt = edit.applyEdit( clickTarget ) ;
+            opt.map( (sel : Selection) => update( sel ) ) ;
         });
 
         $("#container .click").dblclick(function(){
