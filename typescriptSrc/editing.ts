@@ -331,21 +331,25 @@ module editing {
         });
 
         // Single clicks on the view should change the current selection.
-        $("#container .selectable").click( function() {
+        $("#container .selectable").click( function(evt) {
+            console.log( ">> Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
             update( clickTarget ) ;
+            console.log( "<< Click Handler") ;
         } );
 
         // Handle double clicks on vars etc.
-        $("#container .click").dblclick(function(){
-            console.log( ">> Click Handler") ;
+        // TODO Resolve conflict between single clicks and double clicks.
+        // Or maybe find a way not to use double clicks.
+        $("#container .click").dblclick(function(evt){
+            console.log( ">> Double Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
             const edit = new pnodeEdits.OpenLabelEdit() ;
             const opt = edit.applyEdit( clickTarget ) ;
             opt.map( (sel : Selection) => update( sel ) ) ;
 
             $("#container .input").keyup(keyUpHandler);
-            console.log( "<< Click Handler") ;
+            console.log( "<< Double Click Handler") ;
         });
 
         // Set focus to any elements of class "input" in the tree
@@ -390,6 +394,12 @@ module editing {
             generateHTML();
         }
     }
+
+    // var pendingAction = null ;
+    // function updateSoon( sel : Selection ) : void {
+    //     if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
+    //     pendingAction = window.setTimeout( function() { update(sel); }, 500) ;
+    // }
 
 
 }
