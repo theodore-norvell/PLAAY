@@ -375,6 +375,11 @@ module treeManager {
             return copyEdit.applyEdit( trgSelection ) ;
         }
 
+        swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+            const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
+            return swapEdit.applyEdit( trgSelection ) ;
+        }
+
         /** Create a list of up to three possible actions. */
         moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
 

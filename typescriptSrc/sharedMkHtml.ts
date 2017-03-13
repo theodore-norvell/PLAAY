@@ -17,9 +17,9 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
-    export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : HTMLElement
+    export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
-        var children = new Array<HTMLElement>() ;
+        var children = new Array<JQuery>() ;
         for(var i = 0; i < node.count(); i++)
         {
             children.push( traverseAndBuild(node.child(i), i, evaluating) ) ;
@@ -27,344 +27,327 @@ module sharedMkHtml
         return buildHTML(node, children, childNumber, evaluating);
     }
 
-    function buildHTML(node:PNode, children : Array<HTMLElement>, childNumber : number, evaluating:boolean) : HTMLElement
+    function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, evaluating:boolean) : JQuery
     {
+        let result : JQuery ;
+        let dropzones : Array<JQuery> = [] ;
         const label = node.label().toString();
         // TODO: Change to a switch on the LabelKind
         if(label.match('if'))
         {
             assert.check( children.length == 3 ) ;
 
-            const guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "ifGuardBox H workplace");
-            guardbox.appendChild( children[0] ) ;
+            const guardbox : JQuery = $(document.createElement("div")) ;
+            guardbox.addClass( "ifGuardBox" ) ;
+            guardbox.addClass( "H" ) ;
+            guardbox.addClass( "workplace" ) ;
+            guardbox.append( children[0] ) ;
 
-            const thenbox = document.createElement("div");
-            thenbox.setAttribute("class", "thenBox H workplace");
-            thenbox.appendChild( children[1] ) ;
+            const thenbox : JQuery = $(document.createElement("div")) ;
+            thenbox.addClass( "thenBox" ) ;
+            thenbox.addClass( "H" ) ;
+            thenbox.addClass( "workplace" ) ;
+            thenbox.append( children[1] ) ;
 
-            const elsebox = document.createElement("div");
-            elsebox.setAttribute("class", "elseBox H workplace");
-            elsebox.appendChild( children[2] ) ;
+            const elsebox : JQuery = $(document.createElement("div")) ;
+            elsebox.addClass( "elseBox" ) ;
+            elsebox.addClass( "H" ) ;
+            elsebox.addClass( "workplace" ) ;
+            elsebox.append( children[2] ) ;
 
-            const ifbox = document.createElement("div");
-            ifbox.setAttribute("data-childNumber", childNumber.toString());
-            ifbox.setAttribute("class", "ifBox V workplace canDrag droppable");
-            ifbox.appendChild(guardbox);
-            ifbox.appendChild(thenbox);
-            ifbox.appendChild(elsebox);
-            return ifbox ;
+            result  = $(document.createElement("div")) ;
+            result.addClass( "ifBox" ) ;
+            result.addClass( "V" ) ;
+            result.addClass( "workplace" ) ;
+            result.addClass( "canDrag" ) ;
+            result.addClass( "droppable" ) ;
+            result.append( guardbox, thenbox, elsebox ) ;
         }
         else if(label.match("seq"))
         {
-            if(evaluating)
-            {
-                const seqBox = document.createElement("div");
-                seqBox.setAttribute("class", "seqBox V");
-                seqBox.setAttribute("data-childNumber", childNumber.toString());
+            // TODO show only the unevaluated members during evaluation
 
-                for (let i = 0; true; ++i) {
-                    if (i == children.length) break;
-                    seqBox.appendChild(children[i]);
-                }
-
-                return seqBox;
-            }
-            else {
-
-                const seqBox = document.createElement("div");
-                seqBox.setAttribute("class", "seqBox V");
-                seqBox.setAttribute("data-childNumber", childNumber.toString());
-                seqBox["childNumber"] = childNumber;
-                for (let i = 0; true; ++i) {
-                    const dz = makeLargeDropZone(i) ;
-                    seqBox.appendChild(dz);
-                    if (i == children.length) break;
-                    seqBox.appendChild(children[i]);
-                }
-
-                return seqBox;
+            result = $( document.createElement("div") ) ;
+            result.addClass( "seqBox" ) ;
+            result.addClass( "V" ) ;
+            // Add children and drop zones.
+            for (let i = 0; true; ++i) {
+                const dz = makeDropZone(i, true ) ;
+                dropzones.push( dz ) ;
+                result.append(dz);
+                if (i == children.length) break;
+                result.append(children[i]);
             }
         }
         else if(label.match("expPH"))
         {
-            const PHBox = document.createElement("div");
-            PHBox.setAttribute("class", "placeHolder V droppable");
-            PHBox.setAttribute("data-childNumber", childNumber.toString());
-
-            return PHBox;
+            result = $( document.createElement("div") ) ;
+            result.addClass( "placeHolder" ) ;
+            result.addClass( "V" ) ;
+            result.addClass( "droppable" ) ;
+            result.text("...") ;
         }
         else if(label.match("param"))
         {
-            const paramBox = document.createElement("div");
-            paramBox.setAttribute("class", "paramlistOuter H");
-            paramBox.setAttribute("data-childNumber", childNumber.toString());
-            //PHBox["childNumber"] = childNumber ;
-
+            result = $( document.createElement("div") ) ;
+            result.addClass( "paramlistOuter" ) ;
+            result.addClass( "H" ) ;
+            result.addClass( "droppable" ) ;
+            
+            // Add children and dropZones.
             for (let i = 0; true; ++i) {
-                const dz = makeSmallDropZone(i) ;
-                paramBox.appendChild(dz);
+                const dz = makeDropZone(i, false) ;
+                dropzones.push( dz ) ;
+                result.append(dz);
                 if (i == children.length) break;
-                paramBox.appendChild(children[i]);
+                result.append(children[i]);
             }
-
-            return paramBox;
         }
         else if(label.match("while"))
         {
             assert.check( children.length == 2 ) ;
 
-            const guardbox = document.createElement("div");
-            guardbox.setAttribute("class", "whileGuardBox H workplace");
-            guardbox.appendChild( children[0] ) ;
+            const guardBox : JQuery = $( document.createElement("div") ) ;
+            guardBox.addClass( "whileGuardBox") ;
+            guardBox.addClass( "H") ;
+            guardBox.addClass( "workplace") ;
+            guardBox.append( children[0] ) ;
 
-            const thenbox = document.createElement("div");
-            thenbox.setAttribute("class", "thenBox H workplace");
-            thenbox.appendChild( children[1] ) ;
 
-            const whileBox = document.createElement("div");
-            whileBox.setAttribute("data-childNumber", childNumber.toString());
-            whileBox.setAttribute("class", "whileBox V workplace canDrag droppable");
-            whileBox.appendChild(guardbox);
-            whileBox.appendChild(thenbox);
 
-            return whileBox;
+            const doBox : JQuery = $( document.createElement("div") ) ;
+            doBox.addClass( "doBox") ;
+            doBox.addClass( "H") ;
+            doBox.addClass( "workplace") ;
+            doBox.append( children[1] ) ;
+
+            result  = $(document.createElement("div")) ;
+            result.addClass( "whileBox" ) ;
+            result.addClass( "V" ) ;
+            result.addClass( "workplace" ) ;
+            result.addClass( "canDrag" ) ;
+            result.addClass( "droppable" ) ;
+            result.append( guardBox );
+            result.append( doBox );
+
         }
         else if(label.match("callWorld"))
         {
-            const callBox = document.createElement("div");
-            callBox.setAttribute("class", "callWorld H canDrag droppable" );
-            callBox.setAttribute("data-childNumber", childNumber.toString());
-            callBox.setAttribute("type", "text");
-            callBox.setAttribute("list", "oplist");
+            result  = $(document.createElement("div")) ;
+            result.addClass( "callWorld" ) ;
+            result.addClass( "H" ) ;
+            result.addClass( "canDrag" ) ;
+            result.addClass( "droppable" ) ;
+
+            result.attr("type", "text");
+            result.attr("list", "oplist");
             
             // TODO Allow infix operators again some day.
 
-            let opElement : Element ;
+            let opElement : JQuery ;
             if(! node.label().isOpen() )
             {
-                opElement = document.createElement("div");
-                opElement.setAttribute("class", "op H click");
-                opElement.textContent = node.label().getVal();
+                opElement = $(document.createElement("div") ) ;
+                opElement.addClass( "op" ) ;
+                opElement.addClass( "H" ) ;
+                opElement.addClass( "click" ) ;
+                opElement.text( node.label().getVal() ) ;
             }
             else {
-                opElement = makeTextInputElement( node, "op H input", collections.none<number>() ) ;
+                opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
             }
-            callBox.appendChild(opElement);
+            result.append(opElement);
             for( let i=0 ; i < children.length ; ++i) {
-                callBox.appendChild( makeSmallDropZone(i) ) ;
-                callBox.appendChild( children[i] ) ;
+                const dz : JQuery = makeDropZone(i, false) ;
+                dropzones.push( dz ) ;
+                result.append( dz ) ;
+                result.append( children[i] ) ;
             }
-            return callBox;
         }
         else if(label.match("assign"))
         {
-            const AssignBox = document.createElement("div");
-            AssignBox.setAttribute("class", "assign H canDrag droppable" );
-            AssignBox.setAttribute("data-childNumber", childNumber.toString());
+            result  = $(document.createElement("div")) ;
+            result.addClass( "assign" ) ;
+            result.addClass( "H" ) ;
+            result.addClass( "canDrag" ) ;
+            result.addClass( "droppable" ) ;
 
-            const lebel = document.createElement("div");
-            lebel.setAttribute("class", "op H");
-            lebel.textContent = ":=";
+            const label : JQuery = $( document.createElement("div") )
+            label.addClass( "op" );
+            label.text( ":=" ) ;
 
-            AssignBox.appendChild(children[0]);
-            AssignBox.appendChild(lebel);
-            AssignBox.appendChild(children[1]);
+            result.append(children[0]);
+            result.append(label);
+            result.append(children[1]);
 
-            return AssignBox;
         }
         else if(label.match("lambda"))
         {
-            const lambdahead = document.createElement("div");
-            lambdahead.setAttribute("class", "lambdaHeader V ");
-            lambdahead.appendChild( children[0] ) ;
-            lambdahead.appendChild( children[1]);
+            const lambdahead : JQuery = $( document.createElement("div") ) ;
+            lambdahead.addClass( "lambdaHeader") ;
+            lambdahead.addClass( "V") ;
+            lambdahead.append( children[0] ) ;
+            lambdahead.append( children[1]);
 
-            const doBox = document.createElement("div");
-            doBox.setAttribute("class", "doBox H");
-            doBox.appendChild( children[2] ) ;
+            const doBox : JQuery = $( document.createElement("div") ) ;
+            doBox.addClass( "doBox") ;
+            doBox.addClass( "H") ;
+            doBox.append( children[2] ) ;
 
-            const LambdaBox = document.createElement("div");
-            LambdaBox.setAttribute("class", "lambdaBox V droppable");
-            LambdaBox.setAttribute("data-childNumber", childNumber.toString());
-            LambdaBox.appendChild(lambdahead);
-            LambdaBox.appendChild(doBox);
+            result  = $(document.createElement("div")) ;
+            result.addClass( "lambdaBox" ) ;
+            result.addClass( "V" ) ;
+            result.addClass( "droppable" ) ;
+            result.append(lambdahead);
+            result.append(doBox);
 
-            return LambdaBox;
         }
         else if(label.match("null"))
         {
-            const NullBox = document.createElement("div");
-            NullBox.setAttribute("class", "nullLiteral H droppable");
-            NullBox.textContent = "-";
-            NullBox.setAttribute("data-childNumber", childNumber.toString());
-
-            return NullBox;
+            result  = $(document.createElement("div")) ;
+            result.addClass( "nullLiteral" ) ;
+            result.addClass( "H" ) ;
+            result.addClass( "droppable" ) ;
+            result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
         }
         else if (label.match("var"))
         {
-            let VarBox;
             if( ! node.label().isOpen() ) 
             {
-                VarBox = document.createElement("div");
-                VarBox.setAttribute("class", "var H click canDrag droppable");
-                VarBox.setAttribute("data-childNumber", childNumber.toString());
-                VarBox.textContent = node.label().getVal();
+                result  = $(document.createElement("div")) ;
+                result.addClass( "var" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                result.text( node.label().getVal() ) ;
             }
             else
             {
-                VarBox = makeTextInputElement( node, "var H input canDrag droppable", collections.some(childNumber) ) ;
+                result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
             }
-            return VarBox;
         }
         else if (label.match("string"))
         {
-            let StringBox;
+
             if (! node.label().isOpen() )
             {
-                StringBox = document.createElement("div");
-                StringBox.setAttribute("class", "stringLiteral H click canDrag droppable");
-                StringBox.setAttribute("data-childNumber", childNumber.toString());
-                StringBox.textContent = node.label().getVal();
+                result  = $(document.createElement("div")) ;
+                result.addClass( "stringLiteral" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                result.text( node.label().getVal() ) ;
             }
             else
             {
-                StringBox = makeTextInputElement( node, "stringLiteral H input canDrag droppable", collections.some(childNumber) ) ;
+                result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
             }
-            return StringBox;
         }
         else if(label.match("noType"))
         {
-            const noType = document.createElement("div");
-            noType.setAttribute( "class", "noReturnType V canDrag droppable" ) ;
-            noType.setAttribute("data-childNumber", childNumber.toString());
-            noType["childNumber"] = childNumber ;
-
-            return noType ;
+            result  = $(document.createElement("div")) ;
+            result.addClass( "noType" ) ; 
+            result.addClass( "V" ) ;
+            result.addClass( "droppable" ) ;
+            result.addClass( "canDrag" ) ;
         }
         else if(label.match("noExp"))
         {
-            const expOpt = document.createElement("div");
-            expOpt.setAttribute("class", "expOp V canDrag droppable");
-            expOpt.setAttribute("data-childNumber", childNumber.toString());
-
-            return expOpt;
+            result  = $(document.createElement("div")) ;
+            result.addClass( "expOp" ) ; // Need a better class for this, I think.
+            result.addClass( "V" ) ;
+            result.addClass( "droppable" ) ;
+            result.addClass( "canDrag" ) ;
         }
         else if(label.match("vdecl"))
         {
-            const VarDeclBox = document.createElement("div");
-            VarDeclBox.setAttribute("class", "vardecl H canDrag droppable" );
-            VarDeclBox.setAttribute("data-childNumber", childNumber.toString());
 
-            const type = document.createElement("div");
-            type.textContent = ":";
+            result  = $(document.createElement("div")) ;
+            result.addClass( "vardecl" ) ; // Need a better class for this, I think.
+            result.addClass( "H" ) ;
+            result.addClass( "droppable" ) ;
+            result.addClass( "canDrag" ) ;
 
-            const equals = document.createElement("div");
-            equals.textContent = ":=";
+            const colon : JQuery = $( document.createElement("div") );
+            colon.text(":") ;
 
-            VarDeclBox.appendChild(children[0]);
-            VarDeclBox.appendChild(type);
-            VarDeclBox.appendChild(children[1]);
-            VarDeclBox.appendChild(equals);
-            VarDeclBox.appendChild(children[2]);
+            const becomes : JQuery = $( document.createElement("div") );
+            becomes.text(":=") ;
 
-            return VarDeclBox;
+            result.append(children[0]);
+            result.append(colon);
+            result.append(children[1]);
+            result.append(becomes);
+            result.append(children[2]);
         }
-        else if(label.match("forward"))
-        {
-            const forwardElement = document.createElement("div");
-            forwardElement.setAttribute("class", "turtleFunc canDrag droppable");
-            forwardElement.setAttribute("data-childNumber", childNumber.toString());
-            forwardElement.textContent = "Forward";
-            forwardElement.appendChild(children[0]);
-
-            return forwardElement;
+        else {
+            assert.check( false, "Unknown label in buildHTML.") ;
         }
-        else if(label.match("right"))
-        {
-            const rightElement = document.createElement("div");
-            rightElement.setAttribute("class", "turtleFunc canDrag droppable");
-            rightElement.setAttribute("data-childNumber", childNumber.toString());
-            rightElement.textContent = "Right";
-            rightElement.appendChild(children[0]);
+        // Give the result a number. // TODO Use data instead of attr.
+        result.attr( "data-childNumber", childNumber.toString() ) ; 
+        // Attach the JQueries representing the children elements to the root element representing this node.
+        result.data("children", children ) ;
+        // Attach the JQueries representing the dropzones to the root element representing this node.
+        // Note these may not be present in which case they are nulls in the array or the array is short.
+        result.data("dropzones", dropzones ) ;
+        // Make it selectable by a click
+        result.addClass( "selectable" ) ;
+        return result ;
+    }
 
-            return rightElement;
-        }
-        else if(label.match("left"))
-        {
-            const leftElement = document.createElement("div");
-            leftElement.setAttribute("class", "turtleFunc canDrag droppable");
-            leftElement.setAttribute("data-childNumber", childNumber.toString());
-            leftElement.textContent = "Left";
-            leftElement.appendChild(children[0]);
+    export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
+        assert.check( jq.attr( "data-childNumber" ) == "-1" ) ;
+        localHighlightSlection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
+    }
 
-            return leftElement;
-        }
-        else if(label.match("pen"))
-        {
-            const penElement = document.createElement("div");
-            penElement.setAttribute("class", "turtleFunc canDrag droppable");
-            penElement.setAttribute("data-childNumber", childNumber.toString());
-            penElement.textContent = "Pen";
-            penElement.appendChild(children[0]);
-
-            return penElement;
-        }
-        else if(label.match("clear"))
-        {
-            const clearElement = document.createElement("div");
-            clearElement.setAttribute("class", "turtleFunc canDrag droppable");
-            clearElement.setAttribute("data-childNumber", childNumber.toString());
-            clearElement.textContent = "Clear";
-
-            return clearElement;
-        }
-        else if(label.match("show"))
-        {
-            const showElement = document.createElement("div");
-            showElement.setAttribute("class", "turtleFunc canDrag droppable");
-            showElement.setAttribute("data-childNumber", childNumber.toString());
-            showElement.textContent = "Show";
-
-            return showElement;
-        }
-        else if(label.match("hide"))
-        {
-            const hideElement = document.createElement("div");
-            hideElement.setAttribute("class", "turtleFunc canDrag droppable");
-            hideElement.setAttribute("data-childNumber", childNumber.toString());
-            hideElement.textContent = "Hide";
-
-            return hideElement;
+    function  localHighlightSlection( pn : PNode, path : List<number>, start : number, end : number, jq : JQuery ) : void {
+        if( path.isEmpty() ) {
+            if( start == end ) {
+                const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
+                assert.check( zones != null ) ;
+                const dz : JQuery = start < zones.length ? zones[start] : null ;
+                if( dz!= null ) dz.addClass( "selected" ) ;
+            } else {
+                const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+                assert.check( children != null ) ;
+                for( let i = start ; i < end ; ++i ) {
+                    children[i].addClass( "selected" ) ;
+                }
+            }
+        } else {
+            const i = path.first() ;
+            const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+            assert.check( children != null ) ;
+            assert.check( i < children.length ) ;
+            localHighlightSlection( pn.child(i), path.rest(), start, end, children[i] ) ;
         }
     }
 
-    function makeLargeDropZone( childNumber : number ) : Element {
-        const dropZone = document.createElement("div");
-        dropZone.setAttribute("class", "dropZone H droppable");
-        dropZone.setAttribute("data-isDropZone", "yes");
-        dropZone.setAttribute("data-childNumber", childNumber.toString());
+    function makeDropZone( childNumber : number, large : boolean ) : JQuery {
+        const dropZone : JQuery = $( document.createElement("div") ) ;
+        dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
+        dropZone.addClass( "H" ) ;
+        dropZone.addClass( "droppable" ) ;
+        // Make it selectable by a click
+        dropZone.addClass( "selectable" ) ;
+        dropZone.attr("data-isDropZone", "yes");
+        dropZone.attr("data-childNumber", childNumber.toString());
         return dropZone ;
     }
 
-    function makeSmallDropZone( childNumber : number ) : Element {
-        const dropZone = document.createElement("div");
-        dropZone.setAttribute("class", "dropZoneSmall H droppable");
-        dropZone.setAttribute("data-isDropZone", "yes");
-        dropZone.setAttribute("data-childNumber", childNumber.toString());
-        return dropZone ;
-    }
-
-    function makeTextInputElement( node : PNode, classes : string, childNumber : collections.Option<number> ) : Element {
+    function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
             let text = node.label().getVal() ;
             text = text.replace( /&/g, "&amp;" ) ;
             text = text.replace( /"/g, "&quot;") ;
 
-            const element = document.createElement("input");
-            element.setAttribute("class", classes);
-            childNumber.map( n => element.setAttribute("data-childNumber", n.toString() ) ) ;
-            element.setAttribute("type", "text");
-            element.setAttribute("value", text) ;
+            const element : JQuery = $(document.createElement("input"));
+            for( let i=0 ; i < classes.length ; ++i )
+                element.addClass( classes[i] ) ;
+            childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
+            element.attr("type", "text");
+            element.attr("value", text) ;
             return element ;
     }
 
@@ -385,11 +368,11 @@ module sharedMkHtml
         }
         if( jq.length == 0 ) {
             //TODO handle this case elegantly
-            assert.check( false ) ;
+            assert.check( false, "JQ length is 0" ) ;
         }
         if( childNumber == -1 ) {
             //TODO handle this case elegantly
-            assert.check( false ) ;
+            assert.check( false, "first childNumber is -1" ) ;
         }
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;
@@ -418,7 +401,7 @@ module sharedMkHtml
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        assert.check( jq.length != 0 ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
+        assert.check( jq.length != 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
         // Now make a path out of the array.
         let path = list<number>();
         for( let i = 0 ; i < array.length ; i++ )
