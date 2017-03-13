@@ -30,6 +30,7 @@ module sharedMkHtml
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, evaluating:boolean) : JQuery
     {
         let result : JQuery ;
+        let dropzones : Array<JQuery> = [] ;
         const label = node.label().toString();
         // TODO: Change to a switch on the LabelKind
         if(label.match('if'))
@@ -71,7 +72,8 @@ module sharedMkHtml
             result.addClass( "V" ) ;
             // Add children and drop zones.
             for (let i = 0; true; ++i) {
-                const dz = makeLargeDropZone(i) ;
+                const dz = makeDropZone(i, true ) ;
+                dropzones.push( dz ) ;
                 result.append(dz);
                 if (i == children.length) break;
                 result.append(children[i]);
@@ -94,7 +96,8 @@ module sharedMkHtml
             
             // Add children and dropZones.
             for (let i = 0; true; ++i) {
-                const dz = makeSmallDropZone(i) ;
+                const dz = makeDropZone(i, false) ;
+                dropzones.push( dz ) ;
                 result.append(dz);
                 if (i == children.length) break;
                 result.append(children[i]);
@@ -151,11 +154,13 @@ module sharedMkHtml
                 opElement.text( node.label().getVal() ) ;
             }
             else {
-                opElement = $( makeTextInputElement( node, "op H input", collections.none<number>() ) ) ;
+                opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
             }
             result.append(opElement);
             for( let i=0 ; i < children.length ; ++i) {
-                result.append( makeSmallDropZone(i) ) ;
+                const dz : JQuery = makeDropZone(i, false) ;
+                dropzones.push( dz ) ;
+                result.append( dz ) ;
                 result.append( children[i] ) ;
             }
         }
@@ -219,7 +224,7 @@ module sharedMkHtml
             }
             else
             {
-                result = $( makeTextInputElement( node, "var H input canDrag droppable", collections.some(childNumber) ) ) ;
+                result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
             }
         }
         else if (label.match("string"))
@@ -237,7 +242,7 @@ module sharedMkHtml
             }
             else
             {
-                result = $( makeTextInputElement( node, "stringLiteral H input canDrag droppable", collections.some(childNumber) ) ) ;
+                result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
             }
         }
         else if(label.match("noType"))
@@ -281,35 +286,52 @@ module sharedMkHtml
             assert.check( false, "Unknown label in buildHTML.") ;
         }
         result.attr( "data-childNumber", childNumber.toString() ) ; 
+        // Attach the JQueries representing the children elements to the root element representing this node.
+        result.data("children", children ) ;
+        // Attach the JQueries representing the dropzones to the root element representing this node.
+        // Note these may not be present in which case they are nulls in the array or the array is short.
+        result.data("dropzones", dropzones ) ;
         return result ;
     }
 
-    function makeLargeDropZone( childNumber : number ) : Element {
-        const dropZone = document.createElement("div");
-        dropZone.setAttribute("class", "dropZone H droppable");
-        dropZone.setAttribute("data-isDropZone", "yes");
-        dropZone.setAttribute("data-childNumber", childNumber.toString());
+    export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
+        assert.check( jq.attr( "data-childNumber" ) == "-1" ) ;
+        localHighlightSlection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
+    }
+
+    function  localHighlightSlection( pn : PNode, path : List<number>, start : number, end : number, jq : JQuery ) : void {
+        if( path.isEmpty() ) {
+            if( start == end ) {
+                // TODO
+            } else {
+                //TODO
+            }
+        } else {
+            //TODO
+        }
+    }
+
+    function makeDropZone( childNumber : number, large : boolean ) : JQuery {
+        const dropZone : JQuery = $( document.createElement("div") ) ;
+        dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
+        dropZone.addClass( "H" ) ;
+        dropZone.addClass( "droppable" ) ;
+        dropZone.attr("data-isDropZone", "yes");
+        dropZone.attr("data-childNumber", childNumber.toString());
         return dropZone ;
     }
 
-    function makeSmallDropZone( childNumber : number ) : Element {
-        const dropZone = document.createElement("div");
-        dropZone.setAttribute("class", "dropZoneSmall H droppable");
-        dropZone.setAttribute("data-isDropZone", "yes");
-        dropZone.setAttribute("data-childNumber", childNumber.toString());
-        return dropZone ;
-    }
-
-    function makeTextInputElement( node : PNode, classes : string, childNumber : collections.Option<number> ) : Element {
+    function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
             let text = node.label().getVal() ;
             text = text.replace( /&/g, "&amp;" ) ;
             text = text.replace( /"/g, "&quot;") ;
 
-            const element = document.createElement("input");
-            element.setAttribute("class", classes);
-            childNumber.map( n => element.setAttribute("data-childNumber", n.toString() ) ) ;
-            element.setAttribute("type", "text");
-            element.setAttribute("value", text) ;
+            const element : JQuery = $(document.createElement("input"));
+            for( let i=0 ; i < classes.length ; ++i )
+                element.addClass( classes[i] ) ;
+            childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
+            element.attr("type", "text");
+            element.attr("value", text) ;
             return element ;
     }
 
