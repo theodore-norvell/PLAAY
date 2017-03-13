@@ -365,6 +365,12 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        selectAll( selection:Selection ) : Option<Selection> {
+            const root = selection.root() ;
+            const n = root.count() ;
+            return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
+        }
+
         delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
