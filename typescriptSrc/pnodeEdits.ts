@@ -114,6 +114,30 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Move left. */
+    function moveLeft( selection : Selection ) : Option<Selection> {
+        let start = selection.anchor() ;
+        let end = selection.focus() ;
+        //if( end < start ) { const t = start ; start = end ; end = t ; }
+        //return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
+
+        //TODO: For now returning null
+
+        return null;
+    }
+
+    /** Move right. */
+    function moveRight( selection : Selection ) : Option<Selection> {
+        let start = selection.anchor() ;
+        let end = selection.focus() ;
+        //if( end < start ) { const t = start ; start = end ; end = t ; }
+        //return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
+
+        //TODO: For now returning null
+        
+        return null;
+    }
+
     /** Replace all selected nodes with another set of nodes. */
     function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
         let start = selection.anchor() ;
@@ -503,6 +527,41 @@ module pnodeEdits {
             return doubleReplace( this._srcSelection, newNodes4Src, trgSelection, newNodes4Trg, false, false ) ;
         }
     }
+
+    /** 
+     * Left edit
+     */
+    export class LeftEdit extends AbstractEdit<Selection> {
+
+        constructor() {
+            super() ; }
+
+        applyEdit( selection : Selection ) : Option<Selection> {
+            const opt = moveLeft( selection ) ;
+            //TODO
+            return opt.recoverBy(
+                () => moveLeft( selection )
+            ) ;
+        }
+    }
+
+    /** 
+     * Right edit
+     */
+    export class RightEdit extends AbstractEdit<Selection> {
+
+        constructor() {
+            super() ; }
+
+        applyEdit( selection : Selection ) : Option<Selection> {
+            const opt = moveRight( selection ) ;
+            //TODO
+            return opt.recoverBy( 
+                () => moveRight( selection )
+            ) ;
+        }
+    }
+
 }
 
 export = pnodeEdits ;

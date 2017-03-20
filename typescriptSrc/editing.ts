@@ -83,6 +83,16 @@ module editing {
             {
                 //TODO: set the selection below as the current selection
             }
+            else if (e.which == 37) // left arrow
+            {
+                treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+            }            
+            else if (e.which == 39) // right arrow
+            {
+                treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+            }
             //e.preventDefault(); 
         });
         

@@ -371,6 +371,16 @@ module treeManager {
             return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
         }
 
+        moveLeft( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.LeftEdit();
+            return edit.applyEdit(selection);
+        }
+
+        moveRight( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.RightEdit();
+            return edit.applyEdit(selection);
+        }
+
         delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
