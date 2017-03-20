@@ -181,8 +181,11 @@ module collections {
 
     export function butLast<A>( xs : List<A> ) : List<A>{
         if( xs.rest().isEmpty() ) return nil<A>() ;
-        else return cons( xs.first(), butLast( xs.rest() ) ) ;
-    }
+        else return cons( xs.first(), butLast( xs.rest() ) ) ; }
+
+    export function last<A>( xs : List<A> ) : A {
+        if( xs.rest().isEmpty() ) return xs.first() ;
+        else return last( xs.rest() ) ;  }
     
 }
 
