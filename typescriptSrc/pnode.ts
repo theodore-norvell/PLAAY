@@ -8,21 +8,6 @@ import collections = require( './collections' ) ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 
-enum labelTypes {  // Call them kinds.
-    //concrete implementation types
-    EXPR_SEQ,
-    PARAMETER_LIST,
-
-    //ExprLabel types
-    VARIABLE, VAR_DECL, ASSIGN, CALL_WORLD, EXPR_PH, EXPR_OPT, LAMBDA, IF, WHILE, STRING_LITERAL,
-    NUMBER_LITERAL, BOOLEAN_LITERAL, NULL_LITERAL, CALL, PEN, FORWARD, RIGHT, CLEAR, HIDE, SHOW,
-    LEFT,
-
-    //TypeLabel types
-    NO_TYPE
-
-}
-
 
 /** Module pnode contains the PNode class and the implementations of the labels. */
 module pnode {
@@ -44,6 +29,22 @@ module pnode {
     import Type = vms.Type;
     import ObjectV = valueTypes.ObjectV;
 
+    export enum labelKinds {
+        //default blank kind; put first to make its array index 0
+        NONE,
+
+        //concrete implementation types
+        EXPR_SEQ, EXPR_PH, EXPR_OPT, PARAMETER_LIST,
+
+        //ExprLabel types
+        VARIABLE, VAR_DECL, ASSIGN,
+        CALL_WORLD, CALL,
+        LAMBDA, IF, WHILE,
+        NULL_LITERAL, STRING_LITERAL, NUMBER_LITERAL, BOOLEAN_LITERAL,
+        PEN, FORWARD, RIGHT, CLEAR, HIDE, SHOW, LEFT
+
+    }
+
     export interface nodeStrategy {
         select( vms : VMS, label:Label ) : void;
     }
@@ -55,7 +56,10 @@ module pnode {
         strategy:nodeStrategy;
         step : (vms:VMS) => void;
 
-        getVal : () => string ;
+        getVal: () => string;
+
+        /** Return label kind based on its enum. */
+        getKind: () => labelKinds;
 
         /** Possibly change the label associated with a node. 
          * TODO: This seems a hack. Do we need it?
@@ -602,6 +606,10 @@ module pnode {
             return null ;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.NONE;
+        }
+
         select(vms:VMS) : void {
             this.strategy.select(vms, this);
         }
@@ -671,6 +679,10 @@ module pnode {
             return null;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.EXPR_SEQ;
+        }
+
         select(vms:VMS){
             this.strategy.select(vms, this);
         }
@@ -722,6 +734,10 @@ module pnode {
             return null;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.PARAMETER_LIST;
+        }
+
         select(vms:VMS){
             this.strategy.select(vms, this);
         }
@@ -761,6 +777,10 @@ module pnode {
             return null;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.NONE;
+        }
+
         step( vms : VMS) {
             //TODO not sure yet
         }
@@ -786,9 +806,13 @@ module pnode {
         toString():string {
             return " variable["+this._val+"]" ;
         }
-
+        
         getVal() : string {
             return this._val;
+        }
+
+        getKind() : labelKinds {
+            return labelKinds.VARIABLE;
         }
 
         changeValue (newString : string) : Option<Label> {
@@ -831,6 +855,10 @@ module pnode {
             if( ! children[0].isExprNode()) return false ;
             if( ! children[1].isTypeNode()) return false ;
             return true;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.VAR_DECL;
         }
 
         strategy : varDeclStrategy = new varDeclStrategy();
@@ -906,6 +934,10 @@ module pnode {
             return "assign";
         }
 
+        getKind(): labelKinds {
+            return labelKinds.ASSIGN;
+        }
+
         /*private*/
         constructor() {
             super();
@@ -968,6 +1000,10 @@ module pnode {
 
         getVal() : string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.CALL_WORLD;
         }
 
         changeValue (newString : string) : Option<Label> {
@@ -1061,6 +1097,10 @@ module pnode {
             return "expPH";
         }
 
+        getKind(): labelKinds {
+            return labelKinds.EXPR_PH;
+        }
+
         private
         constructor() {
             super();
@@ -1095,6 +1135,10 @@ module pnode {
 
         toString():string {
             return "expOpt";
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.EXPR_OPT;
         }
 
         /*private*/
@@ -1148,6 +1192,10 @@ module pnode {
 
         getVal() : string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.LAMBDA;
         }
 
         /*private*/
@@ -1205,6 +1253,10 @@ module pnode {
             return "if";
         }
 
+        getKind(): labelKinds {
+            return labelKinds.IF;
+        }
+
         /*private*/
         constructor() {
             super();
@@ -1253,6 +1305,10 @@ module pnode {
             return "while";
         }
 
+        getKind(): labelKinds {
+            return labelKinds.WHILE;
+        }
+
         /*private*/
         constructor() {
             super();
@@ -1284,7 +1340,12 @@ module pnode {
         strategy : nodeStrategy;
 
         isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
+            return children.length == 0;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.NONE;
+        }
 
         toString():string {
             return "noType";
@@ -1338,6 +1399,10 @@ module pnode {
 
          getVal() : string {
              return this._val;
+        }
+
+         getKind(): labelKinds {
+             return labelKinds.STRING_LITERAL;
          }
 
         toString() : string { return "string[" + this._val + "]"  ; }
@@ -1376,6 +1441,10 @@ module pnode {
 
         getVal() : string {
             return this._val ;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.NUMBER_LITERAL;
         }
 
         toString() : string { return "number[" + this._val + "]"  ; }
@@ -1420,6 +1489,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.BOOLEAN_LITERAL;
+        }
+
         toString() : string { return "boolean[" + this._val + "]"  ; }
 
         // TODO Stepper should be shared with string literal.
@@ -1446,7 +1519,11 @@ module pnode {
         isValid( children : Array<PNode> ) {
             return children.length == 0;}
 
-        toString() : string { return "null"  ; }
+        toString(): string { return "null"; }
+
+        getKind(): labelKinds {
+            return labelKinds.NULL_LITERAL;
+        }
 
         nodeStep(node, evalu){
 
@@ -1485,6 +1562,10 @@ module pnode {
 
         getVal() : string {
             return null;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.CALL;
         }
 
         /*private*/
@@ -1535,6 +1616,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.PEN;
         }
 
         toString():string {
@@ -1591,6 +1676,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.FORWARD;
+        }
+
         toString():string {
             return "forward";
         }
@@ -1645,6 +1734,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.RIGHT;
+        }
+
         toString():string {
             return "right";
         }
@@ -1695,6 +1788,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.CLEAR;
         }
 
         toString():string {
@@ -1749,6 +1846,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): labelKinds {
+            return labelKinds.HIDE;
+        }
+
         toString():string {
             return "hide";
         }
@@ -1799,6 +1900,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.SHOW;
         }
 
         toString():string {
@@ -1853,6 +1958,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): labelKinds {
+            return labelKinds.LEFT;
         }
 
         toString():string {

@@ -167,9 +167,11 @@ module vms{
             assert.checkPrecondition( !this.isDone() ) ;
 
             var pending2 = Object.create(this.pending);
-            var topNode = this.root.get( pending2 );
+            var topNode = this.root.get(pending2);
+            var topKind = topNode.label().getKind();
+
             if( this.ready ){
-                assert.check( this.getStack() != null ) ;
+                assert.check(this.getStack() != null);
                 topNode.label().step(vms);
                 assert.check( this.getStack() != null ) ;
             }
@@ -324,7 +326,7 @@ module vms{
      * 
      */
     export class EvalStack { 
-
+        
         head : Evaluation;
 
         constructor(){
