@@ -18,8 +18,6 @@ enum labelTypes {  // Call them kinds.
     NUMBER_LITERAL, BOOLEAN_LITERAL, NULL_LITERAL, CALL, PEN, FORWARD, RIGHT, CLEAR, HIDE, SHOW,
     LEFT,
 
-    //TODO just wondering... Do we need both a concrete and an extension thereof?
-    TYPE,
     //TypeLabel types
     NO_TYPE
 
