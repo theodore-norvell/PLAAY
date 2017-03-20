@@ -116,33 +116,26 @@ module pnodeEdits {
 
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
-        let start = selection.anchor() ;
-        let end = selection.focus() ;
-        //if( end < start ) { const t = start ; start = end ; end = t ; }
-        //return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
+        let start = selection.start() ;
+        let end = selection.end() ;
 
-        //TODO: For now returning null
-
+        assert.check( false, "TODO") ;
         return null;
     }
 
     /** Move right. */
     function moveRight( selection : Selection ) : Option<Selection> {
-        let start = selection.anchor() ;
-        let end = selection.focus() ;
-        //if( end < start ) { const t = start ; start = end ; end = t ; }
-        //return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
+        let start = selection.start() ;
+        let end = selection.end() ;
 
-        //TODO: For now returning null
-        
+        assert.check( false, "TODO") ;
         return null;
     }
 
     /** Replace all selected nodes with another set of nodes. */
     function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
-        let start = selection.anchor() ;
-        let end = selection.focus() ;
-        if( end < start ) { const t = start ; start = end ; end = t ; }
+        let start = selection.start() ;
+        let end = selection.end() ;
         return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
     }
     
@@ -528,6 +521,28 @@ module pnodeEdits {
         }
     }
 
+    /** Is this a suitable selection to stop at for the left and right arrow keys.
+     * 
+    */
+    function suitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if( end - start == 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end == start ) {
+            const node = sel.root().get( sel.path() ) ;
+            return node.hasDropZonesAt( start ) ;
+        } else {
+            assert.check( false ) ; return false ; 
+        }
+    }
+
     /** 
      * Left edit
      */
@@ -535,13 +550,12 @@ module pnodeEdits {
 
         constructor() {
             super() ; }
+        
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            const opt = moveLeft( selection ) ;
-            //TODO
-            return opt.recoverBy(
-                () => moveLeft( selection )
-            ) ;
+            let opt = moveLeft( selection ) ;
+            while( ! suitable(opt) ) opt = moveLeft( opt.first() ) ;
+            return opt ;
         }
     }
 
@@ -552,13 +566,12 @@ module pnodeEdits {
 
         constructor() {
             super() ; }
+        
 
         applyEdit( selection : Selection ) : Option<Selection> {
-            const opt = moveRight( selection ) ;
-            //TODO
-            return opt.recoverBy( 
-                () => moveRight( selection )
-            ) ;
+            let opt = moveRight( selection ) ;
+            while( ! suitable(opt) ) opt = moveRight( opt.first() ) ;
+            return opt ;
         }
     }
 
