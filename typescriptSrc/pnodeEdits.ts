@@ -17,6 +17,10 @@ module pnodeEdits {
     import Some = collections.Some;
     import List = collections.List ;
     import cons = collections.cons ;
+    import snoc = collections.snoc;
+    import last = collections.last;
+    import some = collections.some;
+    import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
@@ -118,18 +122,75 @@ module pnodeEdits {
     function moveLeft( selection : Selection ) : Option<Selection> {
         let start = selection.start() ;
         let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
 
-        assert.check( false, "TODO") ;
-        return null;
+        if (start == end)
+        {
+            assert.check( false, "in moveLeft. TODO") ; // Modify the code for left.
+            //there is node at start
+            if(root.get(path).count() > start)
+            {
+                return some( new Selection(root, snoc(path, start), 0, 0));
+            }
+            //the path is empty
+            else if (path.isEmpty)
+            {
+                return collections.none<Selection>();
+            }
+            //the parent of this position has no children
+            else if(root.get(path).count() == 0)
+            {
+                return some( new Selection(root, butLast(path), last(path), selection.anchor()));
+            }
+            else 
+            {
+                //return a selection representing the position to the right of the parent
+                return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
+            }
+        }      
+        else
+        {
+            //return a selection representing the position to the right of the rightmost selected node
+            return some( new Selection(root, path, end, end));
+        }
     }
 
     /** Move right. */
     function moveRight( selection : Selection ) : Option<Selection> {
         let start = selection.start() ;
         let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
 
-        assert.check( false, "TODO") ;
-        return null;
+        if (start == end)
+        {
+            //there is node at start
+            if(root.get(path).count() > start)
+            {
+                return some( new Selection(root, snoc(path, start), 0, 0));
+            }
+            //the path is empty
+            else if (path.isEmpty)
+            {
+                return collections.none<Selection>();
+            }
+            //the parent of this position has no children
+            else if(root.get(path).count() == 0)
+            {
+                return some( new Selection(root, butLast(path), last(path), selection.anchor()));
+            }
+            else 
+            {
+                //return a selection representing the position to the right of the parent
+                return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
+            }
+        }      
+        else
+        {
+            //return a selection representing the position to the right of the rightmost selected node
+            return some( new Selection(root, path, end, end));
+        }
     }
 
     /** Replace all selected nodes with another set of nodes. */

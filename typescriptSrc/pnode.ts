@@ -141,6 +141,20 @@ module pnode {
             return this._label;
         }
 
+        /** Return true if the node is a placeholder. */
+        public isPlaceHolder() : boolean {
+
+            assert.check( false, "in isPlaceHolder. TODO") ;
+            return true;
+        }
+
+        /** Get the label. */
+        public hasDropZonesAt(start : number): boolean {
+            
+            assert.check( false, "in hasDropZonesAt. TODO") ; 
+            return true;
+        }
+
         /* Return the node at the path */
         public get(path : collections.List<number> | Array<number> ) : PNode {
             // TODO. Do we really need to be able to pass in an array?
