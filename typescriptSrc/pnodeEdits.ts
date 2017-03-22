@@ -125,35 +125,34 @@ module pnodeEdits {
         let root = selection.root();
         let path = selection.path();
 
-        if (start == end)
+        if (start != end)
         {
-            assert.check( false, "in moveLeft. TODO") ; // Modify the code for left.
-            //there is node at start
-            if(root.get(path).count() > start)
-            {
-                return some( new Selection(root, snoc(path, start), 0, 0));
-            }
-            //the path is empty
-            else if (path.isEmpty())
-            {
-                return collections.none<Selection>();
-            }
-            //the parent of this position has no children
-            else if(root.get(path).count() == 0)
-            {
-                return some( new Selection(root, butLast(path), last(path), last(path)+1));
-            }
-            else 
-            {
-                //return a selection representing the position to the right of the parent
-                return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
-            }
-        }      
+            //return a selection representing the position to the left of the leftmost selected node
+            return some( new Selection(root, path, start, start));
+        }
+
         else
         {
-            //return a selection representing the position to the right of the rightmost selected node
-            return some( new Selection(root, path, end, end));
-        }
+            //Both start and end are 0
+            if (start == 0)
+            {
+                //if parent is root, return none. 
+                if (path.isEmpty())
+                {
+                    return collections.none<Selection>();
+                }
+                //else return the position to the left of parent
+                else
+                {
+                    return some( new Selection(root, butLast(path), last(path), last(path)));
+                }
+            }
+            // start and end is equal but different from 0. Then return the node to the left of start
+            else
+            {
+                return some( new Selection(root, snoc(path, start - 1), 0, 0));
+            }
+        }  
     }
 
     /** Move right. */
