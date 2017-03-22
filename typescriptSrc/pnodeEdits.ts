@@ -134,14 +134,14 @@ module pnodeEdits {
                 return some( new Selection(root, snoc(path, start), 0, 0));
             }
             //the path is empty
-            else if (path.isEmpty)
+            else if (path.isEmpty())
             {
                 return collections.none<Selection>();
             }
             //the parent of this position has no children
             else if(root.get(path).count() == 0)
             {
-                return some( new Selection(root, butLast(path), last(path), selection.anchor()));
+                return some( new Selection(root, butLast(path), last(path), last(path)+1));
             }
             else 
             {
@@ -171,14 +171,14 @@ module pnodeEdits {
                 return some( new Selection(root, snoc(path, start), 0, 0));
             }
             //the path is empty
-            else if (path.isEmpty)
+            else if (path.isEmpty())
             {
                 return collections.none<Selection>();
             }
             //the parent of this position has no children
             else if(root.get(path).count() == 0)
             {
-                return some( new Selection(root, butLast(path), last(path), selection.anchor()));
+                return some( new Selection(root, butLast(path), last(path), last(path)+1));
             }
             else 
             {

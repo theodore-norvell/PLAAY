@@ -151,8 +151,9 @@ module pnode {
         /** Get the label. */
         public hasDropZonesAt(start : number): boolean {
             
-            assert.check( false, "in hasDropZonesAt. TODO") ; 
-            return true;
+            let label = this.label();
+            return (label instanceof ParameterListLabel || label instanceof ExprSeqLabel || 
+                    label instanceof CallWorldLabel || label instanceof CallLabel)
         }
 
         /* Return the node at the path */
