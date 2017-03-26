@@ -10,47 +10,47 @@ module createHtmlElements
 
 	export function createHtmls () 
 	{	
-		const bodyConst = $("body");
-		create("div", "sidebar evalHidden", "sidebar", bodyConst);
-		const sidebarConst = $("#sidebar");
+		const body = $("body");
+		create("div", "sidebar evalHidden", "sidebar", body);
+		const sidebar = $("#sidebar");
 		
-		createHidden("div", "stack evalVisible", "stackbar", bodyConst, null);
+		createHidden("div", "stack evalVisible", "stackbar", body, null);
 		create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "undo evalHidden", "undo", bodyConst, "Undo");
-		createTexted("div", "redo evalHidden", "redo", bodyConst, "Redo");
-		createTexted("div", "trash evalHidden", "trash", bodyConst, "Trash");
+		createTexted("div", "undo evalHidden", "undo", body, "Undo");
+		createTexted("div", "redo evalHidden", "redo", body, "Redo");
+		createTexted("div", "trash evalHidden", "trash", body, "Trash");
 
 		//Executing-related elements. All added functionalities are in executing module.
-		createTexted("div", "play evalHidden", "play", bodyConst, "Play");
-		createHidden("div", "advance evalVisible", "advance", bodyConst, "Next");
-		createHidden("div", "multistep evalVisible", "multistep", bodyConst, "Multi-Step");
-		createHidden("div", "run evalVisible", "run", bodyConst, "Run");
-		createTexted("div", "turtle", "turtle", bodyConst, "Turtle World");
-		createHidden("div", "quitworld", "quitworld", bodyConst, "Quit World");
-		createHidden("div", "edit evalVisible", "edit", bodyConst, "Edit");
+		createTexted("div", "play evalHidden", "play", body, "Play");
+		createHidden("div", "advance evalVisible", "advance", body, "Next");
+		createHidden("div", "multistep evalVisible", "multistep", body, "Multi-Step");
+		createHidden("div", "run evalVisible", "run", body, "Run");
+		createTexted("div", "turtle", "turtle", body, "Turtle World");
+		createHidden("div", "quitworld", "quitworld", body, "Quit World");
+		createHidden("div", "edit evalVisible", "edit", body, "Edit");
 
-		createTexted("div", "block V palette", "if", sidebarConst, "If"); 
-		createTexted("div", "block V palette", "while", sidebarConst, "While"); 
-		createTexted("div", "block V palette", "var", sidebarConst, "Var"); 
-		createTexted("div", "block V palette", "stringliteral", sidebarConst, "String Literal"); 
-		createTexted("div", "block V palette", "worldcall", sidebarConst, "Call World"); 
-		createTexted("div", "block V palette", "assign", sidebarConst, "Assignment"); 
+		createTexted("div", "block V palette", "if", sidebar, "If"); 
+		createTexted("div", "block V palette", "while", sidebar, "While"); 
+		createTexted("div", "block V palette", "var", sidebar, "Var"); 
+		createTexted("div", "block V palette", "stringliteral", sidebar, "String Literal"); 
+		createTexted("div", "block V palette", "worldcall", sidebar, "Call World"); 
+		createTexted("div", "block V palette", "assign", sidebar, "Assignment"); 
 
 		//User-related elements. All added functionalities of the elements are in userRelated module.
-		create("div", "userBar", "userBar", bodyConst); 
-		const userBarConst = $("#userBar");
-		createTexted("div", "userOptions", "login", userBarConst, "Login/Register"); 
-		createTexted("div", "userOptions", "logout", userBarConst, "Logout").hide();
-		createTexted("div", "userOptions", "userSettings", userBarConst, "User Settings").hide();
-		createTexted("div", "userOptions", "saveProgram", userBarConst, "Save Program").hide();
-		createTexted("div", "userOptions", "loadProgram", userBarConst, "Load Program").hide();
+		create("div", "userBar", "userBar", body); 
+		const userBar = $("#userBar");
+		createTexted("div", "userOptions", "login", userBar, "Login/Register"); 
+		createTexted("div", "userOptions", "logout", userBar, "Logout").hide();
+		createTexted("div", "userOptions", "userSettings", userBar, "User Settings").hide();
+		createTexted("div", "userOptions", "saveProgram", userBar, "Save Program").hide();
+		createTexted("div", "userOptions", "loadProgram", userBar, "Load Program").hide();
 
-		createTexted("div", "block V palette", "vardecl", sidebarConst, "Var Declaration"); 
-		createTexted("div", "block V palette", "lambda", sidebarConst, "Lambda Expression"); 
-		create("datalist", null, "oplist", bodyConst); 
+		createTexted("div", "block V palette", "vardecl", sidebar, "Var Declaration"); 
+		createTexted("div", "block V palette", "lambda", sidebar, "Lambda Expression"); 
+		create("datalist", null, "oplist", body); 
 
-		create("div", "container evalHidden", "container", bodyConst); 
-		createHidden("div", "vms evalVisible", "vms", bodyConst, null); 
+		create("div", "container evalHidden", "container", body); 
+		createHidden("div", "vms evalVisible", "vms", body, null); 
 
 		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
 		for (var i = 0; i < optionList.length; i++) {
