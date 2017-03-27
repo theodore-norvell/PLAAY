@@ -39,7 +39,7 @@ module editing {
 	export function editingActions () 
     {
 
-        generateHTML();
+        generateHTMLSoon();
 
         $("#undo").click( function()  { undo() ; } );
         $("#redo").click(function() { redo() ; } ) ;
@@ -289,26 +289,6 @@ module editing {
             }
         });
 
-        // Single clicks on the view should change the current selection.
-        $("#container .selectable").click( function(evt) {
-            console.log( ">> Click Handler") ;
-            const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-            optClickTarget.map( clickTarget => update( clickTarget ) ) ;
-            console.log( "<< Click Handler") ;
-        } );
-
-        // Handle double clicks on vars etc.
-        // TODO Resolve conflict between single clicks and double clicks.
-        // Or maybe find a way not to use double clicks.
-        $("#container .click").dblclick(function(evt){
-            console.log( ">> Double Click Handler") ;
-            const optClickTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-            optClickTarget.map( clickTarget => {
-                const edit = new pnodeEdits.OpenLabelEdit() ;
-                const opt = edit.applyEdit( clickTarget ) ;
-                opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
-        });
-
         // Set focus to any elements of class "input" in the tree
         const inputs : JQuery = $("#container .input")
         if( inputs.length > 0 ) {
@@ -318,7 +298,28 @@ module editing {
             $(document).off( "keydown" ) ;
             // TODO Scroll the container so that the element in focus is visible.
         } else {
+            $(document).off( "keydown" ) ;
             $(document).keydown( keyDownHandler ) ;
+
+            // Single clicks on the view should change the current selection.
+            $("#container .selectable").click( function(evt) {
+                console.log( ">> Click Handler") ;
+                const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                optClickTarget.map( clickTarget => update( clickTarget ) ) ;
+                console.log( "<< Click Handler") ;
+            } );
+
+            // Handle double clicks on vars etc.
+            // TODO Resolve conflict between single clicks and double clicks.
+            // Or maybe find a way not to use double clicks.
+            $("#container .click").dblclick(function(evt){
+                console.log( ">> Double Click Handler") ;
+                const optClickTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                optClickTarget.map( clickTarget => {
+                    const edit = new pnodeEdits.OpenLabelEdit() ;
+                    const opt = edit.applyEdit( clickTarget ) ;
+                    opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
+            });
         }
     }
 
@@ -341,6 +342,7 @@ module editing {
             } } ;
 
     const keyDownHandler =  function(e) { 
+            console.log( ">>keydown handler") ;
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which == 88 || e.which == 8 || e.which == 46 ) 
             {
@@ -349,13 +351,13 @@ module editing {
                     addToTrash(currentSelection) ;
                     update( sel ) ;
                 } ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             // Copy: Cntl-X or Cmd-X
             else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
             {
                 addToTrash(currentSelection);
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             // Paste: Cntl-V or Cmd-V
             else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
@@ -363,7 +365,7 @@ module editing {
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             // Swap: Cntl-B or Cmd-B
             else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
@@ -372,47 +374,47 @@ module editing {
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             // Select all: Cntl-A or Cmd-A
             else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
             {
                 treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             else if (e.which == 38) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             else if (e.which == 40) // down arrow
             {
                 treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
             else if (e.which == 37) // left arrow
             {
                 treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }            
             else if (e.which == 39) // right arrow
             {
                 treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
-                e.preventDefault(); 
+                e.stopPropagation(); 
             }
-            //e.preventDefault(); 
+            console.log( "<<keydown handler") ;
     };
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
             currentSelection = sel ;
             redostack.length = 0 ;
-            generateHTML();
+            generateHTMLSoon();
     }
 
     export function getCurrentSelection() : Selection {
@@ -423,7 +425,7 @@ module editing {
         if (undostack.length != 0)  {
             redostack.push(currentSelection);
             currentSelection = undostack.pop();
-            generateHTML();
+            generateHTMLSoon();
         }
     }
 
@@ -431,15 +433,15 @@ module editing {
         if (redostack.length != 0) {
             undostack.push(currentSelection);
             currentSelection = redostack.pop();
-            generateHTML();
+            generateHTMLSoon();
         }
     }
 
-    // var pendingAction = null ;
-    // function updateSoon( sel : Selection ) : void {
-    //     if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
-    //     pendingAction = window.setTimeout( function() { update(sel); }, 500) ;
-    // }
+    var pendingAction = null ;
+    function generateHTMLSoon( ) : void {
+        if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
+        pendingAction = window.setTimeout( function() { generateHTML() }, 20) ;
+    }
 
 
 }
