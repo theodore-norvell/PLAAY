@@ -125,34 +125,36 @@ module pnodeEdits {
         let root = selection.root();
         let path = selection.path();
 
-        if (start != end)
+        if (start == end)
+        {
+            //there is node at start-1
+            if(start > 0)
+            {
+                let newPath : List<number> = snoc(path, start-1);
+                let numOfChildren : number = root.get(newPath).count();
+                return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
+            }
+            //the path is empty
+            else if (path.isEmpty())
+            {
+                return collections.none<Selection>();
+            }
+            //the parent of this position has no children
+            else if(root.get(path).count() == 0)
+            {
+                return some( new Selection(root, butLast(path), last(path), last(path)+1));
+            }
+            else 
+            {
+                //return a selection representing the position to the left of the parent
+                return some( new Selection(root, butLast(path), last(path), last(path)));
+            }
+        }      
+        else
         {
             //return a selection representing the position to the left of the leftmost selected node
             return some( new Selection(root, path, start, start));
-        }
-
-        else
-        {
-            //Both start and end are 0
-            if (start == 0)
-            {
-                //if parent is root, return none. 
-                if (path.isEmpty())
-                {
-                    return collections.none<Selection>();
-                }
-                //else return the position to the left of parent
-                else
-                {
-                    return some( new Selection(root, butLast(path), last(path), last(path)));
-                }
-            }
-            // start and end is equal but different from 0. Then return the node to the left of start
-            else
-            {
-                return some( new Selection(root, snoc(path, start - 1), 0, 0));
-            }
-        }  
+        } 
     }
 
     /** Move right. */
