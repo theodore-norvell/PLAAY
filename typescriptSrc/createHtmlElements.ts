@@ -11,30 +11,38 @@ module createHtmlElements
 	export function createHtmls () 
 	{	
 		const body = $("body");
-		create("div", "sidebar evalHidden", "sidebar", body);
+		create("div", "", "contentArea", body);
+		const contentArea = $("#contentArea");
+		create("div", "", "leftSideArea", contentArea);
+		const leftSideArea = $("#leftSideArea");
+		create("div", "", "buttonArea", leftSideArea);
+		const buttonArea = $("#buttonArea");
+		create("div", "sidebar evalHidden", "sidebar", leftSideArea);
 		const sidebar = $("#sidebar");
 		
-		createHidden("div", "stack evalVisible", "stackbar", body, null);
+		createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "undo evalHidden", "undo", body, "Undo");
-		createTexted("div", "redo evalHidden", "redo", body, "Redo");
-		createTexted("div", "trash evalHidden", "trash", body, "Trash");
+		createTexted("div", "leftSideButton editButton play evalHidden", "play", buttonArea, "Play");
+		createTexted("div", "leftSideButton editButton turtle", "turtle", buttonArea, "Turtle World");
+		createTexted("div", "leftSideButton editButton undo evalHidden", "undo", buttonArea, "Undo");
+		createTexted("div", "leftSideButton editButton redo evalHidden", "redo", buttonArea, "Redo");
+		createTexted("div", "leftSideButton editButton trash evalHidden", "trash", buttonArea, "Trash");
 
 		//Executing-related elements. All added functionalities are in executing module.
-		createTexted("div", "play evalHidden", "play", body, "Play");
-		createHidden("div", "advance evalVisible", "advance", body, "Next");
-		createHidden("div", "multistep evalVisible", "multistep", body, "Multi-Step");
-		createHidden("div", "run evalVisible", "run", body, "Run");
-		createTexted("div", "turtle", "turtle", body, "Turtle World");
-		createHidden("div", "quitworld", "quitworld", body, "Quit World");
-		createHidden("div", "edit evalVisible", "edit", body, "Edit");
 
-		createTexted("div", "block V palette", "if", sidebar, "If"); 
-		createTexted("div", "block V palette", "while", sidebar, "While"); 
-		createTexted("div", "block V palette", "var", sidebar, "Var"); 
-		createTexted("div", "block V palette", "stringliteral", sidebar, "String Literal"); 
-		createTexted("div", "block V palette", "worldcall", sidebar, "Call World"); 
-		createTexted("div", "block V palette", "assign", sidebar, "Assignment"); 
+		createHidden("div", "advance evalVisible", "advance", leftSideArea, "Next");
+		createHidden("div", "multistep evalVisible", "multistep", leftSideArea, "Multi-Step");
+		createHidden("div", "run evalVisible", "run", leftSideArea, "Run");
+
+		createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
+		createHidden("div", "edit evalVisible", "edit", leftSideArea, "Edit");
+
+		createTexted("div", "leftSideButton buildingBlockButton palette", "if", sidebar, "?"); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "while", sidebar, "\u27F3"); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "var", sidebar, "x"); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "stringliteral", sidebar, '""'); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "worldcall", sidebar, "+"); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "assign", sidebar, ":="); 
 
 		//User-related elements. All added functionalities of the elements are in userRelated module.
 		create("div", "userBar", "userBar", body); 
@@ -45,12 +53,12 @@ module createHtmlElements
 		createTexted("div", "userOptions", "saveProgram", userBar, "Save Program").hide();
 		createTexted("div", "userOptions", "loadProgram", userBar, "Load Program").hide();
 
-		createTexted("div", "block V palette", "vardecl", sidebar, "Var Declaration"); 
-		createTexted("div", "block V palette", "lambda", sidebar, "Lambda Expression"); 
-		create("datalist", null, "oplist", body); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "vardecl", sidebar, "\u03B4"); 
+		createTexted("div", "leftSideButton buildingBlockButton palette", "lambda", sidebar, "\u03BB"); 
+		create("datalist", null, "oplist", contentArea); 
 
-		create("div", "container evalHidden", "container", body); 
-		createHidden("div", "vms evalVisible", "vms", body, null); 
+		create("div", "container evalHidden", "container", contentArea); 
+		createHidden("div", "vms evalVisible", "vms", contentArea, null); 
 
 		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
 		for (var i = 0; i < optionList.length; i++) {

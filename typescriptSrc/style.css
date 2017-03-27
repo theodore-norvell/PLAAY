@@ -40,6 +40,7 @@ div {
     padding-right: 2px ;
     padding-top: 2px ;
     padding-bottom: 2px ;
+    border-radius: 5px;
 }
 
 .H {
@@ -76,15 +77,6 @@ div {
     align-items: flex-start ;
 }
 
-div.undo
-{
-    width:40px;
-    bottom:4px; left: 0px;
-    height:calc(4%);
-    background-color: darkred;
-    position:fixed;
-}
-
 .dropdown
 {
     display:none;
@@ -93,14 +85,101 @@ div.undo
     position: relative;
 }
 
-div.redo
+html
 {
-    width:40px;
-    bottom:4px; left: 50px;
-    height:calc(4%);
-    background-color: darkred;
-    position:fixed;
+    background-color: #727272;
 }
+
+#userBar
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 5%;
+    width: 95%;
+    margin: 1% 2% 0 2%;
+    background-color: #cccccc;
+}
+
+#contentArea
+{
+    position:absolute;
+    bottom:0;
+    left:0;
+    height: 89%;
+    width: 95%;
+    margin: 1% 2% 1% 2%;
+    background-color: #cccccc;
+}
+
+#leftSideArea
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 98%;
+    width: 7.2%;
+    margin: .4%;
+    background-color: #262626;
+}
+
+#container
+{
+    position:absolute;
+    top:0;
+    bottom:0;
+    right:0;
+    height:98%;
+    width: 90.6%;
+    margin: .4%;
+    background-color:#262626;
+}
+
+#sidebar
+{
+    position:absolute;
+    height:50%;
+    width:85%;
+    left:0;
+    margin: 3% 5% 0 5%;
+    background-color:#a3a3a3;
+}
+
+#buttonArea
+{
+    position:absolute;
+    height:32%;
+    width:85%;
+    bottom:0;
+    left:0;
+    margin: 0 5% 5% 5%;
+    background-color:#a3a3a3;
+}
+
+.leftSideButton
+{
+    height: 30;
+    width: 75px;
+    margin-top: 3px;
+}
+
+.buildingBlockButton 
+{
+    text-align: center;
+    line-height: 30px;
+    font-weight: bold;
+    background-color: black;
+    box-shadow: 0px 0px 3px;
+    color: rgb(190, 133, 197);
+}
+
+#play { background-color: #05440a;}
+#turtle { background-color: orange; height: 40px;}
+#undo { background-color: orangered;}
+#redo { background-color: mediumorchid;}
+#trash { background-color: darkred;}
+
+
 
 div.advance
 {
@@ -129,24 +208,6 @@ div.run
     position:absolute;
 }
 
-div.trash
-{
-    width: 50px;
-    height: calc(10%);
-    background-color: grey;
-    position:fixed;
-    bottom:4px; left: 100px;
-}
-
-div.turtle
-{
-    width: 50px;
-    height: calc(5%);
-    background-color: darkgreen;
-    position:fixed;
-    bottom:100px; left: 100px;
-}
-
 div.quitworld
 {
     width: 50px;
@@ -156,16 +217,6 @@ div.quitworld
     bottom:100px; left: 100px;
 }
 
-
-div.play
-{
-    width:90px;
-    height:calc(5%);
-    background-color:green;
-    position:fixed;
-    bottom:50px; left: 0px;
-}
-
 div.edit
 {
     width:90px;
@@ -173,16 +224,6 @@ div.edit
     background-color:green;
     position:fixed;
     bottom:50px; left: 0px;
-}
-
-div.sidebar
-{
-    position:fixed;
-    top:22px; bottom:0px; left:4px;
-    width:150px;
-    height:calc(80% - 8px);
-    background-color:grey;
-    overflow:auto;
 }
 
 div.stack
@@ -195,27 +236,11 @@ div.stack
     overflow:auto;
 }
 
-div.container
-{
-    display:block;
-    position:absolute;
-    top:20px;
-    bottom:0;
-    left:0;
-    right:0;
-    height:auto;
-    margin-top:4px;
-    margin-bottom:4px;
-    margin-right:4px;
-    margin-left:159px;
-    background-color:black;
-}
-
 div.userOptions {
     float:right;
     color:black;
 }
-
+/*
 div.userBar {
     position:absolute;
     top:0;
@@ -224,7 +249,7 @@ div.userBar {
     width:100%;
     background-color:whitesmoke;
 }
-
+*/
 div.closewindow {
     position:absolute;
     bottom:0;
@@ -282,18 +307,6 @@ div.vms
     margin-right:4px;
     margin-left:159px;
     background-color:black;
-}
-
-div.block {
-    height: 20px;
-    width: 50px;
-    float: left;
-    border: 2px solid;
-    background-color: black;
-    margin-right: 5px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 3px;
-    color: rgb(190, 133, 197);
 }
 
 /*actual visualization*/
