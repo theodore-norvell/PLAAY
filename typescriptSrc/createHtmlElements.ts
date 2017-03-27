@@ -10,23 +10,29 @@ module createHtmlElements
 
 	export function createHtmls () 
 	{	
+
 		const body = $("body");
+
+		create("div", "", "upperArea", body); 
+		const upperArea = $("#upperArea");
+		createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
+
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
 		create("div", "", "leftSideArea", contentArea);
 		const leftSideArea = $("#leftSideArea");
 		create("div", "", "buttonArea", leftSideArea);
 		const buttonArea = $("#buttonArea");
-		create("div", "sidebar evalHidden", "sidebar", leftSideArea);
+		create("div", "evalHidden", "sidebar", leftSideArea);
 		const sidebar = $("#sidebar");
 		
 		createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "leftSideButton editButton play evalHidden", "play", buttonArea, "Play");
-		createTexted("div", "leftSideButton editButton turtle", "turtle", buttonArea, "Turtle World");
-		createTexted("div", "leftSideButton editButton undo evalHidden", "undo", buttonArea, "Undo");
-		createTexted("div", "leftSideButton editButton redo evalHidden", "redo", buttonArea, "Redo");
-		createTexted("div", "leftSideButton editButton trash evalHidden", "trash", buttonArea, "Trash");
+		createTexted("div", "leftSideButton editButton evalHidden", "play", buttonArea, "Play");
+		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
+		createTexted("div", "leftSideButton editButton evalHidden", "undo", buttonArea, "Undo");
+		createTexted("div", "leftSideButton editButton evalHidden", "redo", buttonArea, "Redo");
+		createTexted("div", "leftSideButton editButton evalHidden", "trash", buttonArea, "Trash");
 
 		//Executing-related elements. All added functionalities are in executing module.
 
@@ -45,13 +51,13 @@ module createHtmlElements
 		createTexted("div", "leftSideButton buildingBlockButton palette", "assign", sidebar, ":="); 
 
 		//User-related elements. All added functionalities of the elements are in userRelated module.
-		create("div", "userBar", "userBar", body); 
+		create("div", "userBar", "userBar", upperArea); 
 		const userBar = $("#userBar");
-		createTexted("div", "userOptions", "login", userBar, "Login/Register"); 
-		createTexted("div", "userOptions", "logout", userBar, "Logout").hide();
-		createTexted("div", "userOptions", "userSettings", userBar, "User Settings").hide();
-		createTexted("div", "userOptions", "saveProgram", userBar, "Save Program").hide();
-		createTexted("div", "userOptions", "loadProgram", userBar, "Load Program").hide();
+		createTexted("div", "", "login", userBar, "Login/Register"); 
+		createTexted("div", "", "logout", userBar, "Logout").hide();
+		createTexted("div", "", "userSettings", userBar, "User Settings").hide();
+		createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
+		createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
 
 		createTexted("div", "leftSideButton buildingBlockButton palette", "vardecl", sidebar, "\u03B4"); 
 		createTexted("div", "leftSideButton buildingBlockButton palette", "lambda", sidebar, "\u03BB"); 

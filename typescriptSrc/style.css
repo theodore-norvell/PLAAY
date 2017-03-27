@@ -9,7 +9,6 @@
 }
 .plaay {
     color:rgb(244, 140, 0) ;
-    background-color:black ;
 }
 
 .canv
@@ -85,12 +84,12 @@ div {
     position: relative;
 }
 
-html
+html, body
 {
     background-color: #727272;
 }
 
-#userBar
+#upperArea
 {
     position:absolute;
     top:0;
@@ -98,6 +97,31 @@ html
     height: 5%;
     width: 95%;
     margin: 1% 2% 0 2%;
+    color: #2a0f44;
+    font-weight: bold;
+    line-height: 1.7em;
+    font-size: 1.2em;
+    background-color: #727272;
+}
+
+#bannerArea
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 100%;
+    width: 70%;
+    background-color: #cccccc;
+}
+
+#userBar
+{
+    position:absolute;
+    top:0;
+    right:0;
+    height: 100%;
+    width: 11%;
+    float: right;
     background-color: #cccccc;
 }
 
@@ -118,7 +142,7 @@ html
     top:0;
     left:0;
     height: 98%;
-    width: 7.2%;
+    width: 6.2%;
     margin: .4%;
     background-color: #262626;
 }
@@ -130,7 +154,7 @@ html
     bottom:0;
     right:0;
     height:98%;
-    width: 90.6%;
+    width: 91.7%;
     margin: .4%;
     background-color:#262626;
 }
@@ -138,7 +162,7 @@ html
 #sidebar
 {
     position:absolute;
-    height:50%;
+    height:45%;
     width:85%;
     left:0;
     margin: 3% 5% 0 5%;
@@ -148,7 +172,7 @@ html
 #buttonArea
 {
     position:absolute;
-    height:32%;
+    height:30%;
     width:85%;
     bottom:0;
     left:0;
@@ -236,20 +260,6 @@ div.stack
     overflow:auto;
 }
 
-div.userOptions {
-    float:right;
-    color:black;
-}
-/*
-div.userBar {
-    position:absolute;
-    top:0;
-    left:0;
-    height:20px;
-    width:100%;
-    background-color:whitesmoke;
-}
-*/
 div.closewindow {
     position:absolute;
     bottom:0;
