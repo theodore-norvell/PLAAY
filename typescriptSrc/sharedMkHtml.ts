@@ -88,6 +88,7 @@ module sharedMkHtml
             result.addClass( "placeHolder" ) ;
             result.addClass( "V" ) ;
             result.addClass( "droppable" ) ;
+            result.addClass( "canDrag" ) ;
             result.text("...") ;
         }
         else if(label.match("param"))
