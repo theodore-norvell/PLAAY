@@ -306,12 +306,12 @@ module editing {
                 console.log( ">> Click Handler") ;
                 const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
                 optClickTarget.map( clickTarget => update( clickTarget ) ) ;
+                evt.stopPropagation(); 
                 console.log( "<< Click Handler") ;
             } );
 
-            // Handle double clicks on vars etc.
-            // TODO Resolve conflict between single clicks and double clicks.
-            // Or maybe find a way not to use double clicks.
+            // TODO Rather than double click, perhaps a click on a selected
+            // node should open it.
             $("#container .click").dblclick(function(evt){
                 console.log( ">> Double Click Handler") ;
                 const optClickTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
@@ -319,6 +319,8 @@ module editing {
                     const edit = new pnodeEdits.OpenLabelEdit() ;
                     const opt = edit.applyEdit( clickTarget ) ;
                     opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
+                evt.stopPropagation(); 
+                console.log( "<< Double Click Handler") ;
             });
         }
     }
@@ -352,12 +354,14 @@ module editing {
                     update( sel ) ;
                 } ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             // Copy: Cntl-X or Cmd-X
             else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
             {
                 addToTrash(currentSelection);
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             // Paste: Cntl-V or Cmd-V
             else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
@@ -366,6 +370,7 @@ module editing {
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             // Swap: Cntl-B or Cmd-B
             else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
@@ -375,6 +380,7 @@ module editing {
                      treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             // Select all: Cntl-A or Cmd-A
             else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
@@ -382,30 +388,35 @@ module editing {
                 treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             else if (e.which == 38) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             else if (e.which == 40) // down arrow
             {
                 treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             else if (e.which == 37) // left arrow
             {
                 treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }            
             else if (e.which == 39) // right arrow
             {
                 treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
+                e.preventDefault(); 
             }
             console.log( "<<keydown handler") ;
     };
