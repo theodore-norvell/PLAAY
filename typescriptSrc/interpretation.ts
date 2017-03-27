@@ -343,6 +343,8 @@ module interpretation {
 
         abstract nodeStep(node: PNode, evalu: Evaluation, vms: VMS): void;
 
+        stepKind(labelKinds: kind): void;
+
         strategy: nodeStrategy;
 
         /*private*/

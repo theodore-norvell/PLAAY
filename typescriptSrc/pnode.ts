@@ -54,7 +54,7 @@ module pnode {
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
         strategy:nodeStrategy;
-        step : (vms:VMS) => void;
+        step: (vms: VMS) => void;
 
         getVal: () => string;
 
