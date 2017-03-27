@@ -160,10 +160,11 @@ module sharedMkHtml
                 opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
             }
             result.append(opElement);
-            for( let i=0 ; i < children.length ; ++i) {
+            for( let i=0 ; true ; ++i) {
                 const dz : JQuery = makeDropZone(i, false) ;
                 dropzones.push( dz ) ;
                 result.append( dz ) ;
+                if( i == children.length ) break ;
                 result.append( children[i] ) ;
             }
         }
