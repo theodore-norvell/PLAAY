@@ -311,28 +311,17 @@ module editing {
         // Handle clicks on vars etc.
         $("#container .click").click(function(){
             console.log( ">> Click Handler") ;
-            // TODO: A better way to do this is to change the label to a state of being edited.
-            const label = $(this).attr("class");
-            let text = $(this).text() ;
-            text = text.replace( /&/g, "&amp;" ) ;
-            text = text.replace( /"/g, "&quot;") ;
-            const val = $(this).attr("data-childNumber");
-            // TODO The following is very ugly.  HTML generation is the responsibility of the sharedMkHTML module.
-            if (/var/i.test(label))
-            {
-                $(this).replaceWith('<input type="text" class="var H input" data-childNumber="' + val + '" value="' + text +'">');
-            }
-            else if (/stringLiteral/i.test(label))
-            {
-                $(this).replaceWith('<input type="text" class="stringLiteral H input" data-childNumber="' + val + '" value="' + text +'">');
-            }
-            else if(/op/i.test(label))
-            {
-                $(this).replaceWith('<input type="text" class="op H input" list="oplist" value="' + text +'">');
-            }
+            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+            const edit = new pnodeEdits.OpenLabelEdit() ;
+            const opt = edit.applyEdit( clickTarget ) ;
+            opt.map( (sel : Selection) => update( sel ) ) ;
+
             $("#container .input").keyup(keyUpHandler);
             console.log( "<< Click Handler") ;
         });
+
+        // Set focus to any elements of class "input" in the tree
+        $("#container .input").focus();
     }
 
     const keyUpHandler = function (e) {
