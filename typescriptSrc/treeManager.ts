@@ -381,6 +381,16 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        moveUp( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.UpEdit();
+            return edit.applyEdit(selection);
+        }
+
+        moveDown( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.DownEdit();
+            return edit.applyEdit(selection);
+        }
+
         delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);

@@ -77,11 +77,13 @@ module editing {
             }
             else if (e.which == 38) // up arrow
             {
-                //TODO: set the selection above as the current selection
+                treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
             }
             else if (e.which == 40) // down arrow
             {
-                //TODO: set the selection below as the current selection
+                treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
             }
             else if (e.which == 37) // left arrow
             {
