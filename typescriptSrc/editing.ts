@@ -17,6 +17,10 @@ import treeManager = require( './treeManager');
 module editing {
 
     import list = collections.list;
+    import Option = collections.Option ;
+    import some = collections.some ;
+    import none = collections.none ;
+
     import Selection = pnodeEdits.Selection;
 
     enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE } ;
@@ -34,33 +38,52 @@ module editing {
 
 	export function editingActions () 
     {
-        
+
         $(document).keydown(function(e) { 
-            if (e.ctrlKey && e.which == 88) //Ctrl-x
+            // Cut: Control X, command X, delete, backspace
+            if ((e.ctrlKey || e.metaKey) && e.which == 88 || e.which == 8 || e.which == 46 ) 
             {
-                //TODO: push the current selection to the trash and delete it
+                const opt = treeMgr.delete( currentSelection ) ;
+                opt.map( (sel : Selection) => {
+                    addToTrash(currentSelection) ;
+                    update( sel ) ;
+                } ) ;
             }
-            else if (e.ctrlKey && e.which == 67) //Ctrl-c
+            // Copy: Cntl-X or Cmd-X
+            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
             {
-                //TODO: push the current selection to the trash
+                addToTrash(currentSelection);
             }
-            else if (e.ctrlKey && e.which == 86) //Ctrl-v
+            // Paste: Cntl-V or Cmd-V
+            else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
             {
-                //TODO: should insert the top selection on the trash at the current selection
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
             }
-            else if (e.ctrlKey && e.which == 66) //Ctrl-b
+            // Swap: Cntl-B or Cmd-B
+            else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
             {
-                //TODO: swap the current selection with the top of the trash. I.e. we should be able to do Cntl-C, move the selection, Cntl-B to swap
+            
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+            }
+            // Select all: Cntl-A or Cmd-A
+            else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
+            {
+                treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
             }
             else if (e.which == 38) // up arrow
             {
-                //TODO: set selection above as the current selection
+                //TODO: set the selection above as the current selection
             }
             else if (e.which == 40) // down arrow
             {
-                //TODO: set selection down as the current selection
+                //TODO: set the selection below as the current selection
             }
-            e.preventDefault(); 
+            //e.preventDefault(); 
         });
         
         generateHTML();
@@ -103,6 +126,11 @@ module editing {
         trashArray.unshift( sel ) ;
         if( trashArray.length > 10 ) trashArray.length = 10 ;
         refreshTheTrash() ;
+    }
+
+    function getFromTrash( ) : Option< Selection > {
+        if( trashArray.length == 0 ) return none<Selection>() ;
+        else return some( trashArray[0] ) ;
     }
 
     function toggleTrash() : void {
@@ -222,9 +250,9 @@ module editing {
     function generateHTML() : void
     {
         // Refresh the view of the current selection
-		$("#container").empty()
-			.append(sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false));
-        
+        const newHTML : JQuery = sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false)
+		$("#container").empty().append(newHTML);
+        sharedMkHtml.highlightSelection( currentSelection, newHTML ) ;
         // Handle drops
         $( "#container .droppable" ).droppable({
             greedy: true,
@@ -308,16 +336,26 @@ module editing {
             }
         });
 
-        // Handle clicks on vars etc.
-        $("#container .click").click(function(){
+        // Single clicks on the view should change the current selection.
+        $("#container .selectable").click( function(evt) {
             console.log( ">> Click Handler") ;
+            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+            update( clickTarget ) ;
+            console.log( "<< Click Handler") ;
+        } );
+
+        // Handle double clicks on vars etc.
+        // TODO Resolve conflict between single clicks and double clicks.
+        // Or maybe find a way not to use double clicks.
+        $("#container .click").dblclick(function(evt){
+            console.log( ">> Double Click Handler") ;
             const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
             const edit = new pnodeEdits.OpenLabelEdit() ;
             const opt = edit.applyEdit( clickTarget ) ;
             opt.map( (sel : Selection) => update( sel ) ) ;
 
             $("#container .input").keyup(keyUpHandler);
-            console.log( "<< Click Handler") ;
+            console.log( "<< Double Click Handler") ;
         });
 
         // Set focus to any elements of class "input" in the tree
@@ -362,6 +400,12 @@ module editing {
             generateHTML();
         }
     }
+
+    // var pendingAction = null ;
+    // function updateSoon( sel : Selection ) : void {
+    //     if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
+    //     pendingAction = window.setTimeout( function() { update(sel); }, 500) ;
+    // }
 
 
 }

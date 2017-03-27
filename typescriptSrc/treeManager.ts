@@ -365,6 +365,12 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        selectAll( selection:Selection ) : Option<Selection> {
+            const root = selection.root() ;
+            const n = root.count() ;
+            return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
+        }
+
         delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
@@ -373,6 +379,11 @@ module treeManager {
         copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
             const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
             return copyEdit.applyEdit( trgSelection ) ;
+        }
+
+        swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+            const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
+            return swapEdit.applyEdit( trgSelection ) ;
         }
 
         /** Create a list of up to three possible actions. */
