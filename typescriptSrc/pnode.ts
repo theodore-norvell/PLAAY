@@ -5,8 +5,7 @@
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import valueTypes = require( './valueTypes' ) ;
-import vms = require('./vms' ) ;
+import valueTypes = require('./valueTypes');
 
 /** Module pnode contains the PNode class and the implementations of the labels. */
 module pnode {
@@ -15,23 +14,270 @@ module pnode {
     import None = collections.None;
     import none = collections.none;
     import some = collections.some;
-    import VMS = vms.VMS;
-    import Evaluation = vms.Evaluation;
-    import VarStack = vms.VarStack;
-    import EvalStack = vms.EvalStack;
-    import Value = vms.Value;
-    import BuiltInV = valueTypes.BuiltInV;
-    import ValueMap = vms.ValueMap;
-    import FieldI = vms.FieldI ;
     import Field = valueTypes.Field;
     import ClosureV = valueTypes.ClosureV;
     import StringV = valueTypes.StringV;
     import arrayToList = collections.arrayToList;
-    import Type = vms.Type;
     import ObjectV = valueTypes.ObjectV;
 
+    export enum LABEL_KIND {
+        NONE,
+        EXPR_SEQ, PARAMETER_LIST,
+        VARIABLE, VAR_DECL, ASSIGN, CALL_WORLD,
+        EXPR_PH, NO_EXPR,
+        LAMBDA,
+        IF, WHILE,
+        STRING_LITERAL, NUMBER_LITERAL, BOOLEAN_LITERAL, NULL_LITERAL,
+        CALL,
+        PEN, FORWARD, LEFT, RIGHT, CLEAR, HIDE, SHOW
+    }
+
     export interface nodeStrategy {
-        select( vms : VMS, label:Label ) : void;
+        select(vms: VMS, label: Label): void;
+    }
+
+    export class lrStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label): void {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+
+                if (node.label() == label) {
+                    var flag = true;
+                    for (var i = 0; i < node.count(); i++) {
+                        var p = pending.concat([i]);
+                        if (!evalu.map.inMap(p)) {
+                            flag = false;
+                        }
+                    }
+                    if (flag) {
+                        evalu.ready = true;// Select this node.
+                    }
+                    else {
+                        var n;
+                        for (var i = 0; i < node.count(); i++) {
+                            var p = pending.concat([i]);
+                            if (!evalu.map.inMap(p)) {
+                                n = i;
+                                break;
+                            }
+                        }
+                        vms.evalStack.top().setPending(pending.concat([n]));
+                        node.child(n).label().strategy.select(vms, node.child(n).label());
+                    }
+                }
+            }
+        }
+    }
+
+    export class varStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+                if (node.label() == label) {
+                    //TODO how to highlight  look up the variable in the stack and highlight it.
+                    if (!evalu.getStack().inStack(label.getVal())) { } //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
+                    else { evalu.ready = true; }
+                }
+            }
+        }
+    }
+
+    export class whileStrategy implements nodeStrategy {
+
+        deletefromMap(vms: VMS, path: Array<number>) {
+            for (var i = 0; i < vms.getEval().getRoot().get(path).count(); i++) {
+                var childPath = path.concat([i]);
+                this.deletefromMap(vms, childPath);
+            }
+            vms.getEval().getValMap().remove(path);
+
+        }
+
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            assert.check(pending != null);
+            var node = evalu.root.get(pending);
+            let guardPath = pending.concat([0]);
+            let bodyPath = pending.concat([1]);
+            let guardMapped = evalu.map.inMap(guardPath);
+            let bodyMapped = evalu.map.inMap(bodyPath);
+            if (guardMapped && bodyMapped) {
+                // Both children mapped; step
+                // this node.
+                evalu.ready = true;
+            } else if (guardMapped) {
+                let value = evalu.map.get(guardPath);
+                if (!(value instanceof StringV)) {
+                    // TODO Fix error handling
+                    throw new Error("Type error.  Guard of while loop must be true or false.");
+                } else {
+                    let strVal = <StringV>value;
+                    let str = strVal.contents;
+                    if (str == "true") {
+                        evalu.setPending(bodyPath);
+                        node.child(1).label().strategy.select(vms, node.child(1).label());
+                    } else if (str == "false") {
+                        evalu.ready = true;
+                    } else {
+                        // TODO Fix error handling
+                        throw new Error("Type error.  Guard of while loop must be true or false.");
+                    }
+                }
+            }
+        }
+    }
+
+    export class lambdaStrategy implements nodeStrategy {
+
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    evalu.ready = true;
+                }
+            }
+        }
+    }
+
+    export class assignStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+                if (node.label() == label) {
+                    var p = pending.concat([1]);
+                    if (!evalu.map.inMap(p)) {
+                        vms.evalStack.top().setPending(p);
+                        node.child(1).label().strategy.select(vms, node.child(1).label());
+                    }
+
+                    else {
+                        evalu.ready = true;// Select this node.
+                    }
+                }
+            }
+        }
+    }
+
+    export class LiteralStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(arrayToList(pending));
+                if (node.label() == label) {
+                    vms.evalStack.top().ready = true;
+                }
+            }
+        }
+    }
+
+    export class ifStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var guardPath = pending.concat([0]);
+                    var thenPath = pending.concat([1]);
+                    var elsePath = pending.concat([2]);
+                    if (evalu.map.inMap(guardPath)) {
+                        var string = <StringV>evalu.map.get(guardPath);
+                        if (string.contents.match("true")) {
+                            if (evalu.map.inMap(thenPath)) {
+                                evalu.ready = true;
+                            }
+                            else {
+                                evalu.setPending(thenPath);
+                                node.child(1).label().strategy.select(vms, node.child(1).label());
+                            }
+                        }
+
+                        else if (string.contents.match("false")) {
+                            if (evalu.map.inMap(elsePath)) {
+                                evalu.ready = true;
+                            }
+
+                            else {
+                                evalu.setPending(elsePath);
+                                node.child(2).label().strategy.select(vms, node.child(2).label());
+                            }
+                        }
+
+                        else {
+                            throw new Error("Error evaluating " + string.contents + " as a conditional value.");
+                        }
+                    }
+
+                    else {
+                        evalu.setPending(guardPath);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                }
+            }
+        }
+    }
+
+    export class varDeclStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var nameofVar = pending.concat([0]);
+                    var valueofVar = pending.concat([2]);
+                    if (evalu.map.inMap(nameofVar)) {
+                        var name = <StringV>evalu.map.get(nameofVar);
+                        if (!lookUp(name.getVal(), evalu.getStack())) {
+                            if (evalu.map.inMap(valueofVar)) {
+                                evalu.ready = true;
+                            } else {
+                                evalu.setPending(valueofVar);
+                                node.child(2).label().strategy.select(vms, node.child(2).label());
+                            }
+                        }
+                        else {
+                            throw new Error("Variable name already exists!");
+                        }
+                    }
+                    else {
+                        evalu.setPending(nameofVar);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                }
+            }
+        }
+    }
+
+    export class TurtleStrategy implements nodeStrategy {
+        select(vms: VMS, label: Label) {
+            var evalu = vms.evalStack.top();
+            var pending = evalu.getPending();
+            if (pending != null) {
+                var node = evalu.root.get(pending);
+                if (node.label() == label) {
+                    var value = pending.concat([0]);
+                    if (evalu.map.inMap(value)) {
+                        evalu.ready = true;
+                    }
+                    else {
+                        evalu.setPending(value);
+                        node.child(0).label().strategy.select(vms, node.child(0).label());
+                    }
+                }
+            }
+        }
     }
 
 
@@ -39,8 +285,8 @@ module pnode {
     export interface Label {
         isValid : (children:Array<PNode>) => boolean ;
         strategy:nodeStrategy;
-        step : (vms:VMS) => void;
-
+        step: (vms: VMS) => void;
+ 
         /** Get the string value associated with the node, if there is one.
          * For example for variables, this would be the name of the variable.
          * Labels that don't have a string associated with them must return null.
@@ -48,7 +294,11 @@ module pnode {
          * TODO:  Better to return an option.
          * TODO: Change name to getString.
          */
-        getVal : () => string ; 
+        getVal: () => string; 
+
+        /** Get the label kind associated with the node, if there is one.
+         */
+        getKind: () => LABEL_KIND;
 
         /** Labels with string values can be open or closed.
          * When open they display in a way that permits the string value to be edited.
@@ -99,6 +349,8 @@ module pnode {
      * Each PNode represents a valid tree in the sense that, if `l` is its label
      * and `chs` is an array of its children, then `l.isValid(chs)` must be true.
     */
+
+
     export class PNode {
         private _label:Label;
         private _children:Array<PNode>;
@@ -296,250 +548,6 @@ module pnode {
         return stack.getField(varName);
     }
 
-    export class lrStrategy implements nodeStrategy {
-        select( vms : VMS, label:Label ) : void {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-
-            if(pending != null) {
-                var node = evalu.root.get(arrayToList(pending));
-
-                if(node.label() == label){
-                    var flag = true;
-                    for(var i = 0; i < node.count(); i++){
-                        var p = pending.concat([i]);
-                        if(!evalu.map.inMap(p)){
-                            flag = false;
-                        }
-                    }
-                    if (flag){
-                        evalu.ready = true;// Select this node.
-                    }
-                    else{
-                        var n;
-                        for(var i = 0; i < node.count(); i++){
-                            var p = pending.concat([i]);
-                            if(!evalu.map.inMap(p)){
-                                n = i;
-                                break;
-                            }
-                        }
-                        vms.evalStack.top().setPending(pending.concat([n]));
-                        node.child(n).label().strategy.select(vms, node.child(n).label() );
-                    }
-                }
-            }
-        }
-    }
-
-    export class varStrategy implements nodeStrategy {
-        select( vms:VMS, label:Label ){
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(arrayToList(pending));
-                if(node.label() == label){
-                  //TODO how to highlight  look up the variable in the stack and highlight it.
-                    if (!evalu.getStack().inStack(label.getVal())){} //error} //there is no variable in the stack with this name TODO THIS FUNCTION IS BROKEN
-                    else{evalu.ready = true;}
-                }
-            }
-        }
-   }
-
-    export class whileStrategy implements nodeStrategy {
-
-        deletefromMap(vms:VMS, path : Array<number>){
-            for (var i = 0; i < vms.getEval().getRoot().get(path).count(); i++) {
-                var childPath = path.concat([i]);
-                this.deletefromMap(vms, childPath);
-            }
-            vms.getEval().getValMap().remove(path);
-
-        }
-
-        select(vms:VMS, label:Label) {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            assert.check( pending != null ) ;
-            var node = evalu.root.get(pending);
-            let guardPath = pending.concat([0]);
-            let bodyPath = pending.concat([1]);
-            let guardMapped = evalu.map.inMap(guardPath) ;
-            let bodyMapped = evalu.map.inMap(bodyPath) ;
-            if ( guardMapped && bodyMapped ){
-                // Both children mapped; step
-                // this node.
-                evalu.ready = true;
-            } else if( guardMapped ) {
-                let value = evalu.map.get(guardPath);
-                if( ! (value instanceof StringV) ) {
-                    // TODO Fix error handling
-                    throw new Error ("Type error.  Guard of while loop must be true or false.") ;
-                } else {
-                    let strVal = <StringV> value ;
-                    let str = strVal.contents ;
-                    if( str == "true" ) {
-                        evalu.setPending(bodyPath);
-                        node.child(1).label().strategy.select( vms, node.child(1).label() );
-                    } else if( str == "false" ) {
-                        evalu.ready = true ;
-                    } else {
-                        // TODO Fix error handling
-                        throw new Error ("Type error.  Guard of while loop must be true or false.") ;
-                    }
-                }
-            }
-        }
-    }
-
-    export class lambdaStrategy implements nodeStrategy {
-
-        select(vms:VMS, label:Label) {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(pending);
-                if(node.label() == label){
-                        evalu.ready = true;
-                }
-            }
-        }
-    }
-
-    export class assignStrategy implements nodeStrategy {
-        select(vms:VMS, label:Label) {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if (pending != null) {
-                var node = evalu.root.get(arrayToList(pending));
-                if (node.label() == label) {
-                    var p = pending.concat([1]);
-                    if(!evalu.map.inMap(p)){
-                        vms.evalStack.top().setPending(p);
-                        node.child(1).label().strategy.select(vms, node.child(1).label());
-                    }
-
-                    else{
-                        evalu.ready = true;// Select this node.
-                    }
-                }
-            }
-        }
-    }
-
-    export class LiteralStrategy implements nodeStrategy {
-        select( vms:VMS, label:Label ){
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(arrayToList(pending));
-                if(node.label() == label){
-                    vms.evalStack.top().ready = true;
-                }
-            }
-        }
-    }
-
-     export class ifStrategy implements nodeStrategy {
-        select( vms : VMS, label:Label){
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if(pending != null){
-                var node = evalu.root.get(pending);
-                if(node.label() == label){
-                    var guardPath = pending.concat([0]);
-                    var thenPath = pending.concat([1]);
-                    var elsePath = pending.concat([2]);
-                    if (evalu.map.inMap(guardPath)){
-                        var string = <StringV>evalu.map.get(guardPath);
-                        if (string.contents.match("true")){
-                            if(evalu.map.inMap(thenPath)){
-                                evalu.ready = true;
-                            }
-                            else{
-                                evalu.setPending(thenPath);
-                                node.child(1).label().strategy.select( vms, node.child(1).label() );
-                            }
-                        }
-
-                        else if(string.contents.match("false")){
-                            if (evalu.map.inMap(elsePath)){
-                                evalu.ready = true;
-                            }
-
-                            else{
-                                evalu.setPending(elsePath);
-                                node.child(2).label().strategy.select( vms, node.child(2).label() );
-                            }
-                        }
-
-                        else{
-                            throw new Error ("Error evaluating " + string.contents + " as a conditional value.") ;
-                        }
-                    }
-
-                    else{
-                        evalu.setPending(guardPath);
-                        node.child(0).label().strategy.select( vms, node.child(0).label() );
-                    }
-                }
-            }
-        }
-    }
-
-    export class varDeclStrategy implements nodeStrategy {
-        select( vms : VMS, label:Label) {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if (pending != null) {
-                var node = evalu.root.get(pending);
-                if (node.label() == label) {
-                    var nameofVar = pending.concat([0]);
-                    var valueofVar = pending.concat([2]);
-                    if (evalu.map.inMap(nameofVar)) {
-                        var name = <StringV> evalu.map.get(nameofVar);
-                        if(! lookUp(name.getVal(), evalu.getStack())) {
-                            if (evalu.map.inMap(valueofVar)) {
-                                evalu.ready = true;
-                            } else {
-                                evalu.setPending(valueofVar);
-                                node.child(2).label().strategy.select(vms, node.child(2).label());
-                            }
-                        }
-                        else {
-                            throw new Error("Variable name already exists!");
-                        }
-                    }
-                    else {
-                        evalu.setPending(nameofVar);
-                        node.child(0).label().strategy.select(vms, node.child(0).label());
-                    }
-                }
-            }
-        }
-    }
-
-    export class TurtleStrategy implements nodeStrategy {
-        select( vms : VMS, label:Label) {
-            var evalu = vms.evalStack.top();
-            var pending = evalu.getPending();
-            if (pending != null) {
-                var node = evalu.root.get(pending);
-                if (node.label() == label) {
-                    var value = pending.concat([0]);
-                    if (evalu.map.inMap(value)) {
-                        evalu.ready = true;
-                    }
-                    else {
-                        evalu.setPending(value);
-                        node.child(0).label().strategy.select(vms, node.child(0).label());
-                    }
-                }
-            }
-        }
-    }
-
    /* export class callStrategy implements nodeStrategy{
         select(){}
 
@@ -586,9 +594,6 @@ module pnode {
     }
 */
 
-
-
-
     /** Abstract base class for all Labels. */
     abstract class AbstractLabel implements Label {
 
@@ -597,7 +602,12 @@ module pnode {
         }
 
         getVal() : string {
-            return null ; }
+            return null;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.NONE;
+        }
 
         isOpen() : boolean { return false ; }
 
@@ -694,6 +704,11 @@ module pnode {
 
         }
 
+        //placeholder only
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.EXPR_SEQ;
+        }
+
         toString():string {
             return "seq";
         }
@@ -733,6 +748,10 @@ module pnode {
 
         step(vms:VMS) {
             //TODO should the parameter list do anything? I don't think it does - JH
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.PARAMETER_LIST;
         }
 
         toString():string {
@@ -806,6 +825,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.NONE;
+        }
+
         isOpen() : boolean {
             return this._open ;
         }
@@ -817,6 +840,10 @@ module pnode {
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.VARIABLE;
         }
 
         toString():string {
@@ -867,6 +894,10 @@ module pnode {
         }
 
         strategy : varDeclStrategy = new varDeclStrategy();
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.VAR_DECL;
+        }
 
         toString():string {
             return "vdecl";
@@ -922,6 +953,10 @@ module pnode {
 
         strategy:assignStrategy = new assignStrategy();
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.ASSIGN;
+        }
+
         toString():string {
             return "assign";
         }
@@ -975,6 +1010,10 @@ module pnode {
 
         isValid(children:Array<PNode>):boolean {
             return children.every(function(c : PNode) { return c.isExprNode() } ) ;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.CALL_WORLD;
         }
 
         toString():string {
@@ -1069,6 +1108,10 @@ module pnode {
             return true;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.EXPR_PH;
+        }
+
         toString():string {
             return "expPH";
         }
@@ -1103,6 +1146,10 @@ module pnode {
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
             return true;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.NO_EXPR;
         }
 
         toString():string {
@@ -1145,7 +1192,11 @@ module pnode {
              if( ! children[1].isTypeNode() ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
              return true;
-         }
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.LAMBDA;
+        }
 
         toString():string {
             return "lambda";
@@ -1201,6 +1252,10 @@ module pnode {
          if( ! children[2].isExprSeqNode() ) return false ;
          return true ; }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.IF;
+        }
+
         toString():string {
             return "if";
         }
@@ -1248,6 +1303,10 @@ module pnode {
          if( ! children[0].isExprNode() ) return false ;
          if( ! children[1].isExprSeqNode() ) return false ;
          return true ; }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.WHILE;
+        }
 
         toString():string {
             return "while";
@@ -1461,6 +1520,10 @@ module pnode {
             return null;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.CALL;
+        }
+
         /*private*/
         constructor() {
             super() ;
@@ -1509,6 +1572,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.PEN;
         }
 
         toString():string {
@@ -1565,6 +1632,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.FORWARD;
+        }
+
         toString():string {
             return "forward";
         }
@@ -1619,6 +1690,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.RIGHT;
+        }
+
         toString():string {
             return "right";
         }
@@ -1669,6 +1744,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.CLEAR;
         }
 
         toString():string {
@@ -1723,6 +1802,10 @@ module pnode {
             return this._val;
         }
 
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.HIDE;
+        }
+
         toString():string {
             return "hide";
         }
@@ -1773,6 +1856,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.SHOW;
         }
 
         toString():string {
@@ -1827,6 +1914,10 @@ module pnode {
 
         getVal():string {
             return this._val;
+        }
+
+        getKind(): LABEL_KIND {
+            return LABEL_KIND.LEFT;
         }
 
         toString():string {

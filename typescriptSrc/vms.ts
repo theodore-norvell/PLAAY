@@ -168,15 +168,19 @@ module vms{
 
             var pending2 = Object.create(this.pending);
             var topNode = this.root.get(pending2);
-            var topKind = topNode.label().getKind();
+            var kindIndex = topNode.label().getKind();  //returns integer corresponding to kind
+            var topStrategy = 
 
             if( this.ready ){
                 assert.check(this.getStack() != null);
-                topNode.label().step(vms);
+                kindIndex = topNode.label().getKind();
+                topStrategy = [kindIndex]
                 assert.check( this.getStack() != null ) ;
             }
             else{
-                assert.check( this.getStack() != null ) ;
+                assert.check(this.getStack() != null);
+                kindIndex = topNode.label().getKind();
+                [kindIndex]
                 topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
                 assert.check( this.getStack() != null ) ;
             }
