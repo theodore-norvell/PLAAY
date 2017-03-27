@@ -194,6 +194,28 @@ module pnodeEdits {
         }
     }
 
+    /** Move up. */
+    function moveUp( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        assert.check(false, "TODO: moveUp()");
+        return null;
+    }
+
+    /** Move down. */
+    function moveDown( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        assert.check(false, "TODO: moveDown()");
+        return null;
+    }
+
     /** Replace all selected nodes with another set of nodes. */
     function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
         let start = selection.start() ;
@@ -586,7 +608,7 @@ module pnodeEdits {
     /** Is this a suitable selection to stop at for the left and right arrow keys.
      * 
     */
-    function suitable( opt : Option<Selection> ) : boolean {
+    function leftRightSuitable( opt : Option<Selection> ) : boolean {
         // Need to stop when we can go no further to the left or right.
         if( opt.isEmpty() ) return true ;
         // Otherwise stop on dropzones or placeholders and similar nodes.
@@ -605,18 +627,28 @@ module pnodeEdits {
         }
     }
 
+    /** Is this a suitable selection to stop at for the up and down arrow keys.
+     * 
+    */
+    function upDownSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the up or down.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        assert.check(false, "TODO: upDownSuitable()");
+    }
     /** 
      * Left edit
      */
     export class LeftEdit extends AbstractEdit<Selection> {
 
-        constructor() {
-            super() ; }
+        constructor() { super() ; }
         
-
         applyEdit( selection : Selection ) : Option<Selection> {
             let opt = moveLeft( selection ) ;
-            while( ! suitable(opt) ) opt = moveLeft( opt.first() ) ;
+            while( ! leftRightSuitable(opt) ) opt = moveLeft( opt.first() ) ;
             return opt ;
         }
     }
@@ -626,13 +658,39 @@ module pnodeEdits {
      */
     export class RightEdit extends AbstractEdit<Selection> {
 
-        constructor() {
-            super() ; }
+        constructor() { super() ; }
         
-
         applyEdit( selection : Selection ) : Option<Selection> {
             let opt = moveRight( selection ) ;
-            while( ! suitable(opt) ) opt = moveRight( opt.first() ) ;
+            while( ! leftRightSuitable(opt) ) opt = moveRight( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Up edit
+     */
+    export class UpEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveUp( selection ) ;
+            while( ! upDownSuitable(opt) ) opt = moveUp( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Down edit
+     */
+    export class DownEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveDown( selection ) ;
+            while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
             return opt ;
         }
     }
