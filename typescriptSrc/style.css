@@ -96,7 +96,7 @@ html, body
     left:0;
     height: 5%;
     width: 95%;
-    margin: 1% 2% 0 2%;
+    margin: .3em 2% .3em 2%;
     color: #2a0f44;
     font-weight: bold;
     line-height: 1.7em;
@@ -107,20 +107,18 @@ html, body
 #bannerArea
 {
     position:absolute;
-    top:0;
     left:0;
-    height: 100%;
-    width: 70%;
+    width: 37em;
     background-color: #cccccc;
 }
 
 #userBar
 {
     position:absolute;
-    top:0;
     right:0;
-    height: 100%;
-    width: 11%;
+    width: 10em;
+    padding: 0 .5em 0 .5em;
+    text-align: right;
     float: right;
     background-color: #cccccc;
 }
@@ -132,7 +130,7 @@ html, body
     left:0;
     height: 89%;
     width: 95%;
-    margin: 1% 2% 1% 2%;
+    margin: 0 2% 1% 2%;
     background-color: #cccccc;
 }
 
@@ -142,7 +140,7 @@ html, body
     top:0;
     left:0;
     height: 98%;
-    width: 6.2%;
+    width: 6em;
     margin: .4%;
     background-color: #262626;
 }
@@ -153,30 +151,31 @@ html, body
     top:0;
     bottom:0;
     right:0;
+    left: 6.8em;
     height:98%;
-    width: 91.7%;
     margin: .4%;
+    overflow: auto;
     background-color:#262626;
 }
 
 #sidebar
 {
     position:absolute;
-    height:45%;
-    width:85%;
+    height:19em;
+    width:5.4em;
     left:0;
-    margin: 3% 5% 0 5%;
+    margin: .5em .3em .5em .3em;
     background-color:#a3a3a3;
 }
 
 #buttonArea
 {
     position:absolute;
-    height:30%;
-    width:85%;
+    max-height: 13em;
+    width:5.4em;
     bottom:0;
     left:0;
-    margin: 0 5% 5% 5%;
+    margin: 5em 5% 5% 5%;
     background-color:#a3a3a3;
 }
 
