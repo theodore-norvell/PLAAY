@@ -154,7 +154,7 @@ html, body
     left: 6.8em;
     height:98%;
     margin: .4%;
-    overflow: auto;
+    overflow: scroll;
     background-color:#262626;
 }
 
