@@ -89,6 +89,10 @@ module pnode {
 
         /** Is this label a label for a type node node? */
         isTypeNode : () => boolean ;
+
+        isPlaceHolder : () => boolean ;
+
+        hasDropZonesAt : (start : number) => boolean ;
     }
 
     /** PNodes are abstract syntax trees for the PLAAY language.
@@ -234,6 +238,10 @@ module pnode {
         public isExprSeqNode():boolean  { return this._label.isExprSeqNode() ; }
 
         public isTypeNode():boolean  { return this._label.isTypeNode() ; }
+
+        public isPlaceHolder():boolean { return this._label.isPlaceHolder() ; }
+
+        public hasDropZonesAt(start : number):boolean { return this._label.hasDropZonesAt(start) ;}
 
         /** Convert to a string for debugging purposes. */
         toString ():string {
@@ -620,6 +628,13 @@ module pnode {
         /** Is this label a label for a type node node? */
         abstract isTypeNode() : boolean ;
 
+
+        /** Return true if the node is a placeholder. Override this method in subclasses that are placeholders. */
+        isPlaceHolder() : boolean { return false; }
+
+        /** Return true if node has a dropzone at number. */
+        hasDropZonesAt(start : number): boolean { return false; }
+
         // TODO Delete
         strategy:nodeStrategy;
 
@@ -713,6 +728,8 @@ module pnode {
 
         isTypeNode() { return false ; }
 
+        hasDropZonesAt(start : number): boolean { return true; }
+
         // Singleton
         public static theExprSeqLabel = new ExprSeqLabel();
 
@@ -721,6 +738,7 @@ module pnode {
 
         public static fromJSON( json : any ) : ExprSeqLabel {
             return ExprSeqLabel.theExprSeqLabel ; }
+ 
     }
 
     /** A parameter list.  */
@@ -757,11 +775,14 @@ module pnode {
 
         isTypeNode() { return false ; }
 
+        hasDropZonesAt(start : number): boolean { return true; }
+
         public toJSON() : any {
             return { kind:  "ParamLabel" } ; }
 
         public static fromJSON( json : any ) : ParameterListLabel {
             return ParameterListLabel.theParameterListLabel ; }
+
     }
 
     /** Abstract base class for all type labels.  */
@@ -1059,6 +1080,8 @@ module pnode {
         public static fromJSON( json : any ) : CallWorldLabel {
             return new CallWorldLabel( json.name, json.open ) ;
         }
+    
+        hasDropZonesAt(start : number): boolean { return true; }
     }
 
     /** Place holder nodes for expression. */
@@ -1091,6 +1114,9 @@ module pnode {
         public static fromJSON( json : any ) : ExprPHLabel {
             return ExprPHLabel.theExprPHLabel ;
         }
+
+        isPlaceHolder() : boolean { return true; }
+
     }
 
     /** This class is for optional expressions where there is no expression.
@@ -1120,6 +1146,7 @@ module pnode {
 
         isTypeNode() { return false ; }
 
+        isPlaceHolder() : boolean { return true; }
 
         step(vms:VMS) : void {} // TODO Get rid of this.
 
@@ -1133,6 +1160,7 @@ module pnode {
         public static fromJSON( json : any ) : NoExprLabel {
             return NoExprLabel.theNoExprLabel ;
         }
+
     }
 
     /** Function (or method) literals. */
@@ -1308,6 +1336,8 @@ module pnode {
         public static fromJSON( json : any ) : NoTypeLabel {
             return NoTypeLabel.theNoTypeLabel ;
         }
+
+        isPlaceHolder() : boolean { return true; }
     }
 
     /** String literals. */
@@ -1479,6 +1509,8 @@ module pnode {
         public static fromJSON( json : any ) : CallLabel {
             return CallLabel.theCallLabel ;
         }
+
+        hasDropZonesAt(start : number): boolean { return true; }
     }
 
     // TODO. Get rid of this and similar labels.

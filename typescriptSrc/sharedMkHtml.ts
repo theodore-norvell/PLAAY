@@ -12,6 +12,9 @@ module sharedMkHtml
 {
     import list = collections.list;
     import List = collections.List;
+    import Option = collections.Option;
+    import some = collections.some;
+    import none = collections.none;
     // path is an alias for list<number>
     const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
@@ -85,6 +88,7 @@ module sharedMkHtml
             result.addClass( "placeHolder" ) ;
             result.addClass( "V" ) ;
             result.addClass( "droppable" ) ;
+            result.addClass( "canDrag" ) ;
             result.text("...") ;
         }
         else if(label.match("param"))
@@ -157,10 +161,11 @@ module sharedMkHtml
                 opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
             }
             result.append(opElement);
-            for( let i=0 ; i < children.length ; ++i) {
+            for( let i=0 ; true ; ++i) {
                 const dz : JQuery = makeDropZone(i, false) ;
                 dropzones.push( dz ) ;
                 result.append( dz ) ;
+                if( i == children.length ) break ;
                 result.append( children[i] ) ;
             }
         }
@@ -351,7 +356,7 @@ module sharedMkHtml
             return element ;
     }
 
-    export function getPathToNode(root : PNode, self : JQuery ) : Selection
+    export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
     {
         let anchor;
         let focus;
@@ -367,12 +372,10 @@ module sharedMkHtml
             childNumber = Number(jq.attr("data-childNumber"));
         }
         if( jq.length == 0 ) {
-            //TODO handle this case elegantly
-            assert.check( false, "JQ length is 0" ) ;
+            return none<Selection>() ;
         }
         if( childNumber == -1 ) {
-            //TODO handle this case elegantly
-            assert.check( false, "first childNumber is -1" ) ;
+            return none<Selection>() ;
         }
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;
@@ -409,7 +412,7 @@ module sharedMkHtml
         
         // If making the selection fails, then the root passed in was not the root
         // used to make the HTML.
-        return new pnodeEdits.Selection(root, path, anchor, focus);
+        return some( new pnodeEdits.Selection(root, path, anchor, focus) ) ;
     }
 }
 

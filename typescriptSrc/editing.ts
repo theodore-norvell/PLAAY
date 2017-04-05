@@ -39,65 +39,23 @@ module editing {
 	export function editingActions () 
     {
 
-        $(document).keydown(function(e) { 
-            // Cut: Control X, command X, delete, backspace
-            if ((e.ctrlKey || e.metaKey) && e.which == 88 || e.which == 8 || e.which == 46 ) 
-            {
-                const opt = treeMgr.delete( currentSelection ) ;
-                opt.map( (sel : Selection) => {
-                    addToTrash(currentSelection) ;
-                    update( sel ) ;
-                } ) ;
-            }
-            // Copy: Cntl-X or Cmd-X
-            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
-            {
-                addToTrash(currentSelection);
-            }
-            // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
-            {
-                getFromTrash().map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ) ;
-            }
-            // Swap: Cntl-B or Cmd-B
-            else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
-            {
-            
-                getFromTrash().map( (src : Selection) =>
-                     treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ) ;
-            }
-            // Select all: Cntl-A or Cmd-A
-            else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
-            {
-                treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ;
-            }
-            else if (e.which == 38) // up arrow
-            {
-                //TODO: set the selection above as the current selection
-            }
-            else if (e.which == 40) // down arrow
-            {
-                //TODO: set the selection below as the current selection
-            }
-            //e.preventDefault(); 
-        });
-        
-        generateHTML();
+        generateHTMLSoon();
 
         $("#undo").click( function()  { undo() ; } );
         $("#redo").click(function() { redo() ; } ) ;
 		$(".trash").click(function() {toggleTrash();});
 
         makeTrashDroppable( $(".trash") ) ;
+
         $( ".palette" ).draggable({
             helper:"clone" ,
             revert: true ,
             revertDuration: 500,
             opacity: 0.5, 
+            scroll: true,
+            scrollSpeed: 10,
+            cursorAt: {left:20, top:20},
+            appendTo:"#container",
             start : function(event, ui){
                 console.log( ">> Drag handler for things in pallette" ) ;
                 ui.helper.animate({
@@ -107,9 +65,7 @@ module editing {
                 dragKind = DragEnum.PALLETTE ;
                 draggedObject = $(this).attr("class");
                 console.log( "<< Drag handler for things in pallette" ) ;
-            },
-            cursorAt: {left:20, top:20},
-            appendTo:"body"
+            }
         });
 
     }
@@ -149,8 +105,6 @@ module editing {
             refreshTheTrash( ) ; 
             makeTrashDroppable( dialogDiv ) ;
         }
-        
-        // Make a dialog
 	}
 
     function refreshTheTrash() {
@@ -198,15 +152,15 @@ module editing {
                 console.log(">> Dropping into trash" );
                 if( dragKind != DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   JQuery is " + ui.draggable.toString()  );
-                const selectionToDelete = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
-                console.log("   Dropping selection. " + selectionToDelete.toString() );
-                var opt = treeMgr.delete( selectionToDelete );
+                const optSelectionToDelete : Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
+                console.log("   Dropping selection. " + optSelectionToDelete.toString() );
+                var opt = optSelectionToDelete.bind( selectionToDelete => treeMgr.delete( selectionToDelete ) ) ;
                 assert.check( opt !== undefined ) ;
                 opt.map(
                     sel => {
                         console.log("   Dropping into trash a" );
                         console.log("   New selection is. " + sel.toString() );
-                        addToTrash( selectionToDelete ) ;
+                        addToTrash( optSelectionToDelete.first() ) ;
                         update( sel ) ;
                         console.log("   Dropping into trash b" );
                         console.log("   Dropping into trash c" );
@@ -265,60 +219,59 @@ module editing {
                 console.log( "dragKind is " + dragKind ) ;
                 console.log( "draggedObject is " + draggedObject ) ;
                 console.log( "draggedSelection is " + draggedSelection ) ;
-                const dropTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-                console.log("  on current selection " + dropTarget.toString() ) ;
+                const optDropTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                console.log("  on current selection " + optDropTarget.toString() ) ;
                 // Case: Dragged object is dropped on a node or drop zone of the current tree.
-                if (  dragKind == DragEnum.CURRENT_TREE )
-                {
-                    console.log("  First case" ) ;
-                    const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
-                    console.log("  Back from moveCopySwapEditList" ) ;
-                    // Pick the first action that succeeded, if any
-                    if(  selectionArray.length > 0 ) {
-                            // Do the first action.
-                            console.log("  Doing a " + selectionArray[0][0] ) ;
-                            update( selectionArray[0][2] ) ;
-                            console.log("  HTML generated" ) ;
-                            showAlternativesDialog(selectionArray);
+                optDropTarget.map( dropTarget => {
+                    if (  dragKind == DragEnum.CURRENT_TREE )
+                    {
+                        console.log("  First case" ) ;
+                        const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
+                        console.log("  Back from moveCopySwapEditList" ) ;
+                        // Pick the first action that succeeded, if any
+                        if(  selectionArray.length > 0 ) {
+                                // Do the first action.
+                                console.log("  Doing a " + selectionArray[0][0] ) ;
+                                update( selectionArray[0][2] ) ;
+                                console.log("  HTML generated" ) ;
+                                showAlternativesDialog(selectionArray);
+                        }
                     }
-                }
-                else if( dragKind == DragEnum.TRASH ) 
-                {
-                    console.log("  Second case. (Drag from trash)." ) ;
-                    console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
-                    var opt = treeMgr.copy( draggedSelection, dropTarget ) ;
-                    console.log("  opt is " + opt ) ;
-                    assert.check( opt !== undefined ) ;
-                    opt.map(
-                        sel => {
-                            console.log("  Insertion is possible." ) ;
-                            update( sel ) ;
-                            console.log("  HTML generated" ) ;
-                        } );
-                }
-                else if( dragKind == DragEnum.PALLETTE ) 
-                {
-                    console.log("  Third case." ) ;
-                    console.log("  " + ui.draggable.attr("id"));
-                    // Add create a new node and use it to replace the current selection.
-                    var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
-                    console.log("  selection is " + selection );
-                    assert.check( selection !== undefined ) ;
-                    selection.map(
-                        sel => {
-                            console.log("  createNode is possible." ) ;
-                            update( sel ) ;
-                            console.log("  HTML generated" ) ;
-                        } );
-                } else {
-                    assert.check( false, "Drop without a drag.") ;
-                }
+                    else if( dragKind == DragEnum.TRASH ) 
+                    {
+                        console.log("  Second case. (Drag from trash)." ) ;
+                        console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
+                        var opt = treeMgr.copy( draggedSelection, dropTarget ) ;
+                        console.log("  opt is " + opt ) ;
+                        assert.check( opt !== undefined ) ;
+                        opt.map(
+                            sel => {
+                                console.log("  Insertion is possible." ) ;
+                                update( sel ) ;
+                                console.log("  HTML generated" ) ;
+                            } );
+                    }
+                    else if( dragKind == DragEnum.PALLETTE ) 
+                    {
+                        console.log("  Third case." ) ;
+                        console.log("  " + ui.draggable.attr("id"));
+                        // Add create a new node and use it to replace the current selection.
+                        var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
+                        console.log("  selection is " + selection );
+                        assert.check( selection !== undefined ) ;
+                        selection.map(
+                            sel => {
+                                console.log("  createNode is possible." ) ;
+                                update( sel ) ;
+                                console.log("  HTML generated" ) ;
+                            } );
+                    } else {
+                        assert.check( false, "Drop without a drag.") ;
+                    } } ) ;
                 console.log("<< Leaving drop handler" ) ;
             }
         });
 
-        // Handle Returns on input items.
-        $("#container .input").keyup(keyUpHandler);
 
         // Handle drags
         $("#container .canDrag").draggable({
@@ -328,57 +281,152 @@ module editing {
             opacity: 0.5, 
             start: function(event,ui){
                 console.log( ">> Drag handler for things in or in the trash" ) ;   
-                // TODO Check that we are in the main tree. 
-                dragKind = DragEnum.CURRENT_TREE ;            
-                draggedObject = undefined ;
-                draggedSelection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this));
+                const optDraggedSelection : Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this));
+                optDraggedSelection.map( ds => {
+                    dragKind = DragEnum.CURRENT_TREE ;            
+                    draggedObject = undefined ;
+                    draggedSelection = ds ; } ) ;
                 console.log( "<< Drag handler for things in tree" ) ;     
             }
         });
 
-        // Single clicks on the view should change the current selection.
-        $("#container .selectable").click( function(evt) {
-            console.log( ">> Click Handler") ;
-            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-            update( clickTarget ) ;
-            console.log( "<< Click Handler") ;
-        } );
-
-        // Handle double clicks on vars etc.
-        // TODO Resolve conflict between single clicks and double clicks.
-        // Or maybe find a way not to use double clicks.
-        $("#container .click").dblclick(function(evt){
-            console.log( ">> Double Click Handler") ;
-            const clickTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-            const edit = new pnodeEdits.OpenLabelEdit() ;
-            const opt = edit.applyEdit( clickTarget ) ;
-            opt.map( (sel : Selection) => update( sel ) ) ;
-
-            $("#container .input").keyup(keyUpHandler);
-            console.log( "<< Double Click Handler") ;
-        });
-
         // Set focus to any elements of class "input" in the tree
-        $("#container .input").focus();
+        const inputs : JQuery = $("#container .input")
+        if( inputs.length > 0 ) {
+            inputs.focus(); // Set the focus to the first item in inputs
+            inputs.keyup(keyUpHandlerForInputs); 
+            inputs.blur( updateLabelHandler ) ;
+            $(document).off( "keydown" ) ;
+            // TODO Scroll the container so that the element in focus is visible.
+        } else {
+            $(document).off( "keydown" ) ;
+            $(document).keydown( keyDownHandler ) ;
+
+            // Single clicks on the view should change the current selection.
+            $("#container .selectable").click( function(evt) {
+                console.log( ">> Click Handler") ;
+                const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                optClickTarget.map( clickTarget => update( clickTarget ) ) ;
+                evt.stopPropagation(); 
+                console.log( "<< Click Handler") ;
+            } );
+
+            // TODO Rather than double click, perhaps a click on a selected
+            // node should open it.
+            $("#container .click").dblclick(function(evt){
+                console.log( ">> Double Click Handler") ;
+                const optClickTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                optClickTarget.map( clickTarget => {
+                    const edit = new pnodeEdits.OpenLabelEdit() ;
+                    const opt = edit.applyEdit( clickTarget ) ;
+                    opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
+                evt.stopPropagation(); 
+                console.log( "<< Double Click Handler") ;
+            });
+        }
     }
 
-    const keyUpHandler = function (e) {
+    
+    const updateLabelHandler = function (e) {
+            console.log( ">>updateLabelHandler")
+            const text = $(this).val();
+            const optLocationOfTarget : Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
+            console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
+            const opt = optLocationOfTarget.bind( locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
+            console.log( "  opt is " + opt) ;
+            opt.map( sel => update(sel) );
+            console.log( "<< updateLabelHandler") ; } ;
+
+    const keyUpHandlerForInputs = function (e) {
             if (e.keyCode == 13) {
-                console.log( ">>keyup handler")
-                const text = $(this).val();
-                const locationOfTarget : Selection = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
-                console.log( "  locationOfTarget is " + locationOfTarget ) ;
-                const opt = treeMgr.changeNodeString( locationOfTarget, text );
-                console.log( "  opt is " + opt) ;
-                opt.map( sel => update(sel) );
+                console.log( ">>keyup handler") ;
+                updateLabelHandler.call( this, e ) ;
                 console.log( "<< keyup handler") ;
             } } ;
+
+    const keyDownHandler =  function(e) { 
+            console.log( ">>keydown handler") ;
+            // Cut: Control X, command X, delete, backspace, etc.
+            if ((e.ctrlKey || e.metaKey) && e.which == 88 || e.which == 8 || e.which == 46 ) 
+            {
+                const opt = treeMgr.delete( currentSelection ) ;
+                opt.map( (sel : Selection) => {
+                    addToTrash(currentSelection) ;
+                    update( sel ) ;
+                } ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Copy: Cntl-X or Cmd-X
+            else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
+            {
+                addToTrash(currentSelection);
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Paste: Cntl-V or Cmd-V
+            else if ((e.ctrlKey || e.metaKey) && e.which == 86) 
+            {
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Swap: Cntl-B or Cmd-B
+            else if ((e.ctrlKey || e.metaKey) && e.which == 66) 
+            {
+            
+                getFromTrash().map( (src : Selection) =>
+                     treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Select all: Cntl-A or Cmd-A
+            else if ((e.ctrlKey || e.metaKey) && e.which == 65) 
+            {
+                treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which == 38) // up arrow
+            {
+                treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which == 40) // down arrow
+            {
+                treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which == 37) // left arrow
+            {
+                treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }            
+            else if (e.which == 39) // right arrow
+            {
+                treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            console.log( "<<keydown handler") ;
+    };
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
             currentSelection = sel ;
             redostack.length = 0 ;
-            generateHTML();
+            generateHTMLSoon();
     }
 
     export function getCurrentSelection() : Selection {
@@ -389,7 +437,7 @@ module editing {
         if (undostack.length != 0)  {
             redostack.push(currentSelection);
             currentSelection = undostack.pop();
-            generateHTML();
+            generateHTMLSoon();
         }
     }
 
@@ -397,15 +445,15 @@ module editing {
         if (redostack.length != 0) {
             undostack.push(currentSelection);
             currentSelection = redostack.pop();
-            generateHTML();
+            generateHTMLSoon();
         }
     }
 
-    // var pendingAction = null ;
-    // function updateSoon( sel : Selection ) : void {
-    //     if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
-    //     pendingAction = window.setTimeout( function() { update(sel); }, 500) ;
-    // }
+    var pendingAction = null ;
+    function generateHTMLSoon( ) : void {
+        if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
+        pendingAction = window.setTimeout( function() { generateHTML() }, 20) ;
+    }
 
 
 }

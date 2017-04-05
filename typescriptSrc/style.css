@@ -9,7 +9,6 @@
 }
 .plaay {
     color:rgb(244, 140, 0) ;
-    background-color:black ;
 }
 
 .canv
@@ -40,6 +39,7 @@ div {
     padding-right: 2px ;
     padding-top: 2px ;
     padding-bottom: 2px ;
+    border-radius: 5px;
 }
 
 .H {
@@ -76,15 +76,6 @@ div {
     align-items: flex-start ;
 }
 
-div.undo
-{
-    width:40px;
-    bottom:4px; left: 0px;
-    height:calc(4%);
-    background-color: darkred;
-    position:fixed;
-}
-
 .dropdown
 {
     display:none;
@@ -93,14 +84,125 @@ div.undo
     position: relative;
 }
 
-div.redo
+html, body
 {
-    width:40px;
-    bottom:4px; left: 50px;
-    height:calc(4%);
-    background-color: darkred;
-    position:fixed;
+    background-color: #727272;
 }
+
+#upperArea
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 5%;
+    width: 95%;
+    margin: .3em 2% .3em 2%;
+    color: #2a0f44;
+    font-weight: bold;
+    line-height: 1.7em;
+    font-size: 1.2em;
+    background-color: #727272;
+}
+
+#bannerArea
+{
+    position:absolute;
+    left:0;
+    width: 37em;
+    background-color: #cccccc;
+}
+
+#userBar
+{
+    position:absolute;
+    right:0;
+    width: 10em;
+    padding: 0 .5em 0 .5em;
+    text-align: right;
+    float: right;
+    background-color: #cccccc;
+}
+
+#contentArea
+{
+    position:absolute;
+    bottom:0;
+    left:0;
+    height: 89%;
+    width: 95%;
+    margin: 0 2% 1% 2%;
+    background-color: #cccccc;
+}
+
+#leftSideArea
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 98%;
+    width: 6em;
+    margin: .4%;
+    background-color: #262626;
+}
+
+#container
+{
+    position:absolute;
+    top:0;
+    bottom:0;
+    right:0;
+    left: 6.8em;
+    height:98%;
+    margin: .4%;
+    overflow: scroll;
+    background-color:#262626;
+}
+
+#sidebar
+{
+    position:absolute;
+    height:19em;
+    width:5.4em;
+    left:0;
+    margin: .5em .3em .5em .3em;
+    background-color:#a3a3a3;
+}
+
+#buttonArea
+{
+    position:absolute;
+    max-height: 13em;
+    width:5.4em;
+    bottom:0;
+    left:0;
+    margin: 5em 5% 5% 5%;
+    background-color:#a3a3a3;
+}
+
+.leftSideButton
+{
+    height: 30;
+    width: 75px;
+    margin-top: 3px;
+}
+
+.buildingBlockButton 
+{
+    text-align: center;
+    line-height: 30px;
+    font-weight: bold;
+    background-color: black;
+    box-shadow: 0px 0px 3px;
+    color: rgb(190, 133, 197);
+}
+
+#play { background-color: #05440a;}
+#turtle { background-color: orange; height: 40px;}
+#undo { background-color: orangered;}
+#redo { background-color: mediumorchid;}
+#trash { background-color: darkred;}
+
+
 
 div.advance
 {
@@ -129,24 +231,6 @@ div.run
     position:absolute;
 }
 
-div.trash
-{
-    width: 50px;
-    height: calc(10%);
-    background-color: grey;
-    position:fixed;
-    bottom:4px; left: 100px;
-}
-
-div.turtle
-{
-    width: 50px;
-    height: calc(5%);
-    background-color: darkgreen;
-    position:fixed;
-    bottom:100px; left: 100px;
-}
-
 div.quitworld
 {
     width: 50px;
@@ -154,16 +238,6 @@ div.quitworld
     background-color: darkgreen;
     position:fixed;
     bottom:100px; left: 100px;
-}
-
-
-div.play
-{
-    width:90px;
-    height:calc(5%);
-    background-color:green;
-    position:fixed;
-    bottom:50px; left: 0px;
 }
 
 div.edit
@@ -175,16 +249,6 @@ div.edit
     bottom:50px; left: 0px;
 }
 
-div.sidebar
-{
-    position:fixed;
-    top:22px; bottom:0px; left:4px;
-    width:150px;
-    height:calc(80% - 8px);
-    background-color:grey;
-    overflow:auto;
-}
-
 div.stack
 {
     position:fixed;
@@ -193,36 +257,6 @@ div.stack
     width:150px;
     background-color:grey;
     overflow:auto;
-}
-
-div.container
-{
-    display:block;
-    position:absolute;
-    top:20px;
-    bottom:0;
-    left:0;
-    right:0;
-    height:auto;
-    margin-top:4px;
-    margin-bottom:4px;
-    margin-right:4px;
-    margin-left:159px;
-    background-color:black;
-}
-
-div.userOptions {
-    float:right;
-    color:black;
-}
-
-div.userBar {
-    position:absolute;
-    top:0;
-    left:0;
-    height:20px;
-    width:100%;
-    background-color:whitesmoke;
 }
 
 div.closewindow {
@@ -282,18 +316,6 @@ div.vms
     margin-right:4px;
     margin-left:159px;
     background-color:black;
-}
-
-div.block {
-    height: 20px;
-    width: 50px;
-    float: left;
-    border: 2px solid;
-    background-color: black;
-    margin-right: 5px;
-    border-radius: 10px;
-    box-shadow: 0px 0px 3px;
-    color: rgb(190, 133, 197);
 }
 
 /*actual visualization*/
@@ -442,20 +464,19 @@ div.dropZone {
 }
 
 div.dropZone:hover {
-    background-color: lightgray  ;
+    border: 1px solid white;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
 div.dropZoneSmall {
     margin: 0px 0px 0px 0px ;
     min-height: 2ex ;
-    min-width: 0.5ex ;
+    min-width: 1ex ;
     border-radius: 5px ;
 }
 
 div.dropZoneSmall:hover {
-    background-color: lightgray  ;
-    min-width: 2ex ;
+    border: 1px solid white;
 }
 
 div.placeHolder {
@@ -487,6 +508,8 @@ div.hCont, div.var, div.assign {
     border-radius: 5px ;
     font-weight: normal ;
     font-size: medium ;
+    min-width: 1ex ;
+    min-height: 1em ;
     color: rgb(244, 140, 0) ; /* Orange */
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
@@ -532,26 +555,30 @@ div.type {
     font-weight: normal ;
     font-size: medium ;
     color:  #999 ;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 div.call {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
-    background-color:rgb(0,0,0);
     color:rgb(190, 133, 197) ; /* Mauve */
     font-family:"Times New Roman",Times,serif;
     font-weight:bold;
     font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 div.callWorld {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
-    background-color:rgb(0,0,0);
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family:"Times New Roman",Times,serif;
+    font-family : "Times New Roman", Times,serif;
     font-weight:bold;
     font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 
@@ -562,9 +589,24 @@ div.stringLiteral{
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
+    min-width: 1ex ;
+    min-height: 1em ;
     max-width: 200px ;
     white-space: pre-wrap ;
     word-wrap: break-word ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.nullLiteral {
+    border:thin solid rgb(135,206,250);
+    border-radius: 5px ;
+    font-size: x-large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(255,255,255);
+    vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
@@ -579,20 +621,6 @@ div.inmap{
     max-width: 200px ;
     white-space: pre-wrap ;
     word-wrap: break-word ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
-
-div.nullLiteral {
-    border:thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-size: x-large ;
-    font-family:"Lucida Console", Monospace;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(255,255,255);
-    vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }

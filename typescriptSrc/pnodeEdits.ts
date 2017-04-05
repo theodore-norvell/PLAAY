@@ -17,6 +17,10 @@ module pnodeEdits {
     import Some = collections.Some;
     import List = collections.List ;
     import cons = collections.cons ;
+    import snoc = collections.snoc;
+    import last = collections.last;
+    import some = collections.some;
+    import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
     import Edit = edits.Edit ;
@@ -114,11 +118,108 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Move left. */
+    function moveLeft( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        if (start == end)
+        {
+            //there is node at start-1
+            if(start > 0)
+            {
+                let newPath : List<number> = snoc(path, start-1);
+                let numOfChildren : number = root.get(newPath).count();
+                return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
+            }
+            //the path is empty
+            else if (path.isEmpty())
+            {
+                return collections.none<Selection>();
+            }
+            //the parent of this position has no children
+            else if(root.get(path).count() == 0)
+            {
+                return some( new Selection(root, butLast(path), last(path), last(path)+1));
+            }
+            else 
+            {
+                //return a selection representing the position to the left of the parent
+                return some( new Selection(root, butLast(path), last(path), last(path)));
+            }
+        }      
+        else
+        {
+            //return a selection representing the position to the left of the leftmost selected node
+            return some( new Selection(root, path, start, start));
+        } 
+    }
+
+    /** Move right. */
+    function moveRight( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        if (start == end)
+        {
+            //there is node at start
+            if(root.get(path).count() > start)
+            {
+                return some( new Selection(root, snoc(path, start), 0, 0));
+            }
+            //the path is empty
+            else if (path.isEmpty())
+            {
+                return collections.none<Selection>();
+            }
+            //the parent of this position has no children
+            else if(root.get(path).count() == 0)
+            {
+                return some( new Selection(root, butLast(path), last(path), last(path)+1));
+            }
+            else 
+            {
+                //return a selection representing the position to the right of the parent
+                return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
+            }
+        }      
+        else
+        {
+            //return a selection representing the position to the right of the rightmost selected node
+            return some( new Selection(root, path, end, end));
+        }
+    }
+
+    /** Move up. */
+    function moveUp( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        assert.check(false, "TODO: moveUp()");
+        return null;
+    }
+
+    /** Move down. */
+    function moveDown( selection : Selection ) : Option<Selection> {
+        let start = selection.start() ;
+        let end = selection.end() ;
+        let root = selection.root();
+        let path = selection.path();
+
+        assert.check(false, "TODO: moveDown()");
+        return null;
+    }
+
     /** Replace all selected nodes with another set of nodes. */
     function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
-        let start = selection.anchor() ;
-        let end = selection.focus() ;
-        if( end < start ) { const t = start ; start = end ; end = t ; }
+        let start = selection.start() ;
+        let end = selection.end() ;
         return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
     }
     
@@ -503,6 +604,97 @@ module pnodeEdits {
             return doubleReplace( this._srcSelection, newNodes4Src, trgSelection, newNodes4Trg, false, false ) ;
         }
     }
+
+    /** Is this a suitable selection to stop at for the left and right arrow keys.
+     * 
+    */
+    function leftRightSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if( end - start == 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end == start ) {
+            const node = sel.root().get( sel.path() ) ;
+            return node.hasDropZonesAt( start ) ;
+        } else {
+            assert.check( false ) ; return false ; 
+        }
+    }
+
+    /** Is this a suitable selection to stop at for the up and down arrow keys.
+     * 
+    */
+    function upDownSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the up or down.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        assert.check(false, "TODO: upDownSuitable()");
+    }
+    /** 
+     * Left edit
+     */
+    export class LeftEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveLeft( selection ) ;
+            while( ! leftRightSuitable(opt) ) opt = moveLeft( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Right edit
+     */
+    export class RightEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveRight( selection ) ;
+            while( ! leftRightSuitable(opt) ) opt = moveRight( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Up edit
+     */
+    export class UpEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveUp( selection ) ;
+            while( ! upDownSuitable(opt) ) opt = moveUp( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Down edit
+     */
+    export class DownEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveDown( selection ) ;
+            while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
+            return opt ;
+        }
+    }
+
 }
 
 export = pnodeEdits ;
