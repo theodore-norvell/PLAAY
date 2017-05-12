@@ -1,4 +1,7 @@
 
+/// <reference path="jquery.d.ts" />
+/// <reference path="jqueryui.d.ts" />
+
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
