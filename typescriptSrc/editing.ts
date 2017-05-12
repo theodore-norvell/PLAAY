@@ -1,4 +1,7 @@
 
+/// <reference path="jquery.d.ts" />
+/// <reference path="jqueryui.d.ts" />
+
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
@@ -51,6 +54,10 @@ module editing {
             revert: true ,
             revertDuration: 500,
             opacity: 0.5, 
+            scroll: true,
+            scrollSpeed: 10,
+            cursorAt: {left:20, top:20},
+            appendTo:"#container",
             start : function(event, ui){
                 console.log( ">> Drag handler for things in pallette" ) ;
                 ui.helper.animate({
@@ -60,9 +67,7 @@ module editing {
                 dragKind = DragEnum.PALLETTE ;
                 draggedObject = $(this).attr("class");
                 console.log( "<< Drag handler for things in pallette" ) ;
-            },
-            cursorAt: {left:20, top:20},
-            appendTo:"body"
+            }
         });
 
     }
@@ -102,8 +107,6 @@ module editing {
             refreshTheTrash( ) ; 
             makeTrashDroppable( dialogDiv ) ;
         }
-        
-        // Make a dialog
 	}
 
     function refreshTheTrash() {

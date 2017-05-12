@@ -154,7 +154,7 @@ html, body
     left: 6.8em;
     height:98%;
     margin: .4%;
-    overflow: auto;
+    overflow: scroll;
     background-color:#262626;
 }
 
@@ -508,6 +508,8 @@ div.hCont, div.var, div.assign {
     border-radius: 5px ;
     font-weight: normal ;
     font-size: medium ;
+    min-width: 1ex ;
+    min-height: 1em ;
     color: rgb(244, 140, 0) ; /* Orange */
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
@@ -553,6 +555,8 @@ div.type {
     font-weight: normal ;
     font-size: medium ;
     color:  #999 ;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 div.call {
@@ -562,15 +566,19 @@ div.call {
     font-family:"Times New Roman",Times,serif;
     font-weight:bold;
     font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 div.callWorld {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
-    border-radius: 5px ;\
+    border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family:"Times New Roman",Times,serif;
+    font-family : "Times New Roman", Times,serif;
     font-weight:bold;
     font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
 }
 
 
@@ -581,9 +589,24 @@ div.stringLiteral{
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
+    min-width: 1ex ;
+    min-height: 1em ;
     max-width: 200px ;
     white-space: pre-wrap ;
     word-wrap: break-word ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.nullLiteral {
+    border:thin solid rgb(135,206,250);
+    border-radius: 5px ;
+    font-size: x-large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(255,255,255);
+    vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
@@ -598,20 +621,6 @@ div.inmap{
     max-width: 200px ;
     white-space: pre-wrap ;
     word-wrap: break-word ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
-
-div.nullLiteral {
-    border:thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-size: x-large ;
-    font-family:"Lucida Console", Monospace;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(255,255,255);
-    vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
