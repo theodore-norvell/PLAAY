@@ -46,10 +46,9 @@ module editing {
 
         $("#undo").click( function()  { undo() ; } );
         $("#redo").click(function() { redo() ; } ) ;
-		$(".trash").click(function() {toggleTrash();});
+		$("#trash").click(function() {toggleTrash();});
 
-        makeTrashDroppable( $(".trash") ) ;
-
+        makeTrashDroppable( $("#trash") ) ;
         $( ".palette" ).draggable({
             helper:"clone" ,
             revert: true ,
