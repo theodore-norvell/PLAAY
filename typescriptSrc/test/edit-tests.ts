@@ -244,9 +244,9 @@ describe( 'pnodeEdits.DeleteEdit', () => {
 
 } ) ;
 
-describe( 'pnodeEdits.CopyEdit', () => {
+describe( 'pnodeEdits.CopyEdit', function() : void {
 
-    it( 'should copy a single node', () => {
+    it( 'should copy a single node', function() : void {
         // Select the the second child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 1, 2 ) ;

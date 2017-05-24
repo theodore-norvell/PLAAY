@@ -1,5 +1,6 @@
-/// <reference path="collections.ts" />
 /// <reference path="jquery.d.ts" />
+
+/// <reference path="collections.ts" />
 
 import collections = require( './collections' );
 
