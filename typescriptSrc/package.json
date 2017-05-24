@@ -4,9 +4,9 @@
   "description": "The plaay web IDE.",
   "main": "mkHTML.js",
   "scripts": {
-    "pretest" : "tsc *.ts test/*.ts --module commonjs",
+    "pretest" : "tsc",
     "test": "mocha",
-    "preinstall": "tsc && browserify --debug -o out.js -s mkHTML mkHTML.js",
+    "preinstall": "tsc && browserify --debug -o plaay.js -s mkHTML mkHTML.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ ."
   },
   "author": "",
