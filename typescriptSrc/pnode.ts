@@ -288,11 +288,13 @@ module pnode {
         return PNode.fromJSON( json ) ; }
 
     function fromJSONToLabel( json : any ) : Label {
-         var labelClass = pnode[json.kind] ; // This line relies on
+        assert.check( json.kind != undefined );
+        assert.check( typeof( json.kind ) === "string" );
+         var labelClass : LabelMaker = registry[json.kind] ; // This line relies on
              //  (a) the json.kind field being the name of the concrete label class.
-             //  (b) that all the concrete label classes are exported from the pnode module.
+             //  (b) that all the concrete label classes have been resistered.
          assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
-         var  fromJSON : (json : any) => Label = labelClass["fromJSON"] ; //
+         var  fromJSON : (json : any) => Label = labelClass.fromJSON ; //
          assert.check( fromJSON !== undefined ) // check that fromJSON is not undefined
          return fromJSON( json ) ;
          // If the code above doesn't work, then make a big ugly switch like this:
@@ -302,6 +304,14 @@ module pnode {
              // default : assert.check(false ) ;
          // }
     }
+
+    interface LabelMaker {
+        fromJSON : (json : any) => Label ;
+    }
+
+    interface Registry { [key:string] : LabelMaker }
+    
+    export const registry : Registry = {} ;
 }
 
 export = pnode ;

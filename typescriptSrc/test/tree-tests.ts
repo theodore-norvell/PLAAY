@@ -66,7 +66,14 @@ describe( 'pnode.fromPNodeToJSON', () => {
 
     it( 'should convert a node to a JSON string', () => {
         string0 = pnode.fromPNodeToJSON( ite0 ) ;
-        assert.check( string0 == '{"label":{"kind":"IfLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"a"},"children":[]},{"label":{"kind":"ExprSeqLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"a"},"children":[]},{"label":{"kind":"StringLiteralLabel","val":"b"},"children":[]}]},{"label":{"kind":"ExprSeqLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"c"},"children":[]}]}]}' ) ;
+        assert.checkEqual('{"label":{"kind":"IfLabel"},'+
+                           '"children":[{"label":{"kind":"StringLiteralLabel","val":"a","open":true},"children":[]},'+
+                                       '{"label":{"kind":"ExprSeqLabel"},'+
+                                                  '"children":[{"label":{"kind":"StringLiteralLabel","val":"a","open":true},"children":[]},'+
+                                                              '{"label":{"kind":"StringLiteralLabel","val":"b","open":true},"children":[]}]},'+
+                                       '{"label":{"kind":"ExprSeqLabel"},'+
+                                        '"children":[{"label":{"kind":"StringLiteralLabel","val":"c","open":true},"children":[]}]}]}',
+                          string0);
         console.log( string0 ) ; } ) ; } ) ;
 
 describe( 'pnode.fromJSONToPNode', () => {

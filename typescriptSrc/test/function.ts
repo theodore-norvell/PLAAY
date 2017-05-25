@@ -16,6 +16,7 @@ import pnode = require( '../pnode' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
+
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
@@ -25,81 +26,84 @@ import VarStack = vms.VarStack;
 import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
+import PNode = pnode.PNode ;
 
-var wld = new World();
-var wlds : Array<ObjectV> = new Array();
+const wld = new World();
+const wlds : Array<ObjectV> = new Array();
 wlds.push(wld);
-var a : pnode.PNode = labels.mkVar("a");
-var b : pnode.PNode = labels.mkVar("b");
-var c : pnode.PNode = labels.mkVar("c");
+const interp = interpreter.getInterpreter() ;
+const a : pnode.PNode = labels.mkVar("a");
+const b : pnode.PNode = labels.mkVar("b");
 
+const str0 = labels.mkStringLiteral( "hello" ) ;
+const str1 = labels.mkStringLiteral( "world" ) ;
 
-var str = new valueTypes.StringV("3");
-var str2 = new valueTypes.StringV("2");
-var f : Field = new Field(a.label().getVal(), str, Type.ANY , false);//a=3
-var f2 : Field = new Field(b.label().getVal(), str2, Type.ANY , false);//b=2
-var cw : pnode.PNode = labels.mkWorldCall(a, b);
-cw.label().changeString("F");
+// Make a Lambda node: lambda( paramList( decl(var[a], noType, noExpNode ),
+//                                        decl(var[b], noType, noExpNode ) ),
+//                             noType,
+//                             exprSeq( var[a] ) ) 
+const noExp = labels.mkNoExpNd() ;
+const t : pnode.PNode = labels.mkNoTypeNd();
+const decl_a : PNode = labels.mkVarDecl(a, t, noExp ) ;
+const decl_b : PNode = labels.mkVarDecl(b, t, noExp ) ;
+const param : PNode = labels.mkParameterList( [decl_a, decl_b] ) ;
+const body0 : pnode.PNode = labels.mkExprSeq([a]);
+const lambda0 : pnode.PNode = labels.mkLambda( param, t, body0);
 
-var t : pnode.PNode = labels.mkNoTypeNd();
-var body : pnode.PNode = labels.mkExprSeq([c]);
+// Make a Lambda node: lambda( paramList( decl(var[a], noType, noExpNode ),
+//                                        decl(var[b], noType, noExpNode ) ),
+//                             noType,
+//                             exprSeq(var[b]) )  <--- This time it's b
 
+const body1 : pnode.PNode = labels.mkExprSeq([b]) ;
+const lambda1 : pnode.PNode = labels.mkLambda( param, t, body0) ;
 
+describe( 'Lambda', function() {
+    // Here we evaluate a Lamdba expression to get a closure value
+    const vm = new VMS( lambda0, wlds, interp ) ;
 
-var param : pnode.PNode = labels.mkExprSeq([a,b]); // TODO: The type here is wrong.
-var lamb : pnode.PNode = labels.mkLambda("F", param, t, body);
-
-var s : pnode.PNode = labels.mkExprSeq([a,b,lamb, cw]);
-const interp : vms.Interpreter = interpreter.getInterpreter() ;
-var vm : VMS = new VMS(s, wlds, interp);//eval created and pushed on VMS stack
-vm.getEval().setPending([2]);
-
-
-
-describe( 'Lambda', () => {
-    it('Should be selected', () => {
+    it('Should be selected', function() {
         vm.advance() ;
         assert.check(vm.getEval().ready);
     } );
 
-    it('Should step', () => {
-        // TODO The next line fails because of mutual requiring between modules pnode and value.
+    it('Should step', function() {
         vm.advance() ;
     } );
 
-    it('Should have a closure value in stack when stepped', () => {
-        let val : vms.Value = vm.getEval().getValMap().get([2]) ;
+    it('Should have a closure value in stack when stepped', function() {
+        const val : vms.Value = vm.getEval().getValMap().get( [] ) ;
         assert.check( val.isClosureV() ) ;
         let close : ClosureV = <ClosureV> val ;
         assert.check(close.isClosureV());
         assert.check(close.getContext() == vm.getEval().getStack());
-        assert.check(close.getLambdaNode() == lamb);
+        assert.check(close.getLambdaNode() == lambda0);
     } );
-
-
 } ) ;
 
-describe( 'Call', () => {
-    it('Should be selected', () => {
-        vm.getEval().getValMap().put([3,0], new StringV("3"));//throw children in varmap
-        vm.getEval().getValMap().put([3,1], new StringV("2"));
+describe( 'Call', function() {
+    // Here we evaluate a Lamdba expression to get a closure value.
+    // Then we call it with couple of strings.
+    
+    function doTest( lambda : PNode, expectedResult : string ) {
+        const call = labels.mkCall( lambda, str0, str1 ) ;
+        const vm = new VMS( call, wlds, interp ) ;
+        let timeOut = 1000 ;
+        for( ; timeOut > 0 && ! vm.evalStack.top().isDone() ; timeOut -= 1 ) {
+            vm.advance() ; }
+        assert.check( timeOut > 0 ) ;
+        const val : vms.Value = vm.evalStack.top().getValMap().get( [] ) ;
+        assert.check( val instanceof valueTypes.StringV ) ;
+        const stringVal = <valueTypes.StringV> val ;
+        assert.check( stringVal.getVal() === expectedResult ) ;
+    }
 
-        vm.getEval().setPending([3]);//set pending to cw node
-        vm.advance() ;
-        assert.check(vm.getEval().ready);
+    it('Should return its first argument', function() {
+        doTest( lambda0, str0.label().getVal() ) ;
     } );
 
-    it('Should step', () => {
-        vm.advance() ;
-
-      //  assert.check();
+    it('Should return its second argument', function() {
+        doTest( lambda1, str1.label().getVal() ) ;
     } );
-
-    it('', () => {
-        /*     var xField = vm.evalu.getStack().getField("F");
-         var close = xField.value.
-         assert.check(close);*/
-    } );
-
 
 } ) ;

@@ -107,8 +107,8 @@ module labels {
 
         public static fromJSON( json : any ) : ExprSeqLabel {
             return ExprSeqLabel.theExprSeqLabel ; }
- 
     }
+    pnode.registry["ExprSeqLabel"] = ExprSeqLabel ;
 
     /** A parameter list.  */
     export class ParameterListLabel  extends AbstractLabel{
@@ -143,6 +143,7 @@ module labels {
             return ParameterListLabel.theParameterListLabel ; }
 
     }
+    pnode.registry["ParameterListLabel"] = ParameterListLabel ;
 
     /** Abstract base class for all type labels.  */
     export abstract class TypeLabel  extends AbstractLabel {
@@ -217,6 +218,7 @@ module labels {
         public static fromJSON( json : any ) : VariableLabel {
             return new VariableLabel( json.name, json.open ) ; }
     }
+    pnode.registry["VariableLabel"] = VariableLabel ;
 
     /** Variable declaration nodes. */
     export class VarDeclLabel extends ExprLabel {
@@ -250,6 +252,7 @@ module labels {
             return new VarDeclLabel( json._isConst ) ;
         }
     }
+    pnode.registry["VarDeclLabel"] = VarDeclLabel ;
 
     /** Assignments.  */
     export class AssignLabel extends ExprLabel {
@@ -281,6 +284,7 @@ module labels {
             return AssignLabel.theAssignLabel ;
         }
     }
+    pnode.registry["AssignLabel"] = AssignLabel ;
 
 
     /** Calls to explicitly named functions.
@@ -320,6 +324,7 @@ module labels {
     
         hasDropZonesAt(start : number): boolean { return true; }
     }
+    pnode.registry["CallWorldLabel"] = CallWorldLabel ;
 
     /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
@@ -352,6 +357,7 @@ module labels {
         isPlaceHolder() : boolean { return true; }
 
     }
+    pnode.registry["ExprPHLabel"] = ExprPHLabel ;
 
     /** This class is for optional expressions where there is no expression.
      * Not to be confused with the expression place holder ExpPHLabel which is used when an expression is manditory.
@@ -392,6 +398,7 @@ module labels {
         }
 
     }
+    pnode.registry["NoExprLabel"] = NoExprLabel ;
 
     /** Function (or method) literals. */
     export class LambdaLabel extends ExprLabel {
@@ -425,6 +432,7 @@ module labels {
             return LambdaLabel.theLambdaLabel ;
         }
     }
+    pnode.registry["LambdaLabel"] = LambdaLabel ;
 
     /** If expressions */
     export class IfLabel extends ExprLabel {
@@ -457,6 +465,7 @@ module labels {
             return IfLabel.theIfLabel ;
         }
     }
+    pnode.registry["IfLabel"] = IfLabel ;
 
     /** While loop expressions */
     export class WhileLabel extends ExprLabel {
@@ -488,8 +497,9 @@ module labels {
             return WhileLabel.theWhileLabel ;
         }
     }
+    pnode.registry["WhileLabel"] = WhileLabel ;
 
-    /** An indication that an optional type lable is not there. */
+    /** An indication that an optional type label is not there. */
     export class NoTypeLabel extends TypeLabel {
         // TODO: Should this really extend TypeLabel?
 
@@ -516,6 +526,7 @@ module labels {
 
         isPlaceHolder() : boolean { return true; }
     }
+    pnode.registry["NoTypeLabel"] = NoTypeLabel ;
 
     /** String literals. */
     export class StringLiteralLabel extends ExprLabelWithString {
@@ -545,6 +556,7 @@ module labels {
             return new StringLiteralLabel( json.val, json.open )  ;
         }
      }
+    pnode.registry["StringLiteralLabel"] = StringLiteralLabel ;
 
     /** Number literals. */
     export class NumberLiteralLabel extends ExprLabelWithString {
@@ -576,6 +588,7 @@ module labels {
             return new NumberLiteralLabel( json.val, json.open )  ;
         }
     }
+    pnode.registry["NumberLiteralLabel"] = NumberLiteralLabel ;
 
     /** Boolean literals */
     export class BooleanLiteralLabel extends ExprLabelWithString {
@@ -606,6 +619,7 @@ module labels {
             return new BooleanLiteralLabel( json.val, json.open )  ;
         }
     }
+    pnode.registry["BooleanLiteralLabel"] = BooleanLiteralLabel ;
 
     /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
@@ -626,6 +640,7 @@ module labels {
             return  NullLiteralLabel.theNullLiteralLabel ;
         }
     }
+    pnode.registry["NullLiteralLabel"] = NullLiteralLabel ;
 
     /** Call a function.  */
     export class CallLabel extends ExprLabel {
@@ -661,6 +676,7 @@ module labels {
 
         hasDropZonesAt(start : number): boolean { return true; }
     }
+    pnode.registry["CallLabel"] = CallLabel ;
 
     export function mkExprPH():PNode {
         return  make(ExprPHLabel.theExprPHLabel, []); }
@@ -711,35 +727,9 @@ module labels {
     export function mkVar( val :string) : PNode {
         return make (new VariableLabel(val, true), []) ;}
 
-    export function mkLambda( val :string, param:PNode, type:PNode, func : PNode) : PNode{
+    export function mkLambda( param:PNode, type:PNode, func : PNode) : PNode{
         return make (LambdaLabel.theLambdaLabel, [param, type, func]) ;}
-
-
-    // JSON support
-
-    export function fromPNodeToJSON( p : PNode ) : string {
-        var json = p.toJSON() ;
-        return JSON.stringify( json ) ; }
-
-    export function fromJSONToPNode( s : string ) : PNode {
-        var json = JSON.parse( s ) ;
-        return PNode.fromJSON( json ) ; }
-
-    function fromJSONToLabel( json : any ) : Label {
-         var labelClass = pnode[json.kind] ; // This line relies on
-             //  (a) the json.kind field being the name of the concrete label class.
-             //  (b) that all the concrete label classes are exported from the pnode module.
-         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
-         var  fromJSON : (json : any) => Label = labelClass["fromJSON"] ; //
-         assert.check( fromJSON !== undefined ) // check that fromJSON is not undefined
-         return fromJSON( json ) ;
-         // If the code above doesn't work, then make a big ugly switch like this:
-         // switch( json.kind ) {
-             // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
-             // // and so on.
-             // default : assert.check(false ) ;
-         // }
-    }
+        
 }
 
 export = labels ;

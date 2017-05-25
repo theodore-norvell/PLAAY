@@ -133,7 +133,7 @@ module treeManager {
             var paramList = labels.mkParameterList([]);
             var noTypeNode = labels.mkNoTypeNd() ;
             var body : PNode =labels.mkExprSeq([]);
-            var lambdanode = labels.mkLambda("", paramList, noTypeNode, body ) ;
+            var lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
             var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
             return edit.applyEdit(selection);
         }
