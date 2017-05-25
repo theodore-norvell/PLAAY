@@ -1,10 +1,12 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
+import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 
@@ -177,8 +179,7 @@ module valueTypes {
         private context : VarStack;
 
         constructor( func : PNode, context : VarStack ) {
-            console.log('LambdaLabel as JSON: %j', pnode.LambdaLabel ) ; //TODO Delete debug statement.
-            assert.check( func.label() instanceof pnode.LambdaLabel ) ;
+            assert.check( func.label() instanceof labels.LambdaLabel ) ;
             this.func = func ;
             this.context = context ;
         }

@@ -6,6 +6,7 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
+import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
@@ -446,7 +447,7 @@ module pnodeEdits {
             if(  this._newNodes.length == 0 ) {
                 // Copy of zero nodes may require backfilling.
                 return opt.recoverBy (
-                    () => singleReplace( selection, [pnode.mkExprPH()] )
+                    () => singleReplace( selection, [labels.mkExprPH()] )
                 ) ;
             } else {
                 return opt ;
@@ -467,7 +468,7 @@ module pnodeEdits {
             const opt = singleReplace( selection, [] ) ;
             // TODO add more choices for replacement, such as noType, noExp, etc.
             return opt.recoverBy(
-                () => singleReplace( selection, [pnode.mkExprPH()] )
+                () => singleReplace( selection, [labels.mkExprPH()] )
             ) ;
         }
     }
@@ -546,7 +547,7 @@ module pnodeEdits {
             if(  this._srcNodes.length == 0 ) {
                 // Copy of zero nodes may require backfilling.
                 return opt.recoverBy (
-                    () => singleReplace( selection, [pnode.mkExprPH()] )
+                    () => singleReplace( selection, [labels.mkExprPH()] )
                 ) ;
             } else {
                 return opt ;
@@ -576,7 +577,7 @@ module pnodeEdits {
             const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
             // TODO add more choices for replacement, such as noType, noExp, etc.
             return opt.recoverBy(
-                () => doubleReplace( this._srcSelection, [pnode.mkExprPH()], trgSelection, newNodes, true, false ) 
+                () => doubleReplace( this._srcSelection, [labels.mkExprPH()], trgSelection, newNodes, true, false ) 
             ) ;
         }
     }

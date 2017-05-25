@@ -22,6 +22,8 @@ digraph Depends {
    //mkHtml -> assert ;
    //mkHtml -> collections ;
 
+   labels -> pnode
+
    mkHtml -> createHtmlElements ;
    mkHtml -> editing ;
    mkHtml -> executing ;
@@ -30,13 +32,11 @@ digraph Depends {
 
    //pnode -> assert ;
    //pnode -> collections ;
-   pnode -> stackManager ;
-   pnode -> valueTypes ;
-   pnode -> vms ;
 
    //pnodeEdits -> assert ;
    //pnodeEdits -> collections ;
    pnodeEdits -> edits ;
+   pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
    sharedMkHtml -> pnode ;
@@ -45,6 +45,7 @@ digraph Depends {
    //treeManager -> asssert ;
    //treeManager -> collections ;
    treeManager -> edits ;
+   treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 

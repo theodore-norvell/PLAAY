@@ -1,32 +1,34 @@
-/// <reference path="assert.ts" />
-/// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
+/// <reference path="../assert.ts" />
+/// <reference path="../collections.ts" />
+/// <reference path="../labels.ts" />
+/// <reference path="../pnode.ts" />
+/// <reference path="../pnodeEdits.ts" />
 
-import collections = require( './collections' ) ;
-import assert = require( './assert' ) ;
-import pnode = require( './pnode' ) ;
-import pnodeEdits = require( './pnodeEdits' ) ;
+import collections = require( '../collections' ) ;
+import assert = require( '../assert' ) ;
+import labels = require( '../labels' ) ;
+import pnode = require( '../pnode' ) ;
+import pnodeEdits = require( '../pnodeEdits' ) ;
 
-var a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
+var a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
 console.log( a.toString() ) ;
 
-var b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
+var b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
 console.log( b.toString() ) ;
 
-var c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
+var c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
 console.log( c.toString() ) ;
 
-var d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
+var d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
 console.log( d.toString() ) ;
 
-var s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
+var s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
 console.log( s0.toString() ) ;
 
-var s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
+var s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
 console.log( s1.toString() ) ;
 
-var ite0 = pnode.mkIf( a, s0, s1 )  ;
+var ite0 = labels.mkIf( a, s0, s1 )  ;
 console.log( ite0.toString() ) ;
 
 // We'd like the following to fail at compile time.
@@ -34,10 +36,10 @@ console.log( ite0.toString() ) ;
 //var ite1 = pnode.mkIf( a, b, c )  ;
 //console.log( ite1.toString() ) ;
 
-var opt0 = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, s0, s1] ) ;
+var opt0 = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0, s1] ) ;
 console.log( opt0.toString() ) ;
 
-var opt1 = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, b, c] ) ;
+var opt1 = pnode.tryMake( labels.IfLabel.theIfLabel, [a, b, c] ) ;
 console.log( opt1.toString() ) ;
 
 // Try to swap the then and else parts of ite0
@@ -60,7 +62,7 @@ console.log( ite0a.toString() ) ;
 console.log( "Building a tree from the top down using edits" ) ;
 
 // 0. Start with an empty sequence.
-var t0 = pnode.mkExprSeq( [] ) ;
+var t0 = labels.mkExprSeq( [] ) ;
 console.log( "Start with a sequence with no children" ) ;
 console.log( "t0 is " + t0.toString() ) ;
 

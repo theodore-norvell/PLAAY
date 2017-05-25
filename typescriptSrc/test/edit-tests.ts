@@ -2,30 +2,32 @@
 
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
+/// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../pnodeEdits.ts" />
 
-import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
+import collections = require( '../collections' ) ;
+import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
 import pnodeEdits = require( '../pnodeEdits' ) ;
 
 const list = collections.list ;
 
 
-const a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
-const b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
-const c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
-const d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
-const s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
-const s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
-const ite0 = pnode.mkIf( a, s0, s1 )  ;
+const a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
+const b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
+const c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
+const d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
+const s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
+const s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
+const ite0 = labels.mkIf( a, s0, s1 )  ;
 //  ite0 is if( a, seq(a, b), seq(c)) 
 
-const seq0= pnode.mkExprSeq( [] ) ;
-const seq1= pnode.mkExprSeq( [a] ) ;
-const seq2 = pnode.mkExprSeq( [a,b] ) ;
-const seq3 = pnode.mkExprSeq( [a,b,c] ) ;
+const seq0= labels.mkExprSeq( [] ) ;
+const seq1= labels.mkExprSeq( [a] ) ;
+const seq2 = labels.mkExprSeq( [a,b] ) ;
+const seq3 = labels.mkExprSeq( [a,b,c] ) ;
 
 
 describe( 'pnodeEdits.Selection', () => {
@@ -80,7 +82,7 @@ describe( 'pnodeEdits.Selection', () => {
 
 // The next few tests build a tree top down using the InsertChildrenEdit
 
-const t0 = pnode.mkExprSeq( [] ) ;
+const t0 = labels.mkExprSeq( [] ) ;
 
 
 describe( 'pnodeEdits.InsertChildrenEdit', () => {
@@ -97,7 +99,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
         editResult0.choose(
             s => {
                 t1 = s.root() ;
-                assert.check( t1.label() instanceof pnode.ExprSeqLabel ) ;
+                assert.check( t1.label() instanceof labels.ExprSeqLabel ) ;
                 assert.check( t1.child(0) == ite0 ) ;
                 assert.check( s.path() == sel0.path() ) ;
                 assert.check( s.anchor() == 0 ) ;
@@ -118,9 +120,9 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
         editResult1.choose(
             s => {
                 t2 = s.root() ;
-                assert.check( t2.label() instanceof pnode.ExprSeqLabel ) ;
+                assert.check( t2.label() instanceof labels.ExprSeqLabel ) ;
                 //console.log( "t2 is " + t2.toString() ) ;
-                assert.check( t2.child(0).label() instanceof pnode.IfLabel ) ;
+                assert.check( t2.child(0).label() instanceof labels.IfLabel ) ;
                 assert.check( t2.child(0).child(0) == c ) ;
                 assert.check( s.path() == sel1.path() ) ;
                 assert.check( s.anchor() == 0 ) ;

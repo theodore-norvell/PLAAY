@@ -1,4 +1,5 @@
 /// <reference path="assert.ts" />
+/// <reference path="interpreter.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="vms.ts" />
@@ -7,6 +8,7 @@
 
 
 import assert = require('./assert') ;
+import interpreter = require('./interpreter') ;
 import pnode = require('./pnode') ;
 import seymour = require('./seymour') ;
 import vms = require('./vms') ;
@@ -35,7 +37,8 @@ module evaluationManager {
             if (turtleWorld !=  null ) {
                 worlds.push( new world.TurtleWorldObject( turtleWorld ) ) ;
             }
-            this._vms = new VMS(root, worlds);
+            const interp : vms.Interpreter = interpreter.getInterpreter() ;
+            this._vms = new VMS(root, worlds, interp );
         }
 
         next() : void {

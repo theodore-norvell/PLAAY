@@ -2,18 +2,20 @@
 
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
+/// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
+import labels = require( '../labels' ) ;
 import vms = require( '../vms' ) ;
 import evaluationManager = require( '../evaluationManager' ) ;
 
-var varNode = pnode.mkStringLiteral("aa");
-var typeNode = pnode.tryMake(pnode.NoTypeLabel.theNoTypeLabel, []);
-var val = pnode.mkNoExpNd();
+var varNode = labels.mkStringLiteral("aa");
+var typeNode = pnode.tryMake(labels.NoTypeLabel.theNoTypeLabel, []);
+var val = labels.mkNoExpNd();
 
 var ttype = typeNode.choose(
     p => p,
@@ -21,7 +23,7 @@ var ttype = typeNode.choose(
         return null;
     });
 
-var root = pnode.mkVar( "hello" ) ;
+var root = labels.mkVar( "hello" ) ;
 
 var evalmananger = new evaluationManager.EvaluationManager();
 evalmananger.initialize(root, null);

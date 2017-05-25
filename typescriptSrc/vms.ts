@@ -15,6 +15,11 @@ module vms{
 
     import PNode = pnode.PNode;
 
+    export interface Interpreter {
+        step : (VMS) => void ;
+        select : (VMS) => void ;
+    }
+
     /** The execution state of a virtual machine.
      * 
      * The state of the machine includes
@@ -25,14 +30,18 @@ module vms{
 
         evalStack : EvalStack ;
 
-        constructor(root : PNode, worlds: Array<ObjectI>) {
+        interpreter : Interpreter ;
+
+        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
+            this.interpreter = interpreter ;
             var varStack = null ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new VarStack( worlds[i], varStack ) ; }
             var evalu = new Evaluation(root, varStack);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
+
         }
 
         canAdvance() : boolean {
@@ -64,7 +73,7 @@ module vms{
                 }
                 else{
                     assert.check( ev.getStack() != null ) ;
-                    ev.advance(this);
+                    ev.advance( this.interpreter, this);
                     assert.check( ev.getStack() != null ) ;
                }
             }
@@ -163,19 +172,17 @@ module vms{
             return this.pending == null; //check if pending is null
         }
 
-        advance( vms : VMS ){
+        advance( interpreter : Interpreter, vms : VMS ){
             assert.checkPrecondition( !this.isDone() ) ;
 
-            var pending2 = Object.create(this.pending);
-            var topNode = this.root.get( pending2 );
             if( this.ready ){
                 assert.check( this.getStack() != null ) ;
-                topNode.label().step(vms);
+                interpreter.step( vms ) ;
                 assert.check( this.getStack() != null ) ;
             }
             else{
                 assert.check( this.getStack() != null ) ;
-                topNode.label().strategy.select( vms,  topNode.label()  ); //strategy.select
+                interpreter.select( vms ) ;
                 assert.check( this.getStack() != null ) ;
             }
         }

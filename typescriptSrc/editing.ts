@@ -4,6 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="sharedMkHtml.ts" />
@@ -13,6 +14,7 @@
 import assert = require('./assert') ;
 import sharedMkHtml = require('./sharedMkHtml');
 import collections = require( './collections' );
+import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require( './treeManager');
@@ -35,7 +37,7 @@ module editing {
     var draggedSelection : Selection ;
     var dragKind : DragEnum  = DragEnum.NONE ;
 
-    var currentSelection = new pnodeEdits.Selection(pnode.mkExprSeq([]),list<number>(),0,0);
+    var currentSelection = new pnodeEdits.Selection(labels.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
