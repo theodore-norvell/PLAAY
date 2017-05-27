@@ -1,19 +1,23 @@
+/// <reference path="jquery.d.ts" />
+
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="editing.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="seymour.ts" />
+/// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="jquery.d.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import editing = require('./editing');
-import sharedMkHtml = require('./sharedMkHtml');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
+import sharedMkHtml = require('./sharedMkHtml');
+import valueTypes = require('./valueTypes');
 import vms = require('./vms');
+import world = require('./world') ;
 
 module executing 
 {
@@ -45,7 +49,10 @@ module executing
     {
 		$(".evalHidden").css("visibility", "hidden");
 		$(".evalVisible").css("visibility", "visible");
-        evaluationMgr.initialize(editing.getCurrentSelection().root(), turtle ? turtleWorld : null );
+        let libraries : valueTypes.ObjectV[] = [] ;
+        if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
+        evaluationMgr.initialize(editing.getCurrentSelection().root(),
+            libraries );
         $("#vms").empty()
 			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
         $(".dropZone").hide();

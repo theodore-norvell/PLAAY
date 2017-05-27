@@ -1,17 +1,13 @@
 /// <reference path="assert.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="seymour.ts" />
 /// <reference path="vms.ts" />
 /// <reference path="workspace.ts" />
-/// <reference path="world.ts" />
 
 
 import assert = require('./assert') ;
 import pnode = require('./pnode') ;
-import seymour = require('./seymour') ;
 import vms = require('./vms') ;
 import workspace = require('./workspace') ;
-import world = require('./world') ;
 
 module evaluationManager {
 
@@ -29,12 +25,10 @@ module evaluationManager {
             this.workspace = new Workspace();
         }
 
-        initialize(root : PNode, turtleWorld : seymour.TurtleWorld ) : void {
-            var worlds = new Array();
+        initialize(root : PNode, libraries : vms.ObjectI[] ) : void {
+            var worlds = new Array<vms.ObjectI>();
             worlds.push(this.workspace.getWorld());
-            if (turtleWorld !=  null ) {
-                worlds.push( new world.TurtleWorldObject( turtleWorld ) ) ;
-            }
+            libraries.forEach( (w) => worlds.push( w ) ) ;
             this._vms = new VMS(root, worlds);
         }
 

@@ -6,20 +6,23 @@ digraph Depends {
    //edits -> assert ;
    //edits -> collections ;
 
+   editing -> sharedMkHtml ;
+   editing -> pnode ;
+   editing -> pnodeEdits ;
+   editing -> sharedMkHtml ;
+   editing -> treeManager ;
+
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
-   editing -> sharedMkHtml ;
-   editing -> pnodeEdits ;
-   editing -> treeManager ;
-
-   executing -> sharedMkHtml ;
    executing -> editing ;
    executing -> evaluationManager ;
    executing -> seymour ;
+   executing -> sharedMkHtml ;
+   executing -> valueTypes ;
    executing -> vms ;
-
+   executing -> world ;
 
    mkHtml -> createHtmlElements ;
    mkHtml -> executing ;
