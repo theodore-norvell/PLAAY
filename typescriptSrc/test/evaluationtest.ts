@@ -26,7 +26,7 @@ var ttype = typeNode.choose(
 var root = labels.mkVar( "hello" ) ;
 
 var evalmananger = new evaluationManager.EvaluationManager();
-evalmananger.initialize(root, null);
+evalmananger.initialize(root, []);
 var ms : vms.VMS  = evalmananger.getVMS() ;
 
 describe ("initialize evaluation", function() {
