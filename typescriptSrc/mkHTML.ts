@@ -9,8 +9,8 @@
 
 import createHtmlElements = require('./createHtmlElements');
 import executing = require('./executing');
-import userRelated = require('./userRelated');
 import editing = require('./editing');
+import userRelated = require('./userRelated');
 
 module mkHTML {
     

@@ -6,15 +6,17 @@ digraph Depends {
    //edits -> assert ;
    //edits -> collections ;
 
-   editing -> sharedMkHtml ;
+   editing -> labels ;
    editing -> pnode ;
    editing -> pnodeEdits ;
    editing -> sharedMkHtml ;
    editing -> treeManager ;
 
    evaluationManager -> vms ;
+   evaluationManager -> interpreter ;
+   evaluationManager -> pnode ;
    evaluationManager -> workspace ;
-   evaluationManager -> world ;
+   evaluationManager -> vms ;
 
    executing -> editing ;
    executing -> evaluationManager ;
@@ -24,36 +26,28 @@ digraph Depends {
    executing -> vms ;
    executing -> world ;
 
+   interpreter -> pnode ;
+   interpreter -> labels ;
+   interpreter -> vms ;
+   interpreter -> world ;
+
+   labels -> pnode ;
+
    mkHtml -> createHtmlElements ;
    mkHtml -> executing ;
    mkHtml -> editing ;
    mkHtml -> userRelated ;
 
-   //pageManipulation -> assert ;
-   //pageManipulation -> collections ;
-
-   //playground -> assert ;
-   //playground -> collections ;
-   playground -> pnode ;
-   playground -> pnodeEdits ;
-
-   //pnode -> assert ;
-   //pnode -> collections ;
-   pnode -> stackManager ;
-   pnode -> valueTypes ;
-   pnode -> vms ;
-
-   //pnodeEdits -> assert ;
-   //pnodeEdits -> collections ;
    pnodeEdits -> edits ;
+   pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
+   sharedMkHtml -> labels ;
    sharedMkHtml -> pnode ;
    sharedMkHtml -> pnodeEdits ;
 
-   //treeManager -> asssert ;
-   //treeManager -> collections ;
    treeManager -> edits ;
+   treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
@@ -62,21 +56,14 @@ digraph Depends {
    userRelated -> pnode ;
    userRelated -> sharedMkHtml ;
    
-   //turtleTest -> seymour ;
-
-   //valueTypes -> assert ;
-   //valueTypes -> collections ;
+   valueTypes -> labels ;
    valueTypes -> pnode ;
    valueTypes -> vms ;
 
-   //vms -> assert ;
-   //vms -> collections ;
    vms -> pnode ;
 
    workspace -> world ;
 
-   //world -> assert ;
-   //world -> collections ;
    world -> pnode ;
    world -> seymour ;
    world -> valueTypes ;

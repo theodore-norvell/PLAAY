@@ -12,11 +12,11 @@
 
 
 import assert = require('./assert') ;
-import sharedMkHtml = require('./sharedMkHtml');
 import collections = require( './collections' );
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
+import sharedMkHtml = require('./sharedMkHtml');
 import treeManager = require( './treeManager');
 
 module editing {

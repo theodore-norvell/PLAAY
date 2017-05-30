@@ -1,6 +1,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="edits.ts" />
+/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 
 import assert = require( './assert' ) ;
