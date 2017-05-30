@@ -19,7 +19,7 @@ import pnodeEdits = require( './pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
 import treeManager = require( './treeManager');
 
-module editing {
+module editor {
 
     import list = collections.list;
     import Option = collections.Option ;
@@ -462,4 +462,4 @@ module editing {
 
 }
 
-export = editing;
+export = editor;

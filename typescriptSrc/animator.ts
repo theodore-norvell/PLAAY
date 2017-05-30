@@ -2,7 +2,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="editing.ts" />
+/// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="seymour.ts" />
@@ -11,7 +11,7 @@
 
 import assert = require( './assert' );
 import collections = require( './collections' );
-import editing = require('./editing');
+import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
 import sharedMkHtml = require('./sharedMkHtml');
@@ -19,7 +19,7 @@ import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
 
-module executing 
+module animator 
 {
     import EvaluationManager = evaluationManager.EvaluationManager;
 	import traverseAndBuild = sharedMkHtml.traverseAndBuild;
@@ -42,7 +42,7 @@ module executing
 		$("#advance").click(advanceOneStep);
 		$("#multistep").click(multiStep);
 		$("#run").click(stepTillDone);
-		$("#edit").click(editor);
+		$("#edit").click(switchToEditor);
 	}
 
     function evaluate() : void
@@ -51,7 +51,7 @@ module executing
 		$(".evalVisible").css("visibility", "visible");
         let libraries : valueTypes.ObjectV[] = [] ;
         if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
-        evaluationMgr.initialize(editing.getCurrentSelection().root(),
+        evaluationMgr.initialize(editor.getCurrentSelection().root(),
             libraries );
         $("#vms").empty()
 			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
@@ -111,7 +111,7 @@ module executing
         $('#advance').trigger('click');
     }
 
-    function editor() : void
+    function switchToEditor() : void
     {
 		$(".evalHidden").css("visibility", "visible");
 		$(".evalVisible").css("visibility", "hidden");
@@ -218,4 +218,4 @@ module executing
     }
 }
 
-export = executing;
+export = animator;

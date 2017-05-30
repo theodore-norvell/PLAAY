@@ -3,30 +3,27 @@ digraph Depends {
    gsize="8,6"; ratio=fill;
    node[fontsize=8, shape=rectangle];
 
-   editing -> labels ;
-   editing -> pnodeEdits ;
-   editing -> sharedMkHtml ;
-   editing -> treeManager ;
+   animator -> editor ;
+   animator -> evaluationManager ;
+   animator -> seymour ;
+   animator -> sharedMkHtml ;
+
+   editor -> labels ;
+   editor -> pnodeEdits ;
+   editor -> sharedMkHtml ;
+   editor -> treeManager ;
 
    evaluationManager -> interpreter ;
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
-   executing -> editing ;
-   executing -> evaluationManager ;
-   executing -> seymour ;
-   executing -> sharedMkHtml ;
-
-   //mkHtml -> assert ;
-   //mkHtml -> collections ;
-
    labels -> pnode
 
-   mkHtml -> createHtmlElements ;
-   mkHtml -> editing ;
-   mkHtml -> executing ;
-   mkHtml -> userRelated ;
+   main -> createHtmlElements ;
+   main -> editor ;
+   main -> animator ;
+   main -> userRelated ;
 
    pnodeEdits -> edits ;
    pnodeEdits -> labels ;
@@ -39,7 +36,7 @@ digraph Depends {
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
-   userRelated -> editing ;
+   userRelated -> editor ;
    userRelated -> pnodeEdits ;
    userRelated -> pnode ;
 
