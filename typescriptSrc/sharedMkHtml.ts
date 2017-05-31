@@ -1,10 +1,12 @@
 /// <reference path="collections.ts" />
+/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="assert.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
+import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 

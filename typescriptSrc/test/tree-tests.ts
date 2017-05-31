@@ -1,18 +1,20 @@
 /// <reference path="../typings/main/ambient/mocha/index.d.ts" />
 
 /// <reference path="../assert.ts" />
+/// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
 
 import assert = require( '../assert' ) ;
+import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
 
-var a : pnode.PNode = pnode.mkStringLiteral( "a" ) ;
-var b : pnode.PNode = pnode.mkStringLiteral( "b" ) ;
-var c : pnode.PNode = pnode.mkStringLiteral( "c" ) ;
-var d : pnode.PNode = pnode.mkStringLiteral( "d" ) ;
-var s0 : pnode.PNode = pnode.mkExprSeq( [a,b] ) ;
-var s1 : pnode.PNode = pnode.mkExprSeq( [c] ) ;
-var ite0 = pnode.mkIf( a, s0, s1 )  ;
+var a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
+var b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
+var c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
+var d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
+var s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
+var s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
+var ite0 = labels.mkIf( a, s0, s1 )  ;
 
 // We'd like the following to fail at compile time.
 // Uncomment to see whether it does.
@@ -20,19 +22,19 @@ var ite0 = pnode.mkIf( a, s0, s1 )  ;
 
 describe( 'pnode.tryMake', function() {
     it('should succeed making a valid if', function() {
-        var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, s0, s1] ) ;
+        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0, s1] ) ;
         opt.choose(
-            p => { assert.check( p.label() instanceof pnode.IfLabel ) ; },
+            p => { assert.check( p.label() instanceof labels.IfLabel ) ; },
             () => { assert.check( false ) ; } ) } );
 
     it('should fail making an invalid if', function() {
-        var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, b, c] ) ;
+        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, b, c] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
             () => {  } ) } );
 
     it('should fail making an invalid if', function() {
-        var opt = pnode.tryMake( pnode.IfLabel.theIfLabel, [a, s0] ) ;
+        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
             () => {  } ) } ) ; } ) ;
@@ -64,14 +66,21 @@ describe( 'pnode.fromPNodeToJSON', () => {
 
     it( 'should convert a node to a JSON string', () => {
         string0 = pnode.fromPNodeToJSON( ite0 ) ;
-        assert.check( string0 == '{"label":{"kind":"IfLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"a"},"children":[]},{"label":{"kind":"ExprSeqLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"a"},"children":[]},{"label":{"kind":"StringLiteralLabel","val":"b"},"children":[]}]},{"label":{"kind":"ExprSeqLabel"},"children":[{"label":{"kind":"StringLiteralLabel","val":"c"},"children":[]}]}]}' ) ;
+        assert.checkEqual('{"label":{"kind":"IfLabel"},'+
+                           '"children":[{"label":{"kind":"StringLiteralLabel","val":"a","open":true},"children":[]},'+
+                                       '{"label":{"kind":"ExprSeqLabel"},'+
+                                                  '"children":[{"label":{"kind":"StringLiteralLabel","val":"a","open":true},"children":[]},'+
+                                                              '{"label":{"kind":"StringLiteralLabel","val":"b","open":true},"children":[]}]},'+
+                                       '{"label":{"kind":"ExprSeqLabel"},'+
+                                        '"children":[{"label":{"kind":"StringLiteralLabel","val":"c","open":true},"children":[]}]}]}',
+                          string0);
         console.log( string0 ) ; } ) ; } ) ;
 
 describe( 'pnode.fromJSONToPNode', () => {
     it( 'should convert a string to a node', () => {
         var ite0a = pnode.fromJSONToPNode( string0 ) ;
         console.log( ite0a.toString() ) ;
-        assert.check( ite0a.label() instanceof pnode.IfLabel ) ;
+        assert.check( ite0a.label() instanceof labels.IfLabel ) ;
         assert.check( ite0a.count() == 3 ) ;
         var string0a = pnode.fromPNodeToJSON( ite0a ) ;
         assert.check( string0a == string0 ) ; } ) } ) ;

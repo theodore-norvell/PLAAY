@@ -3,68 +3,47 @@ digraph Depends {
    gsize="8,6"; ratio=fill;
    node[fontsize=8, shape=rectangle];
 
-   //edits -> assert ;
-   //edits -> collections ;
-   
-   editing -> sharedMkHtml ;
-   editing -> pnodeEdits ;
-   editing -> treeManager ;
+   animator -> editor ;
+   animator -> evaluationManager ;
+   animator -> seymour ;
+   animator -> sharedMkHtml ;
 
+   editor -> labels ;
+   editor -> pnodeEdits ;
+   editor -> sharedMkHtml ;
+   editor -> treeManager ;
+
+   evaluationManager -> interpreter ;
    evaluationManager -> vms ;
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
-   executing -> sharedMkHtml ;
-   executing -> editing ;
-   executing -> evaluationManager ;
-   executing -> seymour ;
+   labels -> pnode
 
-   //mkHtml -> assert ;
-   //mkHtml -> collections ;
+   main -> createHtmlElements ;
+   main -> editor ;
+   main -> animator ;
+   main -> userRelated ;
 
-   mkHtml -> createHtmlElements ;
-   mkHtml -> editing ;
-   mkHtml -> executing ;
-   mkHtml -> pnodeEdits ;
-   mkHtml -> userRelated ;
-
-   //pnode -> assert ;
-   //pnode -> collections ;
-   pnode -> stackManager ;
-   pnode -> valueTypes ;
-   pnode -> vms ;
-
-   //pnodeEdits -> assert ;
-   //pnodeEdits -> collections ;
    pnodeEdits -> edits ;
+   pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
-   sharedMkHtml -> pnode ;
    sharedMkHtml -> pnodeEdits ;
 
-   //treeManager -> asssert ;
-   //treeManager -> collections ;
    treeManager -> edits ;
+   treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
 
-   userRelated -> editing ;
+   userRelated -> editor ;
    userRelated -> pnodeEdits ;
    userRelated -> pnode ;
-   userRelated -> sharedMkHtml ;
-   //turtleTest -> seymour ;
 
-   //valueTypes -> assert ;
-   //valueTypes -> collections ;
-   valueTypes -> pnode ;
-
-   //vms -> assert ;
-   //vms -> collections ;
+   valueTypes -> labels ;
 
    workspace -> world ;
 
-   //world -> assert ;
-   //world -> collections ;
    world -> valueTypes ;
    world -> vms ;
 }

@@ -2,26 +2,25 @@
 /// <reference path="jqueryui.d.ts" />
 
 /// <reference path="createHtmlElements.ts" />
-/// <reference path="executing.ts" />
+/// <reference path="animator.ts" />
 /// <reference path="userRelated.ts" />
-/// <reference path="editing.ts" />
-
+/// <reference path="editor.ts" />
 
 import createHtmlElements = require('./createHtmlElements');
-import executing = require('./executing');
+import animator = require('./animator');
+import editor = require('./editor');
 import userRelated = require('./userRelated');
-import editing = require('./editing');
 
-module mkHTML {
+module main {
     
     export function onLoad() : void
     {
 		createHtmlElements.createHtmls();
-		executing.executingActions();
+		animator.executingActions();
 		userRelated.userRelatedActions();
-        editing.editingActions();
+        editor.editingActions();
     }
 
 }
 
-export = mkHTML ;
+export = main ;

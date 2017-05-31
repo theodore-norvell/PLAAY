@@ -1,12 +1,12 @@
 /// <reference path="collections.ts" />
-/// <reference path="editing.ts" />
+/// <reference path="editor.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="sharedMkHtml.ts" />
 /// <reference path="jquery.d.ts" />
 
 import collections = require( './collections' );
-import editing = require( './editing' );
+import editor = require( './editor' );
 import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
 import sharedMkHtml = require('./sharedMkHtml');
@@ -283,7 +283,7 @@ module userRelated
         var response = $.post("/LoadProgram", { username: currentUser, programname: programName },
            function() { // TODO Move this callback function to the editor.
             $("#dimScreen").remove();
-            editing.update( unserialize(response.responseText) );
+            editor.update( unserialize(response.responseText) );
         });
     }
 
@@ -291,7 +291,7 @@ module userRelated
     {
         var currentUser = $('#userSettings :input').val();
         var programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        var currentSel = serialize( editing.getCurrentSelection() );
+        var currentSel = serialize( editor.getCurrentSelection() );
         var response = $.post("/SavePrograms",{username:currentUser,programname:programName,program:currentSel},
             function(){
                 console.log(response.responseText);
