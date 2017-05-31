@@ -54,11 +54,13 @@ module labels {
         /** Return true if node has a dropzone at number. */
         hasDropZonesAt(start : number): boolean { return false; }
 
+        abstract kind() : string ;
+
     }
 
 
     /** Abstract base class for all expression labels.  */
-    export abstract class ExprLabel extends AbstractLabel {
+    abstract class ExprLabel extends AbstractLabel {
 
         /*private*/
         constructor() {
@@ -73,77 +75,6 @@ module labels {
 
         abstract toJSON() : any ;
     }
-
-    /** A sequence of expressions. */
-    export class ExprSeqLabel  extends AbstractLabel {
-        isValid(children:Array<PNode>) {
-            return children.every(function (c:PNode) {
-                return c.isExprNode()
-            });
-        }
-
-        toString():string {
-            return "seq";
-        }
-
-        /*private*/
-        constructor() {
-            super() ;
-        }
-
-        isExprNode() { return false ; }
-
-        isExprSeqNode() { return true ; }
-
-        isTypeNode() { return false ; }
-
-        hasDropZonesAt(start : number): boolean { return true; }
-
-        // Singleton
-        public static theExprSeqLabel = new ExprSeqLabel();
-
-        public toJSON() : any {
-            return { kind:  "ExprSeqLabel" } ; }
-
-        public static fromJSON( json : any ) : ExprSeqLabel {
-            return ExprSeqLabel.theExprSeqLabel ; }
-    }
-    pnode.registry["ExprSeqLabel"] = ExprSeqLabel ;
-
-    /** A parameter list.  */
-    export class ParameterListLabel  extends AbstractLabel{
-        isValid(children:Array<PNode>) {
-            return children.every( (c:PNode) : boolean => c.label() instanceof VarDeclLabel );
-        }
-
-        toString():string {
-            return "param";
-        }
-
-        /*private*/
-        constructor() {
-            super() ;
-        }
-
-        // Singleton
-        public static theParameterListLabel = new ParameterListLabel();
-
-        isExprNode() { return false ; }
-
-        isExprSeqNode() { return false ; }
-
-        isTypeNode() { return false ; }
-
-        hasDropZonesAt(start : number): boolean { return true; }
-
-        public toJSON() : any {
-            return { kind:  "ParamLabel" } ; }
-
-        public static fromJSON( json : any ) : ParameterListLabel {
-            return ParameterListLabel.theParameterListLabel ; }
-
-    }
-    pnode.registry["ParameterListLabel"] = ParameterListLabel ;
 
     /** Abstract base class for all type labels.  */
     export abstract class TypeLabel  extends AbstractLabel {
@@ -186,8 +117,50 @@ module labels {
         }
     }
 
+    /** A sequence of expressions. */
+    export class ExprSeqLabel  extends AbstractLabel {
+
+        static readonly kindConst : string = "ExprSeqLabel" ;
+
+        isValid(children:Array<PNode>) {
+            return children.every(function (c:PNode) {
+                return c.isExprNode()
+            });
+        }
+
+        toString():string {
+            return "seq";
+        }
+
+        /*private*/
+        constructor() {
+            super() ;
+        }
+
+        isExprNode() { return false ; }
+
+        isExprSeqNode() { return true ; }
+
+        isTypeNode() { return false ; }
+
+        hasDropZonesAt(start : number): boolean { return true; }
+
+        // Singleton
+        public static theExprSeqLabel = new ExprSeqLabel();
+
+        public toJSON() : any {
+            return { kind:  ExprSeqLabel.kindConst } ; }
+
+        public static fromJSON( json : any ) : ExprSeqLabel {
+            return ExprSeqLabel.theExprSeqLabel ; }
+        
+        public kind() : string { return ExprSeqLabel.kindConst ; }
+    }
+    pnode.registry[ ExprSeqLabel.kindConst ] = ExprSeqLabel ;
+
     /** References to variables.  */
     export class VariableLabel extends ExprLabelWithString {
+        static readonly kindConst : string = "VariableLabel" ;
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;
@@ -212,16 +185,19 @@ module labels {
         }
 
         public toJSON() : any {
-            return { kind : "VariableLabel", name : this._val, open : this._open } ;
+            return { kind : VariableLabel.kindConst, name : this._val, open : this._open } ;
         }
 
         public static fromJSON( json : any ) : VariableLabel {
             return new VariableLabel( json.name, json.open ) ; }
+
+        public kind() : string { return VariableLabel.kindConst ; }
     }
-    pnode.registry["VariableLabel"] = VariableLabel ;
+    pnode.registry[VariableLabel.kindConst] = VariableLabel ;
 
     /** Variable declaration nodes. */
     export class VarDeclLabel extends ExprLabel {
+        static readonly kindConst : string = "VarDeclLabel" ;
 
         protected _isConst : boolean ;
 
@@ -245,17 +221,22 @@ module labels {
         }
 
         public toJSON() : any {
-            return { kind: "VarDeclLabel", isConst: this._isConst } ;
+            return { kind: VarDeclLabel.kindConst, isConst: this._isConst } ;
         }
 
         public static fromJSON( json : any ) : VarDeclLabel {
             return new VarDeclLabel( json._isConst ) ;
         }
+            
+        public kind() : string { return VarDeclLabel.kindConst ; }
     }
-    pnode.registry["VarDeclLabel"] = VarDeclLabel ;
+    pnode.registry[VarDeclLabel.kindConst] = VarDeclLabel ;
 
     /** Assignments.  */
     export class AssignLabel extends ExprLabel {
+
+        static readonly kindConst : string = "AssignLabel" ;
+        
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 2) return false ;
             if( ! children[0].isExprNode()) return false ;
@@ -277,19 +258,23 @@ module labels {
         public static theAssignLabel = new AssignLabel();
 
         public toJSON() : any {
-            return { kind: "AssignLabel" } ;
+            return { kind: AssignLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : AssignLabel {
             return AssignLabel.theAssignLabel ;
         }
+            
+        public kind() : string { return AssignLabel.kindConst ; }
     }
-    pnode.registry["AssignLabel"] = AssignLabel ;
+    pnode.registry[ AssignLabel.kindConst ] = AssignLabel ;
 
 
     /** Calls to explicitly named functions.
      * TODO Change the name to something else. */
     export class CallWorldLabel extends ExprLabelWithString  {
+
+        static readonly kindConst : string = "CallWorldLabel" ;
 
         isValid(children:Array<PNode>):boolean {
             return children.every(function(c : PNode) { return c.isExprNode() } ) ;
@@ -315,7 +300,7 @@ module labels {
         }
 
         public toJSON() : any {
-            return { kind: "CallWorldLabel" , name: this._val, open: this._open } ;
+            return { kind: CallWorldLabel.kindConst, name: this._val, open: this._open } ;
         }
 
         public static fromJSON( json : any ) : CallWorldLabel {
@@ -323,11 +308,15 @@ module labels {
         }
     
         hasDropZonesAt(start : number): boolean { return true; }
+            
+        public kind() : string { return CallWorldLabel.kindConst ; }
     }
-    pnode.registry["CallWorldLabel"] = CallWorldLabel ;
+    pnode.registry[ CallWorldLabel.kindConst ] = CallWorldLabel ;
 
     /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
+
+        static readonly kindConst : string = "ExprPHLabel" ;
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
@@ -347,7 +336,7 @@ module labels {
         public static theExprPHLabel = new ExprPHLabel();
 
         public toJSON() : any {
-            return { kind: "ExprPHLabel" } ;
+            return { kind: ExprPHLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : ExprPHLabel {
@@ -355,14 +344,18 @@ module labels {
         }
 
         isPlaceHolder() : boolean { return true; }
+            
+        public kind() : string { return ExprPHLabel.kindConst ; }
 
     }
-    pnode.registry["ExprPHLabel"] = ExprPHLabel ;
+    pnode.registry[ ExprPHLabel.kindConst ] = ExprPHLabel ;
 
     /** This class is for optional expressions where there is no expression.
      * Not to be confused with the expression place holder ExpPHLabel which is used when an expression is manditory.
      */
     export class NoExprLabel extends AbstractLabel {
+        
+        static readonly kindConst : string = "NoExprLabel" ;
 
         isValid( children : Array<PNode> ) : boolean {
             if( children.length != 0) return false ;
@@ -390,18 +383,21 @@ module labels {
         public static theNoExprLabel = new NoExprLabel();
 
         public toJSON() : any {
-            return { kind: "ExprOptLabel" } ;
+            return { kind: NoExprLabel.kindConst } ;
         }
 
         public static fromJSON( json : any ) : NoExprLabel {
             return NoExprLabel.theNoExprLabel ;
         }
-
+            
+        public kind() : string { return NoExprLabel.kindConst ; }
     }
-    pnode.registry["NoExprLabel"] = NoExprLabel ;
+    pnode.registry[ NoExprLabel.kindConst ] = NoExprLabel ;
 
     /** Function (or method) literals. */
     export class LambdaLabel extends ExprLabel {
+        
+        static readonly kindConst : string = "LambdaLabel" ;
 
         isValid( children : Array<PNode> ) {
              if( children.length != 3 ) return false ;
@@ -425,17 +421,60 @@ module labels {
         public static theLambdaLabel = new LambdaLabel();
 
         public toJSON() : any {
-            return { kind: "LambdaLabel" } ;
+            return { kind: LambdaLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : LambdaLabel {
             return LambdaLabel.theLambdaLabel ;
         }
+            
+        public kind() : string { return LambdaLabel.kindConst ; }
     }
-    pnode.registry["LambdaLabel"] = LambdaLabel ;
+    pnode.registry[ LambdaLabel.kindConst ] = LambdaLabel ;
+
+    /** A parameter list.  */
+    export class ParameterListLabel  extends AbstractLabel {
+        
+        static readonly kindConst : string = "ParameterListLabel" ;
+
+        isValid(children:Array<PNode>) {
+            return children.every( (c:PNode) : boolean => c.label() instanceof VarDeclLabel );
+        }
+
+        toString():string {
+            return "param";
+        }
+
+        /*private*/
+        constructor() {
+            super() ;
+        }
+
+        // Singleton
+        public static theParameterListLabel = new ParameterListLabel();
+
+        isExprNode() { return false ; }
+
+        isExprSeqNode() { return false ; }
+
+        isTypeNode() { return false ; }
+
+        hasDropZonesAt(start : number): boolean { return true; }
+
+        public toJSON() : any {
+            return { kind:  ParameterListLabel.kindConst } ; }
+
+        public static fromJSON( json : any ) : ParameterListLabel {
+            return ParameterListLabel.theParameterListLabel ; }
+        
+        public kind() : string { return ParameterListLabel.kindConst ; }
+    }
+    pnode.registry[ ParameterListLabel.kindConst ] = ParameterListLabel ;
 
     /** If expressions */
     export class IfLabel extends ExprLabel {
+        
+        static readonly kindConst : string = "IfLabel" ;
 
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 3 ) return false ;
@@ -458,17 +497,21 @@ module labels {
         public static theIfLabel = new IfLabel();
 
         public toJSON() : any {
-            return { kind: "IfLabel" } ;
+            return { kind: IfLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : IfLabel {
             return IfLabel.theIfLabel ;
         }
+            
+        public kind() : string { return IfLabel.kindConst ; }
     }
-    pnode.registry["IfLabel"] = IfLabel ;
+    pnode.registry[ IfLabel.kindConst ] = IfLabel ;
 
     /** While loop expressions */
     export class WhileLabel extends ExprLabel {
+        
+        static readonly kindConst : string = "WhileLabel" ;
 
         isValid(  children : Array<PNode> ) : boolean {
             if( children.length != 2 ) return false ;
@@ -490,18 +533,22 @@ module labels {
         public static theWhileLabel = new WhileLabel();
 
         public toJSON() : any {
-            return { kind: "WhileLabel" } ;
+            return { kind: WhileLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : WhileLabel {
             return WhileLabel.theWhileLabel ;
         }
+            
+        public kind() : string { return WhileLabel.kindConst ; }
     }
-    pnode.registry["WhileLabel"] = WhileLabel ;
+    pnode.registry[ WhileLabel.kindConst ] = WhileLabel ;
 
     /** An indication that an optional type label is not there. */
     export class NoTypeLabel extends TypeLabel {
         // TODO: Should this really extend TypeLabel?
+        
+        static readonly kindConst : string = "NoTypeLabel" ;
 
         isValid(children:Array<PNode>):boolean {
             return children.length == 0;}
@@ -517,7 +564,7 @@ module labels {
         public static theNoTypeLabel = new NoTypeLabel();
 
         public toJSON() : any {
-            return { kind: "NoTypeLabel" } ;
+            return { kind: NoTypeLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : NoTypeLabel {
@@ -525,11 +572,15 @@ module labels {
         }
 
         isPlaceHolder() : boolean { return true; }
+            
+        public kind() : string { return NoTypeLabel.kindConst ; }
     }
-    pnode.registry["NoTypeLabel"] = NoTypeLabel ;
+    pnode.registry[ NoTypeLabel.kindConst ] = NoTypeLabel ;
 
     /** String literals. */
     export class StringLiteralLabel extends ExprLabelWithString {
+        
+        static readonly kindConst : string = "StringLiteralLabel" ;
 
         constructor( val : string, open : boolean) { super(val, open) ; }
 
@@ -549,17 +600,21 @@ module labels {
         toString() : string { return "string[" + this._val + "]"  ; }
 
         public toJSON() : any {
-            return { kind: "StringLiteralLabel", val : this._val, open: this._open } ;
+            return { kind: StringLiteralLabel.kindConst, val : this._val, open: this._open } ;
         }
 
         public static fromJSON( json : any ) : StringLiteralLabel {
             return new StringLiteralLabel( json.val, json.open )  ;
         }
+            
+        public kind() : string { return StringLiteralLabel.kindConst ; }
      }
-    pnode.registry["StringLiteralLabel"] = StringLiteralLabel ;
+    pnode.registry[ StringLiteralLabel.kindConst ] = StringLiteralLabel ;
 
     /** Number literals. */
     export class NumberLiteralLabel extends ExprLabelWithString {
+        
+        static readonly kindConst : string = "NumberLiteralLabel" ;
 
         constructor( val : string, open : boolean ) { super( val, open ) ; }
 
@@ -581,17 +636,21 @@ module labels {
         toString() : string { return "number[" + this._val + "]"  ; }
 
         public toJSON() : any {
-            return { kind: "NumberLiteralLabel", val : this._val, open : this._open } ;
+            return { kind: NumberLiteralLabel.kindConst, val : this._val, open : this._open } ;
         }
 
         public static fromJSON( json : any ) : NumberLiteralLabel {
             return new NumberLiteralLabel( json.val, json.open )  ;
         }
+            
+        public kind() : string { return NumberLiteralLabel.kindConst ; }
     }
-    pnode.registry["NumberLiteralLabel"] = NumberLiteralLabel ;
+    pnode.registry[ NumberLiteralLabel.kindConst ] = NumberLiteralLabel ;
 
     /** Boolean literals */
     export class BooleanLiteralLabel extends ExprLabelWithString {
+        
+        static readonly kindConst : string = "BooleanLiteralLabel" ;
 
         constructor( val : string, open : boolean) { super(val, open) ; }
 
@@ -612,17 +671,22 @@ module labels {
         toString() : string { return "boolean[" + this._val + "]"  ; }
 
         public toJSON() : any {
-            return { kind: "BooleanLiteralLabel", val : this._val, open : this._open } ;
+            return { kind: BooleanLiteralLabel.kindConst, val : this._val, open : this._open } ;
         }
 
         public static fromJSON( json : any ) : BooleanLiteralLabel {
             return new BooleanLiteralLabel( json.val, json.open )  ;
         }
+            
+        public kind() : string { return BooleanLiteralLabel.kindConst ; }
     }
-    pnode.registry["BooleanLiteralLabel"] = BooleanLiteralLabel ;
+    pnode.registry[ BooleanLiteralLabel.kindConst ] = BooleanLiteralLabel ;
 
     /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
+        
+        static readonly kindConst : string = "NullLiteralLabel" ;
+
         constructor() { super() ; }
 
         isValid( children : Array<PNode> ) {
@@ -633,17 +697,21 @@ module labels {
         public static theNullLiteralLabel = new NullLiteralLabel();
 
         public toJSON() : any {
-            return { kind: "NullLiteralLabel" } ;
+            return { kind: NullLiteralLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : NullLiteralLabel {
             return  NullLiteralLabel.theNullLiteralLabel ;
         }
+            
+        public kind() : string { return NullLiteralLabel.kindConst ; }
     }
-    pnode.registry["NullLiteralLabel"] = NullLiteralLabel ;
+    pnode.registry[ NullLiteralLabel.kindConst ] = NullLiteralLabel ;
 
     /** Call a function.  */
     export class CallLabel extends ExprLabel {
+        
+        static readonly kindConst : string = "CallLabel" ;
 
         isValid(children:Array<PNode>) {
             return children.every( (c:PNode) =>
@@ -667,7 +735,7 @@ module labels {
         public static theCallLabel = new CallLabel();
 
         public toJSON() : any {
-            return { kind: "CallLabel" } ;
+            return { kind: CallLabel.kindConst, } ;
         }
 
         public static fromJSON( json : any ) : CallLabel {
@@ -675,8 +743,10 @@ module labels {
         }
 
         hasDropZonesAt(start : number): boolean { return true; }
+            
+        public kind() : string { return CallLabel.kindConst ; }
     }
-    pnode.registry["CallLabel"] = CallLabel ;
+    pnode.registry[ CallLabel.kindConst ] = CallLabel ;
 
     export function mkExprPH():PNode {
         return  make(ExprPHLabel.theExprPHLabel, []); }

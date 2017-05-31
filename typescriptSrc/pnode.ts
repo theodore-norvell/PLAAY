@@ -70,6 +70,8 @@ module pnode {
         isPlaceHolder : () => boolean ;
 
         hasDropZonesAt : (start : number) => boolean ;
+            
+        kind : () => string ;
     }
 
     /** PNodes are abstract syntax trees for the PLAAY language.
