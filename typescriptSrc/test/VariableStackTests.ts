@@ -28,8 +28,8 @@ var xStack : VarStack = new VarStack(wrld, null);
 describe( 'Variable Stack ', () => {
 
     it('Should be initialized properly', () => {
-        assert.check(xStack.getNext() == null);
-        assert.check(xStack.obj == wrld);
+        assert.check( xStack.getNext() == null);
+        assert.check( xStack.getTop() == wrld);
         assert.check( xStack.inStack("+") );
         assert.check( xStack.getField("+") != null);
     } );
@@ -47,7 +47,7 @@ describe( 'Variable Stack ', () => {
         obj.addField( f ) ;
         var yStack = new VarStack( obj, xStack) ;
         assert.check( yStack.inStack(f.getName()));
-        assert.check( yStack.top().getField(f.getName()) == f );
+        assert.check( yStack.getTop().getField(f.getName()) == f );
         assert.check( yStack.getField(f.getName()) == f );
         assert.check( yStack.inStack("+") );
         assert.check( yStack.getField("+") != null );

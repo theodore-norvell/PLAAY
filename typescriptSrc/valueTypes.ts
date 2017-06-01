@@ -247,9 +247,9 @@ module valueTypes {
 
     /** A built in function. */
     export class BuiltInV implements Value {
-        step : (node : PNode, evalu : Evaluation) => void;
+        step : (vms : vms.VMS, args : Array<Value> ) => void;
 
-        constructor ( step : (node : PNode, evalu : Evaluation)=>void ){
+        constructor ( step : (vms : vms.VMS, args : Array<Value> ) => void ){
             this.step = step;
         }
 

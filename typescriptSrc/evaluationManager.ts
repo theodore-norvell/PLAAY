@@ -43,10 +43,6 @@ module evaluationManager {
             return this._vms ;
         }
 
-        getTopEvaluation() : Evaluation {
-            return this._vms.getEval() ;
-        }
-
     }
 }
 

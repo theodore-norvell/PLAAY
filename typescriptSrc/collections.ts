@@ -91,6 +91,8 @@ module collections {
     export abstract class List<A> implements Collection<A> {
         abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
         
+        abstract choose<B,C>( f: (h:A, r:List<B>) => C, g : () => C ) : C ;
+
         abstract map<B>(f : (a:A) => B ) : List<B> ;
         
         abstract isEmpty() : boolean ;
@@ -109,6 +111,14 @@ module collections {
             return this.fold( (a : A, b : List<A>) => cons(a,b),
                               () => other  ) ; }
         
+        /** Compare for equality using === */
+        equals( other : List<A> ) : boolean {
+            return this.choose(
+                (h0, r0) => other.choose( (h1, r1) => (h0===h1 && r0.equals(r1)),
+                                          () => false ),
+                () => other.choose( (h1, r1) => false,
+                                    () => true ) ) ;
+        }
     }
         
     class Cons<A> extends List<A> {
@@ -126,6 +136,9 @@ module collections {
         first() : A { return this._head ; }
         
         rest() : List<A> { return this._tail ; }
+
+        choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B {
+            return f( this._head, this._tail ) ; }
         
         map<B>(f : (a:A) => B ) : List<B> {
             return new Cons<B>( f( this._head ),
@@ -151,6 +164,9 @@ module collections {
         fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
             return  g() ; }
         
+        choose<B,C>( f: (h:A, r:List<B>) => C, g : () => C ) : C {
+            return g() ; }
+
         map<B>( f : (a:A) => B ) : List<B> {
             return new Nil<B>( ) ; }
         
@@ -159,6 +175,7 @@ module collections {
         rest() : List<A> { throw Error("rest applied to an empty list") ; }
     
         toString() : string { return "()" ; }
+        
     }
     
     export function list<A>( ...args : Array<A> ) : List<A> {

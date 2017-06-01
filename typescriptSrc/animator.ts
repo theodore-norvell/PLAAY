@@ -26,6 +26,7 @@ module animator
     import List = collections.List;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
+    import MapEntry = vms.MapEntry ;
     import VMS = vms.VMS;
     import VarStack = vms.VarStack;
     import Value = vms.Value ;
@@ -54,7 +55,7 @@ module animator
         evaluationMgr.initialize(editor.getCurrentSelection().root(),
             libraries );
         $("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
+			.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -64,21 +65,21 @@ module animator
         evaluationMgr.next();
 		$("#stackVal").empty();
 		$("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
+			.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
 		var root = $("#vms :first-child").get(0);
-        if (!highlighted && evaluationMgr.getTopEvaluation().ready) 
+        if (!highlighted && evaluationMgr.getVMS().isReady() ) 
         {
             const vms : HTMLElement = document.getElementById("vms") ;
-            var list = arrayToList(evaluationMgr.getTopEvaluation().getPending());
-            findInMap(root, evaluationMgr.getTopEvaluation().getValMap());
+            var list = evaluationMgr.getVMS().getPending();
+            findInMap(root, evaluationMgr.getVMS().getValMap());
             highlight($(root), list);
-            visualizeStack(evaluationMgr.getTopEvaluation().getStack());
+            visualizeStack(evaluationMgr.getVMS().getStack());
             highlighted = true;
         } 
         else 
         {
-            findInMap(root, evaluationMgr.getTopEvaluation().getValMap());
-            visualizeStack(evaluationMgr.getTopEvaluation().getStack());
+            findInMap(root, evaluationMgr.getVMS().getValMap());
+            visualizeStack(evaluationMgr.getVMS().getStack());
             highlighted = false;
         }
         if(turtle) 
@@ -90,16 +91,16 @@ module animator
     function stepTillDone() 
 	{
         evaluationMgr.next();
-        // TODO Guard against infinite loops.
-        while(!evaluationMgr.getTopEvaluation().isDone()) 
+        const STEPLIMIT = 10000 ;
+        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
         {
             evaluationMgr.next();
 		}
 		$("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getTopEvaluation().getRoot(), -1, true)) ;
+			.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
 		const root = $("#vms :first-child").get(0);
-        const list : List<number>= arrayToList(evaluationMgr.getTopEvaluation().getPending());
-        const map : ValueMap = evaluationMgr.getTopEvaluation().getValMap();
+        const list : List<number>= evaluationMgr.getVMS().getPending();
+        const map : ValueMap = evaluationMgr.getVMS().getValMap();
         findInMap(root, map);
         highlight($(root), list);
     }
@@ -162,28 +163,23 @@ module animator
 
     function findInMap(root : HTMLElement, valueMap : ValueMap) : void
     {
-        for(let i=0; i < valueMap.size; i++)
-        {
-            setHTMLValue(root, arrayToList(valueMap.entries[i].getPath()), Object.create(valueMap.entries[i].getValue()));
+        for( let e of valueMap.getEntries() ) {
+            setHTMLValue(root, e.getPath(), e.getValue());
         }
     }
 
-    function visualizeStack(evalstack:VarStack) : void
+    function visualizeStack( varStack : VarStack ) : void
     {
-        for(let i = 0; i < evalstack.obj.numFields(); i++)
-        {
-
-            // TODO. This is really not good enough, since structured values should show in a structured way.
-            const name = evalstack.obj.getFieldByNumber(i).getName() ;
-            const val = evalstack.obj.getFieldByNumber(i).getValue() ;
-            $("<tr><td>" + name + "</td>" +
-                // TODO toString is not a good idea, as is may return strings that screw up the HTML.
-                  "<td>" + val.toString() + "</td></tr>").appendTo($("#stackVal"));
-
-        }
-        if(evalstack.getNext() != null)
-        {
-            visualizeStack(evalstack.getNext());
+        for( let frame of varStack.getAllFrames() ) {
+            for( let i = frame.numFields()-1 ; i >= 0 ; --i ) {
+                let field = frame.getFieldByNumber(i) ;
+                const name = field.getName() ;
+                // We need a better way to visualize values than just strings!
+                const valString = field.getValue().toString() ;
+                const row = $("<tr>").appendTo( $("#stackVal") ) ;
+                $("<td>").text( name ).appendTo( row ) ;
+                $("<td>").text( valString ).appendTo( row ) ;
+            }
         }
     }
 

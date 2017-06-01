@@ -17,12 +17,12 @@ module interpreter {
 
     class PlaayInterpreter implements vms.Interpreter {
 
-        step( vms : VMS ) {
-            // TODO
+        step( vms : VMS ) : void {
+            assert.checkPrecondition( vms.isReady() )
         }
 
-        select( vms : VMS ) {
-            // TODO
+        select( vms : VMS ) : void {
+            // 
         }
     }
 
@@ -32,6 +32,21 @@ module interpreter {
         return theInterpreter ;
     }
 
+    interface StepperRegistry { [key:string] : Stepper }
+
+    const theStepperRegistry : StepperRegistry = {} ;
+
+    interface SelectorRegistry { [key:string] : Selector }
+
+    const theSelctorRegistry : SelectorRegistry = {} ;
+
+    abstract class Stepper {
+        abstract step( vms : VMS ) : void ;
+    }
+    
+    abstract class Selector {
+        abstract step( vms : VMS ) : void ;
+    }
 }
 
 export = interpreter ;

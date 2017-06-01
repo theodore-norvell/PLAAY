@@ -15,6 +15,11 @@ module vms{
 
     import PNode = pnode.PNode;
 
+    import List = collections.List ;
+    import nil = collections.nil ;
+    import cons = collections.cons ;
+    import list = collections.list ;
+
     export interface Interpreter {
         step : (VMS) => void ;
         select : (VMS) => void ;
@@ -28,9 +33,9 @@ module vms{
      */
     export class VMS {
 
-        evalStack : EvalStack ;
+        private evalStack : EvalStack ;
 
-        interpreter : Interpreter ;
+        private interpreter : Interpreter ;
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
@@ -48,35 +53,97 @@ module vms{
             return this.evalStack.notEmpty();
         }
 
+        getRoot() : PNode {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getRoot() ;
+        }
+
+        isReady() : boolean {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().isReady() ;
+        }
+
+        getPending() : List<number> {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getPending() ;
+        }
+
+        getPendingNode() : PNode {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getPendingNode() ;
+        }
+
+        pushPending( childNum : number ) : void {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            this.evalStack.top().pushPending( childNum ) ;
+        }
+        
+        popPending( ) : void {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            this.evalStack.top().popPending( ) ;
+        }
+
+        getValMap() : ValueMap {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getValMap() ;
+        }
+        
+        getVal( path : List<number> ) : Value {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getVal( path ) ;
+        }
+
+        getChildVal( childNum : number ) : Value {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getChildVal( childNum ) ;
+        }
+
+        getStack() : VarStack {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getStack() ;
+        }
+
         getEval() : Evaluation {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top() ;
         }
 
-        // TODO.  Since advance will need to 
-        // call the interpreter, we should use 
-        // dependence inversion to avoid 
-        // circular dependence.  Instead the
-        // VMS can depend on an interface that
-        // the interpreter implements.
+        finishStep( value : Value ) : void {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            this.evalStack.top().finishStep( value ) ;
+        }
+
+        setResult(value : Value ) : void {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            this.evalStack.top().setResult( value ) ;
+        }
+
+        isDone() : boolean {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().isDone( ) ;
+        }
+
         advance(){
-            if(this.canAdvance()){
-                let ev = this.evalStack.top();
-                assert.check( ev.getStack() != null ) ;
-                
-                if( ev.isDone() ) {
-                    var value = ev.getValMap().get([]); //TODO get value from evaluation?
-                    this.evalStack.pop() ;
-                    if(this.evalStack.notEmpty()){
-                        this.evalStack.top().setResult( value );
-                    }
+            assert.checkPrecondition( this.canAdvance() ) ;
+            let ev = this.evalStack.top();
+            assert.check( ev.getStack() != null ) ;
+            
+            if( ev.isDone() ) {
+                var value = ev.getVal(nil<number>());
+                this.evalStack.pop() ;
+                if(this.evalStack.notEmpty()){
+                    this.evalStack.top().setResult( value );
                 }
-                else{
-                    assert.check( ev.getStack() != null ) ;
-                    ev.advance( this.interpreter, this);
-                    assert.check( ev.getStack() != null ) ;
-               }
             }
+            else{
+                assert.check( ev.getStack() != null ) ;
+                ev.advance( this.interpreter, this);
+                assert.check( ev.getStack() != null ) ;
+            }
+        }
+
+        reportError( message : String ) {
+            // TODO
         }
     }
 
@@ -85,94 +152,98 @@ module vms{
      * See the run-time model documentation for details.
      * */
     export class Evaluation {
-        // TODO root should be private
-        root : PNode;
+        private root : PNode;
         private varStack : VarStack;
-        private pending : Array<number>; // TODO Change this to a list.
-        // TODO ready should be private
-        ready : Boolean;
-        // TODO map should be private
-        map : ValueMap;
-
-        next : Evaluation; // TODO eliminate this field.
+        private pending : List<number>;
+        private ready : boolean;
+        private map : ValueMap;
 
         constructor (root : PNode, varStack : VarStack) {
             this.root = root;
-            this.pending = new Array();
+            this.pending = nil<number>() ;
             this.ready = false;
             this.varStack = varStack ;
 
             this.map = new ValueMap();
         }
 
-        getRoot()
-        {
-            return this.root;
+        getRoot() : PNode {
+            return this.root ;
         }
 
-        getNext(){
-            return this.next;
+        isReady() : boolean {
+            return this.ready ;
         }
 
-        getPending(){
-            return this.pending;
-        }
-
-        setPending(pending : Array<number>){
-            this.pending = pending;
-        }
-
-        getValMap(){
-            return this.map;
+        setReady( newReady : boolean ) : void {
+            this.ready = newReady ;
         }
 
         getStack(){
             return this.varStack;
         }
 
-        //setNext(next : Evaluation){
-            //this.next = next;
-        //}
-
-        finishStep( v : Value ){
-            if(this.pending != null && this.ready){
-
-                var pending2 = new Array<number>();
-                for (var i = 0; i < this.pending.length ; i ++){
-                    pending2.push(this.pending[i]);
-                }
-
-                this.map.put( pending2 , v);
-                if( this.pending.length == 0){
-                    this.pending = null;
-                }
-                else{
-                    this.pending.pop();
-                }
-                this.ready = false;
-            }
+        getPending() : List<number> {
+            assert.checkPrecondition( !this.isDone() ) ;
+            return this.pending;
         }
 
-        setResult(value : Value ){
-            var node = this.root.get( this.pending );
-            var closurePath = this.pending.concat([0]);
-            var closure : Value = this.map.get( closurePath );
-            assert.check( closure.isClosureV() ) ;
-            var lambda = (closure as ClosureI).getLambdaNode() ;
-            //TODO check if lambda has return type and make sure it is the same as value's type
-            this.finishStep( value );
+        getPendingNode() : PNode {
+            assert.checkPrecondition( !this.isDone() ) ;
+            return this.root.get( this.pending ) ;
         }
 
-        // setVarMap(map : ValueMap){
-        //     this.map = map;
-        // }
+        pushPending( childNum : number ) : void {
+            assert.checkPrecondition( !this.isDone() ) ;
+            this.pending.cat( list( childNum ))
+        }
+        
+        popPending( ) : void {
+            assert.checkPrecondition( !this.isDone() ) ;
+            if( this.pending.size() === 0 ) {
+                this.pending = null ;
+            } else {
+                this.pending = collections.butLast( this.pending ) ; }
+        }
 
+        getValMap( ) : ValueMap {
+            return this.map ; 
+        }
 
-        isDone(){
+        getVal( path : List<number> ) : Value {
+            return this.map.get( path ) ; 
+        }
+
+        getChildVal( childNum : number ) : Value {
+            assert.checkPrecondition( !this.isDone() ) ;
+            return this.map.get( collections.snoc(this.pending, childNum ) ) ; 
+        }
+
+        finishStep( value : Value ) : void {
+            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( this.ready ) ;
+            this.map.put( this.pending, value ) ;
+            this.popPending() ;
+            this.setReady( false ) ;
+        }
+
+        setResult(value : Value ) : void {
+            // This is used for function calls.
+            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( this.ready ) ;
+            this.map.put( this.pending, value ) ;
+            // At this point, the evaluation is
+            // ready and the call node is pending.
+            // Thus the call is stepped a second time.
+            // On the second step, the type of the
+            // result should be checked.
+        }
+
+        isDone() : boolean {
             return this.pending == null; //check if pending is null
         }
 
-        advance( interpreter : Interpreter, vms : VMS ){
+        advance( interpreter : Interpreter, vms : VMS ) {
             assert.checkPrecondition( !this.isDone() ) ;
 
             if( this.ready ){
@@ -188,45 +259,44 @@ module vms{
         }
     }
 
-    /*private*/ class MapEntry {
-        path : Array<number>;
-        val : Value;
+    export class MapEntry {
+        private readonly path : List<number>;
+        private val : Value;
 
-        constructor (key : Array<number>, value : Value ){
+        constructor (key : List<number>, value : Value ){
             this.path = key;
             this.val = value;
         }
 
-        getPath(){return this.path;}
-        getValue(){return this.val;}
-        setValue(v : Value ){this.val = v;}
+        getPath() : List<number> {return this.path;}
+        
+        getValue() : Value {return this.val;}
+        
+        setValue( v : Value ) : void { this.val = v ; }
+
     }
 
     /** A map from paths to values.
      * Each evaluation has such a map to record the values of already evaluated nodes.
      */
     export class ValueMap {
-        // TODO: Lists of numbers would be better than arrays, owing to their immutability.
-        // But hy not just used pointers to nodes as keys instead of using sequences of numbers.
-        size : number ;
-        entries : Array<MapEntry>;
+        private size : number ;
+        private entries : Array<MapEntry>;
 
         constructor(){
             this.entries = new Array<MapEntry>();
             this.size = 0;
         }
 
-        private samePath(a : Array<number>, b : Array<number>){
-            if( a.length != b.length ) return false ;
-            for(var p = 0; p < a.length; p++){
-                if(a[p] != b[p]){
-                    return false;
-                }
-            }
-            return true ;
+        private samePath(a : List<number>, b : List<number>) : boolean {
+            return a.equals(b) ;
         }
 
-        get(p : Array<number>) : Value {
+        getEntries() : Array<MapEntry> {
+            return this.entries.concat() ;
+        }
+
+        get(p : List<number>) : Value {
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
@@ -236,7 +306,7 @@ module vms{
             return null;
         }
 
-        put(p : Array<number>, v : Value){
+        put(p : List<number>, v : Value){
             var notIn = true;
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
@@ -252,7 +322,7 @@ module vms{
             }
         }
 
-        remove(p : Array<number>){
+        remove(p : List<number>){
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
@@ -265,7 +335,7 @@ module vms{
             return;
         }
 
-        inMap(p : Array<number>){
+        inMap(p : List<number>){
             for(var i = 0; i < this.size; i++){
                 var tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
@@ -281,49 +351,55 @@ module vms{
     */
     export class VarStack {
 
-        obj : ObjectI;
-        next : VarStack;
+        private _top : ObjectI;
+        private _next : VarStack; // Could be null.
 
         constructor(object : ObjectI, next : VarStack ){
-            this.obj = object;
-            this.next = next;
+            this._top = object;
+            this._next = next;
         }
 
-        top() : ObjectI {
-            return this.obj;
+        // TODO Is this ever used?
+        getTop() : ObjectI {
+            return this._top;
         }
 
         getNext() : VarStack {
-            return this.next;
+            return this._next;
         }
 
         //Return true if value was correctly set
-        setField(name : string, val : Value) : boolean{
-            if( this.obj.hasField( name ) ) {
-                this.obj.getField(name).setValue( val ) ;
+        setField(name : string, val : Value) : boolean {
+            if( this._top.hasField( name ) ) {
+                this._top.getField(name).setValue( val ) ;
                 return true ;
-            } else if(this.next == null){
+            } else if(this._next == null){
                 return false;
             } else{
-                return this.next.setField(name, val);
+                return this._next.setField(name, val);
             }
 
         }
 
         getField(name : string) : FieldI {
-            if( this.obj.hasField( name ) ) {
-                return this.obj.getField( name ) ;
-            } else if(this.next == null){
+            if( this._top.hasField( name ) ) {
+                return this._top.getField( name ) ;
+            } else if(this._next == null){
                 return null;
             } else{
-                return this.next.getField(name);
+                return this._next.getField(name);
             }
         }
 
         inStack(name : string) : boolean {
-            return this.obj.hasField( name ) 
-                   ||  (this.next != null)
-                       && this.next.inStack(name);
+            return this._top.hasField( name ) 
+                   ||  (this._next != null)
+                       && this._next.inStack(name);
+        }
+
+        getAllFrames() : Array<ObjectI> {
+            if( this._next === null ) return [this._top] ;
+            else [this._top].concat( this._next.getAllFrames() ) ;
         }
     }
 
@@ -332,35 +408,27 @@ module vms{
      */
     export class EvalStack { 
 
-        head : Evaluation;
+        private readonly stk : Array<Evaluation> = [] ;
 
         constructor(){
-            this.head = null;
         }
 
-        push(val : Evaluation ) {
-            if (this.notEmpty()) {
-                val.next = this.head;
-                this.head = val;
-            }
-            else {
-                this.head = val;
-            }
+        push(evaluation : Evaluation ) : void {
+            this.stk.push( evaluation ) ;
         }
 
-        pop() : Evaluation{
-            var it = this.head;
-            this.head = this.head.getNext();
-            return it;
+        pop() : Evaluation {
+            assert.checkPrecondition( this.stk.length > 0 ) ;
+            return this.stk.pop() ; ;
         }
 
         top() : Evaluation{
-            return this.head;
+            assert.checkPrecondition( this.stk.length > 0 ) ;
+            return this.stk[ this.stk.length - 1 ] ;
         }
 
         public notEmpty() : boolean{
-            if(this.head == null){return false;}
-            else{return true;}
+            return this.stk.length != 0 ;
         }
     }
 
