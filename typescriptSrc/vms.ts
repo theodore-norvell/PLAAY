@@ -11,6 +11,9 @@ import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
 
+/** The vms module provides the types that represent the state of the
+ * virtual machine.
+ */
 module vms{
 
     import PNode = pnode.PNode;

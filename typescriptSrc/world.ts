@@ -16,6 +16,9 @@ import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 
+/** This module contains code for the standard library.
+ * 
+ */
 module world {
     import EvalStack = vms.EvalStack;
     import list = collections.list;
@@ -63,7 +66,7 @@ module world {
         switch( n ) {
             case 1 : return "1st" ;
             case 2 : return "2nd" ;
-            case 3 : return "4th" ;
+            case 3 : return "3rd" ;
             default : return n+"th" ;
         }
     }

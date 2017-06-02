@@ -1,5 +1,6 @@
 /** Functions for self checking code.
- * These functions should be used to help ensure that the code base is error free.
+ * 
+ * <p>These functions should be used to help ensure that the code base is error free.
  * Assertion failures indicate an internal error in our software and should never be
  * used where the fault is with the user input or some external circumstance beyond
  * our control.
@@ -14,6 +15,16 @@ module assert {
             console.error( err['stack'] ) ; }
         if( doAlert ) alert( message ) ;
         throw err ;
+    }
+
+    /** Code is not written yet.
+     * 
+     * @param message  an optional message to accompany the Error.
+     */
+    export function todo( message? : string ) : void {
+        if( message===undefined ) message = "Code not written yet." ;
+        else message = "Code not written yet: "+message ;
+        raiseTheAlarm( message ) ;
     }
 
     /** Check that an expected condition is true.

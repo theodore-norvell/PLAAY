@@ -19,6 +19,14 @@ import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
 
+/** The animator is the execution pane of the application.
+ * 
+ * <p>It displays the current state of the virtual machine and provides controls
+ * for the user to step through the code at a variety of granularities.
+ *
+ * <p>It also displays widgets associated with libraries. For example a canvas
+ * for the turtle world library.
+ */
 module animator 
 {
     import EvaluationManager = evaluationManager.EvaluationManager;

@@ -69,6 +69,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>An EvalStack is simply a stack of evaluations.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -85,12 +92,6 @@
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="vms.evalstack.html#constructor" class="tsd-kind-icon">constructor</a></li>
-							</ul>
-						</section>
-						<section class="tsd-index-section ">
-							<h3>Properties</h3>
-							<ul class="tsd-index-list">
-								<li class="tsd-kind-property tsd-parent-kind-class"><a href="vms.evalstack.html#head" class="tsd-kind-icon">head</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -117,25 +118,12 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L307">vms.ts:307</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L423">vms.ts:423</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.evalstack.html" class="tsd-signature-type">EvalStack</a></h4>
 						</li>
 					</ul>
-				</section>
-			</section>
-			<section class="tsd-panel-group tsd-member-group ">
-				<h2>Properties</h2>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class">
-					<a name="head" class="tsd-anchor"></a>
-					<h3>head</h3>
-					<div class="tsd-signature tsd-kind-icon">head<span class="tsd-signature-symbol">:</span> <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></div>
-					<aside class="tsd-sources">
-						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L307">vms.ts:307</a></li>
-						</ul>
-					</aside>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
@@ -150,7 +138,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L333">vms.ts:333</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L442">vms.ts:442</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -167,7 +155,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L323">vms.ts:323</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L432">vms.ts:432</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h4>
@@ -178,19 +166,19 @@
 					<a name="push" class="tsd-anchor"></a>
 					<h3>push</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">push<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">push<span class="tsd-signature-symbol">(</span>evaluation<span class="tsd-signature-symbol">: </span><a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L313">vms.ts:313</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L428">vms.ts:428</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>val: <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h5>
+									<h5>evaluation: <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -207,7 +195,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/vms.ts#L329">vms.ts:329</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L437">vms.ts:437</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h4>
@@ -223,10 +211,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/edits.html">edits</a>
@@ -235,13 +232,13 @@
 						<a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/mkhtml.html">mkHTML</a>
+						<a href="../modules/interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="../modules/labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/playground.html">playground</a>
+						<a href="../modules/main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/pnode.html">pnode</a>
@@ -253,7 +250,13 @@
 						<a href="../modules/seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/valuetypes.html">value<wbr>Types</a>
@@ -281,9 +284,6 @@
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
 								<a href="vms.evalstack.html#constructor" class="tsd-kind-icon">constructor</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-class">
-								<a href="vms.evalstack.html#head" class="tsd-kind-icon">head</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.evalstack.html#notempty" class="tsd-kind-icon">not<wbr>Empty</a>
@@ -321,6 +321,9 @@
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="../interfaces/vms.fieldi.html" class="tsd-kind-icon">FieldI</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/vms.interpreter.html" class="tsd-kind-icon">Interpreter</a>
 					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module">
 						<a href="../interfaces/vms.objecti.html" class="tsd-kind-icon">ObjectI</a>

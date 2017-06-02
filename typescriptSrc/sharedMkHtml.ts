@@ -10,6 +10,8 @@ import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 
+/** The sharedMkHtml module looks after the conversion of trees to HTML.
+ * It can also map HTML elements to paths and paths to HTML. */
 module sharedMkHtml 
 {
     import list = collections.list;

@@ -72,7 +72,7 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>A collection of 0 or one thing.</p>
+						<p>A collection of 0 or 1 thing.</p>
 					</div>
 				</div>
 			</section>
@@ -116,6 +116,8 @@
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="collections.option.html#first" class="tsd-kind-icon">first</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="collections.option.html#isempty" class="tsd-kind-icon">is<wbr>Empty</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite"><a href="collections.option.html#map" class="tsd-kind-icon">map</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="collections.option.html#orelse" class="tsd-kind-icon">or<wbr>Else</a></li>
+								<li class="tsd-kind-property tsd-parent-kind-interface"><a href="collections.option.html#recoverby" class="tsd-kind-icon">recover<wbr>By</a></li>
 								<li class="tsd-kind-property tsd-parent-kind-interface tsd-is-inherited"><a href="collections.option.html#size" class="tsd-kind-icon">size</a></li>
 							</ul>
 						</section>
@@ -130,9 +132,20 @@
 					<div class="tsd-signature tsd-kind-icon">bind<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L25">collections.ts:25</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L55">collections.ts:55</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Feed this option into a function than makes another option.</p>
+							<pre>
+    some(a) ----> f ---+----> some(b)
+                  |
+                  \
+    none ---------------------> none
+</pre>
+						</div>
+					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
@@ -185,9 +198,20 @@
 					<div class="tsd-signature tsd-kind-icon">choose<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L23">collections.ts:23</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L34">collections.ts:34</a></li>
 						</ul>
 					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Choose an action based on whether this Option<A> is empty or not.</p>
+						</div>
+						<pre>
+       some(a) -------> f -----------> f(a)
+
+
+       none ----------> g ------------> g()
+</pre>
+					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
@@ -256,7 +280,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="collections.collection.html">Collection</a>.<a href="collections.collection.html#first">first</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L15">collections.ts:15</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L15">collections.ts:15</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -287,7 +311,7 @@
 					<aside class="tsd-sources">
 						<p>Inherited from <a href="collections.collection.html">Collection</a>.<a href="collections.collection.html#isempty">isEmpty</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L9">collections.ts:9</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L9">collections.ts:9</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
@@ -318,281 +342,446 @@
 					<aside class="tsd-sources">
 						<p>Overrides <a href="collections.collection.html">Collection</a>.<a href="collections.collection.html#map">map</a></p>
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L24">collections.ts:24</a></li>
-						</ul>
-					</aside>
-					<div class="tsd-type-declaration">
-						<h4>Type declaration</h4>
-						<ul class="tsd-parameters">
-							<li class="tsd-parameter-siganture">
-								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-has-type-parameter">
-									<li class="tsd-signature tsd-kind-icon">&lt;B&gt;<span class="tsd-signature-symbol">(</span>f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span></li>
-								</ul>
-								<ul class="tsd-descriptions">
-									<li class="tsd-description">
-										<h4 class="tsd-type-parameters-title">Type parameters</h4>
-										<ul class="tsd-type-parameters">
-											<li>
-												<h4>B</h4>
-											</li>
-										</ul>
-										<h4 class="tsd-parameters-title">Parameters</h4>
-										<ul class="tsd-parameters">
-											<li>
-												<h5>f: <span class="tsd-signature-type">function</span></h5>
-												<ul class="tsd-parameters">
-													<li class="tsd-parameter-siganture">
-														<ul class="tsd-signatures tsd-kind-type-literal">
-															<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">B</span></li>
-														</ul>
-														<ul class="tsd-descriptions">
-															<li class="tsd-description">
-																<h4 class="tsd-parameters-title">Parameters</h4>
-																<ul class="tsd-parameters">
-																	<li>
-																		<h5>a: <span class="tsd-signature-type">A</span></h5>
-																	</li>
-																</ul>
-																<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">B</span></h4>
-															</li>
-														</ul>
-													</li>
-												</ul>
-											</li>
-										</ul>
-										<h4 class="tsd-returns-title">Returns <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span></h4>
-									</li>
-								</ul>
-							</li>
-						</ul>
-					</div>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-					<a name="size" class="tsd-anchor"></a>
-					<h3>size</h3>
-					<div class="tsd-signature tsd-kind-icon">size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
-					<aside class="tsd-sources">
-						<p>Inherited from <a href="collections.collection.html">Collection</a>.<a href="collections.collection.html#size">size</a></p>
-						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/collections.ts#L12">collections.ts:12</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L43">collections.ts:43</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-comment tsd-typography">
 						<div class="lead">
-							<p>Postcondition: result is a natural number.</p>
+							<p>Apply f to every item.</p>
+							<p><pre>
+       some(a) -------&gt; some(f(b))</p>
+
+                </div>
+                <pre><code>   <span class="hljs-keyword">none</span> ----------&gt; <span class="hljs-keyword">none</span>
+</code></pre><p></pre></p>
 						</div>
+						<div class="tsd-type-declaration">
+							<h4>Type declaration</h4>
+							<ul class="tsd-parameters">
+								<li class="tsd-parameter-siganture">
+									<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property tsd-has-type-parameter">
+										<li class="tsd-signature tsd-kind-icon">&lt;B&gt;<span class="tsd-signature-symbol">(</span>f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span></li>
+									</ul>
+									<ul class="tsd-descriptions">
+										<li class="tsd-description">
+											<h4 class="tsd-type-parameters-title">Type parameters</h4>
+											<ul class="tsd-type-parameters">
+												<li>
+													<h4>B</h4>
+												</li>
+											</ul>
+											<h4 class="tsd-parameters-title">Parameters</h4>
+											<ul class="tsd-parameters">
+												<li>
+													<h5>f: <span class="tsd-signature-type">function</span></h5>
+													<ul class="tsd-parameters">
+														<li class="tsd-parameter-siganture">
+															<ul class="tsd-signatures tsd-kind-type-literal">
+																<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">B</span></li>
+															</ul>
+															<ul class="tsd-descriptions">
+																<li class="tsd-description">
+																	<h4 class="tsd-parameters-title">Parameters</h4>
+																	<ul class="tsd-parameters">
+																		<li>
+																			<h5>a: <span class="tsd-signature-type">A</span></h5>
+																		</li>
+																	</ul>
+																	<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">B</span></h4>
+																</li>
+															</ul>
+														</li>
+													</ul>
+												</li>
+											</ul>
+											<h4 class="tsd-returns-title">Returns <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span></h4>
+										</li>
+									</ul>
+								</li>
+							</ul>
+						</div>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="orelse" class="tsd-anchor"></a>
+					<h3>or<wbr>Else</h3>
+					<div class="tsd-signature tsd-kind-icon">or<wbr>Else<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+					<aside class="tsd-sources">
+						<ul>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L65">collections.ts:65</a></li>
+						</ul>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Recover from failure using another option.</p>
+						</div>
+						<p><pre>
+     some(a) ----------------&gt; some(a)</p>
+<pre><code> <span class="hljs-literal">none</span><span class="hljs-comment">--------------------&gt; that</span>
+</code></pre>
 					</div>
 					<div class="tsd-type-declaration">
 						<h4>Type declaration</h4>
 						<ul class="tsd-parameters">
 							<li class="tsd-parameter-siganture">
 								<ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
-									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+									<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>that<span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
 								</ul>
 								<ul class="tsd-descriptions">
 									<li class="tsd-description">
-										<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+										<h4 class="tsd-parameters-title">Parameters</h4>
+										<ul class="tsd-parameters">
+											<li>
+												<h5>that: <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+											</li>
+										</ul>
+										<h4 class="tsd-returns-title">Returns <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
 									</li>
 								</ul>
 							</li>
 						</ul>
 					</div>
 				</section>
-			</section>
-		</div>
-		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
-			<nav class="tsd-navigation primary">
-				<ul>
-					<li class="globals  ">
-						<a href="../globals.html"><em>Globals</em></a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/assert.html">assert</a>
-					</li>
-					<li class="current tsd-kind-module">
-						<a href="../modules/collections.html">collections</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/edits.html">edits</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/mkhtml.html">mkHTML</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/pagemanipulation.html">page<wbr>Manipulation</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/playground.html">playground</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/pnode.html">pnode</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/pnodeedits.html">pnode<wbr>Edits</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/seymour.html">seymour</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/treemanager.html">tree<wbr>Manager</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/valuetypes.html">value<wbr>Types</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/vms.html">vms</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/world.html">world</a>
-					</li>
-				</ul>
-			</nav>
-			<nav class="tsd-navigation secondary menu-sticky">
-				<ul class="before-current">
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../classes/collections.cons.html" class="tsd-kind-icon">Cons</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../classes/collections.list.html" class="tsd-kind-icon">List</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../classes/collections.nil.html" class="tsd-kind-icon">Nil</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../classes/collections.none.html" class="tsd-kind-icon">None</a>
-					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../classes/collections.some.html" class="tsd-kind-icon">Some</a>
-					</li>
-					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="collections.collection.html" class="tsd-kind-icon">Collection</a>
-					</li>
-				</ul>
-				<ul class="current">
-					<li class="current tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="collections.option.html" class="tsd-kind-icon">Option</a>
+				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface">
+					<a name="recoverby" class="tsd-anchor"></a>
+					<h3>recover<wbr>By</h3>
+					<div class="tsd-signature tsd-kind-icon">recover<wbr>By<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+					<aside class="tsd-sources">
 						<ul>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="collections.option.html#bind" class="tsd-kind-icon">bind</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface">
-								<a href="collections.option.html#choose" class="tsd-kind-icon">choose</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-								<a href="collections.option.html#first" class="tsd-kind-icon">first</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-								<a href="collections.option.html#isempty" class="tsd-kind-icon">is<wbr>Empty</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
-								<a href="collections.option.html#map" class="tsd-kind-icon">map</a>
-							</li>
-							<li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
-								<a href="collections.option.html#size" class="tsd-kind-icon">size</a>
-							</li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L74">collections.ts:74</a></li>
 						</ul>
-					</li>
-				</ul>
-				<ul class="after-current">
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#arraytolist" class="tsd-kind-icon">array<wbr>ToList</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#butlast" class="tsd-kind-icon">but<wbr>Last</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#cons-1" class="tsd-kind-icon">cons</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#list-1" class="tsd-kind-icon">list</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#nil-1" class="tsd-kind-icon">nil</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#none-1" class="tsd-kind-icon">none</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#snoc" class="tsd-kind-icon">snoc</a>
-					</li>
-					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<a href="../modules/collections.html#some-1" class="tsd-kind-icon">some</a>
-					</li>
-				</ul>
-			</nav>
-		</div>
-	</div>
+					</aside>
+					<div class="tsd-comment tsd-typography">
+						<div class="lead">
+							<p>Recover from failure using a function.</p>
+							<p><pre>
+     some(a) ----------------&gt; some(a)
+                  /
+                  |
+     none-------backup-------&gt; none</p>
+
+                </div>
+        </div>
+
+    <div class="tsd-type-declaration">
+        <h4>Type declaration</h4>
+            <ul class="tsd-parameters">
+        <li class="tsd-parameter-siganture">
+            <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
+                    <li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>backup<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+            </ul>
+
+            <ul class="tsd-descriptions">
+                    <li class="tsd-description">
+
+
+    <h4 class="tsd-parameters-title">Parameters</h4>
+    <ul class="tsd-parameters">
+            <li>
+                <h5>backup: <span class="tsd-signature-type">function</span></h5>
+
+                
+                        <ul class="tsd-parameters">
+        <li class="tsd-parameter-siganture">
+            <ul class="tsd-signatures tsd-kind-type-literal">
+                    <li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+            </ul>
+
+            <ul class="tsd-descriptions">
+                    <li class="tsd-description">
+
+
+
+    <h4 class="tsd-returns-title">Returns <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+
+
+</li>
+            </ul>
+        </li>
+</ul>
+            </li>
+    </ul>
+
+    <h4 class="tsd-returns-title">Returns <a href="collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+
+
+</li>
+            </ul>
+        </li>
+</ul>
+    </div>
+    
+
+</section>
+            <section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+    <a name="size" class="tsd-anchor"></a>
+        <h3>size</h3>
+
+        <div class="tsd-signature tsd-kind-icon">size<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
+
+<aside class="tsd-sources">
+        <p>Inherited from <a href="collections.collection.html">Collection</a>.<a href="collections.collection.html#size">size</a></p>
+        <ul>
+                    <li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L12">collections.ts:12</a></li>
+        </ul>
+</aside>
+        <div class="tsd-comment tsd-typography">
+                <div class="lead">
+                    <p>Postcondition: result is a natural number.</p>
+
+                </div>
+        </div>
+
+    <div class="tsd-type-declaration">
+        <h4>Type declaration</h4>
+            <ul class="tsd-parameters">
+        <li class="tsd-parameter-siganture">
+            <ul class="tsd-signatures tsd-kind-type-literal tsd-parent-kind-property">
+                    <li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+            </ul>
+
+            <ul class="tsd-descriptions">
+                    <li class="tsd-description">
+
+
+
+    <h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+
+
+</li>
+            </ul>
+        </li>
+</ul>
+    </div>
+    
+
+</section>
+</section>
+
+        </div>
+        <div class="col-4 col-menu menu-sticky-wrap menu-highlight">
+            <nav class="tsd-navigation primary">
+                <ul>
+                                    <li class="globals  ">
+                <a href="../globals.html"><em>Globals</em></a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/animator.html">animator</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/assert.html">assert</a>
+            </li>
+                                    <li class="current tsd-kind-module">
+                <a href="../modules/collections.html">collections</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/editor.html">editor</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/edits.html">edits</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/interpreter.html">interpreter</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/labels.html">labels</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/main.html">main</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/pnode.html">pnode</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/pnodeedits.html">pnode<wbr>Edits</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/seymour.html">seymour</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/sharedmkhtml.html">shared<wbr>MkHtml</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/treemanager.html">tree<wbr>Manager</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/userrelated.html">user<wbr>Related</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/valuetypes.html">value<wbr>Types</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/vms.html">vms</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/workspace.html">workspace</a>
+            </li>
+                                    <li class=" tsd-kind-module">
+                <a href="../modules/world.html">world</a>
+            </li>
+                </ul>
+            </nav>
+
+            <nav class="tsd-navigation secondary menu-sticky">
+                <ul class="before-current">
+                        <li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../classes/collections.cons.html" class="tsd-kind-icon">Cons</a>
+</li>
+                        <li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../classes/collections.list.html" class="tsd-kind-icon">List</a>
+</li>
+                        <li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../classes/collections.nil.html" class="tsd-kind-icon">Nil</a>
+</li>
+                        <li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../classes/collections.none.html" class="tsd-kind-icon">None</a>
+</li>
+                        <li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../classes/collections.some.html" class="tsd-kind-icon">Some</a>
+</li>
+                        <li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="collections.collection.html" class="tsd-kind-icon">Collection</a>
+</li>
+                            </ul>
+    <ul class="current">
+<li class="current tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="collections.option.html" class="tsd-kind-icon">Option</a>
+        <ul>
+                <li class=" tsd-kind-property tsd-parent-kind-interface">
+    <a href="collections.option.html#bind" class="tsd-kind-icon">bind</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface">
+    <a href="collections.option.html#choose" class="tsd-kind-icon">choose</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+    <a href="collections.option.html#first" class="tsd-kind-icon">first</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+    <a href="collections.option.html#isempty" class="tsd-kind-icon">is<wbr>Empty</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-overwrite">
+    <a href="collections.option.html#map" class="tsd-kind-icon">map</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface">
+    <a href="collections.option.html#orelse" class="tsd-kind-icon">or<wbr>Else</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface">
+    <a href="collections.option.html#recoverby" class="tsd-kind-icon">recover<wbr>By</a>
+</li>
+                <li class=" tsd-kind-property tsd-parent-kind-interface tsd-is-inherited">
+    <a href="collections.option.html#size" class="tsd-kind-icon">size</a>
+</li>
+        </ul>
+</li>
+    </ul>
+    <ul class="after-current">
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#arraytolist" class="tsd-kind-icon">array<wbr>ToList</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#butlast" class="tsd-kind-icon">but<wbr>Last</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#cons-1" class="tsd-kind-icon">cons</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#last" class="tsd-kind-icon">last</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#list-1" class="tsd-kind-icon">list</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#nil-1" class="tsd-kind-icon">nil</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#none-1" class="tsd-kind-icon">none</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#snoc" class="tsd-kind-icon">snoc</a>
+</li>
+                        <li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+    <a href="../modules/collections.html#some-1" class="tsd-kind-icon">some</a>
+</li>
+                </ul>
+            </nav>
+        </div>
+    </div>
 </div>
+
+
 <footer class="with-border-bottom">
-	<div class="container">
-		<h2>Legend</h2>
-		<div class="tsd-legend-group">
-			<ul class="tsd-legend">
-				<li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
-				<li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
-				<li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
-				<li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
-				<li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
-				<li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
-				<li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
-				<li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
-				<li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
-				<li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
-				<li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
-				<li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
-				<li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
-				<li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
-			</ul>
-			<ul class="tsd-legend">
-				<li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
-				<li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
-			</ul>
-		</div>
-	</div>
+    <div class="container">
+        <h2>Legend</h2>
+        <div class="tsd-legend-group">
+            <ul class="tsd-legend">
+                <li class="tsd-kind-module"><span class="tsd-kind-icon">Module</span></li>
+                <li class="tsd-kind-object-literal"><span class="tsd-kind-icon">Object literal</span></li>
+                <li class="tsd-kind-variable"><span class="tsd-kind-icon">Variable</span></li>
+                <li class="tsd-kind-function"><span class="tsd-kind-icon">Function</span></li>
+                <li class="tsd-kind-function tsd-has-type-parameter"><span class="tsd-kind-icon">Function with type parameter</span></li>
+                <li class="tsd-kind-index-signature"><span class="tsd-kind-icon">Index signature</span></li>
+                <li class="tsd-kind-type-alias"><span class="tsd-kind-icon">Type alias</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-enum"><span class="tsd-kind-icon">Enumeration</span></li>
+                <li class="tsd-kind-enum-member"><span class="tsd-kind-icon">Enumeration member</span></li>
+                <li class="tsd-kind-property tsd-parent-kind-enum"><span class="tsd-kind-icon">Property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-enum"><span class="tsd-kind-icon">Method</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-interface"><span class="tsd-kind-icon">Interface</span></li>
+                <li class="tsd-kind-interface tsd-has-type-parameter"><span class="tsd-kind-icon">Interface with type parameter</span></li>
+                <li class="tsd-kind-constructor tsd-parent-kind-interface"><span class="tsd-kind-icon">Constructor</span></li>
+                <li class="tsd-kind-property tsd-parent-kind-interface"><span class="tsd-kind-icon">Property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-interface"><span class="tsd-kind-icon">Method</span></li>
+                <li class="tsd-kind-index-signature tsd-parent-kind-interface"><span class="tsd-kind-icon">Index signature</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-class"><span class="tsd-kind-icon">Class</span></li>
+                <li class="tsd-kind-class tsd-has-type-parameter"><span class="tsd-kind-icon">Class with type parameter</span></li>
+                <li class="tsd-kind-constructor tsd-parent-kind-class"><span class="tsd-kind-icon">Constructor</span></li>
+                <li class="tsd-kind-property tsd-parent-kind-class"><span class="tsd-kind-icon">Property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-class"><span class="tsd-kind-icon">Method</span></li>
+                <li class="tsd-kind-accessor tsd-parent-kind-class"><span class="tsd-kind-icon">Accessor</span></li>
+                <li class="tsd-kind-index-signature tsd-parent-kind-class"><span class="tsd-kind-icon">Index signature</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited constructor</span></li>
+                <li class="tsd-kind-property tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited method</span></li>
+                <li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-inherited"><span class="tsd-kind-icon">Inherited accessor</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-property tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected method</span></li>
+                <li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-protected"><span class="tsd-kind-icon">Protected accessor</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-property tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private property</span></li>
+                <li class="tsd-kind-method tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private method</span></li>
+                <li class="tsd-kind-accessor tsd-parent-kind-class tsd-is-private"><span class="tsd-kind-icon">Private accessor</span></li>
+            </ul>
+            <ul class="tsd-legend">
+                <li class="tsd-kind-property tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static property</span></li>
+                <li class="tsd-kind-call-signature tsd-parent-kind-class tsd-is-static"><span class="tsd-kind-icon">Static method</span></li>
+            </ul>
+        </div>
+    </div>
 </footer>
-<div class="container tsd-generator">
-	<p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
-</div>
+
+    <div class="container tsd-generator">
+        <p>Generated using <a href="http://typedoc.org/" target="_blank">TypeDoc</a></p>
+    </div>
+
 <div class="overlay"></div>
 <script src="../assets/js/main.js"></script>
 <script>if (location.protocol == 'file:') document.write('<script src="../assets/js/search.js"><' + '/script>');</script>
+
+
 </body>
 </html>

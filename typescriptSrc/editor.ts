@@ -19,6 +19,7 @@ import pnodeEdits = require( './pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
 import treeManager = require( './treeManager');
 
+/** The UI of for editing program trees. */
 module editor {
 
     import list = collections.list;

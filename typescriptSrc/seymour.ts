@@ -1,5 +1,8 @@
 
 
+/** The seymour module provide the TurtleWorld class which represents the state
+ * of a turtle world.
+ */
 module seymour {
     class Point {
         private _x : number = 0 ;

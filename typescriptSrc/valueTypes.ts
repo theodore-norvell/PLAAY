@@ -10,6 +10,9 @@ import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 
+/** Value types provides classes that represent the values of Plaay programs
+ * at runtime.
+ */
 module valueTypes {
 
     import PNode = pnode.PNode ;

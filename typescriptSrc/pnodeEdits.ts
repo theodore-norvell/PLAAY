@@ -11,7 +11,9 @@ import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
- * 
+ * This module also includes the Selection class as well as
+ * various edit classes.  Each edit class represents some
+ * operation on Selections that might succeed or fail.
  */
 module pnodeEdits {
     import Option = collections.Option;

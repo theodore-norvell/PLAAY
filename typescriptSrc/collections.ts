@@ -1,4 +1,4 @@
-/** Collection types such as lists. 
+/** Collection types such as lists and options.
  * 
  */
 
@@ -18,15 +18,63 @@ module collections {
         map : <B> (f : (a:A) => B ) => Collection<B> ;
     }
     
-    /** A collection of 0 or one thing. */
+    /** A collection of 0 or 1 thing. */
     export interface Option<A> extends Collection<A> {
+
+        /** Choose an action based on whether this Option<A> is empty or not.
+         *
+         * <pre>
+         *        some(a) -------> f -----------> f(a)
+         *                                       
+         *                                       
+         *        none ----------> g ------------> g()
+         * </pre> 
+         * 
+        */
         choose : <B>( f: (a:A) => B, g : () => B ) => B ;
+
+        /** Apply f to every item.
+         * <pre>
+         *        some(a) -------> some(f(b))
+         * 
+         *        none ----------> none
+         * </pre> 
+        */
         map : <B> (f : (a:A) => B ) => Option<B> ;
+
+        
+
+        /** Feed this option into a function than makes another option.
+         * <pre>
+         *     some(a) ----> f ---+----> some(b)
+         *                   |
+         *                   \    
+         *     none ---------------------> none
+         * </pre> 
+        */
         bind : <B> (f : (a:A) => Option<B> ) => Option<B> ;
+
+        /** Recover from failure using another option.
+         * 
+         * <pre>
+         *      some(a) ----------------> some(a)
+         *
+         *      none--------------------> that
+         * 
+        */
         orElse : ( that : Option<A> ) => Option<A> ;
+
+        /** Recover from failure using a function.
+         * <pre>
+         *      some(a) ----------------> some(a)
+         *                   /
+         *                   |
+         *      none-------backup-------> none
+         */
         recoverBy : ( backup : () => Option<A> ) => Option<A> ;
     }
 
+    /** A collection of 1 thing. */
     export class Some<A> implements Option<A>{
         private _val : A ;
 
@@ -55,6 +103,7 @@ module collections {
         recoverBy( backup : () => Option<A> ) : Option<A> { return this ; }
     }
 
+    /** A collection of 0 things as an Option */
     export class None<A> implements Option<A> {
         constructor( ) { }
     
@@ -87,7 +136,7 @@ module collections {
     export function none<A>() : Option<A> {
         return new None<A>() ; }
     
-    /** Lisp-like lists. */
+    /** Lisp-like lists. Immutable lists of 0 or more things.*/
     export abstract class List<A> implements Collection<A> {
         abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
         
@@ -121,6 +170,7 @@ module collections {
         }
     }
         
+    /** A list of more than one thing. */
     class Cons<A> extends List<A> {
         private _head : A ;
         private _tail : List<A> ;
@@ -154,6 +204,7 @@ module collections {
                     () : string => ")" ) ; }
     }
     
+    /** A list of 0 things. */
     class Nil<A> extends List<A> {
         constructor( ) { super() ; }
     

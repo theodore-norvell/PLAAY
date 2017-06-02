@@ -6,7 +6,9 @@ import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 
-/** Module pnode contains the PNode class and the implementations of the labels. */
+/** The labels module contains the various label classes that define the different
+ * kinds of PNode. There is only one PNode class, so the difference in behaviour
+ * between one PNode and another is determined by its label. */
 module labels {
     import PNode = pnode.PNode ;
     import Label = pnode.Label ;

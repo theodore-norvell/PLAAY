@@ -90,7 +90,8 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="evaluationmanager.evaluationmanager-1.html#plaay" class="tsd-kind-icon">PLAAY</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="evaluationmanager.evaluationmanager-1.html#getvms" class="tsd-kind-icon">getVMS</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="evaluationmanager.evaluationmanager-1.html#initialize" class="tsd-kind-icon">initialize</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="evaluationmanager.evaluationmanager-1.html#next" class="tsd-kind-icon">next</a></li>
 							</ul>
 						</section>
@@ -109,7 +110,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/evaluationManager.ts#L26">evaluationManager.ts:26</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/evaluationManager.ts#L28">evaluationManager.ts:28</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="evaluationmanager.evaluationmanager-1.html" class="tsd-signature-type">EvaluationManager</a></h4>
@@ -120,16 +121,33 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="plaay" class="tsd-anchor"></a>
-					<h3>PLAAY</h3>
+					<a name="getvms" class="tsd-anchor"></a>
+					<h3>getVMS</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">PLAAY<span class="tsd-signature-symbol">(</span>root<span class="tsd-signature-symbol">: </span><a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, turtleWorld<span class="tsd-signature-symbol">: </span><a href="seymour.turtleworld.html" class="tsd-signature-type">TurtleWorld</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></li>
+						<li class="tsd-signature tsd-kind-icon">getVMS<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/evaluationManager.ts#L32">evaluationManager.ts:32</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/evaluationManager.ts#L46">evaluationManager.ts:46</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="initialize" class="tsd-anchor"></a>
+					<h3>initialize</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">initialize<span class="tsd-signature-symbol">(</span>root<span class="tsd-signature-symbol">: </span><a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, libraries<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.objecti.html" class="tsd-signature-type">ObjectI</a><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/evaluationManager.ts#L34">evaluationManager.ts:34</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -138,10 +156,10 @@
 									<h5>root: <a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h5>
 								</li>
 								<li>
-									<h5>turtleWorld: <a href="seymour.turtleworld.html" class="tsd-signature-type">TurtleWorld</a></h5>
+									<h5>libraries: <a href="../interfaces/vms.objecti.html" class="tsd-signature-type">ObjectI</a><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -149,16 +167,16 @@
 					<a name="next" class="tsd-anchor"></a>
 					<h3>next</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">next<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></li>
+						<li class="tsd-signature tsd-kind-icon">next<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/evaluationManager.ts#L42">evaluationManager.ts:42</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/evaluationManager.ts#L42">evaluationManager.ts:42</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -171,10 +189,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/edits.html">edits</a>
@@ -183,13 +210,13 @@
 						<a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/mkhtml.html">mkHTML</a>
+						<a href="../modules/interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="../modules/labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/playground.html">playground</a>
+						<a href="../modules/main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/pnode.html">pnode</a>
@@ -201,7 +228,13 @@
 						<a href="../modules/seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/valuetypes.html">value<wbr>Types</a>
@@ -228,7 +261,10 @@
 								<a href="evaluationmanager.evaluationmanager-1.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="evaluationmanager.evaluationmanager-1.html#plaay" class="tsd-kind-icon">PLAAY</a>
+								<a href="evaluationmanager.evaluationmanager-1.html#getvms" class="tsd-kind-icon">getVMS</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="evaluationmanager.evaluationmanager-1.html#initialize" class="tsd-kind-icon">initialize</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="evaluationmanager.evaluationmanager-1.html#next" class="tsd-kind-icon">next</a>

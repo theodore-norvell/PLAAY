@@ -4,7 +4,9 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 
-/** Module pnode contains the PNode class and the implementations of the labels. */
+/** Module pnode contains the PNode class.  PNodes are Program Nodes and are used
+ * to represent abstract syntax trees.  See also the labels module.
+ */
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;

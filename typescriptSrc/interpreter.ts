@@ -13,6 +13,10 @@ import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
 
+/** The interpreter module includes the various stepper and selector functions that
+ * that define the meaning of each label.
+ * 
+ */
 module interpreter {
 
     import Evaluation = vms.Evaluation;
