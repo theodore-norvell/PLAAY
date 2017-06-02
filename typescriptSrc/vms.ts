@@ -21,8 +21,8 @@ module vms{
     import list = collections.list ;
 
     export interface Interpreter {
-        step : (VMS) => void ;
-        select : (VMS) => void ;
+        step : (vms:VMS) => void ;
+        select : (vms:VMS) => void ;
     }
 
     /** The execution state of a virtual machine.
@@ -53,6 +53,10 @@ module vms{
             return this.evalStack.notEmpty();
         }
 
+        getInterpreter() : Interpreter {
+            return this.interpreter ;
+        }
+
         getRoot() : PNode {
             assert.checkPrecondition( this.canAdvance() ) ;
             return this.evalStack.top().getRoot() ;
@@ -61,6 +65,11 @@ module vms{
         isReady() : boolean {
             assert.checkPrecondition( this.canAdvance() ) ;
             return this.evalStack.top().isReady() ;
+        }
+
+        setReady( newReady : boolean ) : void {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            this.evalStack.top().setReady( newReady ) ;
         }
 
         getPending() : List<number> {
@@ -195,7 +204,7 @@ module vms{
 
         pushPending( childNum : number ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            this.pending.cat( list( childNum ))
+            this.pending = this.pending.cat( list( childNum ) ) ;
         }
         
         popPending( ) : void {

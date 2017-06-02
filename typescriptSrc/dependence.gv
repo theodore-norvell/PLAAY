@@ -26,6 +26,7 @@ digraph Depends {
 
    interpreter -> pnode ;
    interpreter -> labels ;
+   interpreter -> valueTypes ;
    interpreter -> vms ;
    interpreter -> world ;
 
