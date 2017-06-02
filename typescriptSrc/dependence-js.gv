@@ -18,6 +18,9 @@ digraph Depends {
    evaluationManager -> workspace ;
    evaluationManager -> world ;
 
+   interpreter -> labels ;
+   interpreter -> valueTypes ;
+   
    labels -> pnode
 
    main -> createHtmlElements ;

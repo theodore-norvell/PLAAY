@@ -64,7 +64,7 @@ describe( 'Lambda', function() {
 
     it('Should be selected', function() {
         vm.advance() ;
-        assert.check(vm.getEval().ready);
+        assert.check(vm.isReady() );
     } );
 
     it('Should step', function() {
@@ -72,7 +72,7 @@ describe( 'Lambda', function() {
     } );
 
     it('Should have a closure value in stack when stepped', function() {
-        const val : vms.Value = vm.getEval().getValMap().get( [] ) ;
+        const val : vms.Value = vm.getValMap().get( collections.nil<number>() ) ;
         assert.check( val.isClosureV() ) ;
         let close : ClosureV = <ClosureV> val ;
         assert.check(close.isClosureV());
@@ -89,10 +89,10 @@ describe( 'Call', function() {
         const call = labels.mkCall( lambda, str0, str1 ) ;
         const vm = new VMS( call, wlds, interp ) ;
         let timeOut = 1000 ;
-        for( ; timeOut > 0 && ! vm.evalStack.top().isDone() ; timeOut -= 1 ) {
+        for( ; timeOut > 0 && ! vm.isDone() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const val : vms.Value = vm.evalStack.top().getValMap().get( [] ) ;
+        const val : vms.Value = vm.getValMap().get( collections.nil<number>() ) ;
         assert.check( val instanceof valueTypes.StringV ) ;
         const stringVal = <valueTypes.StringV> val ;
         assert.check( stringVal.getVal() === expectedResult ) ;
