@@ -56,19 +56,20 @@ module pnodeEdits {
     *     less or equal to the number of children of the node identified by the path.
     */
     export class Selection {
+
+        private readonly _root : PNode ;
+        private readonly _path : List<number> ;
+        private readonly _anchor : number ;
+        private readonly _focus : number ;
+
         constructor( root : PNode, path : List<number>,
                     anchor : number, focus : number ) {
             assert.checkPrecondition( checkSelection( root, path, anchor, focus ), 
-                         "Attempt to make a bad selection" ) ;
+                                      "Attempt to make a bad selection" ) ;
             this._root = root;
             this._path = path;
             this._anchor = anchor ;
             this._focus = focus ; }
-
-        private _root : PNode ;
-        private _path : List<number> ;
-        private _anchor : number ;
-        private _focus : number ;
         
         root() : PNode { return this._root ; }
         
@@ -264,8 +265,8 @@ module pnodeEdits {
         const node = srcSelection.root() ;
         assert.checkPrecondition( node == trgSelection.root() ) ;
         return doubleReplaceHelper(node, srcSelection.path(), srcStart, srcEnd, newNodes4Src,
-                                        trgSelection.path(), trgStart, trgEnd, newNodes4Trg,
-                                        allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
+                                         trgSelection.path(), trgStart, trgEnd, newNodes4Trg,
+                                         allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
     }
 
     /** Handle the case where the src path is empty but the target path is not.
@@ -378,9 +379,15 @@ module pnodeEdits {
                     new Selection( newNode, collections.nil<number>(), start, newEnd ) )  ;
             }
         } else if( srcPath.isEmpty() ) {
-            return doubleReplaceOnePathEmpty( node, srcStart, srcEnd, newNodes4Src, trgPath, trgStart, trgEnd, newNodes4Trg, allowTrgAncestorOverwrite, true ) ;
+            return doubleReplaceOnePathEmpty( node,
+                                              srcStart, srcEnd, newNodes4Src,
+                                              trgPath, trgStart, trgEnd, newNodes4Trg,
+                                              allowTrgAncestorOverwrite, true ) ;
         } else if( trgPath.isEmpty() ) {
-            return doubleReplaceOnePathEmpty( node, trgStart, trgEnd, newNodes4Trg, srcPath, srcStart, srcEnd, newNodes4Src, allowSrcAncestorOverwrite, false ) ;
+            return doubleReplaceOnePathEmpty( node,
+                                              trgStart, trgEnd, newNodes4Trg,
+                                              srcPath, srcStart, srcEnd, newNodes4Src,
+                                              allowSrcAncestorOverwrite, false ) ;
         } else if( srcPath.first() == trgPath.first() ) {
             const k = srcPath.first() ;
             const len = node.count() ;

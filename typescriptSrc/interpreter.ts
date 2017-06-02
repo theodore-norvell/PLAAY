@@ -121,6 +121,9 @@ module interpreter {
         assert.checkPrecondition( str != null ) ;
         let result = theStringCache[ str ] ;
         if( result === undefined ) {
+            // Normally steppers and selectors should make no changes to anything
+            // other than the vms. This is so that undo and redo work.
+            // Here we make a harmeless exception by updating the cache.
             result = theStringCache[ str ] = new StringV( str ) ;
         }
         vms.finishStep( result ) ;
