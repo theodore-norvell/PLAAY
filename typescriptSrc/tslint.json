@@ -15,6 +15,7 @@
                            "object-destructuring",
                            "array-destructuring" ],
         "unified-signatures": true,
+        "align": [true, "parameters", "statements", "members", "arguments", "elements" ],
         "curly": [true, "ignore-same-line"],
         "no-arg": true,
         "no-conditional-assignment": true,
