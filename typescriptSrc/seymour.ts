@@ -1,4 +1,8 @@
+/// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
 
+import collections = require( './collections' ) ;
+import assert = require( './assert' ) ;
 
 /** The seymour module provide the TurtleWorld class which represents the state
  * of a turtle world.
@@ -72,7 +76,9 @@ module seymour {
          show() : void  { this.visible = true ; this.redraw() ;  }
          
          redraw() : void {
-             const ctx = this.canv.getContext("2d") ;
+             const ctxOrNot = this.canv.getContext("2d") ;
+             assert.check( ctxOrNot !== null ) ;
+             const ctx = ctxOrNot as CanvasRenderingContext2D ;
              const w = this.canv.width ;
              const h = this.canv.height ;
              ctx.clearRect(0, 0, w, h);

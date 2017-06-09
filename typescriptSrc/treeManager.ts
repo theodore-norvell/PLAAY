@@ -32,15 +32,8 @@ module treeManager {
         }
 
         createRoot() : Option<Selection>{
-
-            var testroot = pnode.tryMake(ExprSeqLabel.theExprSeqLabel, []);
-            // not sure how option works but will keep this
-            this.root = testroot.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
+            
+            this.root = labels.mkExprSeq( [] )  ;
 
             var placeholder = labels.mkExprPH();
             var sel = new Selection(this.root, collections.list(0), 0, 1);
