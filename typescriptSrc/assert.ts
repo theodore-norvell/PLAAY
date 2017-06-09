@@ -6,10 +6,10 @@
  * our control.
  */
 module assert {
-    var doAlert = true ;
+    let doAlert = true ;
     if(doAlert) try{eval('alert'); doAlert=true;} catch(e) {doAlert = false;}
 
-    function raiseTheAlarm( message : string ) {
+    function raiseTheAlarm( message : string ) : void {
         const err = new Error( message ) ;
         if( console.error !== undefined && err['stack'] !== undefined ) {
             console.error( err['stack'] ) ; }
@@ -61,10 +61,10 @@ module assert {
      * @param b    a condition that should be true.
      * @param message  an optional message to accompany the Error.
      */
-    export function checkInvariant( b : Boolean, message? : string ) {
+    export function checkInvariant( b : Boolean, message? : string ) : void {
         if( !b ) {
             if( message===undefined ) message = "Invariant failed" ;
-            else message = "Invariant failed: "+message ;
+            else message = "Invariant failed: " + message ;
             raiseTheAlarm( message ) ;
         }
     }
@@ -74,7 +74,9 @@ module assert {
      * @param a a thing
      * @param b  another thing
      */
-    export function checkEqual( a, b ) {
+    /* tslint:disable:no-any */
+    export function checkEqual( a : any, b : any ) : void  {
+    /* tslint:enable:no-any */
         if( !( a===b) ) {
             let message = "Assertion failed: Expected " ;
             if( a===undefined ) message += "undefined" ;

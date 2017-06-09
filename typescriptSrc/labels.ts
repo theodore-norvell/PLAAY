@@ -7,8 +7,11 @@ import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 
 /** The labels module contains the various label classes that define the different
- * kinds of PNode. There is only one PNode class, so the difference in behaviour
- * between one PNode and another is determined by its label. */
+ * kinds of PNode.
+ * 
+ * There is only one PNode class, so the difference in behaviour
+ * between one PNode and another is determined by its label.
+ */
 module labels {
     import PNode = pnode.PNode ;
     import Label = pnode.Label ;
@@ -26,37 +29,37 @@ module labels {
         constructor() {
         }
 
-        getVal() : string {
+        public getVal() : string {
             return null ; }
 
-        isOpen() : boolean { return false ; }
+        public isOpen() : boolean { return false ; }
 
-        open() : Option<Label>  { return none<Label>() ; }
+        public open() : Option<Label>  { return none<Label>() ; }
 
-        changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<Label> {
             return none<Label>();
         }
 
-        abstract isValid(children:Array<PNode>) : boolean ;
+        public abstract isValid(children:Array<PNode>) : boolean ;
 
-        abstract toJSON() : any ;
+        public abstract toJSON() : object ;
 
         /** Is this label a label for an expression node? */
-        abstract isExprNode() : boolean ;
+        public abstract isExprNode() : boolean ;
 
         /** Is this label a label for an expression sequence node? */
-        abstract isExprSeqNode() : boolean ;
+        public abstract isExprSeqNode() : boolean ;
 
         /** Is this label a label for a type node node? */
-        abstract isTypeNode() : boolean ;
+        public abstract isTypeNode() : boolean ;
 
         /** Return true if the node is a placeholder. Override this method in subclasses that are placeholders. */
-        isPlaceHolder() : boolean { return false; }
+        public isPlaceHolder() : boolean { return false; }
 
         /** Return true if node has a dropzone at number. */
-        hasDropZonesAt(start : number): boolean { return false; }
+        public hasDropZonesAt(start : number): boolean { return false; }
 
-        abstract kind() : string ;
+        public abstract kind() : string ;
 
     }
 
@@ -69,32 +72,32 @@ module labels {
             super() ;
         }
 
-        isExprNode() { return true ; }
+        public isExprNode() : boolean { return true ; }
 
-        isExprSeqNode() { return false ; }
+        public isExprSeqNode()  : boolean { return false ; }
 
-        isTypeNode() { return false ; }
+        public isTypeNode() : boolean { return false ; }
 
-        abstract toJSON() : any ;
+        public abstract toJSON() : object ;
     }
 
     /** Abstract base class for all type labels.  */
     export abstract class TypeLabel  extends AbstractLabel {
 
-        abstract isValid(children:Array<PNode>) ;
+       public  abstract isValid(children:Array<PNode>)  : boolean ;
 
         /*private*/
         constructor() {
             super() ;
         }
 
-        isExprNode() { return false ; }
+        public isExprNode() : boolean { return false ; }
 
-        isExprSeqNode() { return false ; }
+        public isExprSeqNode() : boolean  { return false ; }
 
-        isTypeNode() { return true ; }
+        public isTypeNode() : boolean  { return true ; }
 
-        public abstract toJSON() : any ;
+        public abstract toJSON() : object ;
     }
 
     abstract class ExprLabelWithString extends ExprLabel {
@@ -103,18 +106,17 @@ module labels {
         
         protected _open : boolean ;
 
-        protected
-        constructor(name : string, open : boolean ) {
+        protected constructor(name : string, open : boolean ) {
             super() ;
             this._val = name;
             this._open = open ;
         }
 
-        getVal() : string {
+        public getVal() : string {
             return this._val;
         }
 
-        isOpen() : boolean {
+        public isOpen() : boolean {
             return this._open ;
         }
     }
@@ -122,15 +124,13 @@ module labels {
     /** A sequence of expressions. */
     export class ExprSeqLabel  extends AbstractLabel {
 
-        static readonly kindConst : string = "ExprSeqLabel" ;
+        public static readonly kindConst : string = "ExprSeqLabel" ;
 
-        isValid(children:Array<PNode>) {
-            return children.every(function (c:PNode) {
-                return c.isExprNode()
-            });
+        public isValid(children:Array<PNode>) : boolean {
+            return children.every( (c:PNode) => c.isExprNode() ) ;
         }
 
-        toString():string {
+        public toString():string {
             return "seq";
         }
 
@@ -139,21 +139,21 @@ module labels {
             super() ;
         }
 
-        isExprNode() { return false ; }
+        public isExprNode() : boolean { return false ; }
 
-        isExprSeqNode() { return true ; }
+        public isExprSeqNode() : boolean { return true ; }
 
-        isTypeNode() { return false ; }
+        public isTypeNode() : boolean { return false ; }
 
-        hasDropZonesAt(start : number): boolean { return true; }
+        public hasDropZonesAt(start : number): boolean { return true; }
 
         // Singleton
-        public static theExprSeqLabel = new ExprSeqLabel();
+        public static readonly theExprSeqLabel : ExprSeqLabel = new ExprSeqLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind:  ExprSeqLabel.kindConst } ; }
 
-        public static fromJSON( json : any ) : ExprSeqLabel {
+        public static fromJSON( json : object ) : ExprSeqLabel {
             return ExprSeqLabel.theExprSeqLabel ; }
         
         public kind() : string { return ExprSeqLabel.kindConst ; }
@@ -162,36 +162,35 @@ module labels {
 
     /** References to variables.  */
     export class VariableLabel extends ExprLabelWithString {
-        static readonly kindConst : string = "VariableLabel" ;
+        public static readonly kindConst : string = "VariableLabel" ;
 
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;
+        public isValid(children:Array<PNode>):boolean {
+            return children.length === 0;
         }
 
-        toString():string {
+        public toString():string {
             return " variable["+this._val+"]" ;
         }
 
-        open() : Option<Label> {
+        public open() : Option<Label> {
             return some( new VariableLabel( this._val, true ) ) ;
         }
 
-        changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<Label> {
             const newLabel = new VariableLabel(newString, false);
             return new Some(newLabel);
         }
 
-        private
         constructor(name : string, open : boolean ) {
             super(name, open) ;
         }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind : VariableLabel.kindConst, name : this._val, open : this._open } ;
         }
 
-        public static fromJSON( json : any ) : VariableLabel {
-            return new VariableLabel( json.name, json.open ) ; }
+        public static fromJSON( json : object ) : VariableLabel {
+            return new VariableLabel( json["name"], json["open"] ) ; }
 
         public kind() : string { return VariableLabel.kindConst ; }
     }
@@ -199,12 +198,12 @@ module labels {
 
     /** Variable declaration nodes. */
     export class VarDeclLabel extends ExprLabel {
-        static readonly kindConst : string = "VarDeclLabel" ;
+        public static readonly kindConst : string = "VarDeclLabel" ;
 
         protected _isConst : boolean ;
 
-        isValid( children : Array<PNode> ) : boolean {
-            if( children.length != 3) return false ;
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 3) return false ;
             if( ! (children[0].label() instanceof VariableLabel) ) return false ;
             if( ! children[1].isTypeNode()) return false ;
             if( ! ( children[2].isExprNode()
@@ -212,22 +211,21 @@ module labels {
             return true;
         }
 
-        toString():string {
+        public toString():string {
             return "vdecl";
         }
 
-        private
         constructor( isConst : boolean ) {
             super() ;
             this._isConst = isConst ;
         }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: VarDeclLabel.kindConst, isConst: this._isConst } ;
         }
 
-        public static fromJSON( json : any ) : VarDeclLabel {
-            return new VarDeclLabel( json._isConst ) ;
+        public static fromJSON( json : object ) : VarDeclLabel {
+            return new VarDeclLabel( json["_isConst"] ) ;
         }
             
         public kind() : string { return VarDeclLabel.kindConst ; }
@@ -237,21 +235,20 @@ module labels {
     /** Assignments.  */
     export class AssignLabel extends ExprLabel {
 
-        static readonly kindConst : string = "AssignLabel" ;
+        public static readonly kindConst : string = "AssignLabel" ;
         
-        isValid( children : Array<PNode> ) : boolean {
-            if( children.length != 2) return false ;
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 2) return false ;
             if( ! children[0].isExprNode()) return false ;
             if( ! children[1].isExprNode()) return false ;
             return true;
         }
 
-        toString():string {
+        public toString():string {
             return "assign";
         }
 
-        /*private*/
-        constructor() {
+        private constructor() {
             super();
         }
 
@@ -259,11 +256,11 @@ module labels {
         // Singleton
         public static theAssignLabel = new AssignLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: AssignLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : AssignLabel {
+        public static fromJSON( json : object ) : AssignLabel {
             return AssignLabel.theAssignLabel ;
         }
             
@@ -276,40 +273,39 @@ module labels {
      * TODO Change the name to something else. */
     export class CallWorldLabel extends ExprLabelWithString  {
 
-        static readonly kindConst : string = "CallWorldLabel" ;
+        public static readonly kindConst : string = "CallWorldLabel" ;
 
-        isValid(children:Array<PNode>):boolean {
-            return children.every(function(c : PNode) { return c.isExprNode() } ) ;
+        public isValid(children:Array<PNode>):boolean {
+            return children.every((c : PNode) => c.isExprNode()  ) ;
         }
 
-        toString():string {
+        public toString():string {
             return "callWorld";
         }
 
-        open() : Option<Label> {
+        public open() : Option<Label> {
             return some( new CallWorldLabel( this._val, true ) ) ;
         }
 
-        changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<Label> {
             const newLabel = new CallWorldLabel(newString, false);
             return new Some(newLabel);
         }
 
 
-        private
         constructor(name : string, open : boolean ) {
             super( name, open ) ;
         }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: CallWorldLabel.kindConst, name: this._val, open: this._open } ;
         }
 
-        public static fromJSON( json : any ) : CallWorldLabel {
-            return new CallWorldLabel( json.name, json.open ) ;
+        public static fromJSON( json : object ) : CallWorldLabel {
+            return new CallWorldLabel( json["name"], json["open"] ) ;
         }
     
-        hasDropZonesAt(start : number): boolean { return true; }
+        public hasDropZonesAt(start : number): boolean { return true; }
             
         public kind() : string { return CallWorldLabel.kindConst ; }
     }
@@ -318,34 +314,33 @@ module labels {
     /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
 
-        static readonly kindConst : string = "ExprPHLabel" ;
+        public static readonly kindConst : string = "ExprPHLabel" ;
 
-        isValid( children : Array<PNode> ) : boolean {
-            if( children.length != 0) return false ;
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 0) return false ;
             return true;
         }
 
-        toString():string {
+        public toString():string {
             return "expPH";
         }
 
-        private
-        constructor() {
+        private constructor() {
             super();
         }
 
         // Singleton
-        public static theExprPHLabel = new ExprPHLabel();
+        public static theExprPHLabel : ExprPHLabel = new ExprPHLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: ExprPHLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : ExprPHLabel {
+        public static fromJSON( json : object ) : ExprPHLabel {
             return ExprPHLabel.theExprPHLabel ;
         }
 
-        isPlaceHolder() : boolean { return true; }
+        public isPlaceHolder() : boolean { return true; }
             
         public kind() : string { return ExprPHLabel.kindConst ; }
 
@@ -357,14 +352,14 @@ module labels {
      */
     export class NoExprLabel extends AbstractLabel {
         
-        static readonly kindConst : string = "NoExprLabel" ;
+        public static readonly kindConst : string = "NoExprLabel" ;
 
-        isValid( children : Array<PNode> ) : boolean {
-            if( children.length != 0) return false ;
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 0) return false ;
             return true;
         }
 
-        toString():string {
+        public toString():string {
             return "noExpr";
         }
 
@@ -373,22 +368,22 @@ module labels {
             super();
         }
 
-        isExprNode() { return false ; }
+        public isExprNode() : boolean { return false ; }
 
-        isExprSeqNode() { return false ; }
+        public isExprSeqNode() : boolean { return false ; }
 
-        isTypeNode() { return false ; }
+        public isTypeNode() : boolean { return false ; }
 
-        isPlaceHolder() : boolean { return true; }
+        public isPlaceHolder() : boolean { return true; }
 
         // Singleton
         public static theNoExprLabel = new NoExprLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: NoExprLabel.kindConst } ;
         }
 
-        public static fromJSON( json : any ) : NoExprLabel {
+        public static fromJSON( json : object ) : NoExprLabel {
             return NoExprLabel.theNoExprLabel ;
         }
             
@@ -399,22 +394,21 @@ module labels {
     /** Function (or method) literals. */
     export class LambdaLabel extends ExprLabel {
         
-        static readonly kindConst : string = "LambdaLabel" ;
+        public static readonly kindConst : string = "LambdaLabel" ;
 
-        isValid( children : Array<PNode> ) {
-             if( children.length != 3 ) return false ;
+        public isValid( children : Array<PNode> ) : boolean {
+             if( children.length !== 3 ) return false ;
              if ( ! (children[0].label() instanceof ParameterListLabel) ) return false ;
              if( ! children[1].isTypeNode() ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
              return true;
          }
 
-        toString():string {
+        public toString():string {
             return "lambda";
         }
 
-        private
-        constructor() {
+        private constructor() {
             super();
         }
 
@@ -422,11 +416,11 @@ module labels {
         // Singleton
         public static theLambdaLabel = new LambdaLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: LambdaLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : LambdaLabel {
+        public static fromJSON( json : object ) : LambdaLabel {
             return LambdaLabel.theLambdaLabel ;
         }
             
@@ -437,13 +431,13 @@ module labels {
     /** A parameter list.  */
     export class ParameterListLabel  extends AbstractLabel {
         
-        static readonly kindConst : string = "ParameterListLabel" ;
+        public static readonly kindConst : string = "ParameterListLabel" ;
 
-        isValid(children:Array<PNode>) {
+        public isValid(children:Array<PNode>) : boolean {
             return children.every( (c:PNode) : boolean => c.label() instanceof VarDeclLabel );
         }
 
-        toString():string {
+        public toString():string {
             return "param";
         }
 
@@ -455,18 +449,18 @@ module labels {
         // Singleton
         public static theParameterListLabel = new ParameterListLabel();
 
-        isExprNode() { return false ; }
+        public isExprNode() : boolean { return false ; }
 
-        isExprSeqNode() { return false ; }
+        public isExprSeqNode() : boolean { return false ; }
 
-        isTypeNode() { return false ; }
+        public isTypeNode() : boolean { return false ; }
 
-        hasDropZonesAt(start : number): boolean { return true; }
+        public hasDropZonesAt(start : number): boolean { return true; }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind:  ParameterListLabel.kindConst } ; }
 
-        public static fromJSON( json : any ) : ParameterListLabel {
+        public static fromJSON( json : object ) : ParameterListLabel {
             return ParameterListLabel.theParameterListLabel ; }
         
         public kind() : string { return ParameterListLabel.kindConst ; }
@@ -476,17 +470,17 @@ module labels {
     /** If expressions */
     export class IfLabel extends ExprLabel {
         
-        static readonly kindConst : string = "IfLabel" ;
+        public static readonly kindConst : string = "IfLabel" ;
 
-        isValid(  children : Array<PNode> ) : boolean {
-            if( children.length != 3 ) return false ;
+        public isValid(  children : Array<PNode> ) : boolean {
+            if( children.length !== 3 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprSeqNode() ) return false ;
             if( ! children[2].isExprSeqNode() ) return false ;
             return true ;
         }
 
-        toString():string {
+        public toString():string {
             return "if";
         }
 
@@ -498,11 +492,11 @@ module labels {
         // Singleton
         public static theIfLabel = new IfLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: IfLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : IfLabel {
+        public static fromJSON( json : object ) : IfLabel {
             return IfLabel.theIfLabel ;
         }
             
@@ -513,16 +507,16 @@ module labels {
     /** While loop expressions */
     export class WhileLabel extends ExprLabel {
         
-        static readonly kindConst : string = "WhileLabel" ;
+        public static readonly kindConst : string = "WhileLabel" ;
 
-        isValid(  children : Array<PNode> ) : boolean {
-            if( children.length != 2 ) return false ;
+        public isValid(  children : Array<PNode> ) : boolean {
+            if( children.length !== 2 ) return false ;
             if( ! children[0].isExprNode() ) return false ;
             if( ! children[1].isExprSeqNode() ) return false ;
             return true ;
         }
 
-        toString():string {
+        public toString():string {
             return "while";
         }
 
@@ -534,11 +528,11 @@ module labels {
         // Singleton
         public static theWhileLabel = new WhileLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: WhileLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : WhileLabel {
+        public static fromJSON( json : object ) : WhileLabel {
             return WhileLabel.theWhileLabel ;
         }
             
@@ -550,12 +544,12 @@ module labels {
     export class NoTypeLabel extends TypeLabel {
         // TODO: Should this really extend TypeLabel?
         
-        static readonly kindConst : string = "NoTypeLabel" ;
+        public static readonly kindConst : string = "NoTypeLabel" ;
 
-        isValid(children:Array<PNode>):boolean {
-            return children.length == 0;}
+        public isValid(children:Array<PNode>):boolean {
+            return children.length === 0;}
 
-        toString():string {
+        public toString():string {
             return "noType";
         }
     
@@ -565,15 +559,15 @@ module labels {
         // Singleton
         public static theNoTypeLabel = new NoTypeLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: NoTypeLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : NoTypeLabel {
+        public static fromJSON( json : object ) : NoTypeLabel {
             return NoTypeLabel.theNoTypeLabel ;
         }
 
-        isPlaceHolder() : boolean { return true; }
+        public isPlaceHolder() : boolean { return true; }
             
         public kind() : string { return NoTypeLabel.kindConst ; }
     }
@@ -582,31 +576,31 @@ module labels {
     /** String literals. */
     export class StringLiteralLabel extends ExprLabelWithString {
         
-        static readonly kindConst : string = "StringLiteralLabel" ;
+        public static readonly kindConst : string = "StringLiteralLabel" ;
 
         constructor( val : string, open : boolean) { super(val, open) ; }
 
-        isValid( children : Array<PNode> ) {
-            return children.length == 0 ; }
+        public isValid( children : Array<PNode> )  : boolean {
+            return children.length === 0 ; }
 
-        open() : Option<Label> {
+        public open() : Option<Label> {
             return some( new StringLiteralLabel( this._val, true ) ) ;
         }
 
-        changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<Label> {
              const newLabel = new StringLiteralLabel(newString, false);
              return new Some(newLabel);
          }
 
 
-        toString() : string { return "string[" + this._val + "]"  ; }
+        public toString() : string { return "string[" + this._val + "]"  ; }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: StringLiteralLabel.kindConst, val : this._val, open: this._open } ;
         }
 
-        public static fromJSON( json : any ) : StringLiteralLabel {
-            return new StringLiteralLabel( json.val, json.open )  ;
+        public static fromJSON( json : object ) : StringLiteralLabel {
+            return new StringLiteralLabel( json["val"], json["open"] )  ;
         }
             
         public kind() : string { return StringLiteralLabel.kindConst ; }
@@ -616,33 +610,33 @@ module labels {
     /** Number literals. */
     export class NumberLiteralLabel extends ExprLabelWithString {
         
-        static readonly kindConst : string = "NumberLiteralLabel" ;
+        public static readonly kindConst : string = "NumberLiteralLabel" ;
 
         constructor( val : string, open : boolean ) { super( val, open ) ; }
 
-        val() : string { return this._val ; }
+        public val() : string { return this._val ; }
 
-        isValid( children : Array<PNode> ) {
-            return children.length == 0 ;
+        public isValid( children : Array<PNode> ) : boolean {
+            return children.length === 0 ;
         }
 
-        open() : Option<Label> {
+        public open() : Option<Label> {
             return some( new NumberLiteralLabel( this._val, true ) ) ;
         }
 
-        changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<Label> {
             const newLabel = new NumberLiteralLabel(newString, false);
             return new Some(newLabel);
         }
 
-        toString() : string { return "number[" + this._val + "]"  ; }
+        public toString() : string { return "number[" + this._val + "]"  ; }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: NumberLiteralLabel.kindConst, val : this._val, open : this._open } ;
         }
 
-        public static fromJSON( json : any ) : NumberLiteralLabel {
-            return new NumberLiteralLabel( json.val, json.open )  ;
+        public static fromJSON( json : object ) : NumberLiteralLabel {
+            return new NumberLiteralLabel( json["val"], json["open"] )  ;
         }
             
         public kind() : string { return NumberLiteralLabel.kindConst ; }
@@ -652,32 +646,32 @@ module labels {
     /** Boolean literals */
     export class BooleanLiteralLabel extends ExprLabelWithString {
         
-        static readonly kindConst : string = "BooleanLiteralLabel" ;
+        public static readonly kindConst : string = "BooleanLiteralLabel" ;
 
         constructor( val : string, open : boolean) { super(val, open) ; }
 
-        open() : Option<Label> {
+        public open() : Option<Label> {
             return some( new BooleanLiteralLabel( this._val, true ) ) ;
         }
 
-        changeString (newString : string) : Option<Label> {
-                var newLabel = new BooleanLiteralLabel(newString, false);
+        public changeString (newString : string) : Option<Label> {
+                const newLabel = new BooleanLiteralLabel(newString, false);
                 return new Some(newLabel);
         }
 
-        isValid( children : Array<PNode> ) {
-            if(children.length != 0){return false}
-            return this._val == "true" || this._val == "false" ;
+        public isValid( children : Array<PNode> )  : boolean {
+            if(children.length !== 0){ return false ; }
+            return this._val === "true" || this._val === "false" ;
         }
 
-        toString() : string { return "boolean[" + this._val + "]"  ; }
+        public toString() : string { return "boolean[" + this._val + "]"  ; }
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: BooleanLiteralLabel.kindConst, val : this._val, open : this._open } ;
         }
 
-        public static fromJSON( json : any ) : BooleanLiteralLabel {
-            return new BooleanLiteralLabel( json.val, json.open )  ;
+        public static fromJSON( json : object ) : BooleanLiteralLabel {
+            return new BooleanLiteralLabel( json["val"], json["open"] )  ;
         }
             
         public kind() : string { return BooleanLiteralLabel.kindConst ; }
@@ -687,22 +681,22 @@ module labels {
     /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
         
-        static readonly kindConst : string = "NullLiteralLabel" ;
+        public static readonly kindConst : string = "NullLiteralLabel" ;
 
         constructor() { super() ; }
 
-        isValid( children : Array<PNode> ) {
-            return children.length == 0;}
+        public isValid( children : Array<PNode> )  : boolean {
+            return children.length === 0;}
 
-        toString() : string { return "null"  ; }
+        public toString() : string { return "null"  ; }
 
         public static theNullLiteralLabel = new NullLiteralLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: NullLiteralLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : NullLiteralLabel {
+        public static fromJSON( json : object ) : NullLiteralLabel {
             return  NullLiteralLabel.theNullLiteralLabel ;
         }
             
@@ -713,18 +707,18 @@ module labels {
     /** Call a function.  */
     export class CallLabel extends ExprLabel {
         
-        static readonly kindConst : string = "CallLabel" ;
+        public static readonly kindConst : string = "CallLabel" ;
 
-        isValid(children:Array<PNode>) {
+        public isValid(children:Array<PNode>) : boolean {
             return children.every( (c:PNode) =>
                 c.isExprNode() );
         }
 
-        toString():string {
+        public toString():string {
             return "call";
         }
 
-        getVal() : string {
+        public getVal() : string {
             return null;
         }
 
@@ -736,15 +730,15 @@ module labels {
         // Singleton
         public static theCallLabel = new CallLabel();
 
-        public toJSON() : any {
+        public toJSON() : object {
             return { kind: CallLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : any ) : CallLabel {
+        public static fromJSON( json : object ) : CallLabel {
             return CallLabel.theCallLabel ;
         }
 
-        hasDropZonesAt(start : number): boolean { return true; }
+        public hasDropZonesAt(start : number): boolean { return true; }
             
         public kind() : string { return CallLabel.kindConst ; }
     }
@@ -769,13 +763,13 @@ module labels {
     export function mkExprSeq( exprs : Array<PNode> ) : PNode {
         return make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
-    export function mkCallWorld( name : string, ...args : Array<PNode> ) {
+    export function mkCallWorld( name : string, ...args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, true), args ) ; }
     
-    export function mkCall( ...args : Array<PNode> ) {
+    export function mkCall( ...args : Array<PNode> ) : PNode {
         return make( CallLabel.theCallLabel, args ) ; }
     
-    export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) {
+    export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
         return make( new VarDeclLabel(false), [varNode, ttype, initExp ] ) ; }
 
     export function mkParameterList( exprs : Array<PNode> ) : PNode {
