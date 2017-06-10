@@ -309,6 +309,23 @@ module editor {
             // Single clicks on the view should change the current selection.
             $("#container .selectable").click( function(evt) {
                 console.log( ">> Click Handler") ;
+
+                //Scroll container to top of selected element if not visible.
+                var selectionHeight = $(this).outerHeight();
+                var selectionTop = $(this).position().top;
+                var selectionBot = (selectionHeight + selectionTop);
+                var visibleTop = $(' .container').scrollTop();
+                var visibleHeight = $(' .container').outerHeight();
+                if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
+                    $(' .container').animate({
+                        scrollTop: (visibleTop + selectionBot - visibleHeight)
+                    }, 500);
+                } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
+                    $(' .container').animate({
+                        scrollTop: (selectionTop + visibleTop)
+                    }, 500);
+                }
+
                 const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
                 optClickTarget.map( clickTarget => update( clickTarget ) ) ;
                 evt.stopPropagation(); 
