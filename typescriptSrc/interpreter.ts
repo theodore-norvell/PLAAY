@@ -99,11 +99,11 @@ module interpreter {
         const sz = node.count()
         let i = 0 ; 
         for( ; i < sz ; ++i ) {
-            if( vms.getChildVal(i) === null ) break ;
+            if( ! vms.isChildMapped(i) ) break ;
         }
         if( i===sz) {
             // All children have been evaluated.
-            // So we pick this node.
+            // So we pick the pending.
             vms.setReady( true ) ; }
         else {
             // Child i has not been evaluated.
@@ -122,7 +122,6 @@ module interpreter {
     function stringLiteralStepper( vms : VMS ) : void {
         const label = vms.getPendingNode().label() ;
         const str = label.getVal() ;
-        assert.checkPrecondition( str != null ) ;
         let result = theStringCache[ str ] ;
         if( result === undefined ) {
             // Normally steppers and selectors should make no changes to anything

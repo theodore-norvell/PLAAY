@@ -292,7 +292,8 @@ module sharedMkHtml
             result.append(children[2]);
         }
         else {
-            assert.check( false, "Unknown label in buildHTML.") ;
+            assert.unreachable( "Unknown label in buildHTML.") ;
+            throw null ;
         }
         // Give the result a number. // TODO Use data instead of attr.
         result.attr( "data-childNumber", childNumber.toString() ) ; 
@@ -313,11 +314,11 @@ module sharedMkHtml
 
     function  localHighlightSlection( pn : PNode, path : List<number>, start : number, end : number, jq : JQuery ) : void {
         if( path.isEmpty() ) {
-            if( start == end ) {
+            if( start === end ) {
                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
                 assert.check( zones != null ) ;
-                const dz : JQuery = start < zones.length ? zones[start] : null ;
-                if( dz!= null ) dz.addClass( "selected" ) ;
+                const dz : JQuery|null = start < zones.length ? zones[start] : null ;
+                if( dz!== null ) dz.addClass( "selected" ) ;
             } else {
                 const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
                 assert.check( children != null ) ;
@@ -366,7 +367,7 @@ module sharedMkHtml
         let focus;
         //console.log( ">> getPathToNode" ) ;
         let jq : JQuery= $(self);
-        let childNumber = Number(jq.attr("data-childNumber"));
+        let childNumber : number = Number(jq.attr("data-childNumber"));
         // Climb the tree until we reach a node with a data-childNumber attribute.
         while( jq.length > 0 && isNaN( childNumber ) ) {
             //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
@@ -397,7 +398,7 @@ module sharedMkHtml
 
 
         // Climb the tree until we reach a node with a data-childNumber attribute of -1.
-        const array = [];
+        const array : Array<number> = [];
         while (jq.length > 0 && childNumber != -1 ) {
             if (!isNaN(childNumber))
             {

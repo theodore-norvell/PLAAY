@@ -19,11 +19,12 @@ module pnodeEdits {
     import Option = collections.Option;
     import None = collections.None;
     import Some = collections.Some;
+    import none = collections.none;
+    import some = collections.some;
     import List = collections.List ;
     import cons = collections.cons ;
     import snoc = collections.snoc;
     import last = collections.last;
-    import some = collections.some;
     import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
@@ -142,7 +143,7 @@ module pnodeEdits {
             //the path is empty
             else if (path.isEmpty())
             {
-                return collections.none<Selection>();
+                return none<Selection>();
             }
             //the parent of this position has no children
             else if(root.get(path).count() == 0)
@@ -179,7 +180,7 @@ module pnodeEdits {
             //the path is empty
             else if (path.isEmpty())
             {
-                return collections.none<Selection>();
+                return none<Selection>();
             }
             //the parent of this position has no children
             else if(root.get(path).count() == 0)
@@ -206,8 +207,7 @@ module pnodeEdits {
         let root = selection.root();
         let path = selection.path();
 
-        assert.check(false, "TODO: moveUp()");
-        return null;
+        assert.todo( "moveUp()"); return none<Selection>() ;
     }
 
     /** Move down. */
@@ -217,8 +217,7 @@ module pnodeEdits {
         let root = selection.root();
         let path = selection.path();
 
-        assert.check(false, "TODO: moveDown()");
-        return null;
+        assert.todo( "moveDown()"); return none<Selection>() ;
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -329,7 +328,7 @@ module pnodeEdits {
             return opt.map( newNode =>
                 new Selection( node, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
         } else {
-            return collections.none<Selection>() ;
+            return none<Selection>() ;
         }
     }
     
@@ -368,7 +367,7 @@ module pnodeEdits {
                 if( newNodes4Src.length != 0 && newNodes4Trg.length != 0 ) {
                     // Ambiguous case. This might happen if we swap a node with itself.
                     // It should fail.
-                    return collections.none<Selection>() ;
+                    return none<Selection>() ;
                 }
                 const start = Math.min( srcStart, trgStart ) ;
                 const end = Math.max( srcEnd, trgEnd ) ;
@@ -508,7 +507,7 @@ module pnodeEdits {
                 ) ;
             }
             // Fail if no labels changed.
-            if( count == 0 ) return collections.none<Selection>() ;
+            if( count == 0 ) return none<Selection>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
@@ -536,7 +535,7 @@ module pnodeEdits {
                 ) ;
             }
             // Fail if no labels changed.
-            if( count == 0 ) return collections.none<Selection>() ;
+            if( count == 0 ) return none<Selection>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
@@ -581,7 +580,7 @@ module pnodeEdits {
         }
 
         applyEdit( trgSelection:Selection ) : Option<Selection> {
-            if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
+            if( this._srcSelection.root() != trgSelection.root() ) return none<Selection>() ;
             const newNodes = this._srcSelection.selectedNodes();
             // Try filling in with the empty sequence first. Otherwise try some other defaults.
             const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
@@ -609,7 +608,7 @@ module pnodeEdits {
         }
 
         applyEdit(trgSelection:Selection) : Option<Selection> {
-            if( this._srcSelection.root() != trgSelection.root() ) return collections.none<Selection>() ;
+            if( this._srcSelection.root() != trgSelection.root() ) return none<Selection>() ;
             const newNodes4Trg = this._srcSelection.selectedNodes()
             const newNodes4Src = trgSelection.selectedNodes() ;
             return doubleReplace( this._srcSelection, newNodes4Src, trgSelection, newNodes4Trg, false, false ) ;
@@ -647,8 +646,7 @@ module pnodeEdits {
         // Otherwise stop on dropzones or placeholders and similar nodes.
         const sel = opt.first() ;
         const start = sel.start() ;
-        const end = sel.end() ;
-        assert.check(false, "TODO: upDownSuitable()");
+        const end = sel.end() ; assert.todo("TODO: upDownSuitable()"); return false ;
     }
     /** 
      * Left edit

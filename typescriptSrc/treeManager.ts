@@ -43,10 +43,7 @@ module treeManager {
         }
 
         createNode(label:string, selection:Selection) : Option<Selection> {
-
-
             switch (label) {
-
                 //loops & if
                 case "if":
                     return this.makeIfNode(selection);
@@ -80,12 +77,11 @@ module treeManager {
                 //misc
                 case "lambda":
                     return this.makeLambdaNode(selection);
-                case "method":
-                    break;
                 case "type":
                     return this.makeNoTypeNode(selection);
                 default:
                     assert.checkPrecondition( false, "Unexpected parameter to createNode" ) ;
+                    throw null ; // Keep compiler happy
             }
         }
 

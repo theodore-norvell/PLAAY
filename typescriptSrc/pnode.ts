@@ -96,8 +96,8 @@ module pnode {
          */
         constructor(label:Label, children:Array<PNode>) {
             //Precondition  would not need to be checked if the constructor were private.
-            assert.check(label.isValid(children),
-                "Attempted to make an invalid program node");
+            assert.check( label.isValid(children),
+                          "Attempted to make an invalid program node");
             this._label = label;
             this._children = children.slice();  // Must make copy to ensure immutability.
         }
@@ -128,19 +128,10 @@ module pnode {
         }
 
         /* Return the node at the path */
-        public get(path : collections.List<number> | Array<number> ) : PNode {
-            // TODO. Do we really need to be able to pass in an array?
-             if( path instanceof Array ) {
-                 return this.listGet( collections.arrayToList( path ) ) ; }
-             else if( path instanceof collections.List ) {
-                return this.listGet( path ) ; }
-             else { assert.checkPrecondition( false, "Bad path argument.") ; return null ; }
-        }
-
-        private listGet(path : collections.List<number> ) : PNode {
+        public get(path : collections.List<number> ) : PNode {
              if(path.isEmpty() ) return this ;
-             else return this.child( path.first() ).listGet( path.rest() ) ;
-         }
+             else return this.child( path.first() ).get( path.rest() ) ;
+        }
 
 
         /** Possibly return a copy of the node in which the children are replaced.
@@ -185,7 +176,7 @@ module pnode {
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
+                    throw null;
                 }) ;
         }
 
@@ -211,7 +202,7 @@ module pnode {
                 p => p,
                 () => {
                     assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
-                    return null;
+                    throw null;
                 } ) ;
         }
 
@@ -294,19 +285,13 @@ module pnode {
     function fromJSONToLabel( json : object ) : Label {
         assert.check( json["kind"] !== undefined );
         assert.check( typeof( json["kind"] ) === "string" );
-         const labelClass : LabelMaker = registry[json["kind"]] ; // This line relies on
+        const labelClass : LabelMaker = registry[json["kind"]] ; // This line relies on
              //  (a) the json.kind field being the name of the concrete label class.
              //  (b) that all the concrete label classes have been resistered.
-         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
-         const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
-         assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined
-         return fromJSON( json ) ;
-         // If the code above doesn't work, then make a big ugly switch like this:
-         // switch( json.kind ) {
-             // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
-             // // and so on.
-             // default : assert.check(false ) ;
-         // }
+        assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
+        const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
+        assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined
+        return fromJSON( json ) ;
     }
 
     interface LabelMaker {

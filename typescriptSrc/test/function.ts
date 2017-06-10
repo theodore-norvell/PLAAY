@@ -72,7 +72,9 @@ describe( 'Lambda', function() {
     } );
 
     it('Should have a closure value in stack when stepped', function() {
-        const val : vms.Value = vm.getValMap().get( collections.nil<number>() ) ;
+        const valOrNull : vms.Value|null = vm.getValMap().get( collections.nil<number>() ) ;
+        assert.check( valOrNull !== null ) ;
+        const val = valOrNull as vms.Value ;
         assert.check( val.isClosureV() ) ;
         let close : ClosureV = <ClosureV> val ;
         assert.check(close.isClosureV());
@@ -92,7 +94,9 @@ describe( 'Call', function() {
         for( ; timeOut > 0 && ! vm.isDone() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const val : vms.Value = vm.getValMap().get( collections.nil<number>() ) ;
+        const valOrNull : vms.Value|null = vm.getValMap().get( collections.nil<number>() ) ;
+        assert.check( valOrNull !== null ) ;
+        const val = valOrNull as vms.Value ;
         assert.check( val instanceof valueTypes.StringV ) ;
         const stringVal = <valueTypes.StringV> val ;
         assert.check( stringVal.getVal() === expectedResult ) ;

@@ -122,7 +122,11 @@ describe('sixth step', function() {
         assert.check(ms.getValMap().getEntries().length === 3);
     });
     it('should have something in stack named aa', function() {
-        assert.check( ms.getStack().inStack("aa") );
+        const stackOrNull = ms.getStack() ;
+        assert.check( stackOrNull !== null ) ;
+        const stack = stackOrNull as vms.VarStack ;
+        const valOrNull = stack.hasField("aa") ;
+        assert.check( stack.hasField("aa") );
         // TODO check the value
     });
 });

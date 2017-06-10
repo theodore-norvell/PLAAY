@@ -34,52 +34,52 @@ module editor {
     const redostack : Array<Selection> = [];
     const undostack  : Array<Selection> = [];
     const trashArray : Array<Selection> = [];
-    var draggedObject : string ; 
-    var draggedSelection : Selection ;
-    var dragKind : DragEnum  = DragEnum.NONE ;
 
-    var currentSelection = new pnodeEdits.Selection(labels.mkExprSeq([]),list<number>(),0,0);
+    // Invariant: draggedObject===undefined if and only if dragKind===DragEnum.NONE 
+    let draggedObject : string|undefined ; 
+    let draggedSelection : Selection ;
+    let dragKind : DragEnum  = DragEnum.NONE ;
+
+    let currentSelection = new pnodeEdits.Selection(labels.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
-	export function editingActions () 
-    {
-
+	export function editingActions () {
         generateHTMLSoon();
-
         $("#undo").click( function()  { undo() ; } );
         $("#redo").click(function() { redo() ; } ) ;
 		$("#trash").click(function() {toggleTrash();});
 
         makeTrashDroppable( $("#trash") ) ;
-        $( ".palette" ).draggable({
-            helper:"clone" ,
-            revert: true ,
+        $( ".palette" ).draggable( {
+            helper:"clone",
+            revert: true,
             revertDuration: 500,
             opacity: 0.5, 
             scroll: true,
             scrollSpeed: 10,
             cursorAt: {left:20, top:20},
-            appendTo:"#container",
-            start : function(event, ui){
+            appendTo: "#container",
+            start : function(event:Event, ui:JQueryUI.DraggableEventUIParams) : void {
                 console.log( ">> Drag handler for things in pallette" ) ;
                 ui.helper.animate({
                     width: 40,
                     height: 40
                 });
                 dragKind = DragEnum.PALLETTE ;
+                /*tslint:disable:no-invalid-this*/
                 draggedObject = $(this).attr("class");
+                /*tslint:enable:no-invalid-this*/
                 console.log( "<< Drag handler for things in pallette" ) ;
-            }
-        });
+            } } ) ;
 
     }
 
-    function create(elementType: string, className: string, idName: string, parentElement: JQuery) : JQuery {
-		var obj = $("<" + elementType + "></" + elementType + ">");
-		if (className) { obj.addClass(className); }
-		if (idName) { obj.attr("id", idName); }
-		if (parentElement) { obj.appendTo(parentElement); }
+    function create(elementType: string, className: string|null, idName: string|null, parentElement: JQuery|null) : JQuery {
+		const obj = $("<" + elementType + "></" + elementType + ">");
+		if (className !== null) { obj.addClass(className); }
+		if (idName !== null) { obj.attr("id", idName); }
+		if (parentElement !== null) { obj.appendTo(parentElement); }
 		return obj;
 	}
 
@@ -439,9 +439,9 @@ module editor {
     }
 
     function undo() : void {
-        if (undostack.length != 0)  {
+        if (undostack.length !== 0)  {
             redostack.push(currentSelection);
-            currentSelection = undostack.pop();
+            currentSelection = undostack.pop() as Selection ;
             generateHTMLSoon();
         }
     }
@@ -449,15 +449,17 @@ module editor {
     function redo() : void {
         if (redostack.length != 0) {
             undostack.push(currentSelection);
-            currentSelection = redostack.pop();
+            currentSelection = redostack.pop() as Selection ;
             generateHTMLSoon();
         }
     }
 
-    var pendingAction = null ;
+    let pendingAction : number|null = null ;
     function generateHTMLSoon( ) : void {
-        if( pendingAction != null ) window.clearTimeout( pendingAction ) ;
-        pendingAction = window.setTimeout( function() { generateHTML() }, 20) ;
+        if( pendingAction !== null ) {
+            window.clearTimeout( pendingAction as number ) ; }
+        pendingAction = window.setTimeout(
+            function() { generateHTML() }, 20) ;
     }
 
 

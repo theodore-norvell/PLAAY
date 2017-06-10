@@ -9,7 +9,7 @@ module assert {
     let doAlert = true ;
     if(doAlert) try{eval('alert'); doAlert=true;} catch(e) {doAlert = false;}
 
-    function raiseTheAlarm( message : string ) : void {
+    function raiseTheAlarm( message : string ) : never {
         const err = new Error( message ) ;
         if( console.error !== undefined && err['stack'] !== undefined ) {
             console.error( err['stack'] ) ; }
@@ -25,6 +25,17 @@ module assert {
         if( message===undefined ) message = "Code not written yet." ;
         else message = "Code not written yet: "+message ;
         raiseTheAlarm( message ) ;
+    }
+    
+    /** The call is intended should not be reachable.
+     * 
+     * @param message  an optional message to accompany the Error.
+     */
+    export function unreachable( message? : string ) : never {
+        if( message===undefined ) message = "Unreachable code reached." ;
+        else message = "Unreachable code reached: "+message ;
+        raiseTheAlarm( message ) ;
+        throw null ; // Needed for the compiler.
     }
 
     /** Check that an expected condition is true.

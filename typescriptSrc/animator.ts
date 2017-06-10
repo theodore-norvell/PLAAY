@@ -77,7 +77,7 @@ module animator
 		var root = $("#vms :first-child").get(0);
         if (!highlighted && evaluationMgr.getVMS().isReady() ) 
         {
-            const vms : HTMLElement = document.getElementById("vms") ;
+            const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
             var list = evaluationMgr.getVMS().getPending();
             findInMap(root, evaluationMgr.getVMS().getValMap());
             highlight($(root), list);
