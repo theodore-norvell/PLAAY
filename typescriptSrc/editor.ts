@@ -310,12 +310,14 @@ module editor {
             $("#container .selectable").click( function(evt) {
                 console.log( ">> Click Handler") ;
 
-                //Scroll container to top of selected element if not visible.
+                // Scroll container up or down to make the selected element visible,
+                // or to the top of the selected element if it doesn't fit in the visible area.
                 var selectionHeight = $(this).outerHeight();
                 var selectionTop = $(this).position().top;
                 var selectionBot = (selectionHeight + selectionTop);
-                var visibleTop = $(' .container').scrollTop();
                 var visibleHeight = $(' .container').outerHeight();
+                var visibleTop = $(' .container').scrollTop();
+
                 if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
                     $(' .container').animate({
                         scrollTop: (visibleTop + selectionBot - visibleHeight)
