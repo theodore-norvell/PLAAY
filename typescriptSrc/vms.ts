@@ -358,9 +358,8 @@ module vms{
                     return this.entries[i].getValue();
                 }
             }
-            assert.checkPrecondition(false,
+            return assert.failedPrecondition(
                 "ValueMap.get: Tried to get a value for an unmapped tree location.") ;
-            throw null ; // For the compiler.
         }
 
         public put(p : List<number>, v : Value) : void {
@@ -412,15 +411,13 @@ module vms{
         }
         
         public setField(name : string, val : Value) : void {
-            assert.checkPrecondition(false,
+            return assert.failedPrecondition(
                 "VarStack.setField: Tried to set field that does not exist.") ;
-            throw null ; // For the compiler.
         }
 
         public getField(name : string) : FieldI {
-            assert.checkPrecondition(false,
+            return assert.failedPrecondition(
                 "VarStack.getField: Tried to get field that does not exist.") ;
-            throw null ; // For the compiler.
         }
 
         public getAllFrames() : Array<ObjectI> {

@@ -292,8 +292,7 @@ module sharedMkHtml
             result.append(children[2]);
         }
         else {
-            assert.unreachable( "Unknown label in buildHTML.") ;
-            throw null ;
+            result = assert.unreachable( "Unknown label in buildHTML.") ;
         }
         // Give the result a number. // TODO Use data instead of attr.
         result.attr( "data-childNumber", childNumber.toString() ) ; 

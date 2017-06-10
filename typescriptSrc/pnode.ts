@@ -175,8 +175,7 @@ module pnode {
             return opt.choose(
                 p => p,
                 () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    throw null;
+                    return assert.failedPrecondition("Precondition violation on PNode.modify");
                 }) ;
         }
 
@@ -201,8 +200,7 @@ module pnode {
             return opt.choose(
                 p => p,
                 () => {
-                    assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
-                    throw null;
+                    return assert.failedPrecondition("Precondition violation on PNode.modifyLabel");
                 } ) ;
         }
 

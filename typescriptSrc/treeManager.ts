@@ -80,8 +80,7 @@ module treeManager {
                 case "type":
                     return this.makeNoTypeNode(selection);
                 default:
-                    assert.checkPrecondition( false, "Unexpected parameter to createNode" ) ;
-                    throw null ; // Keep compiler happy
+                    return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
         }
 

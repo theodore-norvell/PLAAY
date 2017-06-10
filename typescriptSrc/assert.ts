@@ -34,8 +34,7 @@ module assert {
     export function unreachable( message? : string ) : never {
         if( message===undefined ) message = "Unreachable code reached." ;
         else message = "Unreachable code reached: "+message ;
-        raiseTheAlarm( message ) ;
-        throw null ; // Needed for the compiler.
+        return raiseTheAlarm( message ) ;
     }
 
     /** Check that an expected condition is true.
@@ -65,6 +64,18 @@ module assert {
             else message = "Precondition failed: "+message ;
             raiseTheAlarm( message ) ;
         }
+    }
+    
+    /** Report that an expected condition is false at the start of a method.
+     * This function should be used when the fault is with the code that
+     * called the current function.
+     * 
+     * @param message  an optional message to accompany the Error.
+     */
+    export function failedPrecondition( message? : string ) : never {
+        if( message===undefined ) message = "Precondition failed" ;
+        else message = "Precondition failed: "+message ;
+        return raiseTheAlarm( message ) ;
     }
 
     /** Check that an object invariatn holds.

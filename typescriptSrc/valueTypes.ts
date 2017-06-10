@@ -152,13 +152,11 @@ module valueTypes {
 
         public getField(fieldName:string) : Field {
             for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
+                if (this.fields[i].getName( )=== fieldName) {
                     return this.fields[i];
                 }
             }
-            assert.checkPrecondition( false, "ObjectV.getField called with bad argument.") ;
-            throw null ; // This line is unreachable. ...
-            // ...It is here so the compiler will not complain about a missing return.
+            return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
         }
 
 
