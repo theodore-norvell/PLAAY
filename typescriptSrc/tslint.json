@@ -47,7 +47,7 @@
         "trailing-comma": true,
         "no-angle-bracket-type-assertion": true,
         "no-boolean-literal-compare": true,
-        "one-variable-per-declaration": [true, "ignore-for-loop"],
+        //"one-variable-per-declaration": [true, "ignore-for-loop"],
         "ordered-imports": true,
         "semicolon": [true, "always"],
         "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]

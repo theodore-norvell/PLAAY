@@ -36,7 +36,7 @@ describe( 'pnodeEdits.Selection', () => {
         try {
             const badSel = new pnodeEdits.Selection( ite0, collections.list(0,0), 0, 0 ) ;
             assert.check( false ) ; }
-        catch( e  ) { }
+        catch( e ) { }
         } ) ;
         
     it('should fail to make a bad sselection. Path item too big.', () => {
@@ -68,7 +68,7 @@ describe( 'pnodeEdits.Selection', () => {
         try {
             const badSel0 = new pnodeEdits.Selection( ite0, collections.list(1,1), 0, -1 ) ;
             assert.check( false ) ; }
-        catch( e  ) { }
+        catch( e ) { }
         } ) ;
         
     it('should fail to make a bad selection. Focus too big.', () => {
@@ -86,7 +86,7 @@ const t0 = labels.mkExprSeq( [] ) ;
 
 
 describe( 'pnodeEdits.InsertChildrenEdit', () => {
-    var t1 : pnode.PNode ;
+    let t1 : pnode.PNode ;
 
     it( 'should insert a single if-then-else node at ((),0,0)', () => {
         const p0 = collections.list<number>( ) ;
@@ -100,14 +100,14 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
             s => {
                 t1 = s.root() ;
                 assert.check( t1.label() instanceof labels.ExprSeqLabel ) ;
-                assert.check( t1.child(0) == ite0 ) ;
-                assert.check( s.path() == sel0.path() ) ;
-                assert.check( s.anchor() == 0 ) ;
-                assert.check( s.focus() == 1 ) ;
+                assert.check( t1.child(0) === ite0 ) ;
+                assert.check( s.path() === sel0.path() ) ;
+                assert.check( s.anchor() === 0 ) ;
+                assert.check( s.focus() === 1 ) ;
             },
             () => assert.check( false ) ) ; } ) ;
 
-    var t2 : pnode.PNode ;
+    let t2 : pnode.PNode ;
 
     it( 'should replace a node at at ((0),0,1)', () => {
         const sel1 = new pnodeEdits.Selection( t1, collections.list(0), 0, 1 ) ;
@@ -123,10 +123,10 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
                 assert.check( t2.label() instanceof labels.ExprSeqLabel ) ;
                 //console.log( "t2 is " + t2.toString() ) ;
                 assert.check( t2.child(0).label() instanceof labels.IfLabel ) ;
-                assert.check( t2.child(0).child(0) == c ) ;
-                assert.check( s.path() == sel1.path() ) ;
-                assert.check( s.anchor() == 0 ) ;
-                assert.check( s.focus() == 1 ) ;
+                assert.check( t2.child(0).child(0) === c ) ;
+                assert.check( s.path() === sel1.path() ) ;
+                assert.check( s.anchor() === 0 ) ;
+                assert.check( s.focus() === 1 ) ;
             },
             () => assert.check( false ) ) ; } ) ;
 
@@ -209,7 +209,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
                 s => {
                     assert.checkEqual( "Selection( _root:if( string[a]() seq( string[a]() string[b]()) seq( string[c]()))"
                                                   +" _path:( 1 ) _anchor: "+k+" _focus: "+k+")",
-                                    s.toString() ) ;
+                                       s.toString() ) ;
                 },
                 () => assert.check( false ) ) ; } ) ; }
                 

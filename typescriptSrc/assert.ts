@@ -42,7 +42,7 @@ module assert {
      * @param b    a condition that should be true.
      * @param message  an optional message to accompany the Error.
      */
-    export function check( b : Boolean, message? : string ) : void {
+    export function check( b : boolean, message? : string ) : void {
         if( !b ) {
             if( message===undefined ) message = "Assertion failed" ;
             else message = "Assertion failed: "+message ;
@@ -58,7 +58,7 @@ module assert {
      * @param b    condition that should be true.
      * @param message  an optional message to accompany the Error.
      */
-    export function checkPrecondition( b : Boolean, message? : string ) : void {
+    export function checkPrecondition( b : boolean, message? : string ) : void {
         if( !b ) {
             if( message===undefined ) message = "Precondition failed" ;
             else message = "Precondition failed: "+message ;
@@ -83,7 +83,7 @@ module assert {
      * @param b    a condition that should be true.
      * @param message  an optional message to accompany the Error.
      */
-    export function checkInvariant( b : Boolean, message? : string ) : void {
+    export function checkInvariant( b : boolean, message? : string ) : void {
         if( !b ) {
             if( message===undefined ) message = "Invariant failed" ;
             else message = "Invariant failed: " + message ;

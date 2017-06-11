@@ -35,27 +35,27 @@ module world {
     import PNode = pnode.PNode;
 
     
-    /*private*/ var done : DoneV = new DoneV() ;
+    const done : DoneV = new DoneV() ;
 
 
-    /* private */ function checkNumberArgs( min : number, max : number, args : Array<Value>, vms : VMS ) : void {
+    function checkNumberArgs( min : number, max : number, args : Array<Value>, vms : VMS ) : void {
         if( args.length < min || args.length > max ) {
-            if( min===max )
-                vms.reportError( "Expected " +min+ " arguments." ) ;
-            else
-                vms.reportError("Expected from " +min+ " to " +max+ " arguments." ) ;
+            if( min===max ) {
+                vms.reportError( "Expected " +min+ " arguments." ) ; }
+            else {
+                vms.reportError("Expected from " +min+ " to " +max+ " arguments." ) ; }
         }
     }
 
-    /* private */ function canConvertToNumber( val : Value ) : boolean {
+    function canConvertToNumber( val : Value ) : boolean {
         if( val.isStringV() ) {
-            const str = (<StringV>val).contents ;
+            const str = (val as StringV).getVal() ;
             return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(str) ;
         } else return false ;
     }
     
-    /* private */ function convertToNumber( val : Value ) : number {
-        let str = (<StringV>val).contents ;
+    function convertToNumber( val : Value ) : number {
+        let str = (val as StringV).getVal() ;
         str = str.replace(/ |,/g, "" ) ;
         const n = parseFloat( str ) ;
         assert.check( ! isNaN( n ) ) ;
@@ -93,8 +93,8 @@ module world {
                 }
             }
 
-            var plus = new BuiltInV(addstep);
-            var addf = new Field("+", plus, Type.METHOD, true);
+            const plus = new BuiltInV(addstep);
+            const addf = new Field("+", plus, Type.METHOD, true);
             this.fields.push(addf);
 
             // TODO create the functions for the following builtin function.
@@ -166,20 +166,20 @@ module world {
 
             // The forward function returns the function
             // that does the work of the builtin function.
-            function forward ( tw : seymour.TurtleWorld )
+            function forward ( )
                     : ( vms : VMS, args : Array<Value> ) => void {
                 return  (vms : VMS, args : Array<Value> ) => {
                     if( checkNumberArgs( 1, 1, args, vms ) ) {
-                        var n : number = convertToNumber( args[0] ) ;
+                        const n : number = convertToNumber( args[0] ) ;
                         tw.forward( n ) ;
                         vms.finishStep( done ) ;
                     }
-                }
+                } ;
             }
 
             
-            var forw = new BuiltInV(forward(tw));
-            var forwardf = new Field("forward", forw, Type.METHOD, true);
+            const forw = new BuiltInV(forward());
+            const forwardf = new Field("forward", forw, Type.METHOD, true);
             this.fields.push(forwardf);
 
             // TODO The other builtins for the TurtleWorld

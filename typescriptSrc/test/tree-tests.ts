@@ -8,59 +8,59 @@ import assert = require( '../assert' ) ;
 import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
 
-var a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
-var b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
-var c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
-var d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
-var s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
-var s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
-var ite0 = labels.mkIf( a, s0, s1 )  ;
+const a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
+const b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
+const c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
+const d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
+const s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
+const s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
+const ite0 = labels.mkIf( a, s0, s1 )  ;
 
 // We'd like the following to fail at compile time.
 // Uncomment to see whether it does.
-//var ite1 = pnode.mkIf( a, b, c )  ;
+//const ite1 = pnode.mkIf( a, b, c )  ;
 
-describe( 'pnode.tryMake', function() {
-    it('should succeed making a valid if', function() {
-        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0, s1] ) ;
+describe( 'pnode.tryMake', function() : void {
+    it('should succeed making a valid if', function() : void {
+        const opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0, s1] ) ;
         opt.choose(
             p => { assert.check( p.label() instanceof labels.IfLabel ) ; },
-            () => { assert.check( false ) ; } ) } );
+            () => { assert.check( false ) ; } ) ; } ) ;
 
-    it('should fail making an invalid if', function() {
-        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, b, c] ) ;
+    it('should fail making an invalid if', function() : void {
+        const opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, b, c] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
-            () => {  } ) } );
+            () => {  } ) ; } );
 
-    it('should fail making an invalid if', function() {
-        var opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0] ) ;
+    it('should fail making an invalid if', function() : void {
+        const opt = pnode.tryMake( labels.IfLabel.theIfLabel, [a, s0] ) ;
         opt.choose(
             p => { assert.check( false ) ; },
-            () => {  } ) } ) ; } ) ;
+            () => {  } ) ; } ) ; } ) ;
 
-describe( 'pnode.tryModify', function() {
+describe( 'pnode.tryModify', function() : void {
     
     // Try to swap the then and else parts of ite0
 
-    it('should succeed swapping else and then parts', function() {
-        var opt = ite0.tryModify( [s1,s0], 1, 3 ) ;
+    it('should succeed swapping else and then parts', function() : void {
+        const opt = ite0.tryModify( [s1,s0], 1, 3 ) ;
         opt.choose(
             p => { assert.check( p.child(0) === a ) ;
                    assert.check( p.child(1) === s1 ) ;
-                   assert.check( p.child(2) === s0 ) },
-            () => {  } ) } )
+                   assert.check( p.child(2) === s0 ) ; },
+            () => {  } ) ; } ) ;
 
     // Try to swap the guard and then parts of ite0
 
-    it('should fail swapping the guard and then parts' , function() {
-        var opt = ite0.tryModify( [s0, a], 0, 2 ) ;
+    it('should fail swapping the guard and then parts' , function() : void {
+        const opt = ite0.tryModify( [s0, a], 0, 2 ) ;
         opt.choose(
             p => { assert.check( false ) ; },
-            () => {  } ) } ) 
+            () => {  } ) ; } ) ; 
 } ) ;
 
-var string0 : string ;
+let string0 : string ;
 
 describe( 'pnode.fromPNodeToJSON', () => {
 
@@ -78,9 +78,9 @@ describe( 'pnode.fromPNodeToJSON', () => {
 
 describe( 'pnode.fromJSONToPNode', () => {
     it( 'should convert a string to a node', () => {
-        var ite0a = pnode.fromJSONToPNode( string0 ) ;
+        const ite0a = pnode.fromJSONToPNode( string0 ) ;
         console.log( ite0a.toString() ) ;
         assert.check( ite0a.label() instanceof labels.IfLabel ) ;
-        assert.check( ite0a.count() == 3 ) ;
-        var string0a = pnode.fromPNodeToJSON( ite0a ) ;
-        assert.check( string0a == string0 ) ; } ) } ) ;
+        assert.check( ite0a.count() === 3 ) ;
+        const string0a = pnode.fromPNodeToJSON( ite0a ) ;
+        assert.check( string0a === string0 ) ; } ) ; } ) ;

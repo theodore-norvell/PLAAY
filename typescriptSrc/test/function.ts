@@ -58,55 +58,52 @@ const lambda0 : pnode.PNode = labels.mkLambda( param, t, body0);
 const body1 : pnode.PNode = labels.mkExprSeq([b]) ;
 const lambda1 : pnode.PNode = labels.mkLambda( param, t, body0) ;
 
-describe( 'Lambda', function() {
+describe( 'Lambda', function() : void {
     // Here we evaluate a Lamdba expression to get a closure value
     const vm = new VMS( lambda0, wlds, interp ) ;
 
-    it('Should be selected', function() {
+    it('Should be selected', function() : void {
         vm.advance() ;
         assert.check(vm.isReady() );
     } );
 
-    it('Should step', function() {
+    it('Should step', function() : void {
         vm.advance() ;
     } );
 
-    it('Should have a closure value in stack when stepped', function() {
-        const valOrNull : vms.Value|null = vm.getValMap().get( collections.nil<number>() ) ;
-        assert.check( valOrNull !== null ) ;
-        const val = valOrNull as vms.Value ;
+    it('Should have a closure value in stack when stepped', function() : void {
+        assert.check( vm.isMapped( collections.nil<number>())) ;
+        const val : vms.Value = vm.getValMap().get( collections.nil<number>() ) ;
         assert.check( val.isClosureV() ) ;
-        let close : ClosureV = <ClosureV> val ;
+        const close : ClosureV = val as ClosureV ;
         assert.check(close.isClosureV());
-        assert.check(close.getContext() == vm.getEval().getStack());
-        assert.check(close.getLambdaNode() == lambda0);
+        assert.check(close.getContext() === vm.getEval().getStack());
+        assert.check(close.getLambdaNode() === lambda0);
     } );
 } ) ;
 
-describe( 'Call', function() {
+describe( 'Call', function() : void {
     // Here we evaluate a Lamdba expression to get a closure value.
     // Then we call it with couple of strings.
     
-    function doTest( lambda : PNode, expectedResult : string ) {
+    function doTest( lambda : PNode, expectedResult : string ) : void {
         const call = labels.mkCall( lambda, str0, str1 ) ;
         const vm = new VMS( call, wlds, interp ) ;
         let timeOut = 1000 ;
         for( ; timeOut > 0 && ! vm.isDone() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const valOrNull : vms.Value|null = vm.getValMap().get( collections.nil<number>() ) ;
-        assert.check( valOrNull !== null ) ;
-        const val = valOrNull as vms.Value ;
+        const val : vms.Value  = vm.getValMap().get( collections.nil<number>() ) ;
         assert.check( val instanceof valueTypes.StringV ) ;
-        const stringVal = <valueTypes.StringV> val ;
+        const stringVal =  val as valueTypes.StringV ;
         assert.check( stringVal.getVal() === expectedResult ) ;
     }
 
-    it('Should return its first argument', function() {
+    it('Should return its first argument', function() : void {
         doTest( lambda0, str0.label().getVal() ) ;
     } );
 
-    it('Should return its second argument', function() {
+    it('Should return its second argument', function() : void {
         doTest( lambda1, str1.label().getVal() ) ;
     } );
 

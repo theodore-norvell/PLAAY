@@ -108,7 +108,7 @@ module pnode {
         }
 
         /** Get some of the children as an array. */
-        public children(start:number, end:number):Array<PNode> {
+        public children(start?:number, end?:number):Array<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
             assert.checkPrecondition( 0 <= start && start <= this.count() ) ;
@@ -149,7 +149,7 @@ module pnode {
          * @param start The first child to omit. Default 0.
          * @param end The first child after start to not omit. Default this.children().length.
          */
-        public tryModify(newChildren:Array<PNode>, start:number, end:number):Option<PNode> {
+        public tryModify(newChildren:Array<PNode>, start?:number, end?:number):Option<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
             const firstPart = this._children.slice(0, start);
@@ -234,8 +234,8 @@ module pnode {
 
         /** Convert a simple object created by toJSON to a PNode */
         public static fromJSON( json : object ) : PNode {
-             const label = fromJSONToLabel( json["label"] ) ;
-             const children = json["children"].map( PNode.fromJSON ) ;
+             const label : Label = fromJSONToLabel( json["label"] ) ;
+             const children : Array<PNode> = json["children"].map( (o:object) => PNode.fromJSON(o) ) ;
              return make( label, children ) ;
         }
 
@@ -277,15 +277,16 @@ module pnode {
         return JSON.stringify( json ) ; }
 
     export function fromJSONToPNode( s : string ) : PNode {
-        const json = JSON.parse( s ) ;
+        const json : object = JSON.parse( s ) ;
+        // TODO Cope with any parsing errors.
         return PNode.fromJSON( json ) ; }
 
     function fromJSONToLabel( json : object ) : Label {
         assert.check( json["kind"] !== undefined );
         assert.check( typeof( json["kind"] ) === "string" );
-        const labelClass : LabelMaker = registry[json["kind"]] ; // This line relies on
-             //  (a) the json.kind field being the name of the concrete label class.
-             //  (b) that all the concrete label classes have been resistered.
+        const labelClass : LabelMaker|undefined = registry[json["kind"]] ; // This line relies on
+        //  (a) the json.kind field being the name of the concrete label class.
+        //  (b) that all the concrete label classes have been resistered.
         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
         const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
         assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined

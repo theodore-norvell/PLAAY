@@ -2,40 +2,43 @@
 
 import seymour = require( './seymour' ) ;
 
-function turtleTest() {
+function turtleTest() : void  {
     console.log("running") ;
     const body = document.getElementById('body') as HTMLElement ;
-    const turtleWorld = new seymour.TurtleWorld() 
+    const turtleWorld = new seymour.TurtleWorld() ;
     const canv = turtleWorld.getCanvas();
     canv.setAttribute('width','200') ;
     canv.setAttribute('height','200') ;
     body.appendChild( canv ) ;
     
-    let playList : Array< () => void > = [
-        () => {turtleWorld.setPenDown(true)},
-        () => {turtleWorld.forward(20)},
-        () => {turtleWorld.right(90)},
-        () => {turtleWorld.forward(20)},
-        () => {turtleWorld.right(90)},
-        () => {turtleWorld.forward(20)},
-        () => {turtleWorld.right(90)},
-        () => {turtleWorld.forward(20)},
-        () => {turtleWorld.right(90)},
-        () => {turtleWorld.clear()},
-        () => {turtleWorld.hide()},
-        () => {turtleWorld.setPenDown(false)},       
-        () => {turtleWorld.forward(-20)},
-        () => {turtleWorld.show()},
-        () => {turtleWorld.right(90)},  
-        () => {turtleWorld.forward(10)}, 
-        () => {turtleWorld.setPenDown(true)},
+    const playList : Array< () => void > = [
+        () => turtleWorld.setPenDown(true),
+        () => turtleWorld.forward(20),
+        () => turtleWorld.right(90),
+        () => turtleWorld.forward(20),
+        () => turtleWorld.right(90),
+        () => turtleWorld.forward(20),
+        () => turtleWorld.right(90),
+        () => turtleWorld.forward(20),
+        () => turtleWorld.right(90),
+        () => turtleWorld.clear(),
+        () => turtleWorld.hide(),
+        () => turtleWorld.setPenDown(false),       
+        () => turtleWorld.forward(-20),
+        () => turtleWorld.show(),
+        () => turtleWorld.right(90),  
+        () => turtleWorld.forward(10), 
+        () => turtleWorld.setPenDown(true),
         
-        () => {for(let i=0 ; i< 360 ; ++i) {turtleWorld.forward(0.2) ; turtleWorld.left(1) ; } },
+        () => { for(let i=0 ; i< 360 ; ++i) {
+                    turtleWorld.forward(0.2) ;
+                    turtleWorld.left(1) ; }
+              },
         
-        () => {turtleWorld.hide()}
+        () => turtleWorld.hide()
     ] ;
     
-    function playFrom( i : number ) {
+    function playFrom( i : number ) : void {
         if( i < playList.length ) {
             playList[i]() ;
             setTimeout( ()=> playFrom(i+1), 500 ) ;

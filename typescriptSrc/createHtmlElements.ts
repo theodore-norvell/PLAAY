@@ -10,7 +10,7 @@ module createHtmlElements {
 
 	import list = collections.list;
 
-	export function createHtmls() {
+	export function createHtmls() : void {
 
 		const body = $("body");
 
@@ -67,17 +67,17 @@ module createHtmlElements {
 		create("div", "container evalHidden", "container", contentArea);
 		createHidden("div", "vms evalVisible", "vms", contentArea, null);
 
-		var optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
-		for (var i = 0; i < optionList.length; i++) {
+		const optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
+		for (let i = 0; i < optionList.length; i++) {
 			createValued("option", $("#oplist"), optionList[i]);
 		}
 	}
 
-	function create(elementType: string,
-		className: string | null,
-		idName: string | null,
-		parentElement: JQuery | null): JQuery {
-		var obj = $("<" + elementType + "></" + elementType + ">");
+	function create( elementType: string,
+	                 className: string | null,
+	                 idName: string | null,
+	                 parentElement: JQuery | null ) : JQuery {
+		const obj = $("<" + elementType + "></" + elementType + ">");
 		if (className !== null) { obj.addClass(className); }
 		if (idName !== null) { obj.attr("id", idName); }
 		if (parentElement !== null) { obj.appendTo(parentElement); }
@@ -86,16 +86,16 @@ module createHtmlElements {
 
 	function createTexted( elementType: string,
 	                       className: string|null,
-						   idName: string|null,
-						   parentElement: JQuery|null,
-						   textContent: string|null): JQuery {
+	                       idName: string|null,
+	                       parentElement: JQuery|null,
+	                       textContent: string|null): JQuery {
 		const obj = create(elementType, className, idName, parentElement);
 		if (textContent!==null) { obj.text(textContent); }
 		return obj;
 	}
 
 	function createValued(elementType: string, parentElement: JQuery, value: string): JQuery {
-		var obj = $("<" + elementType + "></" + elementType + ">");
+		const obj = $("<" + elementType + "></" + elementType + ">");
 		if (parentElement) { obj.appendTo(parentElement); }
 		if (value) { obj.val(value); }
 		return obj;

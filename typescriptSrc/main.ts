@@ -18,9 +18,9 @@ module main {
     
     export function onLoad() : void
     {
-		createHtmlElements.createHtmls();
-		animator.executingActions();
-		userRelated.userRelatedActions();
+        createHtmlElements.createHtmls();
+        animator.executingActions();
+        userRelated.userRelatedActions();
         editor.editingActions();
     }
 

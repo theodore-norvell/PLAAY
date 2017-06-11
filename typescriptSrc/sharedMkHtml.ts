@@ -26,8 +26,8 @@ module sharedMkHtml
 
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
-        var children = new Array<JQuery>() ;
-        for(var i = 0; i < node.count(); i++)
+        const children = new Array<JQuery>() ;
+        for(let i = 0; i < node.count(); i++)
         {
             children.push( traverseAndBuild(node.child(i), i, evaluating) ) ;
         }
@@ -37,12 +37,12 @@ module sharedMkHtml
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, evaluating:boolean) : JQuery
     {
         let result : JQuery ;
-        let dropzones : Array<JQuery> = [] ;
+        const dropzones : Array<JQuery> = [] ;
         const label = node.label().toString();
         // TODO: Change to a switch on the LabelKind
         if(label.match('if'))
         {
-            assert.check( children.length == 3 ) ;
+            assert.check( children.length === 3 ) ;
 
             const guardbox : JQuery = $(document.createElement("div")) ;
             guardbox.addClass( "ifGuardBox" ) ;
@@ -82,7 +82,7 @@ module sharedMkHtml
                 const dz = makeDropZone(i, true ) ;
                 dropzones.push( dz ) ;
                 result.append(dz);
-                if (i == children.length) break;
+                if (i === children.length) break;
                 result.append(children[i]);
             }
         }
@@ -107,13 +107,13 @@ module sharedMkHtml
                 const dz = makeDropZone(i, false) ;
                 dropzones.push( dz ) ;
                 result.append(dz);
-                if (i == children.length) break;
+                if (i === children.length) break;
                 result.append(children[i]);
             }
         }
         else if(label.match("while"))
         {
-            assert.check( children.length == 2 ) ;
+            assert.check( children.length === 2 ) ;
 
             const guardBox : JQuery = $( document.createElement("div") ) ;
             guardBox.addClass( "whileGuardBox") ;
@@ -169,24 +169,24 @@ module sharedMkHtml
                 const dz : JQuery = makeDropZone(i, false) ;
                 dropzones.push( dz ) ;
                 result.append( dz ) ;
-                if( i == children.length ) break ;
+                if( i === children.length ) break ;
                 result.append( children[i] ) ;
             }
         }
         else if(label.match("assign"))
         {
-            result  = $(document.createElement("div")) ;
+            result = $(document.createElement("div")) ;
             result.addClass( "assign" ) ;
             result.addClass( "H" ) ;
             result.addClass( "canDrag" ) ;
             result.addClass( "droppable" ) ;
 
-            const label : JQuery = $( document.createElement("div") )
-            label.addClass( "op" );
-            label.text( ":=" ) ;
+            const opDiv : JQuery = $( document.createElement("div") ) ;
+            opDiv.addClass( "op" );
+            opDiv.text( ":=" ) ;
 
             result.append(children[0]);
-            result.append(label);
+            result.append(opDiv);
             result.append(children[1]);
 
         }
@@ -307,7 +307,7 @@ module sharedMkHtml
     }
 
     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
-        assert.check( jq.attr( "data-childNumber" ) == "-1" ) ;
+        assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
         localHighlightSlection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
     }
 
@@ -315,12 +315,12 @@ module sharedMkHtml
         if( path.isEmpty() ) {
             if( start === end ) {
                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
-                assert.check( zones != null ) ;
+                assert.check( zones !== null ) ;
                 const dz : JQuery|null = start < zones.length ? zones[start] : null ;
                 if( dz!== null ) dz.addClass( "selected" ) ;
             } else {
                 const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
-                assert.check( children != null ) ;
+                assert.check( children !== null ) ;
                 for( let i = start ; i < end ; ++i ) {
                     children[i].addClass( "selected" ) ;
                 }
@@ -328,7 +328,7 @@ module sharedMkHtml
         } else {
             const i = path.first() ;
             const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
-            assert.check( children != null ) ;
+            assert.check( children !== null ) ;
             assert.check( i < children.length ) ;
             localHighlightSlection( pn.child(i), path.rest(), start, end, children[i] ) ;
         }
@@ -352,8 +352,8 @@ module sharedMkHtml
             text = text.replace( /"/g, "&quot;") ;
 
             const element : JQuery = $(document.createElement("input"));
-            for( let i=0 ; i < classes.length ; ++i )
-                element.addClass( classes[i] ) ;
+            for( let i=0 ; i < classes.length ; ++i ) {
+                element.addClass( classes[i] ) ; }
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
@@ -375,15 +375,15 @@ module sharedMkHtml
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        if( jq.length == 0 ) {
+        if( jq.length === 0 ) {
             return none<Selection>() ;
         }
-        if( childNumber == -1 ) {
+        if( childNumber === -1 ) {
             return none<Selection>() ;
         }
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;
-        if( isDropZone == "yes" ) {
+        if( isDropZone === "yes" ) {
             //console.log( "   it's a dropzone with number " +  childNumber) ;
             anchor = focus = childNumber ;
         } else {
@@ -398,7 +398,7 @@ module sharedMkHtml
 
         // Climb the tree until we reach a node with a data-childNumber attribute of -1.
         const array : Array<number> = [];
-        while (jq.length > 0 && childNumber != -1 ) {
+        while (jq.length > 0 && childNumber !== -1 ) {
             if (!isNaN(childNumber))
             {
                 array.push( childNumber );
@@ -408,11 +408,11 @@ module sharedMkHtml
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        assert.check( jq.length != 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
+        assert.check( jq.length !== 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
         // Now make a path out of the array.
         let path = list<number>();
-        for( let i = 0 ; i < array.length ; i++ )
-            path = collections.cons( array[i], path ) ;
+        for( let i = 0 ; i < array.length ; i++ ) {
+            path = collections.cons( array[i], path ) ; }
         
         // If making the selection fails, then the root passed in was not the root
         // used to make the HTML.

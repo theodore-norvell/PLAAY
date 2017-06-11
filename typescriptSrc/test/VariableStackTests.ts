@@ -23,35 +23,31 @@ import VarStack = vms.VarStack;
 import NonEmptyVarStack = vms.NonEmptyVarStack ;
 import EmptyVarStack = vms.EmptyVarStack ;
 
-var wrld : World = new World();
-var xStack : VarStack = new NonEmptyVarStack(wrld, EmptyVarStack.theEmptyVarStack);
+const wrld : World = new World();
+const xStack : VarStack = new NonEmptyVarStack(wrld, EmptyVarStack.theEmptyVarStack);
 
 
-describe( 'Variable Stack ', () => {
+describe( 'Variable Stack ', function() : void {
 
-    it('Should be initialized properly', () => {
+    it('Should be initialized properly', function() : void {
         assert.check( xStack.hasField("+") );
-        assert.check( xStack.getField("+") !== null);
     } );
 
-    it('Should not find values not in the stack', () => {
+    it('Should not find values not in the stack', function() : void {
         assert.check(!xStack.hasField("not in stack"));
-        //assert.check(xStack.getField("not in stack") == null);
     } );
 
-    it('Should be able to look up values', () => {
+    it('Should be able to look up values', function() : void {
 
-        var str = new valueTypes.StringV("");
-        var f : Field = new Field("abc", str, Type.ANY , false);
-        var obj : ObjectV = new ObjectV() ;
+        const str = new valueTypes.StringV("");
+        const f : Field = new Field("abc", str, Type.ANY , false);
+        const obj : ObjectV = new ObjectV() ;
         obj.addField( f ) ;
-        var yStack = new NonEmptyVarStack( obj, xStack) ;
+        const yStack = new NonEmptyVarStack( obj, xStack) ;
         assert.check( yStack.hasField(f.getName()));
-        assert.check( yStack.getTop().getField(f.getName()) == f );
-        assert.check( yStack.getField(f.getName()) == f );
+        assert.check( yStack.getTop().getField(f.getName()) === f );
+        assert.check( yStack.getField(f.getName()) === f );
         assert.check( yStack.hasField("+") );
-        assert.check( yStack.getField("+") != null );
         assert.check( ! yStack.hasField("not in stack") );
-        //assert.check( yStack.getField("not in stack") == null );
     } );
 } ) ;

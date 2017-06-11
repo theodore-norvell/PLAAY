@@ -27,10 +27,10 @@ module valueTypes {
 
     /** A field of an object. */
     export class Field implements FieldI {
-        name : string;
-        value : Value;
-        type : Type;
-        isConstant : boolean;
+        private name : string;
+        private value : Value;
+        private type : Type;
+        private isConstant : boolean;
 
         constructor(name : string, value : Value, type : Type, isConstant : boolean) {
             this.name = name;
@@ -40,62 +40,64 @@ module valueTypes {
         }
 
         // getters and setters
-        getName() : string {
+        public getName() : string {
             return this.name;
         }
 
-        setName(name : string) : void {
+        public setName(name : string) : void {
             this.name = name;
         }
 
-        getValue() {
+        public getValue() : Value {
             return this.value;
         }
 
-        setValue(value : Value) : void {
+        public setValue(value : Value) : void {
             this.value = value;
         }
 
-        getType() : Type {
+        public getType() : Type {
             return this.type;
         }
 
-        setType(type : Type) : void  {
+        public setType(type : Type) : void  {
             this.type = type;
         }
 
-        getIsConstant() {
+        public getIsConstant() : boolean {
             return this.isConstant;
         }
 
-        setIsConstant(isConstant :boolean) {
+        public setIsConstant(isConstant :boolean) : void {
             this.isConstant = isConstant;
         }
     }
 
     /** A string value. */
     export class StringV implements Value {
-        contents : string;
+        private contents : string;
 
         constructor(val : string){
             this.contents = val;
         }
 
-        getVal() : string {
+        public getVal() : string {
             return this.contents;
         }
 
-        isClosureV() : boolean {
+        public isClosureV() : boolean {
             return false;
         }
-        isBuiltInV() : boolean {
+
+        public isBuiltInV() : boolean {
             return false;
         }
-        isStringV() : boolean {
+
+        public isStringV() : boolean {
             return true;
         }
 
-        toString() : string {
+        public toString() : string {
             return '"' +this.contents+ '"' ;
         }
     }
@@ -118,26 +120,26 @@ module valueTypes {
         // able to add fields to an object.
         // Maybe we should just pass a list or array of
         // fields in to the constructor.
-        public addField(field:Field) {
-            assert.checkPrecondition( ! this.hasField( field.getName()) )
+        public addField(field:Field) : void {
+            assert.checkPrecondition( ! this.hasField( field.getName()) ) ;
             this.fields.push(field);
         }
 
         // TODO: Do we really need to be able to
         // delete fields from an object.
         public deleteField(fieldName:string):boolean {
-            for (var i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName()== fieldName) {
-                    this.fields.splice(i, 1);
-                    return true;
+            for (let i = 0; i < this.fields.length; i++) {
+                if (this.fields[i].getName() === fieldName) {
+                    this.fields.splice(i, 1) ;
+                    return true ;
                 }
             }
-            return false;
+            return false ;
         }
 
         public hasField( name : string ) : boolean {
             for (let i = 0, sz=this.numFields(); i < sz; i++) {
-                if (name == this.getFieldByNumber(i).getName()) {
+                if (name === this.getFieldByNumber(i).getName()) {
                     return true;
                 }
             }
@@ -151,7 +153,7 @@ module valueTypes {
         }
 
         public getField(fieldName:string) : Field {
-            for (var i = 0; i < this.fields.length; i++) {
+            for (let i = 0; i < this.fields.length; i++) {
                 if (this.fields[i].getName( )=== fieldName) {
                     return this.fields[i];
                 }
@@ -160,17 +162,19 @@ module valueTypes {
         }
 
 
-        isClosureV(){
+        public isClosureV() : boolean {
             return false;
         }
-        isBuiltInV(){
+
+        public isBuiltInV() : boolean {
             return false;
         }
-        isStringV() : boolean {
+
+        public isStringV() : boolean {
             return false ;
         }
 
-        toString() : string {
+        public toString() : string {
             return "object" ;
         }
     }
@@ -187,44 +191,46 @@ module valueTypes {
             this.context = context ;
         }
 
-        getContext() : VarStack {
+        public getContext() : VarStack {
             return this.context ;
         }
 
-        getLambdaNode() : PNode {
+        public getLambdaNode() : PNode {
             return this.func ;
         }
 
-        isClosureV(){
+        public isClosureV() : boolean {
             return true;
         }
-        isBuiltInV(){
+
+        public isBuiltInV() : boolean {
             return false;
          }
       
-        isStringV() : boolean {
+        public isStringV() : boolean {
             return false ;
         }
 
-        toString() : string {
+        public toString() : string {
             return "closure" ;
         }
     }
 
     /** Null values.  */
     export class NullV implements Value {
-        isClosureV(){
+        public isClosureV() : boolean {
             return false;
         }
-        isBuiltInV(){
+
+        public isBuiltInV() : boolean {
             return false;
         }
       
-        isStringV() : boolean {
+        public isStringV() : boolean {
             return false ;
         }
 
-        toString() : string {
+        public toString() : string {
             return "null" ;
         }
 
@@ -232,43 +238,44 @@ module valueTypes {
 
     /** The Done value. Used to indicate completion of a command. */
     export class DoneV implements Value {
-        isClosureV(){
+        public isClosureV() : boolean {
             return false;
         }
-        isBuiltInV(){
+
+        public isBuiltInV() : boolean {
             return false;
         }
       
-        isStringV() : boolean {
+        public isStringV() : boolean {
             return false ;
         }
 
-        toString() : string {
+        public toString() : string {
             return "done" ;
         }
     }
 
     /** A built in function. */
     export class BuiltInV implements Value {
-        step : (vms : vms.VMS, args : Array<Value> ) => void;
+        private step : (vms : vms.VMS, args : Array<Value> ) => void;
 
         constructor ( step : (vms : vms.VMS, args : Array<Value> ) => void ){
             this.step = step;
         }
 
-        isClosureV(){
+        public isClosureV() : boolean {
             return false;
         }
 
-        isBuiltInV(){
+        public isBuiltInV() : boolean {
             return true;
         }
       
-        isStringV() : boolean {
+        public isStringV() : boolean {
             return false ;
         }
 
-        toString() : string {
+        public toString() : string {
             return "built-in" ;
         }
     }
