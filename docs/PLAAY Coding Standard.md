@@ -64,7 +64,7 @@ Semicolons should be used even when they are optional.
 
 #### Braces
 
-Braces should be used even when they are optional.  An exception is  for short lambda expressions like `x : int => x+1`.
+Braces should be used even when they are optional.  An exception is  for short lambda expressions like `(x : int) => x+1`.
 
 Where braces are placed is up to you. My preferred brace style is this
 
@@ -149,7 +149,7 @@ Use `const` or `let` for module level variables.  (I think `var` is the same as 
 
 #### Use Camel Case
 
-Use camel case. Avoid underscores.
+Use camel case. Avoid underscores, except as below.
 
 An exception is enum members, which are all upper case with words separated by underscores.
 
@@ -178,6 +178,8 @@ Methods should either be accessors or mutators but not both.
 Fields should usually be `private`. Where possible, fields should be declared `readonly`.  (`readonly` indicates that the field will not change after construction.)
 
 Methods should be `private` unless there is a reason for them to not be `private`.
+
+Whether `private`, `protected`, or `public`, the accessibility level should be explicitly declared.
 
 Object invariants should be carefully documented.
 
@@ -211,9 +213,9 @@ Consider checking object invariants after construction and after each mutator.
             this._anchor = anchor ;
             this._focus = focus ; }
         
-        root() : PNode { return this._root ; }
+        public root() : PNode { return this._root ; }
         
-        path() : List<number> { return this._path ; }
+        public path() : List<number> { return this._path ; }
         
         .
         .
@@ -226,6 +228,24 @@ Consider checking object invariants after construction and after each mutator.
 Local variables should almost always be initialized.  Delay declaring a variable until it is ready to be initialized.
 
 ### Types
+
+#### Strict null and undefined checking
+
+We compile with the `strictNullChecks` option.  This means that `null` and `undefined` are not considered to be members of most types.
+
+If a variable might hold `null`, this needs to be explicitly declared. For example
+
+~~~~typescript
+   let pendingAction : number|null = null ;
+~~~~
+
+This sometimes means that a cast must be used where it wouldn't otherwise, in order that the compiler know that the variable is not `null`. For example `window.clearTimeout` takes a `number` and so we write.
+
+~~~~typescript
+    if( pendingAction !== null ) {
+        window.clearTimeout( pendingAction as number ) ; }
+~~~~
+
 
 #### Declare return types
 
@@ -244,12 +264,12 @@ An exception is short lambda expressions used as arguments.  For example in the 
         applyEdit( a : A ) : Option<A> {
             let result : Option<A> = this._first.applyEdit( a ) ;
             return result.choose(
-                        (a : A) => result,
+                        (a0 : A) => result,
                         () => this._second.applyEdit( a ) ) ;
         }
 ~~~~
 
-There is no need to write `(a:A) : Option<A> => result` because the compiler will infer the function's type from the type of its result.  However, there is no harm in putting in the return type here and it may be that putting in the type makes the code more readable. 
+There is no need to write `(a0:A) : Option<A> => result` because the compiler will infer the function's result type from the type `choose`'s first parameter.  However, there is no harm in putting in the return type here and it may be that putting in the type makes the code more readable. 
 
 
 #### Declare parameter types
@@ -322,7 +342,7 @@ In the last example, the compiler *does* result in an error reported by the comp
 
 However, in similar examples, using the `function`-keyword style will *not* result in the resulting type errors being reported for the error. That's because if the compiler can't figure out the type of `this` it uses `any` as its type.
 
-Exceptions: For HTML or jQuery event handlers, the "this" object will be the event.  One should use the `function` keyword. For example 
+Exceptions: For HTML or jQuery event handlers, the "this" object will be the HTML element.  One should use the `function` keyword. For example 
 
 ~~~~typescript
 inputs.keyup(function (e) {
@@ -350,12 +370,110 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
 
 The check functions from the `assert.ts` module should be used as much as reasonable.
 
-In particular, preconditions to functions should be checked using`assert.checkPrecondition`.
+In particular, preconditions to functions should be checked using`assert.checkPrecondition( condition, message)`.  If the precondition is known to have failed use `assert.failedPrecondition( message )`.
 
-Class invariants should be checked at the end of each constructor and mutator using assert.checkInvariant`.
+Class invariants should be checked at the end of each constructor and mutator using `assert.checkInvariant( condition, message)`.
 
-Other checks should use either `assert.check` or `assert.checkEqual`.
+Unreachable code should be marked by `assert.unreachable( message)`.
+
+Places where code remains to be written can be marked by `assert.todo( message )`.
+
+Other checks should use either `assert.check( condition, message)` or `assert.checkEqual( expected, found, message)`.
+
+#### Use of `never`
+
+The return type of `assert.unreachable` and `assert.failedPrecondition` is `never`, which indicates that they do not return.
+
+Consider a function 
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+Even though the return type of `assert.failedPrecondition` is `never`, the compiler seems to consider that this code is equivalent to 
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	    return undefined ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+And since we use strict null checking, this is a type error, since `undefined` is not considered a `number` under strict null checking.
+
+The solution is to write the function like this
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    return assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+The issue could have been avoided more elegantly like this
+
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+    assert.checkPrecondition( n >= 0, "negative argument to squareRoot" ) ;
+    ...
+    return result ; }
+}
+~~~~
+
 
 ### Comments
 
 Comments should be used to document modules, classes, and nonprivate methods.  We use `typedoc` to turn documentation into html, so comments should use the `typedoc` format, which is similar to `javadoc`.  See [http://typedoc.org/guides/doccomments/](http://typedoc.org/guides/doccomments/)
+
+### Miscellaneous
+
+Use `===` rather than `==` and `!==` rather than `!=`.
+
+Use `as` for casting. I.e. `f as number` rather than `<number> f`.
+
+Remember that casting is not checked at runtime. Thus it is important to be sure that any necessary checks are explicitly coded.  For example
+
+Consider this method
+
+~~~~typescript
+        public getPendingNode() : PNode {
+            assert.checkPrecondition( !this.isDone() ) ;
+            const p = this.pending as List<number> ;
+            return this.root.get( p ) ;
+        }
+~~~~
+
+Here the type of `this.pending` is `null | List<number>`.  However, if `!this.isDone()` is true, then `this.pending` can not be null. Therefore the case expression is safe.
+
+The `any` type should be avoided.
+
+Assignments and other side effects, should never occur with the guards of `if`, `while`, `for` commands.  For example
+
+~~~~typescript
+        // BAD
+        if( a = b ) ... 
+        
+        // GOOD
+        a = b ;
+        if( a ) ...
+~~~~
+
+Likewise avoid assignments and other side effects in arguments.
+
+Avoid `throw` and `catch`.
+
+Avoid use of `null` and `undefined` as much as possible.
