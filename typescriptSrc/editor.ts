@@ -311,48 +311,56 @@ module editor {
             $(document).keydown( keyDownHandler ) ;
 
             // Single clicks on the view should change the current selection.
-            $("#container .selectable").click( function(evt : Event) : void {
-                console.log( ">> Click Handler") ;
-                const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-                optClickTarget.map( clickTarget => update( clickTarget ) ) ;
-                evt.stopPropagation(); 
-                console.log( "<< Click Handler") ;
-            } );
+            $("#container .selectable").click(
+                function(this : HTMLElement, evt : Event) : void {
+                    console.log( ">> Click Handler") ;
+                    const optClickTarget :  Option<Selection>
+                    = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                    optClickTarget.map( clickTarget => update( clickTarget ) ) ;
+                    evt.stopPropagation(); 
+                    console.log( "<< Click Handler") ;
+                } );
 
             // TODO Rather than double click, perhaps a click on a selected
             // node should open it.
-            $("#container .click").dblclick(function(evt : Event) : void {
-                console.log( ">> Double Click Handler") ;
-                const optClickTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
-                optClickTarget.map( clickTarget => {
-                    const edit = new pnodeEdits.OpenLabelEdit() ;
-                    const opt = edit.applyEdit( clickTarget ) ;
-                    opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
-                evt.stopPropagation(); 
-                console.log( "<< Double Click Handler") ;
-            });
+            $("#container .click").dblclick(
+                function(this : HTMLElement, evt : Event) : void {
+                    console.log( ">> Double Click Handler") ;
+                    const optClickTarget : Option<Selection> 
+                    = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                    optClickTarget.map( clickTarget => {
+                        const edit = new pnodeEdits.OpenLabelEdit() ;
+                        const opt = edit.applyEdit( clickTarget ) ;
+                        opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
+                    evt.stopPropagation(); 
+                    console.log( "<< Double Click Handler") ;
+                });
         }
     }
 
     
-    const updateLabelHandler = function (e : Event ) : void {
+    const updateLabelHandler = function (this : HTMLElement, e : Event ) : void {
             console.log( ">>updateLabelHandler") ;
             const text = $(this).val();
-            const optLocationOfTarget : Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
+            const optLocationOfTarget : Option<Selection>
+                = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
             console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
-            const opt = optLocationOfTarget.bind( locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
+            const opt = optLocationOfTarget.bind(
+                locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
             console.log( "  opt is " + opt) ;
             opt.map( sel => update(sel) );
             console.log( "<< updateLabelHandler") ; } ;
 
-    const keyUpHandlerForInputs = function ( e : KeyboardEvent ) : void { 
+    const keyUpHandlerForInputs 
+        = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             if (e.keyCode === 13) {
                 console.log( ">>keyup handler") ;
                 updateLabelHandler.call( this, e ) ;
                 console.log( "<< keyup handler") ;
             } } ;
 
-    const keyDownHandler =  function(e : KeyboardEvent ) : void { 
+    const keyDownHandler
+        =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             console.log( ">>keydown handler") ;
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 

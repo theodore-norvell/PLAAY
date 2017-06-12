@@ -99,7 +99,7 @@ describe( 'Call', function() : void {
         assert.check( stringVal.getVal() === expectedResult ) ;
     }
 
-    it('Should return its first argument', function() : void {
+    it('Should return its first argument', function(this: Mocha.ITestDefinition) : void {
         doTest( lambda0, str0.label().getVal() ) ;
     } );
 
