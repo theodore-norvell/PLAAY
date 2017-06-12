@@ -309,25 +309,7 @@ module editor {
             // Single clicks on the view should change the current selection.
             $("#container .selectable").click( function(evt) {
                 console.log( ">> Click Handler") ;
-
-                // Scroll container up or down to make the selected element visible,
-                // or to the top of the selected element if it doesn't fit in the visible area.
-                var selectionHeight = $(this).outerHeight();
-                var selectionTop = $(this).position().top;
-                var selectionBot = (selectionHeight + selectionTop);
-                var visibleHeight = $(' .container').outerHeight();
-                var visibleTop = $(' .container').scrollTop();
-
-                if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
-                    $(' .container').animate({
-                        scrollTop: (visibleTop + selectionBot - visibleHeight)
-                    }, 500);
-                } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
-                    $(' .container').animate({
-                        scrollTop: (selectionTop + visibleTop)
-                    }, 500);
-                }
-
+                scrollIntoView($(' .container'), $(this));
                 const optClickTarget :  Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
                 optClickTarget.map( clickTarget => update( clickTarget ) ) ;
                 evt.stopPropagation(); 
@@ -469,6 +451,30 @@ module editor {
             undostack.push(currentSelection);
             currentSelection = redostack.pop();
             generateHTMLSoon();
+        }
+    }
+
+    // Scroll container to make a selected element fully visible
+    function scrollIntoView(container, selection) : void {
+        var selectionHeight = selection.outerHeight();       
+        var selectionTop = selection.position().top; // Relative to the visible container
+        var selectionBot = (selectionHeight + selectionTop); 
+        var visibleHeight = container.outerHeight();    
+        var visibleTop = container.scrollTop();
+
+        var scrollSpeed = 700;
+
+        // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
+        if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
+            container.animate({
+                scrollTop: (visibleTop + selectionBot - visibleHeight)
+            }, scrollSpeed);
+
+        // If the top edge of an element is not visible or element is too large, scroll to the top edge
+        } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
+            container.animate({
+                scrollTop: (selectionTop + visibleTop)
+            }, scrollSpeed);
         }
     }
 
