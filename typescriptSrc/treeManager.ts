@@ -94,9 +94,25 @@ module treeManager {
             }
         }
 
-        private makeVarNode(selection:Selection) : Option<Selection> {
+        //Only for things like variables, numeric constants, and strings.
+        createNodeWithText(label:string, selection:Selection, text: string) : Option<Selection> {
+            switch (label) {
 
-            const varnode = labels.mkVar( "" ) ;
+                case "stringliteral":
+                    return this.makeStringLiteralNode(selection, text);
+                case "numberliteral":
+                    return this.makeNumberLiteralNode(selection, text);
+                case "var":
+                    return this.makeVarNode(selection, text);
+
+                default:
+                    return this.createNode(label, selection) ;
+            }
+        }
+
+        private makeVarNode(selection:Selection, text = "") : Option<Selection> {
+
+            const varnode = labels.mkVar(text) ;
             const edit = new pnodeEdits.InsertChildrenEdit( [varnode] ) ;
             return edit.applyEdit(selection) ;
         }
@@ -189,16 +205,16 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private makeStringLiteralNode(selection:Selection) : Option<Selection> {
+        private makeStringLiteralNode(selection:Selection, text = "hello") : Option<Selection> {
 
-            const literalnode = labels.mkStringLiteral( "hello" ) ;
+            const literalnode = labels.mkStringLiteral(text) ;
             const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeNumberLiteralNode(selection:Selection) : Option<Selection> {
+        private makeNumberLiteralNode(selection:Selection, text = "123") : Option<Selection> {
 
-            var literalnode = labels.mkNumberLiteral("123") ;
+            var literalnode = labels.mkNumberLiteral(text) ;
 
             var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);

@@ -260,15 +260,7 @@ module editor {
                         console.log("  Third case." ) ;
                         console.log("  " + ui.draggable.attr("id"));
                         // Add create a new node and use it to replace the current selection.
-                        var selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
-                        console.log("  selection is " + selection );
-                        assert.check( selection !== undefined ) ;
-                        selection.map(
-                            sel => {
-                                console.log("  createNode is possible." ) ;
-                                update( sel ) ;
-                                console.log("  HTML generated" ) ;
-                            } );
+                        createNode(ui.draggable.attr("id") /*id*/, dropTarget );
                     } else {
                         assert.check( false, "Drop without a drag.") ;
                     } } ) ;
@@ -361,7 +353,7 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            // Copy: Cntl-X or Cmd-X
+            // Copy: Cntl-C or Cmd-C
             else if ((e.ctrlKey || e.metaKey) && e.which == 67 ) 
             {
                 addToTrash(currentSelection);
@@ -423,8 +415,69 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            else if (isValidSelectionForKeyboardNodeCreation(currentSelection))
+            {
+                tryKeyboardNodeCreation(e);
+            }
             console.log( "<<keydown handler") ;
     };
+
+    function tryKeyboardNodeCreation(e)
+    {
+            // Create var decl node: Cntl-Shift-N or Cmd-Shift-N
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 78) 
+            {
+                createNode("vardecl", currentSelection );
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            //Create assignment node: shift+; (aka :)
+            else if (e.shiftKey && e.which == 59)
+            {
+                createNode("assign", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create numeric literal node: any digit key (including numpad keys)
+            else if (!(e.ctrlKey || e.metaKey) && ((e.which >= 48 && e.which <= 57) || e.which >= 96 && e.which <= 105))
+            {
+                var charCode : number = e.which;
+                if(charCode >= 96)
+                {
+                    charCode -= 48; //Convert numpad key to number key
+                }
+                createNode("numberliteral", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create if node: shift+/ (aka ?)
+            else if (e.shiftKey && e.which == 191)
+            {
+                createNode("if", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create string literal node: shift+' (aka ")
+            else if (e.shiftKey && e.which == 222)
+            {
+                createNode("stringliteral", currentSelection, "" );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create variable node: any character
+            else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
+            {
+                var charCode : number = e.which;
+                if(!e.shiftKey) //Handle capital vs lowercase letters.
+                {
+                    charCode += 32;
+                }
+                createNode("var", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            return;
+    }
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
@@ -435,6 +488,40 @@ module editor {
 
     export function getCurrentSelection() : Selection {
         return currentSelection ;
+    }
+
+    function createNode(id: string, sel : Selection, nodeText?: string) : void
+    {
+        if(nodeText != undefined){
+            var selection = treeMgr.createNodeWithText(id, sel, nodeText);
+        }
+        else{
+            var selection = treeMgr.createNode(id, sel );
+        }
+        console.log("  selection is " + selection );
+        assert.check( selection !== undefined ) ;
+        selection.map(
+            sel => {
+                console.log("  createNode is possible." ) ;
+                update( sel ) ;
+                console.log("  HTML generated" ) ;
+            } );
+    }
+
+    //We only want to be able to create nodes with the keyboard if the current selection is either empty or has no
+    //children. This prevents accidentally destroying large sections of code with an errant button press.
+    function isValidSelectionForKeyboardNodeCreation(sel: Selection) : boolean
+    {
+        if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 0)
+        {
+            return true;
+        }
+        else if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 1
+             && sel.selectedNodes()[0].count() == 0)
+        {
+            return true;
+        }
+        else return false;
     }
 
     function undo() : void {
