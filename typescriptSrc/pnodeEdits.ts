@@ -247,8 +247,8 @@ module pnodeEdits {
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
                 const newChildren = p0.concat( p1, p2 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
-                return opt.map( (newNode : PNode) => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
+                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
+                return opt0.map( (newNode : PNode) => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
             } ) ;
         }
     }
@@ -297,8 +297,8 @@ module pnodeEdits {
                 const p3 = newNodes4Src ;
                 const p4 = node.children( srcEnd, len ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ; 
-                return opt.map( newNode =>
+                const opt0 = pnode.tryMake( node.label(), newChildren ) ; 
+                return opt0.map( newNode =>
                     returnNewTargetSeln
                     ? new Selection( newNode, trgPath, newSeln.anchor(), newSeln.focus() ) 
                     : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
@@ -312,9 +312,9 @@ module pnodeEdits {
                 const p3 = [newSeln.root()];
                 const p4 = node.children( k+1, len ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;    
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
                 const kNew = k + newNodes4Src.length - (srcEnd-srcStart);
-                return opt.map( newNode => 
+                return opt0.map( newNode => 
                     returnNewTargetSeln
                     ? new Selection( newNode, cons( kNew, trgPath.rest()), newSeln.anchor(), newSeln.focus() )
                     : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
@@ -405,8 +405,8 @@ module pnodeEdits {
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children( k+1, node.count()) ;
                 const newChildren = p0.concat( p1, p2 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
-                return opt.map( newNode => 
+                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
+                return opt0.map( newNode => 
                     new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
              } ) ;
         } else {
@@ -644,7 +644,8 @@ module pnodeEdits {
             const node = sel.root().get( sel.path() ) ;
             return node.hasDropZonesAt( start ) ;
         } else {
-            assert.check( false ) ; return false ; 
+            return assert.failedPrecondition(
+                "leftRightSuitable: selection should be empty or one node." ) ; 
         }
     }
 
