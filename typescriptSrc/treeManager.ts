@@ -5,7 +5,7 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 
-import assert = require( './assert' )
+import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require('./edits');
 import labels = require( './labels' ) ;
@@ -31,29 +31,19 @@ module treeManager {
             return this.root;
         }
 
-        createRoot() : Option<Selection>{
+        public createRoot() : Option<Selection>{
+            
+            this.root = labels.mkExprSeq( [] )  ;
 
-            var testroot = pnode.tryMake(ExprSeqLabel.theExprSeqLabel, []);
-            // not sure how option works but will keep this
-            this.root = testroot.choose(
-                p => p,
-                () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
-                });
-
-            var placeholder = labels.mkExprPH();
-            var sel = new Selection(this.root, collections.list(0), 0, 1);
-            var edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
+            const placeholder = labels.mkExprPH();
+            const sel = new Selection(this.root, collections.list(0), 0, 1);
+            const edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
             return edit.applyEdit(sel);
 
         }
 
-        createNode(label:string, selection:Selection) : Option<Selection> {
-
-
+        public createNode(label:string, selection:Selection) : Option<Selection> {
             switch (label) {
-
                 //loops & if
                 case "if":
                     return this.makeIfNode(selection);
@@ -87,12 +77,10 @@ module treeManager {
                 //misc
                 case "lambda":
                     return this.makeLambdaNode(selection);
-                case "method":
-                    break;
                 case "type":
                     return this.makeNoTypeNode(selection);
                 default:
-                    assert.checkPrecondition( false, "Unexpected parameter to createNode" ) ;
+                    return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
         }
 
@@ -106,50 +94,50 @@ module treeManager {
         // Loop and If Nodes
         private makeWhileNode(selection:Selection) : Option<Selection> {
 
-            var cond = labels.mkExprPH();
-            var seq = labels.mkExprSeq([]);
+            const cond = labels.mkExprPH();
+            const seq = labels.mkExprSeq([]);
 
-            var opt = pnode.tryMake(labels.WhileLabel.theWhileLabel, [cond, seq]);
+            const opt = pnode.tryMake(labels.WhileLabel.theWhileLabel, [cond, seq]);
 
-            var whilenode = opt.first() ;
+            const whilenode = opt.first() ;
 
-            var edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
             return edit.applyEdit(selection);
         }
 
         private makeIfNode(selection:Selection) : Option<Selection> {
 
-            var guard = labels.mkExprPH();
-            var thn = labels.mkExprSeq([]);
-            var els = labels.mkExprSeq([]);
+            const guard = labels.mkExprPH();
+            const thn = labels.mkExprSeq([]);
+            const els = labels.mkExprSeq([]);
 
-            var opt = pnode.tryMake(labels.IfLabel.theIfLabel, [guard, thn, els]);
+            const opt = pnode.tryMake(labels.IfLabel.theIfLabel, [guard, thn, els]);
 
-            var ifnode = opt.first() ;
+            const ifnode = opt.first() ;
 
-            var edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
             return edit.applyEdit(selection);
         }
 
         private makeLambdaNode(selection:Selection) : Option<Selection> {
-            var paramList = labels.mkParameterList([]);
-            var noTypeNode = labels.mkNoTypeNd() ;
-            var body : PNode =labels.mkExprSeq([]);
-            var lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
-            var edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
+            const paramList = labels.mkParameterList([]);
+            const noTypeNode = labels.mkNoTypeNd() ;
+            const body : PNode =labels.mkExprSeq([]);
+            const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
+            const edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
             return edit.applyEdit(selection);
         }
 
         private makeAssignNode(selection:Selection) : Option<Selection> {
 
-            var left = labels.mkExprPH();
-            var right = labels.mkExprPH();
+            const left = labels.mkExprPH();
+            const right = labels.mkExprPH();
 
-            var opt = pnode.tryMake(labels.AssignLabel.theAssignLabel, [left, right]);
+            const opt = pnode.tryMake(labels.AssignLabel.theAssignLabel, [left, right]);
 
-            var assignnode = opt.first() ;
+            const assignnode = opt.first() ;
 
-            var edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
             return edit.applyEdit(selection);
 
         }
@@ -200,9 +188,9 @@ module treeManager {
 
         private makeNumberLiteralNode(selection:Selection) : Option<Selection> {
 
-            var literalnode = labels.mkNumberLiteral("123") ;
+            const literalnode = labels.mkNumberLiteral("123") ;
 
-            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -220,62 +208,62 @@ module treeManager {
 
         private makeNullLiteralNode(selection:Selection) : Option<Selection> {
 
-            var opt = pnode.tryMake(labels.NullLiteralLabel.theNullLiteralLabel, []);
+            const opt = pnode.tryMake(labels.NullLiteralLabel.theNullLiteralLabel, []);
 
-            var literalnode = opt.first() ;
+            const literalnode = opt.first() ;
 
-            var edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        changeNodeString(selection:Selection, newString:string) : Option<Selection> {
-            var edit = new pnodeEdits.ChangeLabelEdit(newString);
+        public changeNodeString(selection:Selection, newString:string) : Option<Selection> {
+            const edit = new pnodeEdits.ChangeLabelEdit(newString);
             return edit.applyEdit(selection);
         }
 
-        selectAll( selection:Selection ) : Option<Selection> {
+        public selectAll( selection:Selection ) : Option<Selection> {
             const root = selection.root() ;
             const n = root.count() ;
             return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
         }
 
-        moveLeft( selection:Selection ) : Option<Selection> {
+        public moveLeft( selection:Selection ) : Option<Selection> {
             const edit = new pnodeEdits.LeftEdit();
             return edit.applyEdit(selection);
         }
 
-        moveRight( selection:Selection ) : Option<Selection> {
+        public moveRight( selection:Selection ) : Option<Selection> {
             const edit = new pnodeEdits.RightEdit();
             return edit.applyEdit(selection);
         }
 
-        moveUp( selection:Selection ) : Option<Selection> {
+        public moveUp( selection:Selection ) : Option<Selection> {
             const edit = new pnodeEdits.UpEdit();
             return edit.applyEdit(selection);
         }
 
-        moveDown( selection:Selection ) : Option<Selection> {
+        public moveDown( selection:Selection ) : Option<Selection> {
             const edit = new pnodeEdits.DownEdit();
             return edit.applyEdit(selection);
         }
 
-        delete(selection:Selection) : Option<Selection> {
+        public delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
         }
 
-        copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+        public copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
             const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
             return copyEdit.applyEdit( trgSelection ) ;
         }
 
-        swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+        public swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
             const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
             return swapEdit.applyEdit( trgSelection ) ;
         }
 
         /** Create a list of up to three possible actions. */
-        moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
+        public moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
 
             const selectionList : Array< [string, string, Selection] > = [];
 

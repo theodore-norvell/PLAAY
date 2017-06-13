@@ -64,7 +64,7 @@ Semicolons should be used even when they are optional.
 
 #### Braces
 
-Braces should be used even when they are optional.  An exception is  for short lambda expressions like `x : int => x+1`.
+Braces should be used even when they are optional.  An exception is  for short lambda expressions like `(x : int) => x+1`.
 
 Where braces are placed is up to you. My preferred brace style is this
 
@@ -149,7 +149,7 @@ Use `const` or `let` for module level variables.  (I think `var` is the same as 
 
 #### Use Camel Case
 
-Use camel case. Avoid underscores.
+Use camel case. Avoid underscores, except as below.
 
 An exception is enum members, which are all upper case with words separated by underscores.
 
@@ -178,6 +178,8 @@ Methods should either be accessors or mutators but not both.
 Fields should usually be `private`. Where possible, fields should be declared `readonly`.  (`readonly` indicates that the field will not change after construction.)
 
 Methods should be `private` unless there is a reason for them to not be `private`.
+
+Whether `private`, `protected`, or `public`, the accessibility level should be explicitly declared.
 
 Object invariants should be carefully documented.
 
@@ -211,9 +213,9 @@ Consider checking object invariants after construction and after each mutator.
             this._anchor = anchor ;
             this._focus = focus ; }
         
-        root() : PNode { return this._root ; }
+        public root() : PNode { return this._root ; }
         
-        path() : List<number> { return this._path ; }
+        public path() : List<number> { return this._path ; }
         
         .
         .
@@ -227,6 +229,24 @@ Local variables should almost always be initialized.  Delay declaring a variable
 
 ### Types
 
+#### Strict null and undefined checking
+
+We compile with the `strictNullChecks` option.  This means that `null` and `undefined` are not considered to be members of most types.
+
+If a variable might hold `null`, this needs to be explicitly declared. For example
+
+~~~~typescript
+   let pendingAction : number|null = null ;
+~~~~
+
+This sometimes means that a cast must be used where it wouldn't otherwise, in order that the compiler know that the variable is not `null`. For example `window.clearTimeout` takes a `number` and so we write.
+
+~~~~typescript
+    if( pendingAction !== null ) {
+        window.clearTimeout( pendingAction as number ) ; }
+~~~~
+
+
 #### Declare return types
 
 All functions and methods should have a declared return type.  This includes functions with a return type of void.  For
@@ -238,19 +258,18 @@ example
     function redo() { ... } // BAD
 ~~~~
 
-An exception is short lambda expressions used as arguments.  For example in the method
+Typescript will infer the return type based on the return statements.  So for very short functions, where the type is obvious it is ok to omit the result type.  The following is acceptable
 
 ~~~~typescript
         applyEdit( a : A ) : Option<A> {
             let result : Option<A> = this._first.applyEdit( a ) ;
             return result.choose(
-                        (a : A) => result,
+                        (a0 : A) => result,
                         () => this._second.applyEdit( a ) ) ;
         }
 ~~~~
 
-There is no need to write `(a:A) : Option<A> => result` because the compiler will infer the function's type from the type of its result.  However, there is no harm in putting in the return type here and it may be that putting in the type makes the code more readable. 
-
+For the first lambda expression, there is no need to declare the type of the result since it is clearly the same as the type of the variable `result` and its type case be seen 2 lines earlier.  For the second lambda expression, the reader may have to think a little more, but if they know about `choose`, they know that both argument sshould have the same result type.
 
 #### Declare parameter types
 
@@ -292,13 +311,33 @@ In the code above, no error is reported at compile time.  The variable `i` is in
 
 ### Lambda expressions
 
-Prefer the "fat arrow" form of lambda expressions to the `function`-keyword style of lambda expressions.
+JavaScript and Typescript have two kinds of lambda expressions. A `function`-keyword-style lambda expression looks like this
+
+~~~~typescript
+    function( param : ParamType ) : resultType { code } 
+~~~~
+
+A fat-arrow lambda expression looks like this
+
+~~~~typescript
+   ( param : ParamType ) : resultType => { code } 
+~~~~
+
+As an abbreviation, when the code part is of the form `return exp ;` we can write
+
+~~~~typescript
+   ( param : ParamType ) : resultType => exp
+~~~~
+
+#### Use fat-arrow lambda expressions mostly
+
+Prefer the fat-arrow form of lambda expressions to the `function`-keyword-style of lambda expressions.
 
 The expressions `(x : int) : int => x+1` and `function( x : int) : int {return x+1}` have the same meaning. However the first is shorter.
 
-Whether to use the fat arrow or function keyword is often not a matter of style, but of correctness.
+In JavaScript (and thus also Typescript), whether to use the fat arrow or function keyword is often not a matter of style, but of correctness.
 
-The treatment of the keyword `this` differs between the two syntaxes.  Usually the way that the fat arrow does it is what you want.  For example consider
+The treatment of the keyword `this` differs between the two syntaxes.  Usually the way that the fat arrow does it is what you want.  For example consider:
 
 ~~~~typescript
 // GOOD
@@ -309,7 +348,7 @@ let x : boolean[] = this._children.map(
 
 Here the use of the keyword `this` within the lambda expression makes it necessary to use the fat arrow style of lambda expression.
 
-Using the `function` keyword is incorrect
+Using the `function` keyword is incorrect here
 
 ~~~~typescript
 // VERY VERY BAD
@@ -318,31 +357,45 @@ let x : boolean[] = this._children.map(
         return a.label() === this._label ; } ) ;
 ~~~~  
 
-In the last example, the compiler *does* result in an error reported by the compiler.
+When the code is executed, the two uses of "this" are not bound to the same object.  
 
-However, in similar examples, using the `function`-keyword style will *not* result in the resulting type errors being reported for the error. That's because if the compiler can't figure out the type of `this` it uses `any` as its type.
+Since we compile with the "noImplicitThis" option turned on, this sort of mistake should almost always be caught by the compiler.
 
-Exceptions: For HTML or jQuery event handlers, the "this" object will be the event.  One should use the `function` keyword. For example 
+#### Use `function keyword`-style for JQuery and Mocha
+
+For HTML or jQuery event handlers, the "this" object will be the HTML element.  So here it is more appropriate to use the `function` keyword style.
+
+When the code of the lambda expression mentions `this`, you should declare the type of `this` for the duration of the function, as illustrated here:
 
 ~~~~typescript
-inputs.keyup(function (e) {
-            if (e.keyCode == 13) {
+    const keyUpHandlerForInputs 
+        = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
+            if (e.keyCode === 13) {
                 console.log( ">>keyup handler") ;
                 updateLabelHandler.call( this, e ) ;
-                console.log( "<< keyup handler") ; } } );
+                console.log( "<< keyup handler") ;
+            } } ;
 ~~~~
 
-A similar case is in mocha tests.  In Mocha `this` is bound to the test context and so the `function`-keyword style is correct and the fat-arrow style is incorrect. The following is correct
+(Note: be careful what type you declare `this` to have. The typescript compiler will typically not check whether you've declared the appropriate type for this. For example in the above code, you can change `HTMLElement` to `number` and the compiler will still compile it. And it will also then compile `inputs.keyup(keyUpHandlerForInputs);` where `input` is a `JQuery` object. Even though, this is complete hogwash. So be careful.)
+
+A similar case is in mocha tests.  In Mocha, `this` is bound to the test context and so the `function`-keyword style is preferred.
+
+If `this` is used within functions passed to Mocha, its type should be declared. For example:
 
 ~~~~typescript
-describe( 'pnodeEdits.CopyEdit', function() : void {
-
-    it( 'should copy a single node', function() : void {
-        ....
-    } ) ;
-    .
-    .
-    .
+describe( 'pnodeEdits.CopyEdit',
+    function( this : Mocha.IContextDefinition) : void {
+		 this.timeout( 500 ) ;
+		 
+	    it( 'should copy a single node',
+	        function(this: Mocha.ITestDefinition) : void {
+	            this.timeOut(1000) ;
+	            if( thisTestNotApplicableForSomeReason ) {
+	                this.skip() ; }
+	            else {
+	                .... }
+	    } ) ;
 } ) ;
 ~~~~
 
@@ -350,12 +403,110 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
 
 The check functions from the `assert.ts` module should be used as much as reasonable.
 
-In particular, preconditions to functions should be checked using`assert.checkPrecondition`.
+In particular, preconditions to functions should be checked using`assert.checkPrecondition( condition, message)`.  If the precondition is known to have failed use `assert.failedPrecondition( message )`.
 
-Class invariants should be checked at the end of each constructor and mutator using assert.checkInvariant`.
+Class invariants should be checked at the end of each constructor and mutator using `assert.checkInvariant( condition, message)`.
 
-Other checks should use either `assert.check` or `assert.checkEqual`.
+Unreachable code should be marked by `assert.unreachable( message)`.
+
+Places where code remains to be written can be marked by `assert.todo( message )`.
+
+Other checks should use either `assert.check( condition, message)` or `assert.checkEqual( expected, found, message)`.
+
+#### Use of `never`
+
+The return type of `assert.unreachable` and `assert.failedPrecondition` is `never`, which indicates that they do not return.
+
+Consider a function 
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+Even though the return type of `assert.failedPrecondition` is `never`, the compiler seems to consider that this code is equivalent to 
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	    return undefined ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+And since we use strict null checking, this is a type error, since `undefined` is not considered a `number` under strict null checking.
+
+The solution is to write the function like this
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+	if( n < 0 ) {
+	    return assert.failedPrecondition( "negative argument to squareRoot" ) ;
+	} else {
+	    ...
+	    return result ; }
+}
+~~~~
+
+The issue could have been avoided more elegantly like this
+
+
+~~~~typescript
+function  squareRoot( n : number ) : number {
+    assert.checkPrecondition( n >= 0, "negative argument to squareRoot" ) ;
+    ...
+    return result ; }
+}
+~~~~
+
 
 ### Comments
 
 Comments should be used to document modules, classes, and nonprivate methods.  We use `typedoc` to turn documentation into html, so comments should use the `typedoc` format, which is similar to `javadoc`.  See [http://typedoc.org/guides/doccomments/](http://typedoc.org/guides/doccomments/)
+
+### Miscellaneous
+
+Use `===` rather than `==` and `!==` rather than `!=`.
+
+Use `as` for casting. I.e. `f as number` rather than `<number> f`.
+
+Remember that casting is not checked at runtime. Thus it is important to be sure that any necessary checks are explicitly coded.  For example
+
+Consider this method
+
+~~~~typescript
+        public getPendingNode() : PNode {
+            assert.checkPrecondition( !this.isDone() ) ;
+            const p = this.pending as List<number> ;
+            return this.root.get( p ) ;
+        }
+~~~~
+
+Here the type of `this.pending` is `null | List<number>`.  However, if `!this.isDone()` is true, then `this.pending` can not be null. Therefore the case expression is safe.
+
+The `any` type should be avoided.
+
+Assignments and other side effects, should never occur with the guards of `if`, `while`, `for` commands.  For example
+
+~~~~typescript
+        // BAD
+        if( a = b ) ... 
+        
+        // GOOD
+        a = b ;
+        if( a ) ...
+~~~~
+
+Likewise avoid assignments and other side effects in arguments.
+
+Avoid `throw` and `catch`.
+
+Avoid use of `null` and `undefined` as much as possible.

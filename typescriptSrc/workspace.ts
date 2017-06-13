@@ -16,15 +16,15 @@ module workspace {
             this.world = new World();
         }
 
-        getWorld(){
+        public getWorld() : World {
             return this.world;
         }
 
-        setWorld(world : World) {
+        public setWorld(world : World) : void {
             this.world = world;
         }
 
     }
 }
 
-export = workspace
+export = workspace ;

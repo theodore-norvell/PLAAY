@@ -30,7 +30,7 @@ module interpreter {
 
     class PlaayInterpreter implements vms.Interpreter {
 
-        step( vms : VMS ) : void {
+        public step( vms : VMS ) : void {
             assert.checkPrecondition( vms.isReady() ) ;
             const node = vms.getPendingNode() ;
             const label = node.label() ;
@@ -39,7 +39,7 @@ module interpreter {
             stepper( vms ) ;
         }
 
-        select( vms : VMS ) : void {
+        public select( vms : VMS ) : void {
             assert.checkPrecondition( ! vms.isReady() ) ;
             const node = vms.getPendingNode() ;
             const label = node.label() ;
@@ -58,13 +58,13 @@ module interpreter {
 
     type Stepper = ( vms : VMS ) => void ;
     
-    type Selector = ( vms : VMS ) => void 
+    type Selector = ( vms : VMS ) => void ;
 
-    interface StepperRegistry { [key:string] : Stepper }
+    interface StepperRegistry { [key:string] : Stepper ; }
 
     const theStepperRegistry : StepperRegistry = {} ;
 
-    interface SelectorRegistry { [key:string] : Selector }
+    interface SelectorRegistry { [key:string] : Selector ; }
 
     const theSelectorRegistry : SelectorRegistry = {} ;
 
@@ -96,14 +96,14 @@ module interpreter {
 
     function leftToRightSelector( vms : VMS ) : void {
         const node = vms.getPendingNode() ;
-        const sz = node.count()
+        const sz = node.count() ;
         let i = 0 ; 
         for( ; i < sz ; ++i ) {
-            if( vms.getChildVal(i) === null ) break ;
+            if( ! vms.isChildMapped(i) ) break ;
         }
         if( i===sz) {
             // All children have been evaluated.
-            // So we pick this node.
+            // So we pick the pending.
             vms.setReady( true ) ; }
         else {
             // Child i has not been evaluated.
@@ -115,14 +115,13 @@ module interpreter {
 
     // Steppers
 
-    interface StringCache { [key:string] : StringV }
+    interface StringCache { [key:string] : StringV ; }
 
     const theStringCache : StringCache = {} ;
 
     function stringLiteralStepper( vms : VMS ) : void {
         const label = vms.getPendingNode().label() ;
         const str = label.getVal() ;
-        assert.checkPrecondition( str != null ) ;
         let result = theStringCache[ str ] ;
         if( result === undefined ) {
             // Normally steppers and selectors should make no changes to anything

@@ -30,7 +30,9 @@ module labels {
         }
 
         public getVal() : string {
-            return null ; }
+            return "" ; // This is rather unsatisfactory. ...
+            // Should there be a precondition on this method?
+        }
 
         public isOpen() : boolean { return false ; }
 
@@ -84,7 +86,7 @@ module labels {
     /** Abstract base class for all type labels.  */
     export abstract class TypeLabel  extends AbstractLabel {
 
-       public  abstract isValid(children:Array<PNode>)  : boolean ;
+        public  abstract isValid(children:Array<PNode>)  : boolean ;
 
         /*private*/
         constructor() {
@@ -716,10 +718,6 @@ module labels {
 
         public toString():string {
             return "call";
-        }
-
-        public getVal() : string {
-            return null;
         }
 
         /*private*/

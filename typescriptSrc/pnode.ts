@@ -96,8 +96,8 @@ module pnode {
          */
         constructor(label:Label, children:Array<PNode>) {
             //Precondition  would not need to be checked if the constructor were private.
-            assert.check(label.isValid(children),
-                "Attempted to make an invalid program node");
+            assert.check( label.isValid(children),
+                          "Attempted to make an invalid program node");
             this._label = label;
             this._children = children.slice();  // Must make copy to ensure immutability.
         }
@@ -108,7 +108,7 @@ module pnode {
         }
 
         /** Get some of the children as an array. */
-        public children(start:number, end:number):Array<PNode> {
+        public children(start?:number, end?:number):Array<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
             assert.checkPrecondition( 0 <= start && start <= this.count() ) ;
@@ -128,19 +128,10 @@ module pnode {
         }
 
         /* Return the node at the path */
-        public get(path : collections.List<number> | Array<number> ) : PNode {
-            // TODO. Do we really need to be able to pass in an array?
-             if( path instanceof Array ) {
-                 return this.listGet( collections.arrayToList( path ) ) ; }
-             else if( path instanceof collections.List ) {
-                return this.listGet( path ) ; }
-             else { assert.checkPrecondition( false, "Bad path argument.") ; return null ; }
-        }
-
-        private listGet(path : collections.List<number> ) : PNode {
+        public get(path : collections.List<number> ) : PNode {
              if(path.isEmpty() ) return this ;
-             else return this.child( path.first() ).listGet( path.rest() ) ;
-         }
+             else return this.child( path.first() ).get( path.rest() ) ;
+        }
 
 
         /** Possibly return a copy of the node in which the children are replaced.
@@ -158,7 +149,7 @@ module pnode {
          * @param start The first child to omit. Default 0.
          * @param end The first child after start to not omit. Default this.children().length.
          */
-        public tryModify(newChildren:Array<PNode>, start:number, end:number):Option<PNode> {
+        public tryModify(newChildren:Array<PNode>, start?:number, end?:number):Option<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
             const firstPart = this._children.slice(0, start);
@@ -184,8 +175,7 @@ module pnode {
             return opt.choose(
                 p => p,
                 () => {
-                    assert.check(false, "Precondition violation on PNode.modify");
-                    return null;
+                    return assert.failedPrecondition("Precondition violation on PNode.modify");
                 }) ;
         }
 
@@ -210,8 +200,7 @@ module pnode {
             return opt.choose(
                 p => p,
                 () => {
-                    assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
-                    return null;
+                    return assert.failedPrecondition("Precondition violation on PNode.modifyLabel");
                 } ) ;
         }
 
@@ -245,8 +234,8 @@ module pnode {
 
         /** Convert a simple object created by toJSON to a PNode */
         public static fromJSON( json : object ) : PNode {
-             const label = fromJSONToLabel( json["label"] ) ;
-             const children = json["children"].map( PNode.fromJSON ) ;
+             const label : Label = fromJSONToLabel( json["label"] ) ;
+             const children : Array<PNode> = json["children"].map( (o:object) => PNode.fromJSON(o) ) ;
              return make( label, children ) ;
         }
 
@@ -288,25 +277,20 @@ module pnode {
         return JSON.stringify( json ) ; }
 
     export function fromJSONToPNode( s : string ) : PNode {
-        const json = JSON.parse( s ) ;
+        const json : object = JSON.parse( s ) ;
+        // TODO Cope with any parsing errors.
         return PNode.fromJSON( json ) ; }
 
     function fromJSONToLabel( json : object ) : Label {
         assert.check( json["kind"] !== undefined );
         assert.check( typeof( json["kind"] ) === "string" );
-         const labelClass : LabelMaker = registry[json["kind"]] ; // This line relies on
-             //  (a) the json.kind field being the name of the concrete label class.
-             //  (b) that all the concrete label classes have been resistered.
-         assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
-         const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
-         assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined
-         return fromJSON( json ) ;
-         // If the code above doesn't work, then make a big ugly switch like this:
-         // switch( json.kind ) {
-             // case "VariableLabel" : return VariableLabel.fromJSON( json ) ;
-             // // and so on.
-             // default : assert.check(false ) ;
-         // }
+        const labelClass : LabelMaker|undefined = registry[json["kind"]] ; // This line relies on
+        //  (a) the json.kind field being the name of the concrete label class.
+        //  (b) that all the concrete label classes have been resistered.
+        assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
+        const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
+        assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined
+        return fromJSON( json ) ;
     }
 
     interface LabelMaker {
