@@ -4,6 +4,10 @@
 
 import collections = require( './collections' );
 
+/** Create the top level HTML and buttons.
+ * 
+ * TODO Break the top level into independent widgets that can't interfere with each other.
+ */
 module createHtmlElements 
 {
 

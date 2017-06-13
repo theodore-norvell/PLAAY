@@ -11,6 +11,10 @@ import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import workspace = require('./workspace') ;
 
+/** The evaluation manager is a thin layer between the VMS and the animator.
+ * 
+ * TODO. Get rid of this module.
+ */
 module evaluationManager {
 
     import Evaluation = vms.Evaluation;

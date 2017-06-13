@@ -4,7 +4,7 @@
 import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
 
-/** Edits.  */
+/** Edits are essentially operations on objects that might succeed or fail.  */
 module edits {
     import Option = collections.Option;
     import Some = collections.Some;

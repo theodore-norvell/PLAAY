@@ -8,21 +8,23 @@
 
 The module dependency must be acyclic. If module A depends, directly or indirectly, on module B, then module B must not depend, whether director or indirectly, on module A.
 
+Module dependency should be documented in file "dependence.gv". Dependence at the javascript level should be documented in file "dependence-js.gv".
+
 #### File names
 
 Source file names should be the same as the module in the file.
 
 One file per module. One module per file.
 
-#### Source File Structure
+### Source File Structure
 
 Each source file consists of
 
 * References for external libraries
 * References for other modules in alphabetical order
 * Imports for external libraries
-* Imports for other modules
-* One Module Declaration.
+* Imports for other modules in alphabetical order
+* One module declaration
 * The export assignment
 
 Example
@@ -46,20 +48,21 @@ import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
 import treeManager = require( './treeManager');
 
-module editing {
+/** The editor module ... */
+module editor {
 	....
 }
 
-export = editing;
+export = editor;
 ~~~~
 
-#### Formatting
+### Formatting
 
-##### Semicolons
+#### Semicolons
 
 Semicolons should be used even when they are optional.
 
-##### Braces
+#### Braces
 
 Braces should be used even when they are optional.  An exception is  for short lambda expressions like `x : int => x+1`.
 
@@ -85,16 +88,56 @@ or even this
         if (redostack.length != 0) {
             undostack.push(currentSelection);
             currentSelection = redostack.pop();
-            generateHTMLSoon();
-        } else {
+            generateHTMLSoon(); }
+        else {
         	  beep() ; } }
 ~~~~
 
-##### Indentation
+#### Line breaking
 
-4 characters 
+Lines shouldn't be longer than about 80 characters.
 
-##### Variable declarations
+When breaking a statement over multiple lines, be careful of Typescript's rules for inserting semicolons.
+
+Usually the best solution to long lines is to rewrite the code.
+
+Usually the best way to break a long statement over multiple lines is to stack the arguments to a function.  In this case it's all or nothing.  Be sure to align the arguments. E.g.,
+
+~~~~typescript
+                // BAD Line is too long
+                return opt.map( newNode =>
+                    new Selection( newNode, cons( kTrg, newTrgSeln.path()), newTrgSeln.anchor(), newTrgSeln.focus() ) ) ;
+                    
+                // BAD. Mix of horizontal and vertical layout for args of same call.
+                return opt.map( newNode =>
+                    new Selection( newNode, cons( kTrg, newTrgSeln.path()),
+                                   newTrgSeln.anchor(), newTrgSeln.focus() ) ) ;
+                    
+                // GOOD
+                return opt.map( newNode =>
+                    new Selection( newNode,
+                                   cons( kTrg, newTrgSeln.path()),
+                                   newTrgSeln.anchor(),
+                                   newTrgSeln.focus() ) ) ;
+
+~~~~
+
+An exception is when the parameters are in logical groups. 
+
+~~~~typescript
+    return doubleReplaceOnePathEmpty( node,
+                                      srcStart, srcEnd, newNodes4Src,
+                                      trgPath, trgStart, trgEnd, newNodes4Trg,
+                                      allowTrgAncestorOverwrite, true ) ;
+~~~~
+
+#### Indentation
+
+4 spaces 
+
+#### Variable declarations
+
+One variable per declaration.
 
 Use `const` or `let` for local variables. Never use `var`.
 
@@ -102,11 +145,87 @@ Prefer `const` to `let`.
 
 Use `const` or `let` for module level variables.  (I think `var` is the same as `let` at the modules level, but use `let` anyway.)
 
-#### Initialization
+### Naming
+
+#### Use Camel Case
+
+Use camel case. Avoid underscores.
+
+An exception is enum members, which are all upper case with words separated by underscores.
+
+#### Case of first letter
+
+* modules (namespaces): lower case.
+* classes, enums, type names: upper case
+* type variable: upper case, usually one letter
+* variables: lower case
+* fields: either lower case or underscore
+* functions: lower case
+* methods: lower case
+
+Method and Function names are usually verbs or verb phrases.  Exceptions can be made for accessors and pure functions. For example `squareRoot` is better than `computeSquareRoot`.
+
+### Class declarations
+
+The order of declarations is usually
+
+* Fields
+* Constructor
+* Methods
+
+Methods should either be accessors or mutators but not both.
+
+Fields should usually be `private`. Where possible, fields should be declared `readonly`.  (`readonly` indicates that the field will not change after construction.)
+
+Methods should be `private` unless there is a reason for them to not be `private`.
+
+Object invariants should be carefully documented.
+
+Consider checking object invariants after construction and after each mutator.
+
+~~~~typescript
+    /** A Selection indicates ...
+    * 
+    * Invariant:
+    * 
+    * * The path must identify a node under the root.
+    *       I.e. the path can be empty or its first item must be
+    *       the index of a child of the root and the rest of the path must
+    *       identify a node under that child.
+    * * The focus and anchor must both be integers greater or equal to 0 and
+    *     less or equal to the number of children of the node identified by the path.
+    */
+    export class Selection {
+
+        private readonly _root : PNode ;
+        private readonly _path : List<number> ;
+        private readonly _anchor : number ;
+        private readonly _focus : number ;
+
+        constructor( root : PNode, path : List<number>,
+                    anchor : number, focus : number ) {
+            assert.checkPrecondition( checkSelection( root, path, anchor, focus ), 
+                                      "Attempt to make a bad selection" ) ;
+            this._root = root;
+            this._path = path;
+            this._anchor = anchor ;
+            this._focus = focus ; }
+        
+        root() : PNode { return this._root ; }
+        
+        path() : List<number> { return this._path ; }
+        
+        .
+        .
+        .
+    }
+~~~~
+
+### Initialization
 
 Local variables should almost always be initialized.  Delay declaring a variable until it is ready to be initialized.
 
-#### Types
+### Types
 
 #### Declare return types
 
@@ -122,14 +241,15 @@ example
 An exception is short lambda expressions used as arguments.  For example in the method
 
 ~~~~typescript
-applyEdit( a : A ) : Option<A> {
-            var result : Option<A> = this._first.applyEdit( a ) ;
+        applyEdit( a : A ) : Option<A> {
+            let result : Option<A> = this._first.applyEdit( a ) ;
             return result.choose(
                         (a : A) => result,
-                        () => this._second.applyEdit( a ) ) ; }
+                        () => this._second.applyEdit( a ) ) ;
+        }
 ~~~~
 
-There is no need to write `(a:A) : Option<A> => result` because the compiler will infer the functions type from the type of the result.  However, there is no harm in putting in the return type here and it may be that putting in the type makes the code more readable. 
+There is no need to write `(a:A) : Option<A> => result` because the compiler will infer the function's type from the type of its result.  However, there is no harm in putting in the return type here and it may be that putting in the type makes the code more readable. 
 
 
 #### Declare parameter types
@@ -154,7 +274,7 @@ The compiler can infer the types of local variables if they are initialized.  Fo
 
 The compiler will infer the type of `i` from the type of `j` and so the compiler will detect the error in the assignment.
 
-However for readability it is generally a good idea to declare the type of the variable any.
+However for readability it is often a good idea to declare the type of the variable any way.
 
 For uninitialized variables, the type should always be given.  For example
 
@@ -170,7 +290,7 @@ For uninitialized variables, the type should always be given.  For example
 In the code above, no error is reported at compile time.  The variable `i` is inferred to have type `any`.
 
 
-#### Lambdas
+### Lambda expressions
 
 Prefer the "fat arrow" form of lambda expressions to the `function`-keyword style of lambda expressions.
 
@@ -198,7 +318,7 @@ let x : boolean[] = this._children.map(
         return a.label() === this._label ; } ) ;
 ~~~~  
 
-In the last example the compiler *does* result in an error reported by the compiler.
+In the last example, the compiler *does* result in an error reported by the compiler.
 
 However, in similar examples, using the `function`-keyword style will *not* result in the resulting type errors being reported for the error. That's because if the compiler can't figure out the type of `this` it uses `any` as its type.
 
@@ -235,3 +355,7 @@ In particular, preconditions to functions should be checked using`assert.checkPr
 Class invariants should be checked at the end of each constructor and mutator using assert.checkInvariant`.
 
 Other checks should use either `assert.check` or `assert.checkEqual`.
+
+### Comments
+
+Comments should be used to document modules, classes, and nonprivate methods.  We use `typedoc` to turn documentation into html, so comments should use the `typedoc` format, which is similar to `javadoc`.  See [http://typedoc.org/guides/doccomments/](http://typedoc.org/guides/doccomments/)

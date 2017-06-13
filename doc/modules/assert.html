@@ -69,12 +69,12 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Functions for self checking code.
-							These functions should be used to help ensure that the code base is error free.
+						<p>Functions for self checking code.</p>
+					</div>
+					<p><p>These functions should be used to help ensure that the code base is error free.
 							Assertion failures indicate an internal error in our software and should never be
 							used where the fault is with the user input or some external circumstance beyond
 						our control.</p>
-					</div>
 				</div>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -91,9 +91,11 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#check" class="tsd-kind-icon">check</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#checkequal" class="tsd-kind-icon">check<wbr>Equal</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#checkinvariant" class="tsd-kind-icon">check<wbr>Invariant</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#checkprecondition" class="tsd-kind-icon">check<wbr>Precondition</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#raisethealarm" class="tsd-kind-icon">raise<wbr>The<wbr>Alarm</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="assert.html#todo" class="tsd-kind-icon">todo</a></li>
 							</ul>
 						</section>
 					</div>
@@ -107,7 +109,7 @@
 					<div class="tsd-signature tsd-kind-icon">do<wbr>Alert<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/assert.ts#L8">assert.ts:8</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L9">assert.ts:9</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -124,7 +126,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/assert.ts#L24">assert.ts:24</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L35">assert.ts:35</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -152,6 +154,43 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="checkequal" class="tsd-anchor"></a>
+					<h3>check<wbr>Equal</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">check<wbr>Equal<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, b<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L77">assert.ts:77</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Check that two things are equal by ===</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>a: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>a thing</p>
+									</div>
+								</li>
+								<li>
+									<h5>b: <span class="tsd-signature-type">any</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>another thing</p>
+									</div>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
 					<a name="checkinvariant" class="tsd-anchor"></a>
 					<h3>check<wbr>Invariant</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
@@ -161,7 +200,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/assert.ts#L53">assert.ts:53</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L64">assert.ts:64</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -198,7 +237,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/assert.ts#L40">assert.ts:40</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L51">assert.ts:51</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -237,13 +276,44 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/assert.ts#L11">assert.ts:11</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L12">assert.ts:12</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>message: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="todo" class="tsd-anchor"></a>
+					<h3>todo</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">todo<span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/assert.ts#L24">assert.ts:24</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Code is not written yet.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5><span class="tsd-flag ts-flagOptional">Optional</span> message: <span class="tsd-signature-type">string</span></h5>
+									<div class="tsd-comment tsd-typography">
+										<p>an optional message to accompany the Error.</p>
+									</div>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -258,11 +328,20 @@
 					<li class="globals  ">
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
+					<li class=" tsd-kind-module">
+						<a href="animator.html">animator</a>
+					</li>
 					<li class="current tsd-kind-module">
 						<a href="assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="edits.html">edits</a>
@@ -271,13 +350,13 @@
 						<a href="evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="mkhtml.html">mkHTML</a>
+						<a href="interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="playground.html">playground</a>
+						<a href="main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="pnode.html">pnode</a>
@@ -289,7 +368,13 @@
 						<a href="seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="valuetypes.html">value<wbr>Types</a>
@@ -314,6 +399,9 @@
 						<a href="assert.html#check" class="tsd-kind-icon">check</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="assert.html#checkequal" class="tsd-kind-icon">check<wbr>Equal</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="assert.html#checkinvariant" class="tsd-kind-icon">check<wbr>Invariant</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
@@ -321,6 +409,9 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="assert.html#raisethealarm" class="tsd-kind-icon">raise<wbr>The<wbr>Alarm</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="assert.html#todo" class="tsd-kind-icon">todo</a>
 					</li>
 				</ul>
 			</nav>

@@ -12,6 +12,8 @@ import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
 
+/** The treemanager provides to the UI an interface for editing a tree.
+ */
 module treeManager {
 
     import ExprSeqLabel = labels.ExprSeqLabel;

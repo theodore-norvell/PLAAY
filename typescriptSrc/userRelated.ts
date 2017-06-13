@@ -11,6 +11,7 @@ import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
 import sharedMkHtml = require('./sharedMkHtml');
 
+/** userRelated  provides the UI for communicating with the server. */
 module userRelated 
 {
 

@@ -4,7 +4,9 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 
-/** Module pnode contains the PNode class and the implementations of the labels. */
+/** Module pnode contains the PNode class.  PNodes are Program Nodes and are used
+ * to represent abstract syntax trees.  See also the labels module.
+ */
 module pnode {
     import Option = collections.Option;
     import Some = collections.Some;
@@ -47,7 +49,7 @@ module pnode {
          * Labels that do have a string associated with them should return Some unless
          * there is a validity problem. E.g. the string associated with a number should be
          * properly formatted.  If it returns Some, the new label should be closed.
-        */
+         */
         changeString : (newString : string) => Option<Label> ;
 
         /** Convert the label to an object that we can put out as JSON.
@@ -55,8 +57,9 @@ module pnode {
          * concrete class that implements Label.
          * 
          * Each concrete class implementing Label must also have a public
-         * static method called fromJSON which takes an object such as the one returned from toJSON.*/
-        toJSON : () => any ;
+         * static method called fromJSON which takes an object such as the one returned from toJSON.
+         */
+        toJSON : () => object ;
 
         /** Is this label a label for an expression node? */
         isExprNode : () => boolean ;
@@ -81,7 +84,7 @@ module pnode {
      * 
      * Each PNode represents a valid tree in the sense that, if `l` is its label
      * and `chs` is an array of its children, then `l.isValid(chs)` must be true.
-    */
+     */
     export class PNode {
         private _label:Label;
         private _children:Array<PNode>;
@@ -127,8 +130,8 @@ module pnode {
         /* Return the node at the path */
         public get(path : collections.List<number> | Array<number> ) : PNode {
             // TODO. Do we really need to be able to pass in an array?
-             if( path instanceof Array ) 
-                 return this.listGet( collections.arrayToList( path ) ) ;
+             if( path instanceof Array ) {
+                 return this.listGet( collections.arrayToList( path ) ) ; }
              else if( path instanceof collections.List ) {
                 return this.listGet( path ) ; }
              else { assert.checkPrecondition( false, "Bad path argument.") ; return null ; }
@@ -177,13 +180,13 @@ module pnode {
          * Precondition: canModify( newChildren, start, end )
          */
         public modify(newChildren:Array<PNode>, start:number, end:number):PNode {
-            var opt = this.tryModify(newChildren, start, end);
+            const opt = this.tryModify(newChildren, start, end);
             return opt.choose(
                 p => p,
                 () => {
                     assert.check(false, "Precondition violation on PNode.modify");
                     return null;
-                })
+                }) ;
         }
 
         /** Attempt to change the label at the root of this tree.
@@ -203,13 +206,13 @@ module pnode {
          * Precondition: `canModifyLabel(newLabel)`
          */
         public modifyLabel(newLabel:Label):PNode {
-            var opt = this.tryModifyLabel(newLabel);
+            const opt = this.tryModifyLabel(newLabel);
             return opt.choose(
                 p => p,
                 () => {
                     assert.checkPrecondition(false, "Precondition violation on PNode.modifyLabel");
                     return null;
-                })
+                } ) ;
         }
 
         public isExprNode():boolean { return this._label.isExprNode() ; }
@@ -223,28 +226,27 @@ module pnode {
         public hasDropZonesAt(start : number):boolean { return this._label.hasDropZonesAt(start) ;}
 
         /** Convert to a string for debugging purposes. */
-        toString ():string {
-            var strs = this._children.map((p:PNode) => p.toString());
-            var args = strs.reduce((a:string, p:string) => a + " " + p.toString(), "");
+        public toString ():string {
+            const strs = this._children.map((p:PNode) => p.toString());
+            const args = strs.reduce((a:string, p:string) => a + " " + p.toString(), "");
 
             return this._label.toString() + "(" + args + ")";
         }
 
         /** Convert a node to a simple object that can be stringified with JSON */
-        toJSON () : any {
-            var result : any = {} ;
-            result.label = this._label.toJSON() ;
-            result.children = [] ;
-            var i ;
-            for( i = 0 ; i < this._children.length ; ++i )
-                result.children.push( this._children[i].toJSON() ) ;
+        public toJSON () : object {
+            const result : object = {} ;
+            result["label"] = this._label.toJSON() ;
+            result["children"] = [] ;
+            for( let i = 0 ; i < this._children.length ; ++i ) {
+                result["children"].push( this._children[i].toJSON() ) ; }
             return result ;
         }
 
         /** Convert a simple object created by toJSON to a PNode */
-        static fromJSON( json : any ) : PNode {
-             var label = fromJSONToLabel( json.label ) ;
-             var children = json.children.map( PNode.fromJSON ) ;
+        public static fromJSON( json : object ) : PNode {
+             const label = fromJSONToLabel( json["label"] ) ;
+             const children = json["children"].map( PNode.fromJSON ) ;
              return make( label, children ) ;
         }
 
@@ -267,7 +269,7 @@ module pnode {
     /** Equivalent to `label.isValid(children)`. Also equivalent to `! tryMake(label, children).isEmpty()`.
      */
     export function canMake(label:Label, children:Array<PNode>):boolean {
-        return label.isValid(children)
+        return label.isValid(children) ;
     }
 
     /** Construct a PNode.
@@ -282,22 +284,22 @@ module pnode {
     // JSON support
 
     export function fromPNodeToJSON( p : PNode ) : string {
-        var json = p.toJSON() ;
+        const json = p.toJSON() ;
         return JSON.stringify( json ) ; }
 
     export function fromJSONToPNode( s : string ) : PNode {
-        var json = JSON.parse( s ) ;
+        const json = JSON.parse( s ) ;
         return PNode.fromJSON( json ) ; }
 
-    function fromJSONToLabel( json : any ) : Label {
-        assert.check( json.kind != undefined );
-        assert.check( typeof( json.kind ) === "string" );
-         var labelClass : LabelMaker = registry[json.kind] ; // This line relies on
+    function fromJSONToLabel( json : object ) : Label {
+        assert.check( json["kind"] !== undefined );
+        assert.check( typeof( json["kind"] ) === "string" );
+         const labelClass : LabelMaker = registry[json["kind"]] ; // This line relies on
              //  (a) the json.kind field being the name of the concrete label class.
              //  (b) that all the concrete label classes have been resistered.
          assert.check( labelClass !== undefined ) ; //check that labelClass is not undefined
-         var  fromJSON : (json : any) => Label = labelClass.fromJSON ; //
-         assert.check( fromJSON !== undefined ) // check that fromJSON is not undefined
+         const  fromJSON : (json : object) => Label = labelClass.fromJSON ; //
+         assert.check( fromJSON !== undefined ) ; // check that fromJSON is not undefined
          return fromJSON( json ) ;
          // If the code above doesn't work, then make a big ugly switch like this:
          // switch( json.kind ) {
@@ -308,10 +310,10 @@ module pnode {
     }
 
     interface LabelMaker {
-        fromJSON : (json : any) => Label ;
+        fromJSON : (json : object) => Label ;
     }
 
-    interface Registry { [key:string] : LabelMaker }
+    interface Registry { [key:string] : LabelMaker ; }
     
     export const registry : Registry = {} ;
 }
