@@ -1,13 +1,11 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="edits.ts" />
-/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
-import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
@@ -469,40 +467,23 @@ module pnodeEdits {
     export class InsertChildrenEdit extends AbstractEdit<Selection> {
         private _newNodes : Array<PNode> ;
 
-        constructor( newNodes : Array<PNode> ) {
+        private readonly _backfills : Array<Array<PNode>> ;
+
+        constructor( newNodes : Array<PNode>, backfills : Array<Array<PNode>> ) {
             super() ;
-            this._newNodes = newNodes ; }
+            this._newNodes = newNodes ;
+            this._backfills = backfills ; }
 
         public applyEdit( selection : Selection ) : Option<Selection> {
 
             // Try to make the replacement.
-            const opt = singleReplace( selection, this._newNodes ) ;
-            if(  this._newNodes.length === 0 ) {
-                // Copy of zero nodes may require backfilling.
-                return opt.recoverBy (
-                    () => singleReplace( selection, [labels.mkExprPH()] )
-                ) ;
-            } else {
-                return opt ;
-            }
-        }
-    }
-
-    /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
-     * The resulting selection indicates the position where the nodes
-     * used to be.
-     */
-    export class DeleteEdit extends AbstractEdit<Selection> {
-
-        constructor() {
-            super() ; }
-
-        public applyEdit( selection : Selection ) : Option<Selection> {
-            const opt = singleReplace( selection, [] ) ;
-            // TODO add more choices for replacement, such as noType, noExp, etc.
-            return opt.recoverBy(
-                () => singleReplace( selection, [labels.mkExprPH()] )
-            ) ;
+            let opt = singleReplace( selection, this._newNodes ) ;
+            // If that failed, try it with backfilling
+            if( this._newNodes.length === 0 ) {
+                for( let i=0 ; opt.isEmpty() && i < this._backfills.length ; ++ i) {
+                    opt = singleReplace( selection, this._backfills[i] ) ;
+                } }
+            return opt ;
         }
     }
 
@@ -564,29 +545,29 @@ module pnodeEdits {
         }
     }
 
-    /** Copy all nodes in one selection over the selected nodes in another.
-     * The selection returned indicates the newly added nodes.
-    */
-    export class CopyEdit extends AbstractEdit<Selection> {
-        private _srcNodes : Array<PNode> ;
+    // /** Copy all nodes in one selection over the selected nodes in another.
+    //  * The selection returned indicates the newly added nodes.
+    // */
+    // export class CopyEdit extends AbstractEdit<Selection> {
+    //     private _srcNodes : Array<PNode> ;
 
-        constructor(srcSelection:Selection) {
-            super();
-            this._srcNodes = srcSelection.selectedNodes() ;
-        }
+    //     constructor(srcSelection:Selection) {
+    //         super();
+    //         this._srcNodes = srcSelection.selectedNodes() ;
+    //     }
 
-        public applyEdit(selection:Selection):Option<Selection> {
-            const opt = singleReplace( selection, this._srcNodes ) ;
-            if(  this._srcNodes.length === 0 ) {
-                // Copy of zero nodes may require backfilling.
-                return opt.recoverBy (
-                    () => singleReplace( selection, [labels.mkExprPH()] )
-                ) ;
-            } else {
-                return opt ;
-            }
-        }
-    }
+    //     public applyEdit(selection:Selection):Option<Selection> {
+    //         const opt = singleReplace( selection, this._srcNodes ) ;
+    //         if(  this._srcNodes.length === 0 ) {
+    //             // Copy of zero nodes may require backfilling.
+    //             return opt.recoverBy (
+    //                 () => singleReplace( selection, [labels.mkExprPH()] )
+    //             ) ;
+    //         } else {
+    //             return opt ;
+    //         }
+    //     }
+    // }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
      * <p>The nodes to be moved are indicated by the first parameter to the constuctor.

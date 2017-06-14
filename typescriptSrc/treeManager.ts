@@ -27,6 +27,8 @@ module treeManager {
 
         private root:PNode;
 
+        private static readonly backfills : Array<Array<PNode>> = [[labels.mkExprPH()]] ;
+
         public getRoot():PNode {
             return this.root;
         }
@@ -37,7 +39,7 @@ module treeManager {
 
             const placeholder = labels.mkExprPH();
             const sel = new Selection(this.root, collections.list(0), 0, 1);
-            const edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
+            const edit = new pnodeEdits.InsertChildrenEdit([placeholder], []);
             return edit.applyEdit(sel);
 
         }
@@ -87,7 +89,7 @@ module treeManager {
         private makeVarNode(selection:Selection) : Option<Selection> {
 
             const varnode = labels.mkVar( "" ) ;
-            const edit = new pnodeEdits.InsertChildrenEdit( [varnode] ) ;
+            const edit = new pnodeEdits.InsertChildrenEdit( [varnode], [] ) ;
             return edit.applyEdit(selection) ;
         }
 
@@ -101,7 +103,7 @@ module treeManager {
 
             const whilenode = opt.first() ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([whilenode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([whilenode], []);
             return edit.applyEdit(selection);
         }
 
@@ -115,7 +117,7 @@ module treeManager {
 
             const ifnode = opt.first() ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([ifnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([ifnode], []);
             return edit.applyEdit(selection);
         }
 
@@ -124,7 +126,7 @@ module treeManager {
             const noTypeNode = labels.mkNoTypeNd() ;
             const body : PNode =labels.mkExprSeq([]);
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
-            const edit = new pnodeEdits.InsertChildrenEdit([lambdanode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([lambdanode], []);
             return edit.applyEdit(selection);
         }
 
@@ -137,7 +139,7 @@ module treeManager {
 
             const assignnode = opt.first() ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([assignnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([assignnode], []);
             return edit.applyEdit(selection);
 
         }
@@ -150,7 +152,7 @@ module treeManager {
 
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([vardeclnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([vardeclnode], []);
             return edit.applyEdit(selection);
 
         }
@@ -160,7 +162,7 @@ module treeManager {
             const left = labels.mkExprPH();
             const right = labels.mkExprPH();
             const worldcallnode = labels.mkCallWorld( name, left, right);
-            const edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([worldcallnode], []);
             return edit.applyEdit(selection);
 
         }
@@ -168,21 +170,21 @@ module treeManager {
         private makeCallNode(selection:Selection) : Option<Selection> {
 
             const callnode = labels.mkCall() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([callnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([callnode], []);
             return edit.applyEdit(selection);
         }
 
         private makeNoTypeNode(selection:Selection) : Option<Selection> {
 
             const typenode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([typenode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([typenode], []);
             return edit.applyEdit(selection);
         }
 
         private makeStringLiteralNode(selection:Selection) : Option<Selection> {
 
             const literalnode = labels.mkStringLiteral( "hello" ) ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode], []);
             return edit.applyEdit(selection);
         }
 
@@ -190,19 +192,19 @@ module treeManager {
 
             const literalnode = labels.mkNumberLiteral("123") ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode], []);
             return edit.applyEdit(selection);
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode], []);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode], []);
             return edit.applyEdit(selection);
         }
 
@@ -212,7 +214,7 @@ module treeManager {
 
             const literalnode = opt.first() ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = new pnodeEdits.InsertChildrenEdit([literalnode], []);
             return edit.applyEdit(selection);
         }
 
@@ -248,12 +250,12 @@ module treeManager {
         }
 
         public delete(selection:Selection) : Option<Selection> {
-            const edit = new pnodeEdits.DeleteEdit();
+            const edit = new pnodeEdits.InsertChildrenEdit([], TreeManager.backfills );
             return edit.applyEdit(selection);
         }
 
         public copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
+            const copyEdit = new pnodeEdits.InsertChildrenEdit(srcSelection.selectedNodes(), TreeManager.backfills);
             return copyEdit.applyEdit( trgSelection ) ;
         }
 
@@ -267,11 +269,11 @@ module treeManager {
 
             const selectionList : Array< [string, string, Selection] > = [];
 
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
+            const copyEdit = new pnodeEdits.InsertChildrenEdit(srcSelection.selectedNodes(), TreeManager.backfills);
             const copyResult = copyEdit.applyEdit( trgSelection ) ;
             copyResult.map( newSel => selectionList.push(['Copied', "Copy", newSel]) ) ;
 
-            const moveEdit = new pnodeEdits.MoveEdit(srcSelection, [[labels.mkExprPH()]]);
+            const moveEdit = new pnodeEdits.MoveEdit(srcSelection, TreeManager.backfills);
             const moveResult = moveEdit.applyEdit(trgSelection);
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;

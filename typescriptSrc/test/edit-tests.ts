@@ -29,6 +29,8 @@ const seq1= labels.mkExprSeq( [a] ) ;
 const seq2 = labels.mkExprSeq( [a,b] ) ;
 const seq3 = labels.mkExprSeq( [a,b,c] ) ;
 
+const backfills = [[ labels.mkExprPH() ]] ;
+
 
 describe( 'pnodeEdits.Selection', () => {
     it('should fail to make a bad selection. Path too long.', () => {
@@ -91,7 +93,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should insert a single if-then-else node at ((),0,0)', () => {
         const p0 = collections.list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( t0, p0, 0, 0 ) ;
-        const edit0 = new pnodeEdits.InsertChildrenEdit( [ ite0 ] ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [ ite0 ], [] ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "Add an if expression as a new child to the root at position 0" ) ;
@@ -112,7 +114,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should replace a node at at ((0),0,1)', () => {
         const sel1 = new pnodeEdits.Selection( t1, collections.list(0), 0, 1 ) ;
         //console.log( sel1.toString() ) ;
-        const edit1 = new pnodeEdits.InsertChildrenEdit( [ c ] ) ;
+        const edit1 = new pnodeEdits.InsertChildrenEdit( [ c ], [] ) ;
         //console.log( edit1.toString() ) ;
         const editResult1 = edit1.applyEdit( sel1 ) ;
         //console.log( "Replace the guard with c" ) ;
@@ -136,7 +138,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
         const p1 = list<number>() ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
         // Insert 0 nodes
-        const edit = new pnodeEdits.InsertChildrenEdit( [ ] ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( [ ], backfills ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         //console.log( "editResult0 is " + editResult.toString() ) ;
         editResult.choose(
@@ -154,7 +156,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         // Select the  first child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -169,7 +171,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         // Select the  second child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -184,7 +186,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         // Select the  first child of the if
         const empty = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, empty, 0, 1 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -201,7 +203,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
             // make an empty selection
             const p1 = list<number>( 1 ) ;
             const sel0 = new pnodeEdits.Selection( ite0, p1, k, k ) ;
-            const edit0 = new pnodeEdits.DeleteEdit( ) ;
+            const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
             //console.log( edit0.toString() ) ;
             const editResult0 = edit0.applyEdit( sel0 ) ;
             //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -217,7 +219,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         const p1 = list<number>( 1 ) ;
         // Select both children of the second child
         const sel0 = new pnodeEdits.Selection( ite0, p1, 0, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -234,7 +236,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         const p1 = list<number>( ) ;
         // Select the first seq under the if node.
         const sel0 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = new pnodeEdits.InsertChildrenEdit( [], backfills ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -252,7 +254,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the the second child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the third child of the if
         const sel1 = new pnodeEdits.Selection( ite0, p0, 2, 3 ) ;
         // Copy the second child over the third
@@ -271,7 +273,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the the third child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 2, 3 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the second child of the if
         const sel1 = new pnodeEdits.Selection( ite0, p0, 1, 2 ) ;
         // Copy the third child over the second
@@ -289,7 +291,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the the second child of the second child
         const p0 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the first child of the if
         const p1 = list<number>() ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
@@ -308,7 +310,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the position before the first child of the then part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 0 ) ;
@@ -327,7 +329,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the position before the second child of the then part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 1, 1 ) ;
@@ -346,7 +348,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the position after all children of the then-part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 2, 2 ) ;
@@ -365,7 +367,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select all the nodes of the then part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 2 ) ;
@@ -384,7 +386,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the first and second nodes of the then part
         const p0 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the second node of the then part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
@@ -403,7 +405,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // An empty selection
         const p0 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 2, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the second node of the then part
         const p1 = list<number>(1) ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
@@ -422,7 +424,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // An empty selection
         const p0 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 2, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the guard
         const p1 = list<number>() ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
@@ -441,7 +443,7 @@ describe( 'pnodeEdits.CopyEdit', function() : void {
         // Select the then part
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.CopyEdit( sel0 ) ;
+        const edit = new pnodeEdits.InsertChildrenEdit( sel0.selectedNodes(), backfills ) ;
         // Select the guard
         const p1 = list<number>() ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
