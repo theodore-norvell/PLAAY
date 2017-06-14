@@ -354,7 +354,10 @@ module pnodeEdits {
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newStart = trgStart + newNodes4Src.length - (srcEnd-srcStart) ;
                 const newEnd = newStart + newNodes4Trg.length ;
-                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
+                return opt.map( newNode =>
+                                   new Selection( newNode,
+                                                  collections.nil<number>(),
+                                                  newStart, newEnd ) ) ;
             } else if( trgEnd <= srcStart ) {
                 const p0 = node.children( 0, trgStart ) ;
                 const p1 = newNodes4Trg ;
@@ -364,7 +367,10 @@ module pnodeEdits {
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newEnd = trgStart + newNodes4Trg.length ;
-                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), trgStart, newEnd ) ) ;
+                return opt.map( newNode =>
+                                    new Selection( newNode,
+                                                   collections.nil<number>(),
+                                                   trgStart, newEnd ) ) ;
             } else {
                 // Overlaping src and target ranges.  This is ambiguous unless either the new source nodes
                 // or the new target nodes are empty.
@@ -381,7 +387,9 @@ module pnodeEdits {
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newEnd = start + newNodes4Trg.length ;
                 return opt.map( newNode =>
-                    new Selection( newNode, collections.nil<number>(), start, newEnd ) )  ;
+                                   new Selection( newNode,
+                                                  collections.nil<number>(),
+                                                  start, newEnd ) )  ;
             }
         } else if( srcPath.isEmpty() ) {
             return doubleReplaceOnePathEmpty( node,
@@ -394,12 +402,17 @@ module pnodeEdits {
                                               srcPath, srcStart, srcEnd, newNodes4Src,
                                               allowSrcAncestorOverwrite, false ) ;
         } else if( srcPath.first() === trgPath.first() ) {
+            // Neither path is empty and the two paths do not diverge at this level.
+            // Recurse.
             const k = srcPath.first() ;
             const len = node.count() ;
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const child = node.child( k ) ;
-            const opt = doubleReplaceHelper( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
+            const opt = doubleReplaceHelper( child,
+                                             srcPath.rest(), srcStart, srcEnd, newNodes4Src,
+                                             trgPath.rest(), trgStart, trgEnd, newNodes4Trg,
+                                             allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
             return opt.bind( newSeln => {
                 const p0 = node.children( 0, k ) ;
                 const p1 = [newSeln.root()] ;
@@ -407,10 +420,13 @@ module pnodeEdits {
                 const newChildren = p0.concat( p1, p2 ) ;
                 const opt0 = pnode.tryMake( node.label(), newChildren ) ;
                 return opt0.map( newNode => 
-                    new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
+                                     new Selection( newNode,
+                                                    cons( k, newSeln.path()),
+                                                    newSeln.anchor(), newSeln.focus() ) ) ;
              } ) ;
         } else {
-            // Neither path is empty
+            // Neither path is empty and the two paths diverge.
+            // Treat it as two single replaces.
             const kSrc = srcPath.first() ;
             const kTrg = trgPath.first() ;
             const len = node.count() ;
@@ -573,38 +589,57 @@ module pnodeEdits {
     }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
-     * The nodes to be moved are indicated by the first parameter to the constuctor.
+     * <p>The nodes to be moved are indicated by the first parameter to the constuctor.
      * The source is given as a constructor parameter.
-     * The target as a parameter to applyEdit.
+     * The target is a parameter to applyEdit.
      * The source and target selections must share the same tree. Otherwise the edit will fail.
+     * The resulting tree must be valid, otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
+     *
+     *
      */
     export class MoveEdit extends AbstractEdit<Selection> {
-        private _srcSelection : Selection ;
+        private readonly _srcSelection : Selection ;
+        private readonly _backfills : Array<Array<PNode>> ;
 
-        constructor( srcSelection:Selection ) {
+        constructor( srcSelection:Selection, backfills : Array<Array<PNode>> ) {
             super();
             this._srcSelection = srcSelection ;
+            this._backfills = backfills ;
         }
 
         public applyEdit( trgSelection:Selection ) : Option<Selection> {
             if( this._srcSelection.root() !== trgSelection.root() ) return none<Selection>() ;
             const newNodes = this._srcSelection.selectedNodes();
             // Try filling in with the empty sequence first. Otherwise try some other defaults.
-            const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
-            // TODO add more choices for replacement, such as noType, noExp, etc.
-            return opt.recoverBy(
-                () => doubleReplace( this._srcSelection, [labels.mkExprPH()], trgSelection, newNodes, true, false ) 
-            ) ;
+            let opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
+            // Try the various backfill options until one succeeds or we run out
+            for( let i=0 ; opt.isEmpty() && i < this._backfills.length ; ++i) {
+                opt = doubleReplace( this._srcSelection, this._backfills[i], 
+                                     trgSelection, newNodes,
+                                     true, false ) ;
+            }
+            return opt ;
         }
     }
 
     /** Swap.  Swap two selections that share the same root.
-     * For example we should be able to swap the then and else part of an if node.
+     * <p>For example we should be able to swap the then and else part of an if node.
      * The source is given as a constructor parameter.
-     * The target as a parameter to applyEdit.
-     * The source and target selections must share the same tree. Otherwise the edit will fail.
+     * The target is a parameter to applyEdit.
+     * The source and target selections must share the same root. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
+     * 
+     * <p>There are several cases to consider:
+     * <ul>
+     *     <li>If the two selections share a parent, the two sets of selected nodes must be disjoint,
+     *         otherwise the edit will fail.  For example if the source is a( $ b c ^ d) and the
+     *         target is a( b $ c d ^ ), the swap will fail, since node c is in the intersection.
+     *    <li>If one selection includes a node that is the parent of the other or an ancestor of 
+     *        the parent of the other, the swap will fail.  For example if the source is a( $ b( c(d) ) ^ )
+     *        and the target is a( b( c( $d^ ) ) ), the swap will fail, since the b node is selected in
+     *        the source and b is an ancestor of c, which is the parent of the target selection.
+     *    <li>In all other cases the edit should succeed, provided the new tree is valid.
     */
     export class SwapEdit extends AbstractEdit<Selection> {
         private _srcSelection:Selection;

@@ -271,7 +271,7 @@ module treeManager {
             const copyResult = copyEdit.applyEdit( trgSelection ) ;
             copyResult.map( newSel => selectionList.push(['Copied', "Copy", newSel]) ) ;
 
-            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
+            const moveEdit = new pnodeEdits.MoveEdit(srcSelection, [[labels.mkExprPH()]]);
             const moveResult = moveEdit.applyEdit(trgSelection);
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
