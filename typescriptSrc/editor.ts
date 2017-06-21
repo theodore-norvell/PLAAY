@@ -441,7 +441,7 @@ module editor {
             //Create numeric literal node: any digit key (including numpad keys)
             else if (!(e.ctrlKey || e.metaKey) && ((e.which >= 48 && e.which <= 57) || e.which >= 96 && e.which <= 105))
             {
-                var charCode : number = e.which;
+                let charCode : number = e.which;
                 if(charCode >= 96)
                 {
                     charCode -= 48; //Convert numpad key to number key
@@ -467,7 +467,7 @@ module editor {
             //Create variable node: any character
             else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
             {
-                var charCode : number = e.which;
+                let charCode : number = e.which;
                 if(!e.shiftKey) //Handle capital vs lowercase letters.
                 {
                     charCode += 32;
