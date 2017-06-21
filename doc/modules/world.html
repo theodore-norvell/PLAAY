@@ -66,6 +66,13 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>This module contains code for the standard library.</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel-group tsd-index-group">
 				<h2>Index</h2>
 				<section class="tsd-panel tsd-index-panel">
@@ -86,9 +93,10 @@
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#canconverttonumber" class="tsd-kind-icon">can<wbr>Convert<wbr>ToNumber</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#checknumberargs" class="tsd-kind-icon">check<wbr>Number<wbr>Args</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#getarg" class="tsd-kind-icon">get<wbr>Arg</a></li>
-								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#getnumber" class="tsd-kind-icon">get<wbr>Number</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#converttonumber" class="tsd-kind-icon">convert<wbr>ToNumber</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="world.html#nth" class="tsd-kind-icon">nth</a></li>
 							</ul>
 						</section>
 					</div>
@@ -102,7 +110,7 @@
 					<div class="tsd-signature tsd-kind-icon">done<span class="tsd-signature-symbol">:</span> <a href="../classes/valuetypes.donev.html" class="tsd-signature-type">DoneV</a><span class="tsd-signature-symbol"> =&nbsp;new DoneV()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/world.ts#L35">world.ts:35</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/world.ts#L38">world.ts:38</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -110,71 +118,16 @@
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Functions</h2>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="checknumberargs" class="tsd-anchor"></a>
-					<h3>check<wbr>Number<wbr>Args</h3>
+					<a name="canconverttonumber" class="tsd-anchor"></a>
+					<h3>can<wbr>Convert<wbr>ToNumber</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">check<wbr>Number<wbr>Args<span class="tsd-signature-symbol">(</span>n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, evalu<span class="tsd-signature-symbol">: </span><a href="../classes/vms.evaluation.html" class="tsd-signature-type">Evaluation</a>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">can<wbr>Convert<wbr>ToNumber<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/world.ts#L611">world.ts:611</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>n: <span class="tsd-signature-type">number</span></h5>
-								</li>
-								<li>
-									<h5>evalu: <a href="../classes/vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h5>
-								</li>
-								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="getarg" class="tsd-anchor"></a>
-					<h3>get<wbr>Arg</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Arg<span class="tsd-signature-symbol">(</span>n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, evalu<span class="tsd-signature-symbol">: </span><a href="../classes/vms.evaluation.html" class="tsd-signature-type">Evaluation</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/world.ts#L621">world.ts:621</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>n: <span class="tsd-signature-type">number</span></h5>
-								</li>
-								<li>
-									<h5>evalu: <a href="../classes/vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
-					<a name="getnumber" class="tsd-anchor"></a>
-					<h3>get<wbr>Number</h3>
-					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>Number<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a>, name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/world.ts#L630">world.ts:630</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/world.ts#L50">world.ts:50</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -182,14 +135,86 @@
 								<li>
 									<h5>val: <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h5>
 								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="checknumberargs" class="tsd-anchor"></a>
+					<h3>check<wbr>Number<wbr>Args</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">check<wbr>Number<wbr>Args<span class="tsd-signature-symbol">(</span>min<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, max<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, args<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">&gt;</span>, vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/world.ts#L41">world.ts:41</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
 								<li>
-									<h5>name: <span class="tsd-signature-type">string</span></h5>
+									<h5>min: <span class="tsd-signature-type">number</span></h5>
 								</li>
+								<li>
+									<h5>max: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>args: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="converttonumber" class="tsd-anchor"></a>
+					<h3>convert<wbr>ToNumber</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">convert<wbr>ToNumber<span class="tsd-signature-symbol">(</span>val<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/world.ts#L57">world.ts:57</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>val: <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="nth" class="tsd-anchor"></a>
+					<h3>nth</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">nth<span class="tsd-signature-symbol">(</span>n<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/world.ts#L65">world.ts:65</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
 								<li>
 									<h5>n: <span class="tsd-signature-type">number</span></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -202,10 +227,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="edits.html">edits</a>
@@ -214,13 +248,13 @@
 						<a href="evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="mkhtml.html">mkHTML</a>
+						<a href="interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="playground.html">playground</a>
+						<a href="main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="pnode.html">pnode</a>
@@ -232,7 +266,13 @@
 						<a href="seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="valuetypes.html">value<wbr>Types</a>
@@ -260,13 +300,16 @@
 						<a href="world.html#done" class="tsd-kind-icon">done</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="world.html#canconverttonumber" class="tsd-kind-icon">can<wbr>Convert<wbr>ToNumber</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="world.html#checknumberargs" class="tsd-kind-icon">check<wbr>Number<wbr>Args</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="world.html#getarg" class="tsd-kind-icon">get<wbr>Arg</a>
+						<a href="world.html#converttonumber" class="tsd-kind-icon">convert<wbr>ToNumber</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
-						<a href="world.html#getnumber" class="tsd-kind-icon">get<wbr>Number</a>
+						<a href="world.html#nth" class="tsd-kind-icon">nth</a>
 					</li>
 				</ul>
 			</nav>

@@ -69,7 +69,10 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>pnodeEdits is responsible for edits that operate on selections.</p>
+						<p>pnodeEdits is responsible for edits that operate on selections.
+							This module also includes the Selection class as well as
+							various edit classes.  Each edit class represents some
+						operation on Selections that might succeed or fail.</p>
 					</div>
 				</div>
 			</section>
@@ -81,19 +84,35 @@
 							<h3>Classes</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.changelabeledit.html" class="tsd-kind-icon">Change<wbr>Label<wbr>Edit</a></li>
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.copynodeedit.html" class="tsd-kind-icon">Copy<wbr>Node<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.copyedit.html" class="tsd-kind-icon">Copy<wbr>Edit</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.deleteedit.html" class="tsd-kind-icon">Delete<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.downedit.html" class="tsd-kind-icon">Down<wbr>Edit</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.insertchildrenedit.html" class="tsd-kind-icon">Insert<wbr>Children<wbr>Edit</a></li>
-								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.movenodeedit.html" class="tsd-kind-icon">Move<wbr>Node<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.leftedit.html" class="tsd-kind-icon">Left<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.moveedit.html" class="tsd-kind-icon">Move<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.openlabeledit.html" class="tsd-kind-icon">Open<wbr>Label<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.rightedit.html" class="tsd-kind-icon">Right<wbr>Edit</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.selection.html" class="tsd-kind-icon">Selection</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.swapedit.html" class="tsd-kind-icon">Swap<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module"><a href="../classes/pnodeedits.upedit.html" class="tsd-kind-icon">Up<wbr>Edit</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#checkselection" class="tsd-kind-icon">check<wbr>Selection</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#doublereplace" class="tsd-kind-icon">double<wbr>Replace</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#doublereplacehelper" class="tsd-kind-icon">double<wbr>Replace<wbr>Helper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#doublereplaceonepathempty" class="tsd-kind-icon">double<wbr>Replace<wbr>One<wbr>Path<wbr>Empty</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#isinteger" class="tsd-kind-icon">is<wbr>Integer</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#leftrightsuitable" class="tsd-kind-icon">left<wbr>Right<wbr>Suitable</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#movedown" class="tsd-kind-icon">move<wbr>Down</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#moveleft" class="tsd-kind-icon">move<wbr>Left</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#moveright" class="tsd-kind-icon">move<wbr>Right</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#moveup" class="tsd-kind-icon">move<wbr>Up</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#singlereplace" class="tsd-kind-icon">single<wbr>Replace</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#singlereplacehelper" class="tsd-kind-icon">single<wbr>Replace<wbr>Helper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="pnodeedits.html#updownsuitable" class="tsd-kind-icon">up<wbr>Down<wbr>Suitable</a></li>
 							</ul>
 						</section>
 					</div>
@@ -111,7 +130,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnodeEdits.ts#L84">pnodeEdits.ts:84</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L112">pnodeEdits.ts:112</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -139,6 +158,164 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="doublereplace" class="tsd-anchor"></a>
+					<h3>double<wbr>Replace</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">double<wbr>Replace<span class="tsd-signature-symbol">(</span>srcSelection<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, newNodes4Src<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, trgSelection<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">any</span>, newNodes4Trg<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, allowSrcAncestorOverwrite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, allowTrgAncestorOverwrite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L257">pnodeEdits.ts:257</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Replace all selected nodes with another set of nodes.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>srcSelection: <span class="tsd-signature-type">any</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Src: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>trgSelection: <span class="tsd-signature-type">any</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Trg: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> allowSrcAncestorOverwrite: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> allowTrgAncestorOverwrite: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="doublereplacehelper" class="tsd-anchor"></a>
+					<h3>double<wbr>Replace<wbr>Helper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">double<wbr>Replace<wbr>Helper<span class="tsd-signature-symbol">(</span>node<span class="tsd-signature-symbol">: </span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, srcPath<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span>, srcStart<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, srcEnd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newNodes4Src<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, trgPath<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span>, trgStart<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, trgEnd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newNodes4Trg<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, allowSrcAncestorOverwrite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span>, allowTrgAncestorOverwrite<span class="tsd-signature-symbol">?: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L337">pnodeEdits.ts:337</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Replace all selected nodes in two places with two other sequences</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>node: <a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h5>
+								</li>
+								<li>
+									<h5>srcPath: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>srcStart: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>srcEnd: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Src: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>trgPath: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>trgStart: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>trgEnd: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Trg: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> allowSrcAncestorOverwrite: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+								</li>
+								<li>
+									<h5><span class="tsd-flag ts-flagDefault value">Default value</span> allowTrgAncestorOverwrite: <span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol"> =&nbsp;true</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="doublereplaceonepathempty" class="tsd-anchor"></a>
+					<h3>double<wbr>Replace<wbr>One<wbr>Path<wbr>Empty</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">double<wbr>Replace<wbr>One<wbr>Path<wbr>Empty<span class="tsd-signature-symbol">(</span>node<span class="tsd-signature-symbol">: </span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, srcStart<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, srcEnd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newNodes4Src<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, trgPath<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span>, trgStart<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, trgEnd<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newNodes4Trg<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span>, allowTrgAncestorOverwrite<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span>, returnNewTargetSeln<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L278">pnodeEdits.ts:278</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Handle the case where the src path is empty but the target path is not.
+										The selection return either comprise the new nodes at the source or the
+									new nodes at the target depending on the value of returnNewTargetSeln .</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>node: <a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h5>
+								</li>
+								<li>
+									<h5>srcStart: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>srcEnd: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Src: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>trgPath: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>trgStart: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>trgEnd: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>newNodes4Trg: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>allowTrgAncestorOverwrite: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+								<li>
+									<h5>returnNewTargetSeln: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
 					<a name="isinteger" class="tsd-anchor"></a>
 					<h3>is<wbr>Integer</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
@@ -148,13 +325,247 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnodeEdits.ts#L80">pnodeEdits.ts:80</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L108">pnodeEdits.ts:108</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
 									<h5>n: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="leftrightsuitable" class="tsd-anchor"></a>
+					<h3>left<wbr>Right<wbr>Suitable</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">left<wbr>Right<wbr>Suitable<span class="tsd-signature-symbol">(</span>opt<span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L622">pnodeEdits.ts:622</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Is this a suitable selection to stop at for the left and right arrow keys.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>opt: <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="movedown" class="tsd-anchor"></a>
+					<h3>move<wbr>Down</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">move<wbr>Down<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L214">pnodeEdits.ts:214</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Move down.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>selection: <a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="moveleft" class="tsd-anchor"></a>
+					<h3>move<wbr>Left</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">move<wbr>Left<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L127">pnodeEdits.ts:127</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Move left.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>selection: <a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="moveright" class="tsd-anchor"></a>
+					<h3>move<wbr>Right</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">move<wbr>Right<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L166">pnodeEdits.ts:166</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Move right.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>selection: <a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="moveup" class="tsd-anchor"></a>
+					<h3>move<wbr>Up</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">move<wbr>Up<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L203">pnodeEdits.ts:203</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Move up.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>selection: <a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="singlereplace" class="tsd-anchor"></a>
+					<h3>single<wbr>Replace</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">single<wbr>Replace<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a>, newNodes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L225">pnodeEdits.ts:225</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Replace all selected nodes with another set of nodes.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>selection: <a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+								<li>
+									<h5>newNodes: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="singlereplacehelper" class="tsd-anchor"></a>
+					<h3>single<wbr>Replace<wbr>Helper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">single<wbr>Replace<wbr>Helper<span class="tsd-signature-symbol">(</span>node<span class="tsd-signature-symbol">: </span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, path<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span>, start<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, end<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span>, newNodes<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L231">pnodeEdits.ts:231</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>node: <a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h5>
+								</li>
+								<li>
+									<h5>path: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+								<li>
+									<h5>start: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>end: <span class="tsd-signature-type">number</span></h5>
+								</li>
+								<li>
+									<h5>newNodes: <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="updownsuitable" class="tsd-anchor"></a>
+					<h3>up<wbr>Down<wbr>Suitable</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">up<wbr>Down<wbr>Suitable<span class="tsd-signature-symbol">(</span>opt<span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L644">pnodeEdits.ts:644</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Is this a suitable selection to stop at for the up and down arrow keys.</p>
+								</div>
+							</div>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>opt: <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="../classes/pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -170,10 +581,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="edits.html">edits</a>
@@ -182,13 +602,13 @@
 						<a href="evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="mkhtml.html">mkHTML</a>
+						<a href="interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="playground.html">playground</a>
+						<a href="main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="pnode.html">pnode</a>
@@ -200,7 +620,13 @@
 						<a href="seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="valuetypes.html">value<wbr>Types</a>
@@ -222,16 +648,28 @@
 						<a href="../classes/pnodeedits.changelabeledit.html" class="tsd-kind-icon">Change<wbr>Label<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/pnodeedits.copynodeedit.html" class="tsd-kind-icon">Copy<wbr>Node<wbr>Edit</a>
+						<a href="../classes/pnodeedits.copyedit.html" class="tsd-kind-icon">Copy<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/pnodeedits.deleteedit.html" class="tsd-kind-icon">Delete<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/pnodeedits.downedit.html" class="tsd-kind-icon">Down<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/pnodeedits.insertchildrenedit.html" class="tsd-kind-icon">Insert<wbr>Children<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="../classes/pnodeedits.movenodeedit.html" class="tsd-kind-icon">Move<wbr>Node<wbr>Edit</a>
+						<a href="../classes/pnodeedits.leftedit.html" class="tsd-kind-icon">Left<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/pnodeedits.moveedit.html" class="tsd-kind-icon">Move<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/pnodeedits.openlabeledit.html" class="tsd-kind-icon">Open<wbr>Label<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/pnodeedits.rightedit.html" class="tsd-kind-icon">Right<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/pnodeedits.selection.html" class="tsd-kind-icon">Selection</a>
@@ -239,11 +677,47 @@
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="../classes/pnodeedits.swapedit.html" class="tsd-kind-icon">Swap<wbr>Edit</a>
 					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="../classes/pnodeedits.upedit.html" class="tsd-kind-icon">Up<wbr>Edit</a>
+					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="pnodeedits.html#checkselection" class="tsd-kind-icon">check<wbr>Selection</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#doublereplace" class="tsd-kind-icon">double<wbr>Replace</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#doublereplacehelper" class="tsd-kind-icon">double<wbr>Replace<wbr>Helper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#doublereplaceonepathempty" class="tsd-kind-icon">double<wbr>Replace<wbr>One<wbr>Path<wbr>Empty</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="pnodeedits.html#isinteger" class="tsd-kind-icon">is<wbr>Integer</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#leftrightsuitable" class="tsd-kind-icon">left<wbr>Right<wbr>Suitable</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#movedown" class="tsd-kind-icon">move<wbr>Down</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#moveleft" class="tsd-kind-icon">move<wbr>Left</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#moveright" class="tsd-kind-icon">move<wbr>Right</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#moveup" class="tsd-kind-icon">move<wbr>Up</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#singlereplace" class="tsd-kind-icon">single<wbr>Replace</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#singlereplacehelper" class="tsd-kind-icon">single<wbr>Replace<wbr>Helper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="pnodeedits.html#updownsuitable" class="tsd-kind-icon">up<wbr>Down<wbr>Suitable</a>
 					</li>
 				</ul>
 			</nav>

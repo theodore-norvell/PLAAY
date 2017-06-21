@@ -1,13 +1,20 @@
+/// <reference path="collections.ts" />
+/// <reference path="pnode.ts" />
 
+import collections = require( './collections' ) ;
+import assert = require( './assert' ) ;
 
+/** The seymour module provide the TurtleWorld class which represents the state
+ * of a turtle world.
+ */
 module seymour {
     class Point {
         private _x : number = 0 ;
         private _y : number = 0 ;
         constructor( x : number, y : number) { this._x = x ; this._y = y ; }
         
-        public x() { return this._x ; }
-        public y() { return this._y ; }
+        public x() : number { return this._x ; }
+        public y() : number { return this._y ; }
     }
     interface Segment {
         p0 : Point ;
@@ -32,44 +39,46 @@ module seymour {
         // The canvas
         private canv : HTMLCanvasElement = document.createElement('canvas');
         
-        getCanvas() : HTMLCanvasElement { return this.canv ; }
+        public getCanvas() : HTMLCanvasElement { return this.canv ; }
         
-        forward( n : number ) : void  {
+        public forward( n : number ) : void  {
             const theta = this.orientation / 180.0 * Math.PI ;
             const newx =this.posn.x() + n * Math.cos(theta) ;
             const newy =this.posn.y() + n * Math.sin(theta) ;
             const newPosn = new Point(newx, newy) ;
-            if( this.penIsDown ) { this.segments.push( {p0 : this.posn, p1:newPosn})} ;
+            if( this.penIsDown ) { this.segments.push( {p0 : this.posn, p1:newPosn}) ; }
             this.posn = newPosn ;
             this.redraw() ;
         }
         
-        clear() : void { 
+        public clear() : void { 
             this.segments = new Array<Segment>() ;
         }
         
-        right( d : number ) :void { 
-            var r = (this.orientation + d) % 360 ;
-            while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 to end!
+        public right( d : number ) :void { 
+            let r = (this.orientation + d) % 360 ;
+            while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 at end!
             while( r >= 360 ) r -= 360 ; // Once should be enough.
             this.orientation = r ;
             this.redraw() ;
          }
         
-        left( d : number ) :void { 
+        public left( d : number ) :void { 
             this.right( - d ) ;
          }
          
-         getPenIsDown() : boolean { return this.penIsDown ; }
+        public getPenIsDown() : boolean { return this.penIsDown ; }
          
-         setPenDown( newValue : boolean ) : void { this.penIsDown = newValue ; }
+        public setPenDown( newValue : boolean ) : void { this.penIsDown = newValue ; }
          
-         hide() : void { this.visible = false ; this.redraw() ; }
+        public hide() : void { this.visible = false ; this.redraw() ; }
          
-         show() : void  { this.visible = true ; this.redraw() ;  }
+        public show() : void  { this.visible = true ; this.redraw() ;  }
          
-         redraw() : void {
-             const ctx = this.canv.getContext("2d") ;
+        public redraw() : void {
+             const ctxOrNot = this.canv.getContext("2d") ;
+             assert.check( ctxOrNot !== null ) ;
+             const ctx = ctxOrNot as CanvasRenderingContext2D ;
              const w = this.canv.width ;
              const h = this.canv.height ;
              ctx.clearRect(0, 0, w, h);
@@ -114,13 +123,13 @@ module seymour {
              }
          }
          
-         private world2View( p : Point, viewWidth : number, viewHeight : number ) : Point {
+        private world2View( p : Point, viewWidth : number, viewHeight : number ) : Point {
              const hscale = viewWidth / this.worldWidth * this.zoom ;
              const vscale = viewHeight / this.worldHeight * this.zoom ;
              const x = p.x() * hscale + viewWidth/2 ;
              const y = p.y() * vscale + viewHeight/2 ;
              return new Point( x, y ) ;
-         }
+        }
     }
 }
 
