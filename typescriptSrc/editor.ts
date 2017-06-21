@@ -94,6 +94,11 @@ module editor {
         else return some( trashArray[0] ) ;
     }
 
+    function getFromDeepTrash( depth : number ) : Option< Selection > {
+        if( trashArray.length <= depth ) return none<Selection>() ;
+        else return some( trashArray[depth] ) ;
+    }
+
     function toggleTrash() : void {
         let dialogDiv : JQuery = $('#trashDialog');
         if( dialogDiv.length === 0 ) {
@@ -384,6 +389,21 @@ module editor {
             else if ((e.ctrlKey || e.metaKey) && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
+                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Paste from deep trash: Cntl-number key or Cmd-number key
+            else if ((e.ctrlKey || e.metaKey) && ((e.which >= 49 && e.which <= 57) || e.which >= 97 && e.which <= 105)) 
+            {
+                let num : number = e.which;
+                if(num >= 96)
+                {
+                    num -= 48; //Convert numpad key to number key
+                }
+                num -= 48; //convert from ASCII code to the number
+                getFromDeepTrash(num).map( (src : Selection) =>
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
