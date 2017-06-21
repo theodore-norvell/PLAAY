@@ -60,6 +60,9 @@ module labels {
 
         /** Return true if node has a dropzone at number. */
         public hasDropZonesAt(start : number): boolean { return false; }
+        
+        /** Return true if a label has a vertical layout. */
+        public hasVerticalLayout() : boolean {return false; }
 
         public abstract kind() : string ;
 
@@ -148,6 +151,8 @@ module labels {
         public isTypeNode() : boolean { return false ; }
 
         public hasDropZonesAt(start : number): boolean { return true; }
+
+        public hasVerticalLayout() : boolean {return true;}
 
         // Singleton
         public static readonly theExprSeqLabel : ExprSeqLabel = new ExprSeqLabel();
@@ -458,6 +463,8 @@ module labels {
         public isTypeNode() : boolean { return false ; }
 
         public hasDropZonesAt(start : number): boolean { return true; }
+
+        public hasVerticalLayout() : boolean {return true;}
 
         public toJSON() : object {
             return { kind:  ParameterListLabel.kindConst } ; }

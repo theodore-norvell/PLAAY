@@ -203,22 +203,12 @@ module pnodeEdits {
 
     /** Move up. */
     function moveUp( selection : Selection ) : Option<Selection> {
-        const start = selection.start() ;
-        const end = selection.end() ;
-        const root = selection.root();
-        const path = selection.path();
-
-        assert.todo( "moveUp()"); return none<Selection>() ;
+        return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Move down. */
     function moveDown( selection : Selection ) : Option<Selection> {
-        const start = selection.start() ;
-        const end = selection.end() ;
-        const root = selection.root();
-        const path = selection.path();
-
-        assert.todo( "moveDown()"); return none<Selection>() ;
+        return moveRight(selection) ; //In our case this is the same.
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -658,7 +648,20 @@ module pnodeEdits {
         // Otherwise stop on dropzones or placeholders and similar nodes.
         const sel = opt.first() ;
         const start = sel.start() ;
-        const end = sel.end() ; assert.todo("TODO: upDownSuitable()"); return false ;
+        const end = sel.end() ;
+        if(end - start === 1)
+        {
+            return false
+        }
+        else if( end === start ) {
+            const node = sel.root().get( sel.path() ) ;
+            return node.hasVerticalLayout() ;
+        }
+        else
+        {
+            return assert.failedPrecondition(
+                "upDownSuitable: selection should be empty or one node." ) ; 
+        }
     }
     /** 
      * Left edit
