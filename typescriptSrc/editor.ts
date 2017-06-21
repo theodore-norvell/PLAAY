@@ -466,14 +466,14 @@ module editor {
     }
 
     // Scroll container to make a selected element fully visible
-    function scrollIntoView(container, selection) : void {
-        var selectionHeight = selection.outerHeight();       
-        var selectionTop = selection.position().top; // Relative to the visible container
-        var selectionBot = (selectionHeight + selectionTop); 
-        var visibleHeight = container.outerHeight();    
-        var visibleTop = container.scrollTop();
+    function scrollIntoView(container : JQuery, selection : JQuery) : void {
+        let selectionHeight : number = selection.outerHeight();       
+        let selectionTop : number = selection.position().top; // Relative to the visible container
+        let selectionBot : number = (selectionHeight + selectionTop); 
+        let visibleHeight : number = container.outerHeight();    
+        let visibleTop : number = container.scrollTop();
 
-        var scrollSpeed = 700;
+        let scrollSpeed : number = 700;
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
@@ -489,7 +489,7 @@ module editor {
         }
     }
 
-    var pendingAction = null ;
+    let pendingAction : number|null = null ;
     function generateHTMLSoon( ) : void {
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
