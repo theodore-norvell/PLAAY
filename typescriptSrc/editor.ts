@@ -492,11 +492,12 @@ module editor {
 
     function createNode(id: string, sel : Selection, nodeText?: string) : void
     {
+        let selection : Option<Selection> = null;
         if(nodeText != undefined){
-            var selection = treeMgr.createNodeWithText(id, sel, nodeText);
+            selection = treeMgr.createNodeWithText(id, sel, nodeText);
         }
         else{
-            var selection = treeMgr.createNode(id, sel );
+            selection = treeMgr.createNode(id, sel );
         }
         console.log("  selection is " + selection );
         assert.check( selection !== undefined ) ;
