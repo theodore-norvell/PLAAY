@@ -504,7 +504,7 @@ module editor {
 
     function createNode(id: string, sel : Selection, nodeText?: string) : void
     {
-        let selection : Option<Selection> = null;
+        let selection : Option<Selection>|null = null;
         if(nodeText != undefined){
             selection = treeMgr.createNodeWithText(id, sel, nodeText);
         }

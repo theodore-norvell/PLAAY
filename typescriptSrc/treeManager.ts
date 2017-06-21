@@ -96,7 +96,7 @@ module treeManager {
                     return this.makeVarNode(selection, text);
 
                 default:
-                    return this.createNode(label, selection) ;
+                    return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
             }
         }
 
