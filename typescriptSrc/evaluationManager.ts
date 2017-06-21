@@ -11,6 +11,10 @@ import pnode = require('./pnode') ;
 import vms = require('./vms') ;
 import workspace = require('./workspace') ;
 
+/** The evaluation manager is a thin layer between the VMS and the animator.
+ * 
+ * TODO. Get rid of this module.
+ */
 module evaluationManager {
 
     import Evaluation = vms.Evaluation;
@@ -27,19 +31,19 @@ module evaluationManager {
             this.workspace = new Workspace();
         }
 
-        initialize(root : PNode, libraries : vms.ObjectI[] ) : void {
-            var worlds = new Array<vms.ObjectI>();
+        public initialize(root : PNode, libraries : vms.ObjectI[] ) : void {
+            const worlds = new Array<vms.ObjectI>();
             worlds.push(this.workspace.getWorld());
             libraries.forEach( (w) => worlds.push( w ) ) ;
             const interp : vms.Interpreter = interpreter.getInterpreter() ;
             this._vms = new VMS(root, worlds, interp);
         }
 
-        next() : void {
+        public next() : void {
             this._vms.advance();
         }
 
-        getVMS() : VMS {
+        public getVMS() : VMS {
             return this._vms ;
         }
 

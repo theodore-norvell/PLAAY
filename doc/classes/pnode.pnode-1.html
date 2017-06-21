@@ -69,6 +69,17 @@
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>PNodes are abstract syntax trees for the PLAAY language.
+						Each PNode consists of a Label and a sequence of 0 or more children.</p>
+					</div>
+					<p>PNodes are immutable objects.</p>
+					<p>Each PNode represents a valid tree in the sense that, if <code>l</code> is its label
+					and <code>chs</code> is an array of its children, then <code>l.isValid(chs)</code> must be true.</p>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
@@ -96,8 +107,10 @@
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#children" class="tsd-kind-icon">children</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#count" class="tsd-kind-icon">count</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#get" class="tsd-kind-icon">get</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#hasdropzonesat" class="tsd-kind-icon">has<wbr>Drop<wbr>Zones<wbr>At</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#isexprnode" class="tsd-kind-icon">is<wbr>Expr<wbr>Node</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#isexprseqnode" class="tsd-kind-icon">is<wbr>Expr<wbr>Seq<wbr>Node</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#isplaceholder" class="tsd-kind-icon">is<wbr>Place<wbr>Holder</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#istypenode" class="tsd-kind-icon">is<wbr>Type<wbr>Node</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#label" class="tsd-kind-icon">label</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="pnode.pnode-1.html#modify" class="tsd-kind-icon">modify</a></li>
@@ -124,13 +137,13 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L54">pnode.ts:54</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L89">pnode.ts:89</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Construct a PNode.
-									Precondition: label.isValid( children )</p>
+									recondition: label.isValid( children )</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -164,7 +177,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L131">pnode.ts:131</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L174">pnode.ts:174</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -198,9 +211,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L152">pnode.ts:152</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L199">pnode.ts:199</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Can the label be modified. See tryModifyLabel.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -221,9 +239,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L80">pnode.ts:80</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L119">pnode.ts:119</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get one child.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -244,9 +267,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L74">pnode.ts:74</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L110">pnode.ts:110</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get some of the children as an array.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -270,9 +298,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L70">pnode.ts:70</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L105">pnode.ts:105</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>How many children.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
 						</li>
 					</ul>
@@ -287,7 +320,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L90">pnode.ts:90</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L130">pnode.ts:130</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -301,6 +334,29 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="hasdropzonesat" class="tsd-anchor"></a>
+					<h3>has<wbr>Drop<wbr>Zones<wbr>At</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">has<wbr>Drop<wbr>Zones<wbr>At<span class="tsd-signature-symbol">(</span>start<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L225">pnode.ts:225</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>start: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="isexprnode" class="tsd-anchor"></a>
 					<h3>is<wbr>Expr<wbr>Node</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -310,7 +366,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L166">pnode.ts:166</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L217">pnode.ts:217</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -327,7 +383,24 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L168">pnode.ts:168</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L219">pnode.ts:219</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="isplaceholder" class="tsd-anchor"></a>
+					<h3>is<wbr>Place<wbr>Holder</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Place<wbr>Holder<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L223">pnode.ts:223</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -344,7 +417,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L170">pnode.ts:170</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L221">pnode.ts:221</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -361,9 +434,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L85">pnode.ts:85</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L125">pnode.ts:125</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Get the label.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/pnode.label.html" class="tsd-signature-type">Label</a></h4>
 						</li>
 					</ul>
@@ -378,7 +456,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L138">pnode.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L181">pnode.ts:181</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -413,9 +491,15 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L156">pnode.ts:156</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L207">pnode.ts:207</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Return a tree with a different label and the same children.</p>
+								</div>
+								<p>Precondition: <code>canModifyLabel(newLabel)</code></p>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -436,7 +520,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L180">pnode.ts:180</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L236">pnode.ts:236</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -458,9 +542,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L172">pnode.ts:172</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L228">pnode.ts:228</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Convert to a string for debugging purposes.</p>
+								</div>
+							</div>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
 						</li>
 					</ul>
@@ -475,19 +564,19 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L117">pnode.ts:117</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L160">pnode.ts:160</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
 									<p>Possibly return a copy of the node in which the children are replaced.
-										The result will have children
-										[c[0], c[1], c[start-1]] ++ newChildren ++ [c[end], c[end+1], ...]
-										where c is this.children().
-										I.e. the segment c[ start,.. end] is replaced by newChildren.
+									The result will have children</p>
+									<pre><code>   <span class="hljs-comment">[c<span class="hljs-comment">[0]</span>, c<span class="hljs-comment">[1]</span>, c<span class="hljs-comment">[start-1]</span>]</span> ++ newChildren ++ <span class="hljs-comment">[c<span class="hljs-comment">[end]</span>, c<span class="hljs-comment">[end+1]</span>, ...]</span>
+</code></pre><p>where <code>c</code> is <code>this.children()</code>.
+										I.e. the segment <code>c[ start,.. end]</code> is replaced by <code>newChildren</code>.
 										The method succeeds iff the node required to be constructed would be valid.
-										Node that start and end can be number value including negative.
-										Negative numbers k are treated as length + k, where length
+										Node that start and end can be any number value including negative.
+										Negative numbers <code>k</code> are treated as <code>length + k</code>, where <code>length</code>
 									is the number of children.</p>
 								</div>
 							</div>
@@ -526,9 +615,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L148">pnode.ts:148</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L194">pnode.ts:194</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Attempt to change the label at the root of this tree.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -536,6 +630,7 @@
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a><span class="tsd-signature-symbol">&gt;</span></h4>
+							<p>Either Some(t) where t is a tree with a new label or returns None, if such a tree is not valid.</p>
 						</li>
 					</ul>
 				</section>
@@ -549,7 +644,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnode.ts#L191">pnode.ts:191</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnode.ts#L247">pnode.ts:247</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -576,10 +671,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/edits.html">edits</a>
@@ -588,13 +692,13 @@
 						<a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/mkhtml.html">mkHTML</a>
+						<a href="../modules/interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="../modules/labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/playground.html">playground</a>
+						<a href="../modules/main.html">main</a>
 					</li>
 					<li class="current tsd-kind-module">
 						<a href="../modules/pnode.html">pnode</a>
@@ -606,7 +710,13 @@
 						<a href="../modules/seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/valuetypes.html">value<wbr>Types</a>
@@ -651,10 +761,16 @@
 								<a href="pnode.pnode-1.html#get" class="tsd-kind-icon">get</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="pnode.pnode-1.html#hasdropzonesat" class="tsd-kind-icon">has<wbr>Drop<wbr>Zones<wbr>At</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="pnode.pnode-1.html#isexprnode" class="tsd-kind-icon">is<wbr>Expr<wbr>Node</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="pnode.pnode-1.html#isexprseqnode" class="tsd-kind-icon">is<wbr>Expr<wbr>Seq<wbr>Node</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="pnode.pnode-1.html#isplaceholder" class="tsd-kind-icon">is<wbr>Place<wbr>Holder</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="pnode.pnode-1.html#istypenode" class="tsd-kind-icon">is<wbr>Type<wbr>Node</a>
@@ -687,6 +803,36 @@
 					</li>
 				</ul>
 				<ul class="after-current">
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/pnode.label.html" class="tsd-kind-icon">Label</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/pnode.labelmaker.html" class="tsd-kind-icon">Label<wbr>Maker</a>
+					</li>
+					<li class=" tsd-kind-interface tsd-parent-kind-module">
+						<a href="../interfaces/pnode.registry.html" class="tsd-kind-icon">Registry</a>
+					</li>
+					<li class=" tsd-kind-variable tsd-parent-kind-module">
+						<a href="../modules/pnode.html#registry-1" class="tsd-kind-icon">registry</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#canmake" class="tsd-kind-icon">can<wbr>Make</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#fromjsontolabel" class="tsd-kind-icon">fromJSONTo<wbr>Label</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#fromjsontopnode" class="tsd-kind-icon">fromJSONToPNode</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#frompnodetojson" class="tsd-kind-icon">fromPNode<wbr>ToJSON</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#make" class="tsd-kind-icon">make</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnode.html#trymake" class="tsd-kind-icon">try<wbr>Make</a>
+					</li>
 				</ul>
 			</nav>
 		</div>

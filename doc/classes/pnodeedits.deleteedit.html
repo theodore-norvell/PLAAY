@@ -72,7 +72,9 @@
 			<section class="tsd-panel tsd-comment">
 				<div class="tsd-comment tsd-typography">
 					<div class="lead">
-						<p>Delete all selected nodes, replacing them with either nothing, or with a placeholder.</p>
+						<p>Delete all selected nodes, replacing them with either nothing, or with a placeholder.
+							The resulting selection indicates the position where the nodes
+						used to be.</p>
 					</div>
 				</div>
 			</section>
@@ -128,7 +130,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnodeEdits.ts#L155">pnodeEdits.ts:155</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L472">pnodeEdits.ts:472</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="pnodeedits.deleteedit.html" class="tsd-signature-type">DeleteEdit</a></h4>
@@ -149,7 +151,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#applyedit">applyEdit</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/pnodeEdits.ts#L160">pnodeEdits.ts:160</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/pnodeEdits.ts#L477">pnodeEdits.ts:477</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -173,7 +175,7 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#canapply">canApply</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/ef33cb5/typescriptSrc/edits.ts#L43">edits.ts:43</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/edits.ts#L43">edits.ts:43</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -195,10 +197,19 @@
 						<a href="../globals.html"><em>Globals</em></a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/animator.html">animator</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/createhtmlelements.html">create<wbr>Html<wbr>Elements</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/editor.html">editor</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/edits.html">edits</a>
@@ -207,13 +218,13 @@
 						<a href="../modules/evaluationmanager.html">evaluation<wbr>Manager</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/mkhtml.html">mkHTML</a>
+						<a href="../modules/interpreter.html">interpreter</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/pagemanipulation.html">page<wbr>Manipulation</a>
+						<a href="../modules/labels.html">labels</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/playground.html">playground</a>
+						<a href="../modules/main.html">main</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/pnode.html">pnode</a>
@@ -225,7 +236,13 @@
 						<a href="../modules/seymour.html">seymour</a>
 					</li>
 					<li class=" tsd-kind-module">
+						<a href="../modules/sharedmkhtml.html">shared<wbr>MkHtml</a>
+					</li>
+					<li class=" tsd-kind-module">
 						<a href="../modules/treemanager.html">tree<wbr>Manager</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/userrelated.html">user<wbr>Related</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/valuetypes.html">value<wbr>Types</a>
@@ -247,7 +264,7 @@
 						<a href="pnodeedits.changelabeledit.html" class="tsd-kind-icon">Change<wbr>Label<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="pnodeedits.copynodeedit.html" class="tsd-kind-icon">Copy<wbr>Node<wbr>Edit</a>
+						<a href="pnodeedits.copyedit.html" class="tsd-kind-icon">Copy<wbr>Edit</a>
 					</li>
 				</ul>
 				<ul class="current">
@@ -268,10 +285,22 @@
 				</ul>
 				<ul class="after-current">
 					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="pnodeedits.downedit.html" class="tsd-kind-icon">Down<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="pnodeedits.insertchildrenedit.html" class="tsd-kind-icon">Insert<wbr>Children<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
-						<a href="pnodeedits.movenodeedit.html" class="tsd-kind-icon">Move<wbr>Node<wbr>Edit</a>
+						<a href="pnodeedits.leftedit.html" class="tsd-kind-icon">Left<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="pnodeedits.moveedit.html" class="tsd-kind-icon">Move<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="pnodeedits.openlabeledit.html" class="tsd-kind-icon">Open<wbr>Label<wbr>Edit</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="pnodeedits.rightedit.html" class="tsd-kind-icon">Right<wbr>Edit</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="pnodeedits.selection.html" class="tsd-kind-icon">Selection</a>
@@ -279,11 +308,47 @@
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="pnodeedits.swapedit.html" class="tsd-kind-icon">Swap<wbr>Edit</a>
 					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="pnodeedits.upedit.html" class="tsd-kind-icon">Up<wbr>Edit</a>
+					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="../modules/pnodeedits.html#checkselection" class="tsd-kind-icon">check<wbr>Selection</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#doublereplace" class="tsd-kind-icon">double<wbr>Replace</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#doublereplacehelper" class="tsd-kind-icon">double<wbr>Replace<wbr>Helper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#doublereplaceonepathempty" class="tsd-kind-icon">double<wbr>Replace<wbr>One<wbr>Path<wbr>Empty</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="../modules/pnodeedits.html#isinteger" class="tsd-kind-icon">is<wbr>Integer</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#leftrightsuitable" class="tsd-kind-icon">left<wbr>Right<wbr>Suitable</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#movedown" class="tsd-kind-icon">move<wbr>Down</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#moveleft" class="tsd-kind-icon">move<wbr>Left</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#moveright" class="tsd-kind-icon">move<wbr>Right</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#moveup" class="tsd-kind-icon">move<wbr>Up</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#singlereplace" class="tsd-kind-icon">single<wbr>Replace</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#singlereplacehelper" class="tsd-kind-icon">single<wbr>Replace<wbr>Helper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="../modules/pnodeedits.html#updownsuitable" class="tsd-kind-icon">up<wbr>Down<wbr>Suitable</a>
 					</li>
 				</ul>
 			</nav>

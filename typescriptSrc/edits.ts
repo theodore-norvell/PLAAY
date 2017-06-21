@@ -4,7 +4,7 @@
 import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
 
-/** Edits.  */
+/** Edits are essentially operations on objects that might succeed or fail.  */
 module edits {
     import Option = collections.Option;
     import Some = collections.Some;
@@ -23,26 +23,26 @@ module edits {
         /** Attempt to apply the edit
          * 
          */
-        applyEdit : (a) => Option<A> ;
+        applyEdit : (a:A) => Option<A> ;
         
         /** Will this edit suceed if applied to parameter.
          * 
          * * Invariant: If canApply(a) then applyEdit(a) succeeds.
          * * Invariant: If !canApply(a) then applyEdit(a) fails
          */
-        canApply : (a) => boolean ;
+        canApply : (a:A) => boolean ;
     }
     
     export abstract class AbstractEdit<A> implements Edit<A> {
         constructor() { }
     
-        abstract applyEdit(a : A) : Option<A> ;
+        public abstract applyEdit(a : A) : Option<A> ;
         
         // A correct but possibly expensive way to tell whether
         // applyEdit will be successful.
-        canApply(a : A) : boolean {
+        public canApply(a : A) : boolean {
             return this.applyEdit( a ).choose(
-                a => true,
+                (a0:A) => true,
                 () => false ) ; }
     }
     
@@ -54,14 +54,14 @@ module edits {
             super() ;
             this._first = first ; this._second = second ; }
         
-        applyEdit( a : A ) : Option<A> {
-            var result = this._first.applyEdit( a ) ;
+        public applyEdit( a : A ) : Option<A> {
+            const result = this._first.applyEdit( a ) ;
             return result.choose(
                         this._second.applyEdit,
                         () => result ) ; }
         
-        canApply( a : A ) : boolean {
-            var result = this._first.applyEdit( a ) ;
+        public canApply( a : A ) : boolean {
+            const result = this._first.applyEdit( a ) ;
             return result.choose(
                         this._second.canApply,
                         () => false ) ; }
@@ -83,13 +83,13 @@ module edits {
             super() ;
             this._first = first ; this._second = second ; }
         
-        applyEdit( a : A ) : Option<A> {
-            var result = this._first.applyEdit( a ) ;
+        public applyEdit( a : A ) : Option<A> {
+            const result = this._first.applyEdit( a ) ;
             return result.choose(
-                        (a : A) => result,
+                        (a0 : A) => result,
                         () => this._second.applyEdit( a ) ) ; }
         
-        canApply( a : A ) : boolean {
+        public canApply( a : A ) : boolean {
             return this._first.canApply(a) || this._second.canApply(a) ; }
     }
     
@@ -108,9 +108,9 @@ module edits {
         constructor( ) { 
             super() ; }
         
-        applyEdit( a : A ) : Option<A> { return new Some(a) ; }
+        public applyEdit( a : A ) : Option<A> { return new Some(a) ; }
         
-        canApply( a : A ) : boolean { return true ; }
+        public canApply( a : A ) : boolean { return true ; }
     }
     
     /** An edit that does nothing.
