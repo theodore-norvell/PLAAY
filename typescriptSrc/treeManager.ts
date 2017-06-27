@@ -84,7 +84,7 @@ module treeManager {
             }
         }
 
-        //Only for things like variables, numeric constants, and strings.
+        //Only for nodes that can contain text, such as variables and strings.
         createNodeWithText(label:string, selection:Selection, text: string) : Option<Selection> {
             switch (label) {
 
@@ -94,6 +94,8 @@ module treeManager {
                     return this.makeNumberLiteralNode(selection, text);
                 case "var":
                     return this.makeVarNode(selection, text);
+                case "worldcall":
+                    return this.makeWorldCallNode(selection, text);
 
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
@@ -171,14 +173,21 @@ module treeManager {
 
         }
 
-        private makeWorldCallNode(selection:Selection) : Option<Selection> {
+        private makeWorldCallNode(selection:Selection, name = "") : Option<Selection> {
 
             const left = labels.mkExprPH();
             const right = labels.mkExprPH();
-            const worldcallnode = labels.mkCallWorld( name, left, right);
+            let worldcallnode : PNode|null = null;
+            if(name === "")
+            {
+                worldcallnode = labels.mkCallWorld( name, left, right);
+            }
+            else
+            {
+                worldcallnode = labels.mkClosedCallWorld(name, left, right);
+            }
             const edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
             return edit.applyEdit(selection);
-
         }
 
         private makeCallNode(selection:Selection) : Option<Selection> {

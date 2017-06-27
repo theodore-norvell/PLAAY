@@ -26,6 +26,7 @@ module editor {
     import Option = collections.Option ;
     import some = collections.some ;
     import none = collections.none ;
+    import snoc = collections.snoc;
 
     import Selection = pnodeEdits.Selection;
 
@@ -469,11 +470,12 @@ module editor {
             else if (e.shiftKey && e.which == 59)
             {
                 createNode("assign", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create numeric literal node: any digit key (including numpad keys)
-            else if (!(e.ctrlKey || e.metaKey) && ((e.which >= 48 && e.which <= 57) || e.which >= 96 && e.which <= 105))
+            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57) || e.which >= 96 && e.which <= 105))
             {
                 let charCode : number = e.which;
                 if(charCode >= 96)
@@ -488,6 +490,7 @@ module editor {
             else if (e.shiftKey && e.which == 191)
             {
                 createNode("if", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -510,7 +513,39 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            //Create math node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
+            else if ((e.shiftKey && (e.which === 61 || e.which === 56)) || e.which === 191 || e.which === 173
+                   || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
+            {
+                let charCode : number = e.which;
+                if(charCode === 61 || charCode === 107)
+                {
+                    createNode("worldcall", currentSelection, "+");
+                }
+                else if(charCode === 109 || charCode === 173)
+                {
+                    createNode("worldcall", currentSelection, "-");
+                }
+                else if(charCode === 56 || charCode === 106)
+                {
+                    createNode("worldcall", currentSelection, "*");
+                }
+                else //only the codes for /  can possibly remain.
+                {
+                    createNode("worldcall", currentSelection, "/");
+                }
+                //We need to manipulate the selection so the first input placeholder is selected.
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
             return;
+    }
+
+    function selectFirstChild(sel) : Selection
+    {
+        let pathAddition : number = Math.min(sel.anchor(), sel.focus());
+        return new Selection(sel.root(), snoc(sel.path(), pathAddition), 0, 1)
     }
 
     export function update( sel : Selection ) : void {

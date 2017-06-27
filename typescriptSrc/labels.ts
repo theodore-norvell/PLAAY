@@ -763,6 +763,9 @@ module labels {
 
     export function mkCallWorld( name : string, ...args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, true), args ) ; }
+
+    export function mkClosedCallWorld( name : string, ...args : Array<PNode> ) : PNode {
+        return make( new CallWorldLabel( name, false), args ) ; }
     
     export function mkCall( ...args : Array<PNode> ) : PNode {
         return make( CallLabel.theCallLabel, args ) ; }
