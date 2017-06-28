@@ -467,13 +467,15 @@ module editor {
 
     // Scroll container to make a selected element fully visible
     function scrollIntoView() : void {
-        let container : JQuery = $("#container ");
-        let selection : JQuery = $(".selected");
-        let selectionHeight : number = selection.outerHeight();       
-        let selectionTop : number = selection.position().top; // Relative to the visible container
-        let selectionBot : number = (selectionHeight + selectionTop); 
-        let visibleHeight : number = container.outerHeight();    
-        let visibleTop : number = container.scrollTop();
+        let container : JQuery | null = $("#container ");
+        let selection : JQuery | null = $(".selected");
+        if (selection.get(0) == undefined) { return; } //Return if there are no selected nodes
+
+        let selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
+        let selectionTop : number | null = selection.position().top; // Relative to the visible container top
+        let selectionBot : number | null = (selectionHeight + selectionTop); 
+        let visibleHeight : number | null = container.outerHeight(); // Height of the visible container   
+        let visibleTop : number | null = container.scrollTop(); // Location of the top of the visible container
 
         let scrollSpeed : number = 700;
 
@@ -484,6 +486,7 @@ module editor {
             }, scrollSpeed);
 
         // If the top edge of an element is not visible or element is too large, scroll to the top edge
+        // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
         } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
             container.animate({
                 scrollTop: (selectionTop + visibleTop - 10)
