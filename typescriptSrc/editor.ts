@@ -302,8 +302,12 @@ module editor {
         const inputs : JQuery = $("#container .input") ;
         if( inputs.length > 0 ) {
             inputs.focus(); // Set the focus to the first item in inputs
-            inputs.keyup(keyUpHandlerForInputs); 
-            inputs.blur( updateLabelHandler ) ;
+            inputs.keyup(keyUpHandlerForInputs) ;
+            // If there is any change to the input controls
+            // then update the label on the next blur.
+            inputs.change( function( ev : JQueryEventObject) : void {
+                inputs.blur( updateLabelHandler ) ;
+            }) ;
             $(document).off( "keydown" ) ;
             // TODO Scroll the container so that the element in focus is visible.
         } else {
