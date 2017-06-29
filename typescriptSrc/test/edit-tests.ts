@@ -796,3 +796,342 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
 
 } ) ;
 
+describe( 'pnodeEdits.SwapEdit with common parent', () => {
+
+    it( 'should swap 0 nodes of 0', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq0, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq0, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq()"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,0) and (0,0) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,0) and (1,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+    
+    it( 'should swap (0,0) and (0,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,1) and (0,0) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 0)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,1) and (1,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (0,1) in seq1', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (0,1) in seq2', () => {
+      const p0 = list<number>( ) ;
+      const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+      const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+      const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+      const editResult = edit.applyEdit( sel1 ) ;
+      editResult.choose(
+          s => {
+              assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                + " _path:() _anchor: 0 _focus: 1)",
+                                  s.toString() ) ;
+          },
+          () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,1) and (1,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,2) and (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,2) and (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,2) to (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 1 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,2) to (0,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (2,1) and (1,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 2, 1 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]() string[a]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1,2) and (0,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (0,0) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 0 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (1,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (2,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 2, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (0,1) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (1,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0,2) and (0,2) in seq2', () => {
+        const p0 = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
+                                 + " _path:() _anchor: 0 _focus: 2)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+} ) ;
+
