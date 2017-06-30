@@ -477,7 +477,7 @@ module editor {
         let visibleHeight : number | null = container.outerHeight(); // Height of the visible container   
         let visibleTop : number | null = container.scrollTop(); // Location of the top of the visible container
 
-        let scrollSpeed : number = 700;
+        let scrollSpeed : number = 50;
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
