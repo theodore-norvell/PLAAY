@@ -482,14 +482,14 @@ module editor {
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
             container.animate({
-                scrollTop: (visibleTop + selectionBot - visibleHeight + 5)
+                scrollTop: (visibleTop + selectionBot - visibleHeight + 12)
             }, scrollSpeed);
 
         // If the top edge of an element is not visible or element is too large, scroll to the top edge
         // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
         } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
             container.animate({
-                scrollTop: (selectionTop + visibleTop - 5)
+                scrollTop: (selectionTop + visibleTop - 12)
             }, scrollSpeed);
         }
     }
