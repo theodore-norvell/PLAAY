@@ -494,6 +494,14 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            //Create while node: shift+2 (aka @)
+            else if (e.shiftKey && e.which == 50)
+            {
+                createNode("while", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
             //Create string literal node: shift+' (aka ")
             else if (e.shiftKey && e.which == 222)
             {
