@@ -469,27 +469,32 @@ module editor {
     function scrollIntoView() : void {
         let container : JQuery | null = $("#container ");
         let selection : JQuery | null = $(".selected");
-        if (selection.get(0) == undefined) { return; } //Return if there are no selected nodes
+        if (selection.get(0) == undefined) { return; } //Return if no selected nodes
 
         let selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
-        let selectionTop : number | null = selection.position().top; // Relative to the visible container top
+        let selectionTop : number | null = selection.position().top; // Relative to visible container top
         let selectionBot : number | null = (selectionHeight + selectionTop); 
-        let visibleHeight : number | null = container.outerHeight(); // Height of the visible container   
-        let visibleTop : number | null = container.scrollTop(); // Location of the top of the visible container
-
+        let visibleHeight : number | null = container.outerHeight(); // Height of visible container   
+        let visibleTop : number | null = container.scrollTop(); // Top of visible container
+        let scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
         let scrollSpeed : number = 50;
+        let offset : number | null;
+
+        if (scrollBarWidth > 0 && scrollBarWidth != null){ 
+            offset = 10 + scrollBarWidth;
+        }else{ offset = 10; }
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
             container.animate({
-                scrollTop: (visibleTop + selectionBot - visibleHeight + 12)
+                scrollTop: (visibleTop + selectionBot - visibleHeight + offset)
             }, scrollSpeed);
 
         // If the top edge of an element is not visible or element is too large, scroll to the top edge
         // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
         } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
             container.animate({
-                scrollTop: (selectionTop + visibleTop - 12)
+                scrollTop: (selectionTop + visibleTop - offset)
             }, scrollSpeed);
         }
     }
