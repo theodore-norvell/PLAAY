@@ -380,7 +380,7 @@ module editor {
                 e.preventDefault(); 
             }
             // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && e.which === 86) 
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
@@ -459,8 +459,8 @@ module editor {
 
     function tryKeyboardNodeCreation(e)
     {
-            // Create var decl node: Cntl-Shift-N or Cmd-Shift-N
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 78) 
+            // Create var decl node: Cntl-Shift-V or Cmd-Shift-V
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 86) 
             {
                 createNode("vardecl", currentSelection );
                 e.stopPropagation(); 
