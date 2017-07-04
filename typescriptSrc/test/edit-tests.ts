@@ -849,7 +849,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
         editResult.choose(
             s => {
                 assert.checkEqual( "Selection( _root:seq( string[a]())"
-                                 + " _path:() _anchor: 0 _focus: 1)",
+                                 + " _path:() _anchor: 1 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
@@ -882,19 +882,16 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (0,1) and (0,1) in seq1', () => {
+    it( 'should fail to swap (0,1) and (0,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( seq1, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
-        editResult.choose(
+        editResult.map(
             s => {
-                assert.checkEqual( "Selection( _root:seq( string[a]())"
-                                 + " _path:() _anchor: 0 _focus: 1)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 
     it( 'should swap (0,1) and (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
@@ -938,19 +935,16 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (0,1) and (0,1) in seq2', () => {
+    it( 'should fail to swap (0,1) and (0,1) in seq2', () => {
       const p0 = list<number>( ) ;
       const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
       const edit = new pnodeEdits.SwapEdit( sel0 ) ;
       const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
       const editResult = edit.applyEdit( sel1 ) ;
-      editResult.choose(
-          s => {
-              assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
-                                + " _path:() _anchor: 0 _focus: 1)",
-                                  s.toString() ) ;
-          },
-          () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+      editResult.map(
+            s => {
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 
     it( 'should swap (0,1) and (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
@@ -994,7 +988,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (1,2) to (2,2) in seq2', () => {
+    it( 'should swap (1,2) and (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
@@ -1008,7 +1002,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (1,2) to (0,1) in seq2', () => {
+    it( 'should swap (1,2) and (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
@@ -1036,19 +1030,16 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (1,2) and (0,2) in seq2', () => {
+    it( 'should fail to swap (1,2) and (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
-        editResult.choose(
+        editResult.map(
             s => {
-                assert.checkEqual( "Selection( _root:seq( string[b]())"
-                                 + " _path:() _anchor: 0 _focus: 1)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 
     it( 'should swap (0,2) and (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
@@ -1092,46 +1083,37 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (0,2) and (0,1) in seq2', () => {
+    it( 'should fail to swap (0,2) and (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
-        editResult.choose(
+        editResult.map(
             s => {
-                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
-                                 + " _path:() _anchor: 0 _focus: 2)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 
-    it( 'should swap (0,2) and (1,2) in seq2', () => {
+    it( 'should fail to swap (0,2) and (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( seq2, p0, 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
-        editResult.choose(
+        editResult.map(
             s => {
-                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
-                                 + " _path:() _anchor: 0 _focus: 2)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 
-    it( 'should swap (0,2) and (0,2) in seq2', () => {
+    it( 'should fail to swap (0,2) and (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
-        editResult.choose(
+        editResult.map(
             s => {
-                assert.checkEqual( "Selection( _root:seq( string[a]() string[b]())"
-                                 + " _path:() _anchor: 0 _focus: 2)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+                assert.unreachable("Non-empty overlapping elements cannot be swapped") ;
+            } ) ; } ) ;
 } ) ;
 
