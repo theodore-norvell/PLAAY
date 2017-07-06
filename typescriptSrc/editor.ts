@@ -482,23 +482,18 @@ module editor {
         let visibleTop : number | null = container.scrollTop(); // Top of visible container
         let scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
         let scrollSpeed : number = 50;
-        let offset : number | null;
-
-        if (scrollBarWidth > 0 && scrollBarWidth != null){ 
-            offset = 10 + scrollBarWidth;
-        }else{ offset = 10; }
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
             container.animate({
-                scrollTop: (visibleTop + selectionBot - visibleHeight + offset)
+                scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)
             }, scrollSpeed);
 
         // If the top edge of an element is not visible or element is too large, scroll to the top edge
         // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
         } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
             container.animate({
-                scrollTop: (selectionTop + visibleTop - offset)
+                scrollTop: (selectionTop + visibleTop - 10)
             }, scrollSpeed);
         }
     }
