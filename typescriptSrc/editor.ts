@@ -467,7 +467,7 @@ module editor {
                 e.preventDefault(); 
             }
             //Create assignment node: shift+; (aka :)
-            else if (e.shiftKey && e.which == 59)
+            else if (e.shiftKey && (e.which == 59 || e.which == 186))
             {
                 createNode("assign", currentSelection );
                 currentSelection = selectFirstChild(currentSelection);
@@ -475,7 +475,8 @@ module editor {
                 e.preventDefault();
             }
             //Create numeric literal node: any digit key (including numpad keys)
-            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57) || e.which >= 96 && e.which <= 105))
+            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57)
+                   || e.which >= 96 && e.which <= 105))
             {
                 let charCode : number = e.which;
                 if(charCode >= 96)
@@ -522,15 +523,16 @@ module editor {
                 e.preventDefault();
             }
             //Create math node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
-            else if ((e.shiftKey && (e.which === 61 || e.which === 56)) || e.which === 191 || e.which === 173
+            else if ((e.shiftKey && ((e.which === 61 || e.which == 187) || e.which === 56))
+                   || e.which === 191 || (e.which === 173 || e.which == 189)
                    || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
             {
                 let charCode : number = e.which;
-                if(charCode === 61 || charCode === 107)
+                if(charCode === 61 || charCode === 107 || charCode == 187)
                 {
                     createNode("worldcall", currentSelection, "+");
                 }
-                else if(charCode === 109 || charCode === 173)
+                else if(charCode === 109 || charCode === 173 || charCode == 189)
                 {
                     createNode("worldcall", currentSelection, "-");
                 }
