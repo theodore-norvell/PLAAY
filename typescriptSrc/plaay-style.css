@@ -599,6 +599,8 @@ div.stringLiteral{
 }
 
 div.numberLiteral{
+    border: thin solid rgb(135,206,250);
+    border-radius: 5px ;
     font-family:"Lucida Console", monospace;
     font-weight: normal ;
     font-size: medium ;
