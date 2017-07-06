@@ -484,7 +484,7 @@ module editor {
         let scrollSpeed : number = 50;
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
-        if ( selectionBot > visibleHeight && selectionHeight < visibleHeight) {
+        if ( selectionBot > (visibleHeight-scrollBarWidth) && selectionHeight < visibleHeight) {
             container.animate({
                 scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)
             }, scrollSpeed);
