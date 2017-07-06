@@ -73,6 +73,8 @@ module pnode {
         isPlaceHolder : () => boolean ;
 
         hasDropZonesAt : (start : number) => boolean ;
+
+        hasVerticalLayout : () => boolean ;
             
         kind : () => string ;
     }
@@ -211,6 +213,8 @@ module pnode {
         public isTypeNode():boolean  { return this._label.isTypeNode() ; }
 
         public isPlaceHolder():boolean { return this._label.isPlaceHolder() ; }
+
+        public hasVerticalLayout():boolean { return this._label.hasVerticalLayout() ; }
 
         public hasDropZonesAt(start : number):boolean { return this._label.hasDropZonesAt(start) ;}
 
