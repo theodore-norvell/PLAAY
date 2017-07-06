@@ -454,6 +454,20 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            else if (!e.shiftKey && e.which === 9) // tab
+            {
+                treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.shiftKey && e.which === 9) // shift+tab
+            {
+                treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
             else if (isValidSelectionForKeyboardNodeCreation(currentSelection))
             {
                 tryKeyboardNodeCreation(e);

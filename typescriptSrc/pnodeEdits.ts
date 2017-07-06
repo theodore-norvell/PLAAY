@@ -210,6 +210,16 @@ module pnodeEdits {
     function moveDown( selection : Selection ) : Option<Selection> {
         return moveRight(selection) ; //In our case this is the same.
     }
+    
+    /** Move Tab forward. */
+    function moveTabForward( selection : Selection ) : Option<Selection> {
+        return moveRight(selection) ; //In our case this is the same.
+    }
+
+    /** Move Tab back. */
+    function moveTabBack( selection : Selection ) : Option<Selection> {
+        return moveLeft(selection) ; //In our case this is the same.
+    }
 
     /** Replace all selected nodes with another set of nodes. */
     function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
@@ -663,6 +673,29 @@ module pnodeEdits {
                 "upDownSuitable: selection should be empty or one node." ) ; 
         }
     }
+
+    /** Is this a suitable selection to stop at for the left and right arrow keys.
+     * 
+    */
+    function tabSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if( end - start === 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end === start ) {
+            return false;
+        } else {
+            return assert.failedPrecondition(
+                "tabSuitable: selection should be empty or one node." ) ; 
+        }
+    }
+
     /** 
      * Left edit
      */
@@ -715,6 +748,34 @@ module pnodeEdits {
         public applyEdit( selection : Selection ) : Option<Selection> {
             let opt = moveDown( selection ) ;
             while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Tab edit
+     */
+    export class TabForwardEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabForward( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Tab edit
+     */
+    export class TabBackEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabBack( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
             return opt ;
         }
     }
