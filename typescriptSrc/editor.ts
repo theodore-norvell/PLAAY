@@ -426,6 +426,20 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            // Undo: Cntl-Z or Cmd-Z
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey &&  e.which === 90) 
+            {
+                undo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Redo: Cntl-Y or Cmd-Y (or Ctrl-Shift-Z or Cmd-Shift-Z)
+            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which == 90))) 
+            {
+                redo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
             else if (e.which === 38) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
