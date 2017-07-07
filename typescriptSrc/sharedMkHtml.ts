@@ -254,6 +254,24 @@ module sharedMkHtml
                 result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
             }
         }
+        else if (label.match("number"))
+        {
+
+            if (! node.label().isOpen() )
+            {
+                result  = $(document.createElement("div")) ;
+                result.addClass( "numberLiteral" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                result.text( node.label().getVal() ) ;
+            }
+            else
+            {
+                result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+            }
+        }
         else if(label.match("noType"))
         {
             result  = $(document.createElement("div")) ;
@@ -357,6 +375,7 @@ module sharedMkHtml
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
+            element.focus().val(element.val()); //Set the caret to the end of the text.
             return element ;
     }
 

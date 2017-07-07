@@ -26,6 +26,7 @@ module editor {
     import Option = collections.Option ;
     import some = collections.some ;
     import none = collections.none ;
+    import snoc = collections.snoc;
 
     import Selection = pnodeEdits.Selection;
 
@@ -93,6 +94,12 @@ module editor {
         if( trashArray.length === 0 ) return none<Selection>() ;
         else return some( trashArray[0] ) ;
     }
+
+    function getFromDeepTrash( depth : number ) : Option< Selection > {
+        if( trashArray.length <= depth ) return none<Selection>() ;
+        else return some( trashArray[depth] ) ;
+    }
+
 
     function toggleTrash() : void {
         let dialogDiv : JQuery = $('#trashDialog');
@@ -264,15 +271,7 @@ module editor {
                         console.log("  Third case." ) ;
                         console.log("  " + ui.draggable.attr("id"));
                         // Add create a new node and use it to replace the current selection.
-                        const selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
-                        console.log("  selection is " + selection );
-                        assert.check( selection !== undefined ) ;
-                        selection.map(
-                            sel => {
-                                console.log("  createNode is possible." ) ;
-                                update( sel ) ;
-                                console.log("  HTML generated" ) ;
-                            } );
+                        createNode(ui.draggable.attr("id") /*id*/, dropTarget );
                     } else {
                         assert.check( false, "Drop without a drag.") ;
                     } } ) ;
@@ -377,7 +376,7 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            // Copy: Cntl-X or Cmd-X
+            // Copy: Cntl-C or Cmd-C
             else if ((e.ctrlKey || e.metaKey) && e.which === 67 ) 
             {
                 addToTrash(currentSelection);
@@ -385,7 +384,7 @@ module editor {
                 e.preventDefault(); 
             }
             // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && e.which === 86) 
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
                      treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
@@ -393,6 +392,22 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            // Paste from deep trash: Cntl-number key or Cmd-number key
+            else if ((e.ctrlKey || e.metaKey) && ((e.which >= 49 && e.which <= 57) || e.which >= 97 && e.which <= 105)) 
+            {
+                let num : number = e.which;
+                if(num >= 96)
+                {
+                    num -= 48; //Convert numpad key to number key
+                }
+                num -= 48; //convert from ASCII code to the number
+                getFromDeepTrash(num).map( (src : Selection) =>
+                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+
             // Swap: Cntl-B or Cmd-B
             else if ((e.ctrlKey || e.metaKey) && e.which === 66) 
             {
@@ -439,8 +454,113 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            else if (isValidSelectionForKeyboardNodeCreation(currentSelection))
+            {
+                tryKeyboardNodeCreation(e);
+            }
             console.log( "<<keydown handler") ;
     };
+
+    function tryKeyboardNodeCreation(e)
+    {
+            // Create var decl node: Cntl-Shift-V or Cmd-Shift-V
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 86) 
+            {
+                createNode("vardecl", currentSelection );
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            //Create assignment node: shift+; (aka :)
+            else if (e.shiftKey && (e.which == 59 || e.which == 186))
+            {
+                createNode("assign", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create numeric literal node: any digit key (including numpad keys)
+            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57)
+                   || e.which >= 96 && e.which <= 105))
+            {
+                let charCode : number = e.which;
+                if(charCode >= 96)
+                {
+                    charCode -= 48; //Convert numpad key to number key
+                }
+                createNode("numberliteral", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create if node: shift+/ (aka ?)
+            else if (e.shiftKey && e.which == 191)
+            {
+                createNode("if", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create while node: shift+2 (aka @)
+            else if (e.shiftKey && e.which == 50)
+            {
+                createNode("while", currentSelection );
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create string literal node: shift+' (aka ")
+            else if (e.shiftKey && e.which == 222)
+            {
+                createNode("stringliteral", currentSelection, "" );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create variable node: any character
+            else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
+            {
+                let charCode : number = e.which;
+                if(!e.shiftKey) //Handle capital vs lowercase letters.
+                {
+                    charCode += 32;
+                }
+                createNode("var", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create math node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
+            else if ((e.shiftKey && ((e.which === 61 || e.which == 187) || e.which === 56))
+                   || e.which === 191 || (e.which === 173 || e.which == 189)
+                   || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
+            {
+                let charCode : number = e.which;
+                if(charCode === 61 || charCode === 107 || charCode == 187)
+                {
+                    createNode("worldcall", currentSelection, "+");
+                }
+                else if(charCode === 109 || charCode === 173 || charCode == 189)
+                {
+                    createNode("worldcall", currentSelection, "-");
+                }
+                else if(charCode === 56 || charCode === 106)
+                {
+                    createNode("worldcall", currentSelection, "*");
+                }
+                else //only the codes for /  can possibly remain.
+                {
+                    createNode("worldcall", currentSelection, "/");
+                }
+                //We need to manipulate the selection so the first input placeholder is selected.
+                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            return;
+    }
+
+    function selectFirstChild(sel) : Selection
+    {
+        let pathAddition : number = Math.min(sel.anchor(), sel.focus());
+        return new Selection(sel.root(), snoc(sel.path(), pathAddition), 0, 1)
+    }
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
@@ -451,6 +571,41 @@ module editor {
 
     export function getCurrentSelection() : Selection {
         return currentSelection ;
+    }
+
+    function createNode(id: string, sel : Selection, nodeText?: string) : void
+    {
+        let selection : Option<Selection>|null = null;
+        if(nodeText != undefined){
+            selection = treeMgr.createNodeWithText(id, sel, nodeText);
+        }
+        else{
+            selection = treeMgr.createNode(id, sel );
+        }
+        console.log("  selection is " + selection );
+        assert.check( selection !== undefined ) ;
+        selection.map(
+            sel => {
+                console.log("  createNode is possible." ) ;
+                update( sel ) ;
+                console.log("  HTML generated" ) ;
+            } );
+    }
+
+    //We only want to be able to create nodes with the keyboard if the current selection is either empty or has no
+    //children. This prevents accidentally destroying large sections of code with an errant button press.
+    function isValidSelectionForKeyboardNodeCreation(sel: Selection) : boolean
+    {
+        if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 0)
+        {
+            return true;
+        }
+        else if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 1
+             && sel.selectedNodes()[0].count() == 0)
+        {
+            return true;
+        }
+        else return false;
     }
 
     function undo() : void {

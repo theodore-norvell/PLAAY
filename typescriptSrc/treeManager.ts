@@ -84,9 +84,27 @@ module treeManager {
             }
         }
 
-        private makeVarNode(selection:Selection) : Option<Selection> {
+        //Only for nodes that can contain text, such as variables and strings.
+        createNodeWithText(label:string, selection:Selection, text: string) : Option<Selection> {
+            switch (label) {
 
-            const varnode = labels.mkVar( "" ) ;
+                case "stringliteral":
+                    return this.makeStringLiteralNode(selection, text);
+                case "numberliteral":
+                    return this.makeNumberLiteralNode(selection, text);
+                case "var":
+                    return this.makeVarNode(selection, text);
+                case "worldcall":
+                    return this.makeWorldCallNode(selection, text);
+
+                default:
+                    return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
+            }
+        }
+
+        private makeVarNode(selection:Selection, text = "") : Option<Selection> {
+
+            const varnode = labels.mkVar(text) ;
             const edit = new pnodeEdits.InsertChildrenEdit( [varnode] ) ;
             return edit.applyEdit(selection) ;
         }
@@ -155,14 +173,21 @@ module treeManager {
 
         }
 
-        private makeWorldCallNode(selection:Selection) : Option<Selection> {
+        private makeWorldCallNode(selection:Selection, name = "") : Option<Selection> {
 
             const left = labels.mkExprPH();
             const right = labels.mkExprPH();
-            const worldcallnode = labels.mkCallWorld( name, left, right);
+            let worldcallnode : PNode|null = null;
+            if(name === "")
+            {
+                worldcallnode = labels.mkCallWorld( name, left, right);
+            }
+            else
+            {
+                worldcallnode = labels.mkClosedCallWorld(name, left, right);
+            }
             const edit = new pnodeEdits.InsertChildrenEdit([worldcallnode]);
             return edit.applyEdit(selection);
-
         }
 
         private makeCallNode(selection:Selection) : Option<Selection> {
@@ -179,16 +204,16 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private makeStringLiteralNode(selection:Selection) : Option<Selection> {
+        private makeStringLiteralNode(selection:Selection, text = "hello") : Option<Selection> {
 
-            const literalnode = labels.mkStringLiteral( "hello" ) ;
+            const literalnode = labels.mkStringLiteral(text) ;
             const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeNumberLiteralNode(selection:Selection) : Option<Selection> {
+        private makeNumberLiteralNode(selection:Selection, text = "123") : Option<Selection> {
 
-            const literalnode = labels.mkNumberLiteral("123") ;
+            const literalnode = labels.mkNumberLiteral(text) ;
 
             const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
