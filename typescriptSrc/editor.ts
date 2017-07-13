@@ -301,13 +301,13 @@ module editor {
         const inputs : JQuery = $("#container .input") ;
         if( inputs.length > 0 ) {
             inputs.focus(); // Set the focus to the first item in inputs
-            inputs.keyup(keyUpHandlerForInputs) ;
+            $(document).off( "keydown" ) ;
+            inputs.keydown(keyDownHandlerForInputs) ;
             // If there is any change to the input controls
             // then update the label on the next blur.
             inputs.change( function( ev : JQueryEventObject) : void {
                 inputs.blur( updateLabelHandler ) ;
             }) ;
-            $(document).off( "keydown" ) ;
             // TODO Scroll the container so that the element in focus is visible.
         } else {
             $(document).off( "keydown" ) ;
@@ -354,12 +354,19 @@ module editor {
             opt.map( sel => update(sel) );
             console.log( "<< updateLabelHandler") ; } ;
 
-    const keyUpHandlerForInputs 
+    const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            if (e.keyCode === 13) {
-                console.log( ">>keyup handler") ;
+            if (e.keyCode === 13 || e.keyCode == 9) {
+                console.log( ">>input keydown handler") ;
                 updateLabelHandler.call( this, e ) ;
-                console.log( "<< keyup handler") ;
+                if(e.keyCode == 9)
+                {
+                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                }
+                e.stopPropagation()
+                e.preventDefault();
+                console.log( "<<input keydown handler") ;
             } } ;
 
     const keyDownHandler
