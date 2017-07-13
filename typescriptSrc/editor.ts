@@ -622,38 +622,6 @@ module editor {
         else return false;
     }
 
-    //This version of undo is meant to be called by the keyboard shortcut.
-    //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
-    function keyboardUndo() : void {
-        let finished : boolean = false;
-        let sel : Selection = currentSelection;
-        while (undostack.length !== 0 && !finished)  {
-            finished = true;
-            redostack.push(sel);
-            sel = undostack.pop() as Selection ;
-            if(Math.abs(sel.anchor() - sel.focus()) == 1)
-            {
-                if(sel.selectedNodes()[0].label().isOpen())
-                { //Keep going if the selected node is open.
-                    finished = false;
-                }
-                for(let child of sel.selectedNodes()[0].children())
-                { //deal with cases where a child of the selected node is open, but not the selected node itself.
-                    if(child.label().isOpen())
-                    {
-                        finished = false;
-                    }
-                }
-            }
-        }
-        if(finished)
-        {
-            currentSelection = sel;
-            generateHTMLSoon();
-        }
-        return;
-    }
-
     function undo() : void {
         if (undostack.length !== 0)  {
             redostack.push(currentSelection);
@@ -662,28 +630,23 @@ module editor {
         }
     }
 
-    //This version of redo is meant to be called by the keyboard shortcut.
-    function keyboardRedo() : void {
+    function redo() : void {
+        if (redostack.length !== 0) {
+            undostack.push(currentSelection);
+            currentSelection = redostack.pop() as Selection ;
+            generateHTMLSoon();
+        }
+    }
+
+        //This version of undo is meant to be called by the keyboard shortcut.
+    //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
+    function keyboardUndo() : void {
         let finished : boolean = false;
         let sel : Selection = currentSelection;
-        while (redostack.length !== 0 && !finished)  {
-            finished = true;
-            undostack.push(sel);
-            sel = redostack.pop() as Selection ;
-            if(Math.abs(sel.anchor() - sel.focus()) == 1)
-            {
-                if(sel.selectedNodes()[0].label().isOpen())
-                { //Keep going if the selected node is open.
-                    finished = false;
-                }
-                for(let child of sel.selectedNodes()[0].children())
-                { //deal with cases where a child of the selected node is open, but not the selected node itself.
-                    if(child.label().isOpen())
-                    {
-                        finished = false;
-                    }
-                }
-            }
+        while (undostack.length !== 0 && !finished)  {
+            redostack.push(sel);
+            sel = undostack.pop() as Selection ;
+            finished = hasOpenNodes(sel)
         }
         if(finished)
         {
@@ -693,12 +656,40 @@ module editor {
         return;
     }
 
-    function redo() : void {
-        if (redostack.length !== 0) {
-            undostack.push(currentSelection);
-            currentSelection = redostack.pop() as Selection ;
+    //This version of redo is meant to be called by the keyboard shortcut.
+    function keyboardRedo() : void {
+        let finished : boolean = false;
+        let sel : Selection = currentSelection;
+        while (redostack.length !== 0 && !finished)  {
+            undostack.push(sel);
+            sel = redostack.pop() as Selection;
+            finished = hasOpenNodes(sel)
+        }
+        if(finished)
+        {
+            currentSelection = sel;
             generateHTMLSoon();
         }
+        return;
+    }
+
+    function hasOpenNodes(sel: Selection) : boolean
+    {
+            if(Math.abs(sel.anchor() - sel.focus()) == 1)
+            {
+                if(sel.selectedNodes()[0].label().isOpen())
+                { //Keep going if the selected node is open.
+                    return false;
+                }
+                for(let child of sel.selectedNodes()[0].children())
+                { //deal with cases where a child of the selected node is open, but not the selected node itself.
+                    if(child.label().isOpen())
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
     }
 
     let pendingAction : number|null = null ;
