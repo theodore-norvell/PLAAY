@@ -638,7 +638,7 @@ module editor {
         }
     }
 
-        //This version of undo is meant to be called by the keyboard shortcut.
+    //This version of undo is meant to be called by the keyboard shortcut.
     //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
     function keyboardUndo() : void {
         let finished : boolean = false;
@@ -648,11 +648,8 @@ module editor {
             sel = undostack.pop() as Selection ;
             finished = hasOpenNodes(sel)
         }
-        if(finished)
-        {
-            currentSelection = sel;
-            generateHTMLSoon();
-        }
+        currentSelection = sel;
+        generateHTMLSoon();
         return;
     }
 
@@ -665,11 +662,8 @@ module editor {
             sel = redostack.pop() as Selection;
             finished = hasOpenNodes(sel)
         }
-        if(finished)
-        {
-            currentSelection = sel;
-            generateHTMLSoon();
-        }
+        currentSelection = sel;
+        generateHTMLSoon();
         return;
     }
 
