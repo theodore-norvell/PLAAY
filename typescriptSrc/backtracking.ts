@@ -3,7 +3,7 @@ module backtracking
 {
     export class TVar<T>
     {
-        private manager : TransactionManager;
+        private manager : TransactionManager = TransactionManager.getInstance();
         private currentValue : T;
 
         public get() : T {return this.currentValue;}
@@ -12,13 +12,24 @@ module backtracking
             this.manager.notifyOfSet(this);
             this.currentValue = val;
         }
+
+        public constructor(val : T)
+        {
+            this.set(val);
+        }
     }
 
     export class TransactionManager
     {
-        private undoStack : Array<Transaction> = [];
+        private undoStack : Array<Transaction>;
         private currentTransaction : Transaction;
-        private state : States = States.NOTDOING;
+        private state : States;
+
+        private constructor()
+        {
+            this.undoStack = [];
+            this.state = States.NOTDOING;
+        }
 
         public notifyOfSet(v : TVar<any>)
         {
@@ -53,23 +64,54 @@ module backtracking
                 this.state = States.NOTDOING;
             }
         }
+
+        public static instance : TransactionManager;
+
+        public static getInstance() : TransactionManager
+        {
+            if(this.instance === undefined)
+            {
+                this.instance = new TransactionManager();
+            }
+            return this.instance;
+        }
+
+        public getState() : States //meant for unit testing
+        {
+            return this.state;
+        }
+
+        public getUndoStack() : Array<Transaction> //meant for unit testing
+        {
+            return this.undoStack;
+        }
+
+        public getCurrentTransaction() : Transaction //meant for unit testing
+        {
+            return this.currentTransaction;
+        }
     }
 
     export class Transaction
     {
-        private map : Map<TVar<any>, any>;
+        private map : Map<TVar<any>, any> = new Map<TVar<any>, any>();
 
         public put(v : TVar<any>)
         {
-
+            this.map.set(v, v.get())
         }
         public apply()
         {
-
+            for(let key of this.map.keys())
+            {
+                let val : any = key.get();
+                key.set(this.map.get(key));
+                this.map.set(key, val);
+            }
         }
     }
 
-    enum States
+    export enum States
     {
         DOING,
         NOTDOING,
