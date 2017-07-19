@@ -684,7 +684,11 @@ module pnodeEdits {
             const node = sel.selectedNodes()[0] ;
             return node.isPlaceHolder() ; }
         else if( end === start ) {
-            return false;
+            // Dropzones are suitable unless there is a place holder
+            // (or similar) to the right 
+            return sel.parent().hasDropZonesAt( start )
+                && ! (   sel.parent().count() > end
+                      && sel.parent().child( end ).isPlaceHolder() ) ;
         } else {
             return assert.failedPrecondition(
                 "tabSuitable: selection should be empty or one node." ) ; 
