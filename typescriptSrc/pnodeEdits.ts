@@ -107,7 +107,7 @@ module pnodeEdits {
         public toString() : string { return "Selection( " + "_root:" + this._root.toString() +
                             " _path:" + this._path.toString() +
                             " _anchor: " + this._anchor +
-                            " _focus: " + this._focus + ")"  ;}
+                            " _focus: " + this._focus + ")"  ; }
     }
     
     function isInteger( n : number ) : boolean {
