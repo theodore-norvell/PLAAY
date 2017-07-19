@@ -633,12 +633,11 @@ module pnodeEdits {
         const start = sel.start() ;
         const end = sel.end() ;
         if( end - start === 1 ) {
-            // Placeholders and such are suitable
-            const node = sel.selectedNodes()[0] ;
-            return node.isPlaceHolder() ; }
+            // Any single node selection is suitable
+            return true ; }
         else if( end === start ) {
-            const node = sel.root().get( sel.path() ) ;
-            return node.hasDropZonesAt( start ) ;
+            // Dropzones are suitable
+            return sel.parent().hasDropZonesAt( start ) ;
         } else {
             return assert.failedPrecondition(
                 "leftRightSuitable: selection should be empty or one node." ) ; 
