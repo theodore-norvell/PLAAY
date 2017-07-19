@@ -651,17 +651,17 @@ module pnodeEdits {
     function upDownSuitable( opt : Option<Selection> ) : boolean {
         // Need to stop when we can go no further to the up or down.
         if( opt.isEmpty() ) return true ;
-        // Otherwise stop on dropzones or placeholders and similar nodes.
+        // Otherwise stop only on point selections whose
+        // parents have vertical layout.
         const sel = opt.first() ;
         const start = sel.start() ;
         const end = sel.end() ;
         if(end - start === 1)
         {
-            return false
+            return false ;
         }
         else if( end === start ) {
-            const node = sel.root().get( sel.path() ) ;
-            return node.hasVerticalLayout() ;
+            return sel.parent().hasVerticalLayout() ;
         }
         else
         {
@@ -670,7 +670,7 @@ module pnodeEdits {
         }
     }
 
-    /** Is this a suitable selection to stop at for the left and right arrow keys.
+    /** Is this a suitable selection to stop at for tab keys.
      * 
     */
     function tabSuitable( opt : Option<Selection> ) : boolean {
