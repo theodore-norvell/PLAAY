@@ -28,9 +28,13 @@ module pnodeEdits {
     import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
+    import Label = pnode.Label;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
-    import Label = pnode.Label;
+    import compose = edits.compose ;
+    import alt = edits.alt ;
+    import opt = edits.opt ;
+    import test = edits.test ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -468,6 +472,10 @@ module pnodeEdits {
         }
     }
 
+    export function insertChildrenEdit( newNodes : Array<PNode> ) : Edit<Selection> {
+        return new InsertChildrenEdit( newNodes ) ;
+    }
+
     /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
      * The resulting selection indicates the position where the nodes
      * used to be.
@@ -698,7 +706,7 @@ module pnodeEdits {
     /** 
      * Left edit
      */
-    export class LeftEdit extends AbstractEdit<Selection> {
+    class LeftEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -709,10 +717,12 @@ module pnodeEdits {
         }
     }
 
+    export const leftEdit = new LeftEdit() ;
+
     /** 
      * Right edit
      */
-    export class RightEdit extends AbstractEdit<Selection> {
+    class RightEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -723,10 +733,12 @@ module pnodeEdits {
         }
     }
 
+    export const rightEdit = new RightEdit() ;
+
     /** 
      * Up edit
      */
-    export class UpEdit extends AbstractEdit<Selection> {
+    class UpEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -736,6 +748,8 @@ module pnodeEdits {
             return opt ;
         }
     }
+
+    export const upEdit = new UpEdit() ;
 
     /** 
      * Down edit
@@ -751,10 +765,12 @@ module pnodeEdits {
         }
     }
 
+    export const downEdit = new DownEdit() ;
+
     /** 
      * Tab edit
      */
-    export class TabForwardEdit extends AbstractEdit<Selection> {
+    class TabForwardEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -765,10 +781,12 @@ module pnodeEdits {
         }
     }
 
+    export const tabForwardEdit = new TabForwardEdit() ;
+
     /** 
      * Tab edit
      */
-    export class TabBackEdit extends AbstractEdit<Selection> {
+    class TabBackEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -777,6 +795,81 @@ module pnodeEdits {
             while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
             return opt ;
         }
+    }
+
+    export const tabBackEdit = new TabBackEdit() ;
+
+    /** 
+     * Select Parent Edit
+     */
+    class SelectParentEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            const path = selection.path() ;
+            if( path.isEmpty() ) { return none<Selection>() ; }
+            else { return some( new Selection( selection.root(),
+                                               butLast( path ),
+                                               last(path),
+                                               last(path)+1 ) ) ; }
+        }
+    }
+
+    export const selectParentEdit = new SelectParentEdit() ;
+
+    /** replaceWithTemplateEdit is basically an InsertChidren edit followed
+     * by an optional tab edit.
+     */
+    export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        const nodes = [ template.root() ] ;
+        return compose( new InsertChildrenEdit( nodes ),
+                        opt( tabForwardEdit ) )  ;
+    }
+
+    /** 
+     * Engulf the selected nodes with a template
+     */
+    class EngulfEdit extends AbstractEdit<Selection> {
+
+        private  t : Selection ;
+        constructor(template : Selection  ) {
+            super() ;
+            this.t = template ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            const nodes = selection.selectedNodes() ;
+            // First step: Insert then nodes into the template.
+            const i0 = insertChildrenEdit( nodes ) ;
+            const opt0 = i0.applyEdit( this.t ) ;
+            return opt0.bind( tPrime => {
+                // Second step: Insert the result into the selection
+                const i1 = insertChildrenEdit( [tPrime.root() ] );
+                // Third step: If possible, move right to next insertion place
+                const tab = opt( tabForwardEdit ) ;
+                // Do the second and third steps
+                return compose( i1, tab ).applyEdit( selection ) ; } ) ;
+        }
+    }
+
+    /** Engulf the selected nodes with a template. */
+    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        return new EngulfEdit( template ) ;
+    }
+
+    /** Either replace the current seletion with a given template or
+     * engulf the current selection with the template.
+     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * preferred.
+     * 
+     * @param template 
+     */
+    export function replaceOrEngulfEdit( template : Selection ) : Edit<Selection> {
+        const replace = replaceWithTemplateEdit( template ) ;
+        const engulf = engulfWithTemplateEdit( template ) ;
+        const selectionIsEmpty = test( (sel:Selection) => sel.focus() === sel.anchor() ) ;
+        return  alt( compose( selectionIsEmpty, replace ),
+                     alt( engulf, replace) ) ;
     }
 
 }

@@ -253,32 +253,32 @@ module treeManager {
         }
 
         public moveLeft( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.LeftEdit();
+            const edit = pnodeEdits.leftEdit;
             return edit.applyEdit(selection);
         }
 
         public moveRight( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.RightEdit();
+            const edit = pnodeEdits.rightEdit;
             return edit.applyEdit(selection);
         }
 
         public moveUp( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.UpEdit();
+            const edit = pnodeEdits.upEdit;
             return edit.applyEdit(selection);
         }
 
         public moveDown( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.DownEdit();
+            const edit = pnodeEdits.downEdit;
             return edit.applyEdit(selection);
         }
 
         public moveTabForward( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.TabForwardEdit();
+            const edit = pnodeEdits.tabForwardEdit;
             return edit.applyEdit(selection);
         }
          
         public moveTabBack( selection:Selection ) : Option<Selection> {
-            const edit = new pnodeEdits.TabBackEdit();
+            const edit = pnodeEdits.tabBackEdit;
             return edit.applyEdit(selection);
         }
 

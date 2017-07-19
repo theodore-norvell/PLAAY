@@ -7,7 +7,8 @@ import assert = require( './assert' ) ;
 /** Edits are essentially operations on objects that might succeed or fail.  */
 module edits {
     import Option = collections.Option;
-    import Some = collections.Some;
+    import some = collections.some;
+    import none = collections.none;
 
 
     /** An Edit represents a function that may succeed or fail.
@@ -102,13 +103,12 @@ module edits {
     export function alt<A>( first : Edit<A>, second : Edit<A> ) : Edit<A> {
         return new AlternateEdit<A>( first, second )  ; }
         
-    
     class IdentityEdit<A> extends AbstractEdit<A> {
         
         constructor( ) { 
             super() ; }
         
-        public applyEdit( a : A ) : Option<A> { return new Some(a) ; }
+        public applyEdit( a : A ) : Option<A> { return some(a) ; }
         
         public canApply( a : A ) : boolean { return true ; }
     }
@@ -120,6 +120,29 @@ module edits {
     */
     export function id<A>() : Edit<A> {
         return new IdentityEdit<A>()  ; }
+
+    export function opt<A>( edit : Edit<A> ) : Edit<A> {
+        return alt( edit, id<A>() ) ;
+    }
+
+    class TestEdit<A> extends AbstractEdit<A> {
+        
+        private pred : (a:A) => boolean ;
+
+        constructor( pred : (a:A) => boolean ) { 
+            super() ;
+            this.pred = pred ;
+        }
+        
+        public applyEdit( a : A ) : Option<A> {
+            return this.pred(a) ? some(a) : none<A>() ; }
+        
+        public canApply( a : A ) : boolean { return this.pred(a) ; }
+    }
+
+    export function test<A>( pred : (a:A) => boolean ) : Edit<A> {
+        return new TestEdit( pred ) ;
+    }
 }
 
 export = edits ;
