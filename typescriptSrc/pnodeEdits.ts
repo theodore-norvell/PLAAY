@@ -818,13 +818,11 @@ module pnodeEdits {
 
     export const selectParentEdit = new SelectParentEdit() ;
 
-    /** replaceWithTemplateEdit is basically an InsertChidren edit followed
-     * by an optional tab edit.
+    /** replaceWithTemplateEdit is basically an InsertChidren 
      */
     export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
         const nodes = [ template.root() ] ;
-        return compose( new InsertChildrenEdit( nodes ),
-                        opt( tabForwardEdit ) )  ;
+        return new InsertChildrenEdit( nodes )  ;
     }
 
     /** 
@@ -838,17 +836,22 @@ module pnodeEdits {
             this.t = template ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            console.log( ">> EngulfEdit.applyEdit") ;
             const nodes = selection.selectedNodes() ;
             // First step: Insert then nodes into the template.
             const i0 = insertChildrenEdit( nodes ) ;
+            console.log( "   EngulfEdit.applyEdit: Applying first step") ;
             const opt0 = i0.applyEdit( this.t ) ;
-            return opt0.bind( tPrime => {
+            const res = opt0.bind( tPrime => {
                 // Second step: Insert the result into the selection
                 const i1 = insertChildrenEdit( [tPrime.root() ] );
-                // Third step: If possible, move right to next insertion place
-                const tab = opt( tabForwardEdit ) ;
-                // Do the second and third steps
-                return compose( i1, tab ).applyEdit( selection ) ; } ) ;
+                // Do the second steps
+                console.log( "   EngulfEdit.applyEdit: Applying second step") ;
+                const result =  i1.applyEdit( selection ) ;
+                console.log( "   EngulfEdit.applyEdit: Done second step") ;
+                return result ; } ) ;
+            console.log( "<< EngulfEdit.applyEdit") ;
+            return res ;
         }
     }
 
@@ -864,12 +867,26 @@ module pnodeEdits {
      * 
      * @param template 
      */
-    export function replaceOrEngulfEdit( template : Selection ) : Edit<Selection> {
+    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
         const replace = replaceWithTemplateEdit( template ) ;
         const engulf = engulfWithTemplateEdit( template ) ;
         const selectionIsEmpty = test( (sel:Selection) => sel.focus() === sel.anchor() ) ;
         return  alt( compose( selectionIsEmpty, replace ),
                      alt( engulf, replace) ) ;
+    }
+                    
+    /** Either replace the current seletion with a given template or
+     * engulf the current selection with the template.
+     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * preferred.
+     * 
+     * Finally tab forward if that was successful.
+     * 
+     * @param template 
+     */
+    export function replaceOrEngulfTemplateThenTabEdit( template : Selection ) : Edit<Selection> {
+        return compose( replaceOrEngulfTemplateEdit( template ),
+                        opt( tabForwardEdit ) ) ;
     }
 
 }

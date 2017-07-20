@@ -509,7 +509,6 @@ module editor {
             else if (e.shiftKey && (e.which == 59 || e.which == 186))
             {
                 createNode("assign", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -530,7 +529,6 @@ module editor {
             else if (e.shiftKey && e.which == 191)
             {
                 createNode("if", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -538,7 +536,6 @@ module editor {
             else if (e.shiftKey && e.which == 50)
             {
                 createNode("while", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -549,7 +546,7 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
-            //Create variable node: any character
+            //Create variable node: any letter
             else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
             {
                 let charCode : number = e.which;
@@ -561,7 +558,7 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
-            //Create math node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
+            //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
             else if ((e.shiftKey && ((e.which === 61 || e.which == 187) || e.which === 56))
                    || e.which === 191 || (e.which === 173 || e.which == 189)
                    || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
@@ -583,18 +580,10 @@ module editor {
                 {
                     createNode("worldcall", currentSelection, "/");
                 }
-                //We need to manipulate the selection so the first input placeholder is selected.
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             return;
-    }
-
-    function selectFirstChild(sel) : Selection
-    {
-        let pathAddition : number = Math.min(sel.anchor(), sel.focus());
-        return new Selection(sel.root(), snoc(sel.path(), pathAddition), 0, 1)
     }
 
     export function update( sel : Selection ) : void {

@@ -56,15 +56,13 @@ module edits {
             this._first = first ; this._second = second ; }
         
         public applyEdit( a : A ) : Option<A> {
-            const result = this._first.applyEdit( a ) ;
-            return result.choose(
-                        this._second.applyEdit,
-                        () => result ) ; }
+            const opt = this._first.applyEdit( a ) ;
+            return opt.bind( (b:A) => this._second.applyEdit(b) ) ; }
         
         public canApply( a : A ) : boolean {
-            const result = this._first.applyEdit( a ) ;
-            return result.choose(
-                        this._second.canApply,
+            const opt = this._first.applyEdit( a ) ;
+            return opt.choose(
+                        (b:A) => this._second.canApply(b),
                         () => false ) ; }
     }
     
@@ -85,9 +83,9 @@ module edits {
             this._first = first ; this._second = second ; }
         
         public applyEdit( a : A ) : Option<A> {
-            const result = this._first.applyEdit( a ) ;
-            return result.choose(
-                        (a0 : A) => result,
+            const opt = this._first.applyEdit( a ) ;
+            return opt.choose(
+                        (b : A) => opt,
                         () => this._second.applyEdit( a ) ) ; }
         
         public canApply( a : A ) : boolean {

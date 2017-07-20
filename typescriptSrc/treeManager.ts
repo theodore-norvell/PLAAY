@@ -18,7 +18,8 @@ module treeManager {
 
     import ExprSeqLabel = labels.ExprSeqLabel;
     import Selection = pnodeEdits.Selection;
-    import replaceOrEngulfEdit = pnodeEdits.replaceOrEngulfEdit ;
+    import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
+    import replaceOrEngulfTemplateThenTabEdit = pnodeEdits.replaceOrEngulfTemplateThenTabEdit ;
     import list = collections.list;
     import PNode = pnode.PNode;
     import Edit = edits.Edit;
@@ -118,10 +119,11 @@ module treeManager {
 
             const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [cond, seq]);
             const template = new Selection( whilenode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
             return edit.applyEdit(selection);
         }
 
+        // If nodes
         private makeIfNode(selection:Selection) : Option<Selection> {
 
             const guard = labels.mkExprPH();
@@ -130,8 +132,11 @@ module treeManager {
 
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
 
+            console.log( "makeIfNode: Making template") ;
             const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            console.log( "makeIfNode: Making edit") ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
+            console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
 
@@ -142,7 +147,7 @@ module treeManager {
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
 
             const template = new Selection( lambdanode, list(2), 0, 0 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
             return edit.applyEdit(selection);
         }
 
@@ -156,7 +161,7 @@ module treeManager {
             const assignnode = opt.first() ;
 
             const template = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
             return edit.applyEdit(selection);
 
         }
@@ -170,7 +175,7 @@ module treeManager {
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
             const template = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
             return edit.applyEdit(selection);
 
         }
@@ -183,16 +188,17 @@ module treeManager {
             if(name === "")
             {
                 worldcallnode = labels.mkCallWorld( name, left, right);
-                // TODO In this case is the final selected node always ok?
+                const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
+                const edit = replaceOrEngulfTemplateEdit( template ) ;
+                return edit.applyEdit(selection);
             }
             else
             {
                 worldcallnode = labels.mkClosedCallWorld(name, left, right);
+                const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
+                const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
+                return edit.applyEdit(selection);
             }
-
-            const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
-            return edit.applyEdit(selection);
         }
 
         private makeCallNode(selection:Selection) : Option<Selection> {
@@ -201,7 +207,7 @@ module treeManager {
             const callnode = labels.mkCall(func) ;
 
             const template = new Selection( callnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfEdit( template ) ;
+            const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
             return edit.applyEdit(selection);
         }
 
