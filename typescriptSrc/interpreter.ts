@@ -87,6 +87,25 @@ module interpreter {
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
 
+    theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
+
+    // Assignment statements and variables
+    theSelectorRegistry[ labels.VarDeclLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.VarDeclLabel.kindConst ] = variableDeclarationStepper ;
+
+    theSelectorRegistry[ labels.AssignLabel.kindConst ] = leftToRightSelector ;
+
+    theSelectorRegistry[ labels.VariableLabel.kindConst ] = alwaysSelector ;
+    theStepperRegistry[ labels.VariableLabel.kindConst ] = variableLabelStepper ;
+
+    // Expression Sequence
+    theSelectorRegistry[ labels.ExprSeqLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.ExprSeqLabel.kindConst ] = exprSeqStepper ;
+
+    // Types
+    theSelectorRegistry[ labels.NoTypeLabel.kindConst ] = alwaysSelector ;
+    theStepperRegistry[ labels.NoTypeLabel.kindConst ] = nullLiteralStepper ; //TODO: make this an actual function
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -136,6 +155,71 @@ module interpreter {
 
     function nullLiteralStepper( vms : VMS ) : void {
         vms.finishStep( theNullValue ) ;
+    }
+
+    // temporary stepper function for this
+    function exprSeqStepper( vms : VMS ) : void {
+        vms.finishStep( theNullValue ) ;
+    }
+
+    interface VariableNameCache { [key:string] : StringV }
+
+    const theVariableNameCache : VariableNameCache = {} ;
+
+    function variableLabelStepper( vms : VMS ) : void {
+        const label = vms.getPendingNode().label() ;
+        const variableName = label.getVal() ;
+        let result = theVariableNameCache[ variableName ] ;
+        if( result === undefined ) {
+            result = theVariableNameCache[ variableName ] = new StringV( variableName ) ;
+        }
+        vms.finishStep( result ) ;
+    }
+
+    function variableDeclarationStepper( vms : VMS ) : void {
+        const label = vms.getPendingNode().label() ;
+        const varStack = vms.getStack() ;
+
+    }
+
+    //this does not currently work with embedded operations
+    function callWorldStepper( vms : VMS ) : void {
+        const label = vms.getPendingNode().label() ;
+        const operands = vms.getPendingNode().children() ;
+        const operation = label.getVal() ;
+        let result = +( operands[0].label().getVal() ) ;
+        switch ( operation ) {
+            case ( "+" ) :
+                for( let i = 1; i < operands.length; i++ ) {
+                    let operand = +( operands[i].label().getVal() ) ;
+                    result = result + operand ;
+                }
+                break ;
+            case ( "-" ) :
+                for ( let i = 1; i < operands.length; i++ ) {
+                    let operand = +( operands[i].label().getVal() ) ;
+                    result = result - operand ;
+                }
+                break ;
+            case ( "*" ) :
+                for ( let i = 1; i < operands.length; i++ ) {
+                    let operand = +( operands[i].label().getVal() ) ;
+                    result = result * operand ;
+                }
+                break ;
+            case ( "/" ) :
+                for ( let i = 1; i < operands.length; i++ ) {
+                    let operand = +( operands[i].label().getVal() ) ;
+                    result = result / operand ;
+                }
+                break ;
+        }
+        let stringResult = theStringCache[ String(result) ];
+        if( stringResult === undefined ) {
+            stringResult = theStringCache [ String(result) ] = new StringV( String( result ) ) ;
+        }
+        alert( stringResult ) ;
+        vms.finishStep( stringResult ) ;
     }
 }
 
