@@ -37,11 +37,11 @@ Infix Sequence:
     d        Start a Var node
              Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
                                          CallWorld[*]( Var[c], !Open Var[d]^ ) )
-    enter    Close and select the Var node
+    tab      Close Var node and move to next insertion place
              Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
-                                         CallWorld[*]( Var[c], !Var[d]^ ) )
-    Escape   Go up to parent and then right to next place-holder or dropzone
-             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], Var[d] !^ ) )
+    right-arrow  move right (tab would do the sameee
+    Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
                                          CallWorld[*]( Var[c], Var[d] ) ^!  )
     e        Start a Var node
              Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
@@ -69,7 +69,10 @@ Prefix sequence for (a*b) + (c*d)
     b        Start a Var node
              CallWorld[+]( CallWorld[*]( Var[a], !Open Var[b]^ ),
                            ExpPH )
-    tab      Close and select next PH
+    tab      Close and select next insertion spot
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                           !^ ExpPH )
+    tab      Select next insertion spot
              CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
                            !ExpPH^ )
     *        Engulf the ExpPH with CallWorld
@@ -84,11 +87,12 @@ Prefix sequence for (a*b) + (c*d)
     d        Start a Var node
              CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
                             CallWorld[*]( Var[c], !open Var[d]^) )
-    enter
+    tab
              CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
-                            CallWorld[*]( Var[c], !Var[d]^) )
+                           CallWorld[*]( Var[c], Var[d] !^) )
  
- Many user actions such as keypresses, click on palette buttons, and drag and drop from the palette create compound nodes; i.e., nodes that can have children.
+ Many user actions such as keypresses, click on palette buttons, and drag and
+ drop from the palette create compound nodes; i.e., nodes that can have children.
  Examples:
     Pressing the + * - / _ \ 0 . or ? keys.
     Dragging the ?, while, lambda, varDecl, call or callWorld pallet items onto the view of the tree.
@@ -101,23 +105,22 @@ Prefix sequence for (a*b) + (c*d)
     * If the current selection is not empty, engulf is preferred.
 
 These rules are easily expressed by the edit
-    compose(
           alt( compose( selectionIsAllPlaceHolder, replace ),
                engulf,
                replace),
-          opt( tabForwardEdit ) )
 where
    * alt, opt, and compose are as defined in the edits module,
    * selectionIsAllPlaceHolder is an edit that fails if some node in the selection
      is not a placeholer and that makes no change otherwise,
    * replace is an edit that replaces the current selection with the new tree,
    * engulf is an edit that engulfs the current selection with the new tree.
-   * tabForwardEdit is an edit that does what the tab key does.
 
 Details of replace. Suppose the target (i.e., the argument to apply) is t and the template
 to be inserted is another selection s.  Let ps be the sequence of nodes selected by t.
 The ps in t are replaced by s (ala InsertChildrenEdit) to make a selection t'.
 The result is t'.  Note that the root of s will be the only selected node in t'
+Finally a tabForwardEdit (see below) is done to move the selection to a place holder within the
+newly inserted nodes.
 
 Details of engulf.  An engulf can be thought of as three edit steps.  Suppose the target
 (i.e., the argument to apply) is t and the template to be inserted is another selection s.
@@ -128,8 +131,28 @@ Let ps be the sequence of nodes selected by t.
    selection t'.  t' should have one selected, node, corresponding to the root of s'.
 *  The second step fails, the whole edit fails.
 *  Third, the selection is adjusted so that it is a point selection to the right of where
-   the engulfed nodes ended up.
-*  The result is t'' if the RightEdit succeeds and is t' if the RightEdit fails.
+   the engulfed nodes ended up. This is t''
+Finally a tabForwardEdit is optionally done.  If the current selection is suitable for
+inserting new stuff, then the tabForwardEdit is skipped. Otherwise it's done.
+
+For example suppose the target selection is  t = ExpSeq( ! var[f] ^ )
+and we engulf with a template selection s = call( !ExpPH^ ). We get
+   ps = [ var[f] ]
+   s' = call( !var[f]^ )
+   t' = ExpSeq( ! call( var[f] ) ^ )
+   t'' = ExpSeq( call( var[f] !^ ) )
+Now since t'' is at a suitable stopping point for tabForwardEdit, no tabForwardEdit is applied.
+
+Another example
+    t = ExpSeq( ! var[f] ^ )
+    s = callWorld[+]( !ExpPH^ , ExpPH ) 
+we have
+   ps = [ var[f] ]
+   s' = callWorld[+]( !var[f]^, ExpPH )
+   t' = ExpSeq( ! callWorld[+]( var[f], ExpPH ) ^ )
+   t'' = ExpSeq( callWorld[+]( var[f] !^, ExpPH ) )
+This time, since the selection is not a suitable place for a tab to stop, we do the tab to get
+    ExpSeq( callWorld[+]( var[f], !ExpPH^ ) )
 
 Details of tabForwardEdit.  A tabForwardEdit repeatedly moves the selection right in previsit
 order at least once.  (It fails if that first move can't be made and succeeds otherwise.)
