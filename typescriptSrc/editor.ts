@@ -534,14 +534,14 @@ module editor {
                 e.preventDefault();
             }
             //Create lambda node: with the \ key
-            else if (!e.shiftKey && e.which === 229)
+            else if (!e.shiftKey && e.which === 220)
             {
                 createNode("lambda", currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create call node: with the shift - key (aka _)
-            else if (e.shiftKey && e.which === 173)
+            else if (e.shiftKey && (e.which === 189 || e.which === 173) )
             {
                 createNode("call", currentSelection );
                 e.stopPropagation();
