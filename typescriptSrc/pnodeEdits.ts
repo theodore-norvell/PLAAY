@@ -661,8 +661,7 @@ module pnodeEdits {
             // Dropzones are suitable
             return sel.parent().hasDropZonesAt( start ) ;
         } else {
-            return assert.failedPrecondition(
-                "leftRightSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
 
@@ -686,8 +685,7 @@ module pnodeEdits {
         }
         else
         {
-            return assert.failedPrecondition(
-                "upDownSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
 
@@ -712,8 +710,7 @@ module pnodeEdits {
                 && ! (   sel.parent().count() > start
                       && sel.parent().child( start ).isPlaceHolder() ) ;
         } else {
-            return assert.failedPrecondition(
-                "tabSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
 
@@ -721,8 +718,7 @@ module pnodeEdits {
      * OutEdit
      */
     class OutEdit extends AbstractEdit<Selection> {
-        normal : boolean
-        
+        private readonly normal : boolean ;
 
         constructor(normal : boolean ) { super() ; this.normal = normal ; }
         
@@ -804,16 +800,19 @@ module pnodeEdits {
      */
     class TabForwardEdit extends AbstractEdit<Selection> {
 
-        constructor() { super() ; }
+        private readonly moveFirst : boolean;
+        constructor(moveFirst : boolean ) { super() ; this.moveFirst = moveFirst ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
-            let opt = moveTabForward( selection ) ;
+            let opt = this.moveFirst ? moveTabForward( selection ) : some( selection ) ;
             while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const tabForwardEdit = new TabForwardEdit() ;
+    export const tabForwardEdit = new TabForwardEdit( true ) ;
+
+    export const tabForwardIfNeededEdit = new TabForwardEdit( false ) ;
 
     /** 
      * Tab edit
@@ -909,28 +908,15 @@ module pnodeEdits {
      * @param template 
      */
     export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
-        const replace = replaceWithTemplateEdit( template ) ;
-        const engulf = engulfWithTemplateEdit( template ) ;
+        const replace = compose( replaceWithTemplateEdit( template ), opt( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( template ), opt( tabForwardIfNeededEdit ) ) ;
         const selectionIsAllPlaceHolder
             = testEdit( (sel:Selection) =>
                            sel.selectedNodes().every( (p : PNode) =>
                                                        p.isPlaceHolder() ) ) ;
         return  alt( compose( selectionIsAllPlaceHolder, replace ),
-                     alt( engulf, replace ) ) ;
-    }
-                    
-    /** Either replace the current seletion with a given template or
-     * engulf the current selection with the template.
-     * If the target selection is empty, replace is prefered. Otherwise engulf is
-     * preferred.
-     * 
-     * Finally tab forward if that was successful.
-     * 
-     * @param template 
-     */
-    export function replaceOrEngulfTemplateThenTabEdit( template : Selection ) : Edit<Selection> {
-        return compose( replaceOrEngulfTemplateEdit( template ),
-                        opt( tabForwardEdit ) ) ;
+                     engulf,
+                     replace ) ;
     }
 
 }

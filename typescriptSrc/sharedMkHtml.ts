@@ -232,7 +232,7 @@ module sharedMkHtml
                 lambdahead.addClass( "lambdaHeader") ;
                 lambdahead.addClass( "V") ;
                 lambdahead.append( children[0] ) ;
-                lambdahead.append( children[1]);
+                lambdahead.append( children[1] ) ;
 
                 const doBox : JQuery = $( document.createElement("div") ) ;
                 doBox.addClass( "doBox") ;
@@ -243,9 +243,8 @@ module sharedMkHtml
                 result.addClass( "lambdaBox" ) ;
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
-                result.append(lambdahead);
-                result.append(doBox);
-
+                result.append( lambdahead ) ;
+                result.append( doBox ) ;
             }
             break ;
             case labels.NullLiteralLabel.kindConst :
@@ -372,10 +371,10 @@ module sharedMkHtml
 
     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
         assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
-        localHighlightSlection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
+        localHighlightSelection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
     }
 
-    function  localHighlightSlection( pn : PNode, thePath : List<number>, start : number, end : number, jq : JQuery ) : void {
+    function  localHighlightSelection( pn : PNode, thePath : List<number>, start : number, end : number, jq : JQuery ) : void {
         if( thePath.isEmpty() ) {
             if( start === end ) {
                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
@@ -394,7 +393,7 @@ module sharedMkHtml
             const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
             assert.check( children !== null ) ;
             assert.check( i < children.length ) ;
-            localHighlightSlection( pn.child(i), thePath.rest(), start, end, children[i] ) ;
+            localHighlightSelection( pn.child(i), thePath.rest(), start, end, children[i] ) ;
         }
     }
 
