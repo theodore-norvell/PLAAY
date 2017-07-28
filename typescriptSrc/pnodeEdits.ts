@@ -22,6 +22,7 @@ module pnodeEdits {
     import none = collections.none;
     import some = collections.some;
     import List = collections.List ;
+    import list = collections.list ;
     import cons = collections.cons ;
     import snoc = collections.snoc;
     import last = collections.last;
@@ -34,7 +35,7 @@ module pnodeEdits {
     import compose = edits.compose ;
     import alt = edits.alt ;
     import opt = edits.opt ;
-    import test = edits.test ;
+    import testEdit = edits.testEdit ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -129,6 +130,19 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Move out. I.e. to the parent if possible. */
+    function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
+        const root = selection.root();
+        const path = selection.path();
+        if( path.isEmpty() ) { return none<Selection>() ; }
+        else {
+            const last = collections.last(path) ;
+            return some( new Selection( root, collections.butLast( path ),
+                                        normal ? last : last+1,
+                                        normal ? last+1 : last ) ) ;
+        }
+
+    }
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
         const start = selection.start() ;
@@ -242,7 +256,7 @@ module pnodeEdits {
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
-            return opt.bind<Selection>( (newSeln : Selection)  => {
+            return opt.bind<Selection>( (newSeln : Selection) => {
                 const p0 = node.children(0, k ) ;
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
@@ -693,15 +707,33 @@ module pnodeEdits {
             return node.isPlaceHolder() ; }
         else if( end === start ) {
             // Dropzones are suitable unless there is a place holder
-            // (or similar) to the right 
+            // (or similar) immediately to the right
             return sel.parent().hasDropZonesAt( start )
-                && ! (   sel.parent().count() > end
-                      && sel.parent().child( end ).isPlaceHolder() ) ;
+                && ! (   sel.parent().count() > start
+                      && sel.parent().child( start ).isPlaceHolder() ) ;
         } else {
             return assert.failedPrecondition(
                 "tabSuitable: selection should be empty or one node." ) ; 
         }
     }
+
+    /** 
+     * OutEdit
+     */
+    class OutEdit extends AbstractEdit<Selection> {
+        normal : boolean
+        
+
+        constructor(normal : boolean ) { super() ; this.normal = normal ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            return moveOut( selection, this.normal ) ;
+        }
+    }
+
+    export const moveOutNormal = new OutEdit( true ) ;
+
+    export const moveOutReversed = new OutEdit( false ) ;
 
     /** 
      * Left edit
@@ -822,7 +854,7 @@ module pnodeEdits {
      */
     export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
         const nodes = [ template.root() ] ;
-        return new InsertChildrenEdit( nodes )  ;
+        return new InsertChildrenEdit( nodes ) ;
     }
 
     /** 
@@ -838,18 +870,27 @@ module pnodeEdits {
         public applyEdit( selection : Selection ) : Option<Selection> {
             console.log( ">> EngulfEdit.applyEdit") ;
             const nodes = selection.selectedNodes() ;
-            // First step: Insert then nodes into the template.
+            // First step: Insert the selected nodes into the template.
             const i0 = insertChildrenEdit( nodes ) ;
             console.log( "   EngulfEdit.applyEdit: Applying first step") ;
             const opt0 = i0.applyEdit( this.t ) ;
-            const res = opt0.bind( tPrime => {
+            const res = opt0.bind( sel0 => {
                 // Second step: Insert the result into the selection
-                const i1 = insertChildrenEdit( [tPrime.root() ] );
+                const i1 = insertChildrenEdit( [sel0.root() ] );
                 // Do the second steps
                 console.log( "   EngulfEdit.applyEdit: Applying second step") ;
-                const result =  i1.applyEdit( selection ) ;
+                const opt1 =  i1.applyEdit( selection ) ;
                 console.log( "   EngulfEdit.applyEdit: Done second step") ;
-                return result ; } ) ;
+                return opt1.map( sel1 => {
+                    // The third step adjusts the selection so that it is a point
+                    // selection with the point being to the right of the engulfed nodes.
+                    console.log( "   EngulfEdit.applyEdit: Applying third step") ;
+                    const sel1Nodes = sel1.selectedNodes() ;
+                    assert.check( sel1Nodes.length === 1 && sel1Nodes[0] === sel0.root() ) ;
+                    const path2 = sel1.path().cat( list( sel1.start() ) ).cat( sel0.path() ) ;
+                    const anchor2 = sel0.end() ;
+                    return new Selection( sel1.root(), path2, anchor2, anchor2 ) ;
+                }) ; } ) ;
             console.log( "<< EngulfEdit.applyEdit") ;
             return res ;
         }
@@ -870,9 +911,12 @@ module pnodeEdits {
     export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
         const replace = replaceWithTemplateEdit( template ) ;
         const engulf = engulfWithTemplateEdit( template ) ;
-        const selectionIsEmpty = test( (sel:Selection) => sel.focus() === sel.anchor() ) ;
-        return  alt( compose( selectionIsEmpty, replace ),
-                     alt( engulf, replace) ) ;
+        const selectionIsAllPlaceHolder
+            = testEdit( (sel:Selection) =>
+                           sel.selectedNodes().every( (p : PNode) =>
+                                                       p.isPlaceHolder() ) ) ;
+        return  alt( compose( selectionIsAllPlaceHolder, replace ),
+                     alt( engulf, replace ) ) ;
     }
                     
     /** Either replace the current seletion with a given template or

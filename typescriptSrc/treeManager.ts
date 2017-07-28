@@ -89,7 +89,6 @@ module treeManager {
         //Only for nodes that can contain text, such as variables and strings.
         public createNodeWithText( label:string, selection:Selection, text: string ) : Option<Selection> {
             switch (label) {
-
                 case "stringliteral":
                     return this.makeStringLiteralNode(selection, text);
                 case "numberliteral":
@@ -182,6 +181,7 @@ module treeManager {
 
         private makeWorldCallNode(selection:Selection, name : string = "") : Option<Selection> {
             // TODO: Allow a variable number of place holders.
+            console.log( ">> Calling makeWorldCallNode") ;
             const left = labels.mkExprPH();
             const right = labels.mkExprPH();
             let worldcallnode : PNode|null = null;
@@ -197,7 +197,9 @@ module treeManager {
                 worldcallnode = labels.mkClosedCallWorld(name, left, right);
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
                 const edit = replaceOrEngulfTemplateThenTabEdit( template ) ;
-                return edit.applyEdit(selection);
+                const result =  edit.applyEdit(selection);
+                console.log( "<< result of world call is " + result.toString() ) ;
+                return result ;
             }
         }
 
@@ -264,6 +266,10 @@ module treeManager {
             const root = selection.root() ;
             const n = root.count() ;
             return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
+        }
+
+        public moveOut( selection:Selection ) : Option<Selection> {
+            return pnodeEdits.moveOutNormal.applyEdit(selection) ;
         }
 
         public moveLeft( selection:Selection ) : Option<Selection> {

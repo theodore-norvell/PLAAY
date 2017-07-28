@@ -356,15 +356,15 @@ module editor {
 
     const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            if (e.keyCode === 13 || e.keyCode == 9) {
+            if (e.keyCode === 13 || e.keyCode === 9) {
                 console.log( ">>input keydown handler") ;
                 updateLabelHandler.call( this, e ) ;
-                if(e.keyCode == 9)
+                if(e.keyCode === 9)
                 {
                     treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 }
-                e.stopPropagation()
+                e.stopPropagation() ;
                 e.preventDefault();
                 console.log( "<<input keydown handler") ;
             } } ;
@@ -433,6 +433,13 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            else if (e.which === 32) // space bar
+            {
+                treeMgr.moveOut( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
             else if (e.which === 38) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
@@ -475,24 +482,25 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (isValidSelectionForKeyboardNodeCreation(currentSelection))
+            else 
             {
                 tryKeyboardNodeCreation(e);
             }
             console.log( "<<keydown handler") ;
     };
 
-    function tryKeyboardNodeCreation(e)
+    function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
+            console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
             // Create var decl node: Cntl-Shift-V or Cmd-Shift-V
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 86) 
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
             {
                 createNode("vardecl", currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             //Create assignment node: shift+; (aka :)
-            else if (e.shiftKey && (e.which == 59 || e.which == 186))
+            else if (e.shiftKey && (e.which === 59 || e.which === 186))
             {
                 createNode("assign", currentSelection );
                 e.stopPropagation();
@@ -512,21 +520,35 @@ module editor {
                 e.preventDefault();
             }
             //Create if node: shift+/ (aka ?)
-            else if (e.shiftKey && e.which == 191)
+            else if (e.shiftKey && e.which === 191)
             {
                 createNode("if", currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create while node: shift+2 (aka @)
-            else if (e.shiftKey && e.which == 50)
+            else if (e.shiftKey && e.which === 50)
             {
                 createNode("while", currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
+            //Create lambda node: with the \ key
+            else if (!e.shiftKey && e.which === 229)
+            {
+                createNode("lambda", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create call node: with the shift - key (aka _)
+            else if (e.shiftKey && e.which === 173)
+            {
+                createNode("call", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
             //Create string literal node: shift+' (aka ")
-            else if (e.shiftKey && e.which == 222)
+            else if (e.shiftKey && e.which === 222)
             {
                 createNode("stringliteral", currentSelection, "" );
                 e.stopPropagation();
@@ -545,16 +567,17 @@ module editor {
                 e.preventDefault();
             }
             //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
-            else if ((e.shiftKey && ((e.which === 61 || e.which == 187) || e.which === 56))
-                   || e.which === 191 || (e.which === 173 || e.which == 189)
+            // TODO:  What for shifts (and lack of shifts) here.
+            else if ((e.shiftKey && ((e.which === 61 || e.which === 187) || e.which === 56))
+                   || e.which === 191 || (e.which === 173 || e.which === 189)
                    || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
             {
-                let charCode : number = e.which;
-                if(charCode === 61 || charCode === 107 || charCode == 187)
+                const charCode : number = e.which;
+                if(charCode === 61 || charCode === 107 || charCode === 187)
                 {
                     createNode("worldcall", currentSelection, "+");
                 }
-                else if(charCode === 109 || charCode === 173 || charCode == 189)
+                else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
                     createNode("worldcall", currentSelection, "-");
                 }
@@ -583,39 +606,19 @@ module editor {
         return currentSelection ;
     }
 
-    function createNode(id: string, sel : Selection, nodeText?: string) : void
+    function createNode(id: string, selection : Selection, nodeText?: string) : void
     {
-        let selection : Option<Selection>|null = null;
-        if(nodeText != undefined){
-            selection = treeMgr.createNodeWithText(id, sel, nodeText);
-        }
-        else{
-            selection = treeMgr.createNode(id, sel );
-        }
-        console.log("  selection is " + selection );
-        assert.check( selection !== undefined ) ;
-        selection.map(
+        const opt : Option<Selection> =
+            (nodeText !== undefined) 
+            ? treeMgr.createNodeWithText(id, selection, nodeText)
+            : treeMgr.createNode(id, selection );
+        //console.log("  opt is " + opt );
+        opt.map(
             sel => {
                 console.log("  createNode is possible." ) ;
                 update( sel ) ;
-                console.log("  HTML generated" ) ;
+                // console.log("  HTML generated" ) ;
             } );
-    }
-
-    //We only want to be able to create nodes with the keyboard if the current selection is either empty or has no
-    //children. This prevents accidentally destroying large sections of code with an errant button press.
-    function isValidSelectionForKeyboardNodeCreation(sel: Selection) : boolean
-    {
-        if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 0)
-        {
-            return true;
-        }
-        else if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 1
-             && sel.selectedNodes()[0].count() == 0)
-        {
-            return true;
-        }
-        else return false;
     }
 
     function undo() : void {

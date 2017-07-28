@@ -257,10 +257,10 @@ module valueTypes {
 
     /** A built in function. */
     export class BuiltInV implements Value {
-        private step : (vms : vms.VMS, args : Array<Value> ) => void;
+        private stepper : (vms : vms.VMS, args : Array<Value> ) => void;
 
         constructor ( step : (vms : vms.VMS, args : Array<Value> ) => void ){
-            this.step = step;
+            this.stepper = step;
         }
 
         public isClosureV() : boolean {
