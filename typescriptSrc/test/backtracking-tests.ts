@@ -11,7 +11,7 @@ import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
 
-const manager : TransactionManager = TransactionManager.getInstance();
+const manager : TransactionManager = new TransactionManager();
 
 describe( 'backtracking.TransactionManager ', function() : void {
 
@@ -22,20 +22,20 @@ describe( 'backtracking.TransactionManager ', function() : void {
     } );
 
     it('Should transition states correctly', function() : void {
-        let variable : TVar<number> = new TVar<number>(1);
+        let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check(manager.getState() === States.DOING);
         manager.checkpoint();
         assert.check(manager.getState() === States.NOTDOING);
     } );
     
     it('Should undo correctly (making variable)', function() : void {
-        let variable : TVar<number> = new TVar<number>(1);
+        let variable : TVar<number> = new TVar<number>(1, manager);
         manager.undo();
         assert.check(variable.get() === undefined);
     } );
 
     it('Should undo correctly (set variable)', function() : void {
-        let variable : TVar<number> = new TVar<number>(1);
+        let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check( variable.get() == 1, "variable should equal 1");
         manager.checkpoint();
         variable.set(2)
@@ -45,8 +45,8 @@ describe( 'backtracking.TransactionManager ', function() : void {
     } );
 
     it('Should undo correctly (differently typed variables)', function() : void {
-        let var1 : TVar<number> = new TVar<number>(1);
-        let var2 : TVar<string> = new TVar<string>("test");
+        let var1 : TVar<number> = new TVar<number>(1, manager);
+        let var2 : TVar<string> = new TVar<string>("test", manager);
         assert.check( var1.get() == 1, "number variable should equal 1");
         assert.check( var2.get() == "test", "string variable should equal 'test'");
         manager.checkpoint();
@@ -63,12 +63,12 @@ describe( 'backtracking.TransactionManager ', function() : void {
 describe( 'backtracking.TVar ', function() : void {
 
     it('Should be initialized properly', function() : void {
-        let variable : TVar<number> = new TVar<number>(1);
+        let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check( variable.get() == 1 );
     } );
 
     it('Should set properly', function() : void {
-        let variable : TVar<number> = new TVar<number>(1);
+        let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check( variable.get() == 1 );
         variable.set(5);
         assert.check( variable.get() == 5 );

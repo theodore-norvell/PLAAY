@@ -3,7 +3,7 @@ module backtracking
 {
     export class TVar<T>
     {
-        private manager : TransactionManager = TransactionManager.getInstance();
+        private manager : TransactionManager;
         private currentValue : T;
 
         public get() : T {return this.currentValue;}
@@ -13,8 +13,9 @@ module backtracking
             this.currentValue = val;
         }
 
-        public constructor(val : T)
+        public constructor(val : T, manager: TransactionManager)
         {
+            this.manager = manager;
             this.set(val);
         }
     }
@@ -25,7 +26,7 @@ module backtracking
         private currentTransaction : Transaction;
         private state : States;
 
-        private constructor()
+        public constructor()
         {
             this.undoStack = [];
             this.state = States.NOTDOING;
@@ -63,17 +64,6 @@ module backtracking
                 trans.apply();
                 this.state = States.NOTDOING;
             }
-        }
-
-        public static instance : TransactionManager;
-
-        public static getInstance() : TransactionManager
-        {
-            if(this.instance === undefined)
-            {
-                this.instance = new TransactionManager();
-            }
-            return this.instance;
         }
 
         public getState() : States //meant for unit testing
