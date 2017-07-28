@@ -92,14 +92,18 @@ module edits {
             return this._first.canApply(a) || this._second.canApply(a) ; }
     }
     
-    /** A biased choice between two edits.
+    /** A biased choice between or one, two, or more edits.
     *  Given  `var z = alt(x,y) ;`
     *
     *  *    `z.applyEdit(a)`  is the same as `x.applyEdit(a)` if that is successful.
     *  *    `z.applyEdit(a)`  is the same as `y.applyEdit(a)` if `x.applyEdit(a)` is not successful.
+    *  Given `var z = alt( v, w, x, y)` z tries each edit in order until one is successfull
+    *  or all have failed.
     */
-    export function alt<A>( first : Edit<A>, second : Edit<A> ) : Edit<A> {
-        return new AlternateEdit<A>( first, second )  ; }
+    export function alt<A>( first : Edit<A>, ...rest : Edit<A>[] ) : Edit<A> {
+        const combine = (acc : Edit<A>, current : Edit<A> ) =>
+                        new AlternateEdit<A>( acc, current) ;
+        return rest.reduce( combine, first) ; }
         
     class IdentityEdit<A> extends AbstractEdit<A> {
         
@@ -138,7 +142,7 @@ module edits {
         public canApply( a : A ) : boolean { return this.pred(a) ; }
     }
 
-    export function test<A>( pred : (a:A) => boolean ) : Edit<A> {
+    export function testEdit<A>( pred : (a:A) => boolean ) : Edit<A> {
         return new TestEdit( pred ) ;
     }
 }

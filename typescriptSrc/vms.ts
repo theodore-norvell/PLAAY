@@ -528,7 +528,6 @@ module vms{
         public hasField(name : string) : boolean {
             return this._top.hasField( name ) || this._next.hasField( name ) ;
         }
-        
 
         public getField(name : string) : FieldI {
             if( this._top.hasField( name ) ) {
