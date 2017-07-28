@@ -615,7 +615,7 @@ module editor {
         //console.log("  opt is " + opt );
         opt.map(
             sel => {
-                console.log("  createNode is possible." ) ;
+                // console.log("  createNode is possible." ) ;
                 update( sel ) ;
                 // console.log("  HTML generated" ) ;
             } );
