@@ -436,6 +436,8 @@ div.paramlistInner {
 }
 
 div.noType {
+    border: thin solid #999 ;
+    border-radius: 5px ;
     margin: 2px 0px 2px 0px ;
     min-height: 1ex ;
     min-width: 2ex ;
@@ -471,7 +473,7 @@ div.dropZone:hover {
 div.dropZoneSmall {
     margin: 0px 0px 0px 0px ;
     min-height: 2ex ;
-    min-width: 1ex ;
+    min-width: 0.5ex ;
     border-radius: 5px ;
 }
 

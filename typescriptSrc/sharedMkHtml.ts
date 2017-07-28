@@ -175,6 +175,18 @@ module sharedMkHtml
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
+                // Binary infix operators
+                if( ! node.label().isOpen() && children.length === 2 )
+                {
+                    const labelString = node.label().getVal() ;
+                    if( labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ) {
+                        // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
+                        assert.check( result.children().length === 6 ) ;
+                        // Move the opElement to after the first child
+                        opElement.insertAfter( children[0]) ;
+                        // TODO: Find a way to make dropzone[1] very skinny. Maybe by adding a class to it.
+                    }
+                }
             }
             break ;
             case labels.CallLabel.kindConst :
@@ -186,7 +198,7 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 result.attr("type", "text");
-                
+
                 for( let i=0 ; true ; ++i) {
                     const dz : JQuery = makeDropZone(i, false) ;
                     dropzones.push( dz ) ;
