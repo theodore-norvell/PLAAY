@@ -6,10 +6,12 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="world.ts" />
+/// <reference path="backtracking.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import backtracking = require( './backtracking' ) ;
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -17,6 +19,8 @@ import pnode = require('./pnode');
 module vms{
 
     import PNode = pnode.PNode;
+    import TVar = backtracking.TVar;
+    import TransactionManager = backtracking.TransactionManager;
 
     import List = collections.List ;
     import nil = collections.nil ;
@@ -38,18 +42,24 @@ module vms{
 
         private evalStack : EvalStack ;
 
+        private manager : TransactionManager ;
+
         private interpreter : Interpreter ;
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
+            this.manager = new TransactionManager();;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
-            const evalu = new Evaluation(root, varStack);
+            const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
+        }
 
+        public getTransactionManager() : TransactionManager { //testing purposes
+            return this.manager ;
         }
 
         public canAdvance() : boolean {
@@ -170,31 +180,32 @@ module vms{
      * See the run-time model documentation for details.
      * */
     export class Evaluation {
-        private root : PNode;
+        private root : TVar<PNode>;
         private varStack : VarStack ;
         private pending : List<number> | null ;
-        private ready : boolean;
+        private ready : TVar<boolean>;
         private map : ValueMap;
 
-        constructor (root : PNode, varStack : VarStack) {
-            this.root = root;
+        constructor (root : PNode, varStack : VarStack, vms : VMS) {
+            let manager = vms.getTransactionManager();
+            this.root = new TVar<PNode>(root, manager) ;
             this.pending = nil<number>() ;
-            this.ready = false;
+            this.ready = new TVar<boolean>(false, manager);
             this.varStack = varStack ;
 
             this.map = new ValueMap();
         }
 
         public getRoot() : PNode {
-            return this.root ;
+            return this.root.get() ;
         }
 
         public isReady() : boolean {
-            return this.ready ;
+            return this.ready.get() ;
         }
 
         public setReady( newReady : boolean ) : void {
-            this.ready = newReady ;
+            this.ready.set(newReady) ;
         }
 
         public getStack() : VarStack {
@@ -210,7 +221,7 @@ module vms{
         public getPendingNode() : PNode {
             assert.checkPrecondition( !this.isDone() ) ;
             const p = this.pending as List<number> ;
-            return this.root.get( p ) ;
+            return this.root.get().get(p) ;
         }
 
         public pushPending( childNum : number ) : void {
@@ -268,7 +279,7 @@ module vms{
 
         public finishStep( value : Value ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            assert.checkPrecondition( this.ready ) ;
+            assert.checkPrecondition( this.ready.get() ) ;
             const p = this.pending as List<number> ;
             this.map.put( p, value ) ;
             this.popPending() ;
@@ -278,7 +289,7 @@ module vms{
         public setResult(value : Value ) : void {
             // This is used for function calls.
             assert.checkPrecondition( !this.isDone() ) ;
-            assert.checkPrecondition( this.ready ) ;
+            assert.checkPrecondition( this.ready.get() ) ;
             const p = this.pending as List<number> ;
             this.map.put( p, value ) ;
             // At this point, the evaluation is
