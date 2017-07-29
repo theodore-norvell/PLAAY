@@ -131,3 +131,25 @@ describe('vms.Evaluation isReady undo', function() : void {
         assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty after redo');
     })
 });
+
+describe('vms.Evaluation root undo/redo', function() : void {
+    const label = new labels.StringLiteralLabel( "hello", false );
+    const root = new PNode( label, [] );
+    const vm = new VMS(root, wlds, interp);
+    const manager : TransactionManager = vm.getTransactionManager();
+    const evaluation = new Evaluation(root, vm.getStack(), vm);
+
+    it('Should be initialized properly', function() : void {
+        assert.check(evaluation.getRoot() == root, 'initialized root PNode incorrectly');
+        assert.check(manager.getState() == States.DOING, 'manager should be in the DOING state')
+    });
+
+    it('Should undo/redo properly', function() : void {
+        manager.undo();
+        assert.check(evaluation.getRoot() == undefined, 'root PNode should be undefined');
+        assert.check(manager.getUndoStack().length == 0, 'undoStack should be empty');
+        manager.redo();
+        assert.check(evaluation.getRoot() == root, 'root PNode should be set after redo');
+        assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty');
+    })
+});
