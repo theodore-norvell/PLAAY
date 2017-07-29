@@ -23,12 +23,14 @@ module backtracking
     export class TransactionManager
     {
         private undoStack : Array<Transaction>;
+        private redoStack : Array<Transaction>;
         private currentTransaction : Transaction;
         private state : States;
 
         public constructor()
         {
             this.undoStack = [];
+            this.redoStack = [];
             this.state = States.NOTDOING;
         }
 
@@ -42,6 +44,7 @@ module backtracking
             {
                 this.state = States.DOING;
                 this.currentTransaction = new Transaction();
+                this.redoStack = [];
             }
             this.currentTransaction.put(v);
         }
@@ -62,7 +65,19 @@ module backtracking
                 this.undoStack.shift();
                 this.state = States.UNDOING; //prevent setting TVars from making a new transaction until undo is done.
                 trans.apply();
+                this.redoStack.unshift(trans);
                 this.state = States.NOTDOING;
+            }
+        }
+
+        public redo() : void
+        {
+            if(this.redoStack.length !== 0 && this.state === States.NOTDOING)
+            {
+                let trans : Transaction = this.redoStack[0];
+                this.redoStack.shift();
+                trans.apply();
+                this.undoStack.unshift(trans);
             }
         }
 
@@ -72,6 +87,11 @@ module backtracking
         }
 
         public getUndoStack() : Array<Transaction> //meant for unit testing
+        {
+            return this.undoStack;
+        }
+
+        public getRedoStack() : Array<Transaction> //meant for unit testing
         {
             return this.undoStack;
         }

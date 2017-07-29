@@ -51,13 +51,15 @@ describe( 'backtracking.TransactionManager ', function() : void {
         assert.check(manager.getState() === States.NOTDOING);
     } );
     
-    it('Should undo correctly (making variable)', function() : void {
+    it('Should undo/redo correctly (making variable)', function() : void {
         let variable : TVar<number> = new TVar<number>(1, manager);
         manager.undo();
         assert.check(variable.get() === undefined);
+        manager.redo();
+        assert.check(variable.get() == 1, 'variable should be 1 after redo');
     } );
 
-    it('Should undo correctly (set variable)', function() : void {
+    it('Should undo/redo correctly (set variable)', function() : void {
         let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check( variable.get() == 1, "variable should equal 1");
         manager.checkpoint();
@@ -65,9 +67,12 @@ describe( 'backtracking.TransactionManager ', function() : void {
         assert.check( variable.get() == 2, "variable should equal 2");
         manager.undo();
         assert.check( variable.get() == 1, "variable should equal 1 after undo");
+        manager.redo();
+        assert.check( variable.get() == 2, "variable should equal 2 after redo");
+
     } );
 
-    it('Should undo correctly (differently typed variables)', function() : void {
+    it('Should undo/redo correctly (differently typed variables)', function() : void {
         let var1 : TVar<number> = new TVar<number>(1, manager);
         let var2 : TVar<string> = new TVar<string>("test", manager);
         assert.check( var1.get() == 1, "number variable should equal 1");
@@ -80,6 +85,10 @@ describe( 'backtracking.TransactionManager ', function() : void {
         manager.undo();
         assert.check( var1.get() == 1, "number variable should equal 1");
         assert.check( var2.get() == "test", "string variable should equal 'test'");
+        manager.redo();
+        assert.check( var1.get() == 2, "number variable should equal 2 after redo");
+        assert.check( var2.get() == "set", "string variable should equal 'set' after redo");
+
     } );
 } ) ;
 
@@ -111,10 +120,14 @@ describe('vms.Evaluation isReady undo', function() : void {
         assert.check(manager.getState() == States.DOING, 'manager is in the wrong state')
     });
 
-    it('Should undo properly', function() : void {
+    it('Should undo/redo properly', function() : void {
         evaluation.setReady(true);
         assert.check(evaluation.isReady() == true, 'set value incorrectly');
         manager.undo();
-        assert.check(evaluation.isReady() == false, 'val should be in previous state')
+        assert.check(evaluation.isReady() == false, 'var should be false after undo');
+        assert.check(manager.getUndoStack().length == 0, 'undoStack should be empty');
+        manager.redo();
+        assert.check(evaluation.isReady() == true, 'var should be true after redo');
+        assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty after redo');
     })
 });
