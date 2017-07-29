@@ -1,20 +1,23 @@
 <html>
     <h1>Keyboard commands:</h1>
-    <p>The following keyboard commands can be used for node creation:</p>
+    <p>The following keyboard commands can be used creating code:</p>
     <ul>
-        <li><b>ctrl+shift+v</b> will create a variable declaration node.</li>
-        <li><b>shift+; (:)</b> will create a variable assignment node.</li>
-        <li><b>shift+&#39 (&quot)</b> will create a string literal node.</li>
-        <li><b>shift+/ (?)</b> will create an if node.</li>
-        <li><b>shift+2 (@)</b> will create a while node.</li>
-        <li><b>Typing any number</b> will create a numeric literal node starting with that number. Works with the numpad as well.</li>
-        <li><b>Typing any alphabet character</b> will create a variable node starting with that character.</li>
-        <li><b>Typing +, -, *, or /</b> will create the appropriate world call node. Also works with shift+= for + and shift+8 for *.</li>
+        <li><b>ctrl+shift+v</b> will create a variable declaration.</li>
+        <li><b>shift+; (:)</b> will create an assignment expression.</li>
+        <li><b>shift+&#39 (&quot)</b> will create a string literal expression.</li>
+        <li><b>shift+/ (?)</b> will create an alternation (if) expression.</li>
+        <li><b>shift+2 (@)</b> will create a while-loop expression.</li>
+        <li><b>\</b> will create a lambda expression.</li>
+        <li><b>shift+- (_)</b> will create an application expression</li>
+        <li><b>Typing any number</b> will create a numeric literal expression starting with that number. Works with the numpad as well.</li>
+        <li><b>Typing any alphabet character</b> will create a variable expression starting with that character.</li>
+        <li><b>Typing +, -, *, or /</b> will create the appropriate call expression. Also works with shift+= for + and shift+8 for *.</li>
     </ul>
-    <p>You can use the arrow keys to navigate your code.</p>
+    <p>You can use the arrow keys and tab key to navigate your code.</p>
+    <p>The space bar will expand the current selection outward.</p>
     <p>You can use ctrl+a to select everything.</p>
+    <p>You can also use ctrl+c, ctrl+v, and ctrl+x to copy, paste, and cut selections from/to your code.</p>
     <p>You can use ctrl+b to swap the current selection with the top of the trash stack.</p>
-    <p>You can also use ctrl+c, ctrl+v, and ctrl+x to copy, paste, and cut selections from your code.</p>
     <p>You can use ctrl+1, ctrl+2, and so on to paste from anywhere in the trash stack. 1 will paste the second item down, 2 the third item, and so on. 0 acts the same as ctrl+v.</p>
     <p>The cmd key can be used in place of ctrl for mac users.</p>
 </html>
