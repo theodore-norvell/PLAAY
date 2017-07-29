@@ -182,14 +182,14 @@ module vms{
     export class Evaluation {
         private root : TVar<PNode>;
         private varStack : VarStack ;
-        private pending : List<number> | null ;
+        private pending : TVar<List<number>> | null;
         private ready : TVar<boolean>;
         private map : ValueMap;
 
         constructor (root : PNode, varStack : VarStack, vms : VMS) {
             let manager = vms.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
-            this.pending = nil<number>() ;
+            this.pending = new TVar<List<number>>(nil<number>(), manager) ;
             this.ready = new TVar<boolean>(false, manager);
             this.varStack = varStack ;
 
@@ -214,29 +214,29 @@ module vms{
 
         public getPending() : List<number> {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             return p ;
         }
 
         public getPendingNode() : PNode {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             return this.root.get().get(p) ;
         }
 
         public pushPending( childNum : number ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
-            this.pending = p.cat( list( childNum ) ) ;
+            const p = this.pending!.get() as List<number> ;
+            this.pending!.set(p.cat( list( childNum ) ) ) ;
         }
         
         public popPending( ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             if( p.size() === 0 ) {
                 this.pending = null ;
             } else {
-                this.pending = collections.butLast( p ) ; }
+                this.pending!.set(collections.butLast( p ) ); }
         }
 
         public getValMap( ) : ValueMap {
@@ -262,7 +262,7 @@ module vms{
 
         public isChildMapped( childNum : number ) : boolean {
             if( this.isDone() ) return false ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             return this.map.isMapped( collections.snoc(p, childNum ) ) ; 
         }
 
@@ -273,14 +273,14 @@ module vms{
          */
         public getChildVal( childNum : number ) : Value {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
         public finishStep( value : Value ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             this.map.put( p, value ) ;
             this.popPending() ;
             this.setReady( false ) ;
@@ -290,7 +290,7 @@ module vms{
             // This is used for function calls.
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending!.get() as List<number> ;
             this.map.put( p, value ) ;
             // At this point, the evaluation is
             // ready and the call node is pending.

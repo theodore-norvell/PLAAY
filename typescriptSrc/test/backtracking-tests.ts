@@ -108,7 +108,7 @@ describe( 'backtracking.TVar ', function() : void {
     } );
 } ) ;
 
-describe('vms.Evaluation isReady undo', function() : void {
+describe('vms.Evaluation isReady undo/redo', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false );
     const root = new PNode( label, [] );
     const vm = new VMS(root, wlds, interp);
@@ -151,5 +151,32 @@ describe('vms.Evaluation root undo/redo', function() : void {
         manager.redo();
         assert.check(evaluation.getRoot() == root, 'root PNode should be set after redo');
         assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty');
+    })
+});
+
+describe('vms.Evaluation pending (List<number>>) undo/redo', function() : void {
+    const varNode = labels.mkVar("aa");
+    const typeNode = labels.mkNoTypeNd() ;
+    const initExp = labels.mkNoExpNd();
+    const root = labels.mkVarDecl( varNode,typeNode, initExp ) ;
+    const vm = new VMS(root, wlds, interp);
+    const manager : TransactionManager = vm.getTransactionManager();
+
+    it('Should be initialized properly', function() : void {
+        const evaluation = vm.getEval();
+        assert.check(evaluation.getPending().size() === 0, 'get pending should be nil');
+        assert.check(!evaluation.isDone(), 'pending shouldn\'t be null')
+        assert.check(evaluation.getPendingNode() == vm.getRoot(), 'pending node should be root')
+        assert.check(vm.canAdvance(), 'should be able to advance')
+        assert.check( ! vm.isReady() );
+    });
+
+    it('Should undo/redo properly', function() : void {
+        manager.undo();
+        assert.check( vm.getEval().getPending() == undefined, 'pending should be undefined after undo');
+        manager.redo();
+        assert.check( vm.getEval().getPending() != undefined, 'pending shouldn\'t be undefined after redo');
+        assert.check(vm.getEval().getPendingNode() == vm.getRoot(), 'pending node should be root after redo')
+
     })
 });
