@@ -132,32 +132,29 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point (empty) selection.
         if (start === end)
         {
-            //there is node at start-1
+            //If there is there is node to the point's left
             if(start > 0)
             {
+                // Select the right most point under that node.
                 const newPath : List<number> = snoc(path, start-1);
                 const numOfChildren : number = root.get(newPath).count();
                 return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
             }
-            //the path is empty
+            //If there is no node to the left and the parent is the root.
             else if (path.isEmpty())
             {
+                // This is the start of the line. Fail
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
+            //If there is no node to the point's left. Select the parent of the point.
+            else {
                 return some( new Selection(root, butLast(path), last(path), last(path)+1));
             }
-            else 
-            {
-                //return a selection representing the position to the left of the parent
-                return some( new Selection(root, butLast(path), last(path), last(path)));
-            }
         }      
-        else
+        else // This is a nonempty selection.
         {
             //return a selection representing the position to the left of the leftmost selected node
             return some( new Selection(root, path, start, start));
@@ -171,33 +168,32 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point selection:
         if (start === end)
         {
-            //there is node at start
+            // If there is a node to the right.
             if(root.get(path).count() > start)
             {
-                return some( new Selection(root, snoc(path, start), 0, 0));
+                // Select that node
+                return some( new Selection(root, path, start, start+1));
             }
-            //the path is empty
+            //If there is no node to the right and the parent is the root"
             else if (path.isEmpty())
             {
+                // This is the end of the line. Fail.
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
-                return some( new Selection(root, butLast(path), last(path), last(path)+1));
-            }
-            else 
-            {
+            //If there is no node to the right and the parent is
+            // not the root.
+            else {
                 //return a selection representing the position to the right of the parent
                 return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
             }
         }      
-        else
+        else // This is a nonempty selection
         {
-            //return a selection representing the position to the right of the rightmost selected node
-            return some( new Selection(root, path, end, end));
+            // Go to the first point under the first node
+            return some( new Selection(root, snoc(path, start), 0, 0));
         }
     }
 
@@ -209,6 +205,16 @@ module pnodeEdits {
     /** Move down. */
     function moveDown( selection : Selection ) : Option<Selection> {
         return moveRight(selection) ; //In our case this is the same.
+    }
+    
+    /** Move Tab forward. */
+    function moveTabForward( selection : Selection ) : Option<Selection> {
+        return moveRight(selection) ; //In our case this is the same.
+    }
+
+    /** Move Tab back. */
+    function moveTabBack( selection : Selection ) : Option<Selection> {
+        return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -663,6 +669,29 @@ module pnodeEdits {
                 "upDownSuitable: selection should be empty or one node." ) ; 
         }
     }
+
+    /** Is this a suitable selection to stop at for the left and right arrow keys.
+     * 
+    */
+    function tabSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if( end - start === 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end === start ) {
+            return false;
+        } else {
+            return assert.failedPrecondition(
+                "tabSuitable: selection should be empty or one node." ) ; 
+        }
+    }
+
     /** 
      * Left edit
      */
@@ -715,6 +744,34 @@ module pnodeEdits {
         public applyEdit( selection : Selection ) : Option<Selection> {
             let opt = moveDown( selection ) ;
             while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Tab edit
+     */
+    export class TabForwardEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabForward( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    /** 
+     * Tab edit
+     */
+    export class TabBackEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabBack( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
             return opt ;
         }
     }

@@ -272,6 +272,16 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        public moveTabForward( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.TabForwardEdit();
+            return edit.applyEdit(selection);
+        }
+         
+        public moveTabBack( selection:Selection ) : Option<Selection> {
+            const edit = new pnodeEdits.TabBackEdit();
+            return edit.applyEdit(selection);
+        }
+
         public delete(selection:Selection) : Option<Selection> {
             const edit = new pnodeEdits.DeleteEdit();
             return edit.applyEdit(selection);
