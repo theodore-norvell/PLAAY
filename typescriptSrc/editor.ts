@@ -638,6 +638,35 @@ module editor {
         }
     }
 
+    // Scroll container to make a selected element fully visible
+    function scrollIntoView() : void {
+        let container : JQuery | null = $("#container ");
+        let selection : JQuery | null = $(".selected");
+        if (selection.get(0) == undefined) { return; } //Return if no selected nodes
+
+        let selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
+        let selectionTop : number | null = selection.position().top; // Relative to visible container top
+        let selectionBot : number | null = (selectionHeight + selectionTop); 
+        let visibleHeight : number | null = container.outerHeight(); // Height of visible container   
+        let visibleTop : number | null = container.scrollTop(); // Top of visible container
+        let scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
+        let scrollSpeed : number = 50;
+
+        // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
+        if ( selectionBot > (visibleHeight-scrollBarWidth) && selectionHeight < visibleHeight) {
+            container.animate({
+                scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)
+            }, scrollSpeed);
+
+        // If the top edge of an element is not visible or element is too large, scroll to the top edge
+        // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
+        } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
+            container.animate({
+                scrollTop: (selectionTop + visibleTop - 10)
+            }, scrollSpeed);
+        }
+    }
+                                                           
     //This version of undo is meant to be called by the keyboard shortcut.
     //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
     function keyboardUndo() : void {
@@ -691,10 +720,8 @@ module editor {
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
-            function() : void { generateHTML() ; }, 20) ;
+            function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
     }
-
-
 }
 
 export = editor;
