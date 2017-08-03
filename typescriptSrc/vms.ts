@@ -119,6 +119,26 @@ module vms{
             return this.evalStack.top().getChildVal( childNum ) ;
         }
 
+        public hasExtraInformation(  ) : boolean {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().hasExtraInformation( ) ;
+        }
+
+        public getExtraInformation( ) : any {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            return this.evalStack.top().getExtraInformation( ) ;
+        }
+
+        public putExtraInformation( v : any ) : void {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            this.evalStack.top().putExtraInformation( v ) ;
+        }
+
+        public scrub( path : List<number> ) : void {
+            assert.checkPrecondition( this.canAdvance() ) ;
+            this.evalStack.top().scrub( path ) ;
+        }
+
         public getStack() : VarStack {
             assert.checkPrecondition( this.canAdvance() ) ;
             return this.evalStack.top().getStack() ;
@@ -175,14 +195,15 @@ module vms{
         private pending : List<number> | null ;
         private ready : boolean;
         private map : ValueMap;
+        private extraInformationMap : AnyMap;
 
         constructor (root : PNode, varStack : VarStack) {
             this.root = root;
             this.pending = nil<number>() ;
             this.ready = false;
             this.varStack = varStack ;
-
             this.map = new ValueMap();
+            this.extraInformationMap = new AnyMap() ;
         }
 
         public getRoot() : PNode {
@@ -198,7 +219,7 @@ module vms{
         }
 
         public getStack() : VarStack {
-            return this.varStack;
+            return this.varStack ;
         }
 
         public getPending() : List<number> {
@@ -226,6 +247,11 @@ module vms{
                 this.pending = null ;
             } else {
                 this.pending = collections.butLast( p ) ; }
+        }
+
+        public scrub( path : List<number> ) : void {
+            this.map.removeAllBelow( path ) ;
+            this.extraInformationMap.removeAllBelow( path ) ;
         }
 
         public getValMap( ) : ValueMap {
@@ -266,6 +292,24 @@ module vms{
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
+        public hasExtraInformation(  ) : boolean {
+            if( this.pending === null ) return false ;
+            const p = this.pending as List<number> ;
+            return this.extraInformationMap.isMapped( p ) ; 
+        }
+
+        public getExtraInformation( ) : any {
+            assert.checkPrecondition( this.pending !== null ) ;
+            const p = this.pending as List<number> ;
+            return this.extraInformationMap.get( p ) ; 
+        }
+
+        public putExtraInformation( v : any ) : void {
+            assert.checkPrecondition( this.pending !== null ) ;
+            const p = this.pending as List<number> ;
+            this.extraInformationMap.put( p, v ) ; 
+        }
+
         public finishStep( value : Value ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready ) ;
@@ -304,32 +348,28 @@ module vms{
         }
     }
 
-    export class MapEntry {
+    export class MapEntry<T> {
         private readonly path : List<number>;
-        private val : Value;
+        private val : T;
 
-        constructor (key : List<number>, value : Value ){
+        constructor (key : List<number>, value : T ){
             this.path = key;
             this.val = value;
         }
 
         public getPath() : List<number> {return this.path;}
         
-        public getValue() : Value {return this.val;}
+        public getValue() : T {return this.val;}
         
-        public setValue( v : Value ) : void { this.val = v ; }
-
+        public setValue( v : T ) : void { this.val = v ; }
     }
-
-    /** A map from paths to values.
-     * Each evaluation has such a map to record the values of already evaluated nodes.
-     */
-    export class ValueMap {
+    
+    class Map<T> {
         private size : number ;
-        private entries : Array<MapEntry>;
+        private entries : Array<MapEntry<T>>;
 
         constructor(){
-            this.entries = new Array<MapEntry>();
+            this.entries = new Array<MapEntry<T>>();
             this.size = 0;
         }
 
@@ -337,7 +377,17 @@ module vms{
             return a.equals(b) ;
         }
 
-        public getEntries() : Array<MapEntry> {
+        private isPrefix(a : List<number>, b : List<number>) : boolean {
+            while( ! a.isEmpty() ) {
+                if( b.isEmpty() ) return false ;
+                if( a.first() !== b.first() ) return false ;
+                a = a.rest() ;
+                b = b.rest() ;
+            }
+            return true ;
+        }
+
+        public getEntries() : Array<MapEntry<T>> {
             return this.entries.concat() ;
         }
 
@@ -351,7 +401,7 @@ module vms{
             return false ;
         }
 
-        public get(p : List<number>) : Value {
+        public get(p : List<number>) : T {
             for(let i = 0; i < this.size; i++){
                 const tmp = this.entries[i].getPath();
                 if(this.samePath(tmp, p)){
@@ -359,10 +409,10 @@ module vms{
                 }
             }
             return assert.failedPrecondition(
-                "ValueMap.get: Tried to get a value for an unmapped tree location.") ;
+                "Map.get: Tried to get a value for an unmapped tree location.") ;
         }
 
-        public put(p : List<number>, v : Value) : void {
+        public put(p : List<number>, v : T) : void {
             let notIn = true;
             for(let i = 0; i < this.size; i++){
                 const tmp = this.entries[i].getPath();
@@ -390,7 +440,27 @@ module vms{
             }
             return;
         }
+
+        public removeAllBelow(p : List<number>) : void {
+            for(let i = 0; i < this.size; i++){
+                const tmp = this.entries[i].getPath();
+                if( this.isPrefix(p, tmp) ) {
+                    this.size--;
+                    const firstPart = this.entries.slice(0, i);
+                    const lastPart = this.entries.slice(i+1, this.entries.length);
+                    this.entries = firstPart.concat(lastPart);
+                }
+            }
+            return;
+        }
     }
+
+    /** A map from paths to values.
+     * Each evaluation has such a map to record the values of already evaluated nodes.
+     */
+    export class ValueMap extends Map<Value> {}
+
+    class AnyMap extends Map<any> {} 
 
     /* A VarStack is the context for expression evaluation. I.e. it is where
     * variables are looked up.  See the run-time model for more detail.
