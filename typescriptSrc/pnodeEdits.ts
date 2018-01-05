@@ -867,30 +867,30 @@ module pnodeEdits {
             this.t = template ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
-            console.log( ">> EngulfEdit.applyEdit") ;
+            // console.log( ">> EngulfEdit.applyEdit") ;
             const nodes = selection.selectedNodes() ;
             // First step: Insert the selected nodes into the template.
             const i0 = insertChildrenEdit( nodes ) ;
-            console.log( "   EngulfEdit.applyEdit: Applying first step") ;
+            // console.log( "   EngulfEdit.applyEdit: Applying first step") ;
             const opt0 = i0.applyEdit( this.t ) ;
             const res = opt0.bind( sel0 => {
                 // Second step: Insert the result into the selection
                 const i1 = insertChildrenEdit( [sel0.root() ] );
                 // Do the second steps
-                console.log( "   EngulfEdit.applyEdit: Applying second step") ;
+                // console.log( "   EngulfEdit.applyEdit: Applying second step") ;
                 const opt1 =  i1.applyEdit( selection ) ;
-                console.log( "   EngulfEdit.applyEdit: Done second step") ;
+                // console.log( "   EngulfEdit.applyEdit: Done second step") ;
                 return opt1.map( sel1 => {
                     // The third step adjusts the selection so that it is a point
                     // selection with the point being to the right of the engulfed nodes.
-                    console.log( "   EngulfEdit.applyEdit: Applying third step") ;
+                    // console.log( "   EngulfEdit.applyEdit: Applying third step") ;
                     const sel1Nodes = sel1.selectedNodes() ;
                     assert.check( sel1Nodes.length === 1 && sel1Nodes[0] === sel0.root() ) ;
                     const path2 = sel1.path().cat( list( sel1.start() ) ).cat( sel0.path() ) ;
                     const anchor2 = sel0.end() ;
                     return new Selection( sel1.root(), path2, anchor2, anchor2 ) ;
                 }) ; } ) ;
-            console.log( "<< EngulfEdit.applyEdit") ;
+            // console.log( "<< EngulfEdit.applyEdit") ;
             return res ;
         }
     }

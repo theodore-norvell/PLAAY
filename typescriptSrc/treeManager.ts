@@ -130,11 +130,11 @@ module treeManager {
 
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
 
-            console.log( "makeIfNode: Making template") ;
+            // console.log( "makeIfNode: Making template") ;
             const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
-            console.log( "makeIfNode: Making edit") ;
+            // console.log( "makeIfNode: Making edit") ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
-            console.log( "makeIfNode: Applying edit") ;
+            // console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
 
@@ -180,7 +180,7 @@ module treeManager {
 
         private makeWorldCallNode(selection:Selection, name : string = "") : Option<Selection> {
             // TODO: Allow a variable number of place holders.
-            console.log( ">> Calling makeWorldCallNode") ;
+            // console.log( ">> Calling makeWorldCallNode") ;
             const left = labels.mkExprPH();
             const right = labels.mkExprPH();
             let worldcallnode : PNode|null = null;
@@ -197,7 +197,7 @@ module treeManager {
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
                 const edit = replaceOrEngulfTemplateEdit( template ) ;
                 const result =  edit.applyEdit(selection);
-                console.log( "<< result of world call is " + result.toString() ) ;
+                // console.log( "<< result of world call is " + result.toString() ) ;
                 return result ;
             }
         }
