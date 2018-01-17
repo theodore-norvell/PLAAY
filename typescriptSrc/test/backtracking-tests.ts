@@ -39,8 +39,14 @@ describe( 'backtracking.TransactionManager ', function() : void {
     const manager : TransactionManager = new TransactionManager();
 
     it('Should be initialized properly', function() : void {
+        //TSN//  There should be no getState, no getUndoStack, no getCurrentTransaction
+        // methods.  These all violate information hiding.
+        // Implementation is private, not public.
+        // Instead you can check that canUndo and canRedo both return false.
         assert.check(manager.getState() === States.NOTDOING, "Manager is in the wrong state.");
         assert.check(manager.getUndoStack().length == 0, "Manager's undo stack should be empty");
+        //TSN// We don't use undefined. Null is better.  Better yet take a look at the
+        // TM implementation which has no states and where there is always a current transaction.
         assert.check(manager.getCurrentTransaction() === undefined, "Manager should not have a current transaction.");
     } );
 
@@ -54,6 +60,8 @@ describe( 'backtracking.TransactionManager ', function() : void {
     it('Should undo/redo correctly (making variable)', function() : void {
         let variable : TVar<number> = new TVar<number>(1, manager);
         manager.undo();
+        //TSN// Again we don't use undefined.  Access to an unborn variable should
+        // result in an assertion failure.  Again see the TM implementation.
         assert.check(variable.get() === undefined);
         manager.redo();
         assert.check(variable.get() == 1, 'variable should be 1 after redo');
@@ -63,7 +71,7 @@ describe( 'backtracking.TransactionManager ', function() : void {
         let variable : TVar<number> = new TVar<number>(1, manager);
         assert.check( variable.get() == 1, "variable should equal 1");
         manager.checkpoint();
-        variable.set(2)
+        variable.set(2);
         assert.check( variable.get() == 2, "variable should equal 2");
         manager.undo();
         assert.check( variable.get() == 1, "variable should equal 1 after undo");
@@ -145,7 +153,14 @@ describe('vms.Evaluation root undo/redo', function() : void {
     });
 
     it('Should undo/redo properly', function() : void {
+        //TSN// Since no checkpoint has happened, undo should not be
+        // possible.
+        // When the backtrack manager is created, it should be in a state
+        // where undo is impossible. We can then create BTVars and so on
+        // and then checkpoint. The first checkpoint defines the initial
+        // state of the vms. We can't undo beyond this first checkpoint.
         manager.undo();
+        //TSN// This must not happen!!
         assert.check(evaluation.getRoot() == undefined, 'root PNode should be undefined');
         assert.check(manager.getUndoStack().length == 0, 'undoStack should be empty');
         manager.redo();
