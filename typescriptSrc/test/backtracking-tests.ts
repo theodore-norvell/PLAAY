@@ -37,67 +37,167 @@ const interp = interpreter.getInterpreter();
 
 describe( 'backtracking.TransactionManager ', function() : void {
     const manager : TransactionManager = new TransactionManager();
+    var x : TVar<number> ;
+    var y : TVar<string> ;
+    var z : TVar<string> ;
 
     it('Should be initialized properly', function() : void {
-        //TSN//  There should be no getState, no getUndoStack, no getCurrentTransaction
-        // methods.  These all violate information hiding.
-        // Implementation is private, not public.
-        // Instead you can check that canUndo and canRedo both return false.
-        assert.check(manager.getState() === States.NOTDOING, "Manager is in the wrong state.");
-        assert.check(manager.getUndoStack().length == 0, "Manager's undo stack should be empty");
-        //TSN// We don't use undefined. Null is better.  Better yet take a look at the
-        // TM implementation which has no states and where there is always a current transaction.
-        assert.check(manager.getCurrentTransaction() === undefined, "Manager should not have a current transaction.");
+        assert.check(! manager.canUndo(), "Manager is in the wrong state.");
+        assert.check(! manager.canRedo(), "Manager is in the wrong state.");
     } );
 
-    it('Should transition states correctly', function() : void {
-        let variable : TVar<number> = new TVar<number>(1, manager);
-        assert.check(manager.getState() === States.DOING);
-        manager.checkpoint();
-        assert.check(manager.getState() === States.NOTDOING);
+    it('Should allow us to create an initial state', function() : void {
+        x = new TVar<number>(0, manager);
+        assert.check( x.get() == 0 ) ;
+        x.set( 1 ) ;
+        assert.check( x.get() == 1 ) ;
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state.");
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state.");
+        // This is the first checkpoint.  It defines the root state.
+        // We can always get back to this state by some number of undos.
+        // But we can never go back past the initial state.
+        manager.checkpoint(); // Call this state A: {x -> 1} no parent
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state.");
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state.");
+        assert.check( x.get() == 1 ) ;
+        x.set( 2 ) ;
+        assert.check( x.get() == 2 ) ;
+        assert.check( manager.canUndo(), "Manager is in the wrong state.");
+
+        manager.undo() ; // This should take us back to state A
+        // It also implicitely checkpoints.
+        // So call this state B: {x -> 2} parent is A
+        
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state.");
+        assert.check( x.get() == 1 ) ;
+
+        // Back to state B.
+        assert.check( manager.canRedo(), "Manager is in the wrong state.");
+        manager.redo() ;
+        assert.check( x.get() == 2 ) ;
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state.");
     } );
     
     it('Should undo/redo correctly (making variable)', function() : void {
-        let variable : TVar<number> = new TVar<number>(1, manager);
-        manager.undo();
-        //TSN// Again we don't use undefined.  Access to an unborn variable should
-        // result in an assertion failure.  Again see the TM implementation.
-        assert.check(variable.get() === undefined);
-        manager.redo();
-        assert.check(variable.get() == 1, 'variable should be 1 after redo');
+        y = new TVar<string>("c", manager);
+        // We've created a new variable that doesn't exist in states A and B
+        assert.check( y.get() == "c" ) ;
+        manager.undo() ; // This makes an implicit checkpoint, so
+        // call this state C: { x -> 2, y -> "c" } parent state is B
+        // And we should now be back to state B
+        
+        assert.check(x.get() === 2);
+        try {
+            y.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            y.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+
+        manager.redo() ; // Back to state C.
+        assert.check( y.get() == "c" ) ;
+        assert.check( x.get() == 2 ) ;
+
+        manager.undo() ; // Back to state B
+        // But we can go forward to C if we like
+        assert.check( manager.canRedo(), "Manager is in the wrong state.");
     } );
 
-    it('Should undo/redo correctly (set variable)', function() : void {
-        let variable : TVar<number> = new TVar<number>(1, manager);
-        assert.check( variable.get() == 1, "variable should equal 1");
-        manager.checkpoint();
-        variable.set(2);
-        assert.check( variable.get() == 2, "variable should equal 2");
-        manager.undo();
-        assert.check( variable.get() == 1, "variable should equal 1 after undo");
-        manager.redo();
-        assert.check( variable.get() == 2, "variable should equal 2 after redo");
+    it('Should allow braching to new states', function() : void {
 
+        z = new TVar<string>("z", manager);
+        // By creating a new variable, we have moved
+        // forward from state B.
+        // State C should no longer be reached.
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state.");
+        manager.checkpoint() ; // Explicitly createing a new state.
+        // Call it D: { x -> 2, z -> "z" } parent state is B
+
+        manager.undo() ;
+        // We should be in state B
+        assert.check(x.get() === 2);
+        try {
+            y.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            y.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        assert.check( manager.canRedo(), "Manager is in the wrong state.");
+        assert.check( manager.canUndo(), "Manager is in the wrong state.");
+
+        // Go back to state A
+        manager.undo() ;
+        // We should be in state A
+        assert.check(x.get() === 1);
+        try {
+            y.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            y.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        assert.check( manager.canRedo(), "Manager is in the wrong state.");
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state.");
+
+        // Forward to state B
+        manager.redo() ;
+        assert.check(x.get() === 2);
+        try {
+            y.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            y.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            z.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        assert.check( manager.canRedo(), "Manager is in the wrong state.");
+        assert.check( manager.canUndo(), "Manager is in the wrong state.");
+
+        // Forward to state D
+        manager.redo() ;
+        assert.check(x.get() === 2);
+        try {
+            y.get() ;
+            assert.check(false, "get of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        try {
+            y.set( "d" ) ;
+            assert.check(false, "set of a dead variable should fail" ) ;
+        } catch( ex ) {}
+        assert.check( z.get() === "z") ;
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state." ) ;
+        assert.check( manager.canUndo(), "Manager is in the wrong state." ) ;
     } );
 
-    it('Should undo/redo correctly (differently typed variables)', function() : void {
-        let var1 : TVar<number> = new TVar<number>(1, manager);
-        let var2 : TVar<string> = new TVar<string>("test", manager);
-        assert.check( var1.get() == 1, "number variable should equal 1");
-        assert.check( var2.get() == "test", "string variable should equal 'test'");
-        manager.checkpoint();
-        var1.set(2)
-        var2.set("set")
-        assert.check( var1.get() == 2, "number variable should equal 2");
-        assert.check( var2.get() == "set", "string variable should equal 'set'");
-        manager.undo();
-        assert.check( var1.get() == 1, "number variable should equal 1");
-        assert.check( var2.get() == "test", "string variable should equal 'test'");
-        manager.redo();
-        assert.check( var1.get() == 2, "number variable should equal 2 after redo");
-        assert.check( var2.get() == "set", "string variable should equal 'set' after redo");
-
-    } );
 } ) ;
 
 describe( 'backtracking.TVar ', function() : void {
@@ -125,18 +225,22 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
 
     it('Should be initialized properly', function() : void {
         assert.check(evaluation.isReady() == false, 'initialized value incorrectly');
-        assert.check(manager.getState() == States.DOING, 'manager is in the wrong state')
+        assert.check( ! manager.canUndo(), 'manager is in the wrong state') ;
+        assert.check( ! manager.canRedo(), 'manager is in the wrong state') ;
     });
 
     it('Should undo/redo properly', function() : void {
+        manager.checkpoint() ;
         evaluation.setReady(true);
-        assert.check(evaluation.isReady() == true, 'set value incorrectly');
+        assert.check(evaluation.isReady() === true, 'set value incorrectly');
         manager.undo();
-        assert.check(evaluation.isReady() == false, 'var should be false after undo');
-        assert.check(manager.getUndoStack().length == 0, 'undoStack should be empty');
+        assert.check(evaluation.isReady() === false, 'var should be false after undo');
+        assert.check( ! manager.canUndo(), 'manager is in the wrong state') ;
+        assert.check( manager.canUndo(), 'manager is in the wrong state') ;
         manager.redo();
-        assert.check(evaluation.isReady() == true, 'var should be true after redo');
-        assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty after redo');
+        assert.check(evaluation.isReady() === true, 'var should be true after redo');
+        assert.check( manager.canUndo(), 'manager is in the wrong state') ;
+        assert.check( ! manager.canRedo(), 'manager is in the wrong state') ;
     })
 });
 
@@ -148,25 +252,12 @@ describe('vms.Evaluation root undo/redo', function() : void {
     const evaluation = new Evaluation(root, vm.getStack(), vm);
 
     it('Should be initialized properly', function() : void {
-        assert.check(evaluation.getRoot() == root, 'initialized root PNode incorrectly');
-        assert.check(manager.getState() == States.DOING, 'manager should be in the DOING state')
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state." ) ;
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state." ) ;
+        manager.checkpoint() ;
+        assert.check( ! manager.canRedo(), "Manager is in the wrong state." ) ;
+        assert.check( ! manager.canUndo(), "Manager is in the wrong state." ) ;
     });
-
-    it('Should undo/redo properly', function() : void {
-        //TSN// Since no checkpoint has happened, undo should not be
-        // possible.
-        // When the backtrack manager is created, it should be in a state
-        // where undo is impossible. We can then create BTVars and so on
-        // and then checkpoint. The first checkpoint defines the initial
-        // state of the vms. We can't undo beyond this first checkpoint.
-        manager.undo();
-        //TSN// This must not happen!!
-        assert.check(evaluation.getRoot() == undefined, 'root PNode should be undefined');
-        assert.check(manager.getUndoStack().length == 0, 'undoStack should be empty');
-        manager.redo();
-        assert.check(evaluation.getRoot() == root, 'root PNode should be set after redo');
-        assert.check(manager.getUndoStack().length != 0, 'undoStack should not be empty');
-    })
 });
 
 describe('vms.Evaluation pending (List<number>>) undo/redo', function() : void {
@@ -187,11 +278,11 @@ describe('vms.Evaluation pending (List<number>>) undo/redo', function() : void {
     });
 
     it('Should undo/redo properly', function() : void {
-        manager.undo();
-        assert.check( vm.getEval().getPending() == undefined, 'pending should be undefined after undo');
-        manager.redo();
-        assert.check( vm.getEval().getPending() != undefined, 'pending shouldn\'t be undefined after redo');
-        assert.check(vm.getEval().getPendingNode() == vm.getRoot(), 'pending node should be root after redo')
-
+        manager.checkpoint();
+        while( vm.canAdvance() ) vm.advance() ;
+        manager.undo() ;
+        assert.check(vm.canAdvance(), 'should be able to advance')
+        manager.redo() ;
+        assert.check( ! vm.canAdvance(), 'should be able to advance') ;
     })
-});
+}) ;

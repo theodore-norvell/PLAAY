@@ -48,6 +48,7 @@ module backtracking
             }
             this.currentTransaction.put(v);
         }
+
         public checkpoint() : void
         {
             if(this.state === States.DOING)
@@ -56,6 +57,15 @@ module backtracking
                 this.undoStack.unshift(this.currentTransaction);
             }
         }
+
+        public canUndo() : boolean {
+            // TODO
+            return true ; }
+            
+        public canRedo() : boolean {
+            // TODO
+            return true ; }
+
         public undo() : void
         {
             this.checkpoint();
@@ -79,26 +89,6 @@ module backtracking
                 trans.apply();
                 this.undoStack.unshift(trans);
             }
-        }
-
-        public getState() : States //meant for unit testing
-        {
-            return this.state;
-        }
-
-        public getUndoStack() : Array<Transaction> //meant for unit testing
-        {
-            return this.undoStack;
-        }
-
-        public getRedoStack() : Array<Transaction> //meant for unit testing
-        {
-            return this.undoStack;
-        }
-
-        public getCurrentTransaction() : Transaction //meant for unit testing
-        {
-            return this.currentTransaction;
         }
     }
 
