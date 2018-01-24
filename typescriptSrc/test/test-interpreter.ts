@@ -107,19 +107,29 @@ describe( 'NullLiteralLabel', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - addition', function() : void {
-  const label = new labels.CallWorldLabel( "+", false ) ;
-  const root = new PNode( label, [] ) ;
-  const vm = new VMS( root, wlds, interp ) ;
+  const rootlabel = new labels.CallWorldLabel("+", false);
+  const op1 = labels.mkNumberLiteral("2");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
 
-  it('should evaluate to a StringV equaling 123456789', function() : void {
+  it('should evaluate to a StringV equaling 5', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
-      assert.check( vm.isReady() ) ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
       vm.advance() ;
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
       assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "123456789" ) ;
+      assert.check( (val as StringV).getVal() === "5");
   } );
 } ) ;

@@ -73,7 +73,7 @@ module world {
     }
 
     export class World extends ObjectV {
-        protected stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
+        protected stepperFactory: {[value: string]: (vms : VMS) => void;};
 
         constructor() {
             super();
@@ -81,23 +81,26 @@ module world {
 
             this.stepperFactory = {};
 
-            function addstep( vms : VMS, args : Array<Value> ) : void {
-                // const vals : Array<number>= [] ;
-                // let ok = true ;
-                // for( let i=0 ; i < args.length ; ++i ) {
-                //     if( canConvertToNumber( args[i] ) ) {
-                //         vals.push( convertToNumber( args[i] ) ) ; }
-                //     else {
-                //         vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
-                //         ok = false ; } }
-                
-                // if( ok ) {
-                //     const sum = vals.reduce( (s, x) => s+x, 0 ) ;
-                //     const val = new StringV( sum+"" ) ;
-                //     vms.finishStep( val ) ;
-                // }
-                const val = new StringV("123456789");
-                vms.finishStep(val);
+            function addstep(vms : VMS) : void {
+              const node = vms.getPendingNode();
+              const vals : Array<number>= [];
+              let ok = true;
+              if (node.count() > 0) {
+                  for (let i = 0; i < node.count(); i++) {
+                      let childVal = vms.getChildVal(i);
+                      if (canConvertToNumber(childVal)) {
+                          vals.push(convertToNumber(childVal))
+                      } else {
+                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
+                          ok = false; 
+                      } 
+                  }
+              }  
+              if(ok) {
+                  const sum = vals.reduce( (s, x) => s+x, 0 ) ;
+                  const val = new StringV( sum+"" ) ;
+                  vms.finishStep( val ) ;
+              }
             }
 
             const plus = new BuiltInV(addstep);
@@ -163,7 +166,7 @@ module world {
             // this.fields.push(orf);
         }
 
-        public getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void;} {
+        public getStepperFactory() : {[value: string]: (vms : VMS) => void;} {
           return this.stepperFactory;
         }
     }

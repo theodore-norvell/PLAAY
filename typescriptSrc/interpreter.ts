@@ -12,6 +12,7 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
+import { Value } from './vms';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -142,10 +143,9 @@ module interpreter {
     }
 
     function callWorldStepper( vms : VMS ) : void {
-      const label = vms.getPendingNode().label(); 
-      const value = label.getVal();
+      const value = vms.getPendingNode().label().getVal();
       if (vms.getStack().hasField(value)) {
-        let stepper = vms.getStepper(value);
+        let stepper = vms.getStepper(value);        
         stepper(vms, []);  
       }
     }

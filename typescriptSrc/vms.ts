@@ -41,7 +41,7 @@ module vms{
 
         private interpreter : Interpreter ;
 
-        private stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
+        private stepperFactory: {[value: string]: (vms : VMS) => void; };
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
