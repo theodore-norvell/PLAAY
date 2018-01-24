@@ -23,6 +23,7 @@ module valueTypes {
     import ObjectI = vms.ObjectI ;
     import FieldI = vms.FieldI ;
     import Type = vms.Type ;
+    import VMS = vms.VMS;
 
 
     /** A field of an object. */
@@ -108,9 +109,13 @@ module valueTypes {
         // that no two fields have the same name.
         protected fields:Array<Field>;
 
+        protected stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
+
         constructor() {
             this.fields = new Array<Field>();
+            this.stepperFactory = {};
         }
+
 
         public numFields():number {
             return this.fields.length;
@@ -159,6 +164,10 @@ module valueTypes {
                 }
             }
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
+        }
+
+        public getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void;} {
+          return this.stepperFactory;
         }
 
 

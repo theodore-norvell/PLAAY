@@ -105,3 +105,21 @@ describe( 'NullLiteralLabel', function() : void {
         assert.check( val instanceof NullV ) ;
     } );
 } ) ;
+
+describe( 'CallWorldLabel - addition', function() : void {
+  const label = new labels.CallWorldLabel( "+", false ) ;
+  const root = new PNode( label, [] ) ;
+  const vm = new VMS( root, wlds, interp ) ;
+
+  it('should evaluate to a StringV equaling 123456789', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "123456789" ) ;
+  } );
+} ) ;

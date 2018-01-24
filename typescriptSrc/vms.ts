@@ -10,6 +10,7 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import { World } from './world';
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -40,12 +41,16 @@ module vms{
 
         private interpreter : Interpreter ;
 
+        private stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
+
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
-                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
+                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; 
+                this.stepperFactory = worlds[i].getStepperFactory();
+            }
             const evalu = new Evaluation(root, varStack);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
@@ -178,6 +183,10 @@ module vms{
             else{
                 ev.advance( this.interpreter, this);
             }
+        }
+
+        public getStepper(value: string) : (vms : VMS, args : Array<Value>) => void {
+          return this.stepperFactory[value];
         }
 
         public reportError( message : String ) : void {
@@ -593,6 +602,7 @@ module vms{
          * Precondition: hasField( name ) ;
          */
         getField : (name:string) => FieldI ;
+        getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void; } 
     }
 
     export interface FieldI  {

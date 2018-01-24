@@ -15,6 +15,7 @@ import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
+import { NullV } from './valueTypes';
 
 /** This module contains code for the standard library.
  * 
@@ -77,25 +78,29 @@ module world {
             //console.log("World's fields array is length: " + this.fields.length);
 
             function addstep( vms : VMS, args : Array<Value> ) : void {
-                const vals : Array<number>= [] ;
-                let ok = true ;
-                for( let i=0 ; i < args.length ; ++i ) {
-                    if( canConvertToNumber( args[i] ) ) {
-                        vals.push( convertToNumber( args[i] ) ) ; }
-                    else {
-                        vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
-                        ok = false ; } }
+                // const vals : Array<number>= [] ;
+                // let ok = true ;
+                // for( let i=0 ; i < args.length ; ++i ) {
+                //     if( canConvertToNumber( args[i] ) ) {
+                //         vals.push( convertToNumber( args[i] ) ) ; }
+                //     else {
+                //         vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                //         ok = false ; } }
                 
-                if( ok ) {
-                    const sum = vals.reduce( (s, x) => s+x, 0 ) ;
-                    const val = new StringV( sum+"" ) ;
-                    vms.finishStep( val ) ;
-                }
+                // if( ok ) {
+                //     const sum = vals.reduce( (s, x) => s+x, 0 ) ;
+                //     const val = new StringV( sum+"" ) ;
+                //     vms.finishStep( val ) ;
+                // }
+                const val = new StringV("123456789");
+                //const val = new NullV();
+                vms.finishStep(val);
             }
 
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true);
             this.fields.push(addf);
+            this.stepperFactory["+"] = addstep;
 
             // TODO create the functions for the following builtin function.
             // var sub = new BuiltInV(substep);
