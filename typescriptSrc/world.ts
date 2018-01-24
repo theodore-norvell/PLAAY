@@ -73,9 +73,13 @@ module world {
     }
 
     export class World extends ObjectV {
+        protected stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
+
         constructor() {
             super();
             //console.log("World's fields array is length: " + this.fields.length);
+
+            this.stepperFactory = {};
 
             function addstep( vms : VMS, args : Array<Value> ) : void {
                 // const vals : Array<number>= [] ;
@@ -93,7 +97,6 @@ module world {
                 //     vms.finishStep( val ) ;
                 // }
                 const val = new StringV("123456789");
-                //const val = new NullV();
                 vms.finishStep(val);
             }
 
@@ -158,6 +161,10 @@ module world {
             // var orf = new Field("|", or, Type.BOOL, true);
 
             // this.fields.push(orf);
+        }
+
+        public getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void;} {
+          return this.stepperFactory;
         }
     }
 

@@ -109,11 +109,8 @@ module valueTypes {
         // that no two fields have the same name.
         protected fields:Array<Field>;
 
-        protected stepperFactory: {[value: string]: (vms : VMS, args : Array<Value>) => void; };
-
         constructor() {
             this.fields = new Array<Field>();
-            this.stepperFactory = {};
         }
 
 
@@ -165,11 +162,6 @@ module valueTypes {
             }
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
         }
-
-        public getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void;} {
-          return this.stepperFactory;
-        }
-
 
         public isClosureV() : boolean {
             return false;

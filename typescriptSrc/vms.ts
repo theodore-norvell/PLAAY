@@ -49,7 +49,7 @@ module vms{
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; 
-                this.stepperFactory = worlds[i].getStepperFactory();
+                this.stepperFactory = (worlds[i] as World).getStepperFactory();
             }
             const evalu = new Evaluation(root, varStack);
             this.evalStack = new EvalStack();
@@ -602,7 +602,6 @@ module vms{
          * Precondition: hasField( name ) ;
          */
         getField : (name:string) => FieldI ;
-        getStepperFactory() : {[value: string]: (vms : VMS, args : Array<Value>) => void; } 
     }
 
     export interface FieldI  {
