@@ -146,7 +146,7 @@ module interpreter {
       const value = vms.getPendingNode().label().getVal();
       if (vms.getStack().hasField(value)) {
         let stepper = vms.getStepper(value);        
-        stepper(vms, []);  
+        stepper(vms);  
       }
     }
 }

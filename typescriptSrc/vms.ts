@@ -185,7 +185,7 @@ module vms{
             }
         }
 
-        public getStepper(value: string) : (vms : VMS, args : Array<Value>) => void {
+        public getStepper(value: string) : (vms : VMS) => void {
           return this.stepperFactory[value];
         }
 
