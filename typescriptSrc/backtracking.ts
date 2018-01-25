@@ -133,9 +133,6 @@ module backtracking
             this.array.unshift(newVal);
             this.sizeVar.set(this.sizeVar.get()+1);
         }
-
-        public int
-
     }
 
     export class TransactionManager

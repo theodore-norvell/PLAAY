@@ -18,6 +18,7 @@ import world = require('../world') ;
 import labels = require('../labels') ;
 
 import TVar = backtracking.TVar;
+import TArray = backtracking.TArray;
 import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
@@ -217,6 +218,78 @@ describe( 'backtracking.TVar ', function() : void {
         assert.check( variable.get() == 5 );
     } );
 } ) ;
+
+describe('Backtracking.TArray', function() : void {
+    const manager : TransactionManager = new TransactionManager();
+
+    it('Should be initialized properly', function() : void{
+        let a : TArray<number> = new TArray<number>(manager);
+        assert.check( a.size() == 0 );
+        try {
+            a.get(1);
+            assert.check(false, "get of an element in empty array fail");
+        } catch(ex){}
+        try {
+            a.pop();
+            assert.check(false, "calling pop on empty array should fail");
+        }catch(ex){}
+    });
+
+    it('Should set properly', function() : void {
+        let a : TArray<any> = new TArray<any>(manager);
+        a.push('a'); a.push('b'); a.push('c');
+
+        assert.check( a.size() == 3, "Size of TArray should be 3" );
+        assert.check( a.get(0) == 'a', "Element at index 0 should be 'a'");
+        assert.check( a.get(1) == 'b', "Element at index 1 should be 'b'");
+        assert.check( a.get(2) == 'c', "Element at index 2 should be 'c'");
+
+        a.set(1, 'z');
+        assert.check( a.size() == 3, "Size of array should still be 3");
+        assert.check( a.get(1) == 'z', "Element at index 1 should now be 'z");
+        try {
+            a.set(4, 'q');
+            assert.check(false, "set at out of bounds index should fail");
+        }catch(ex){}
+    });
+
+    it('Should pop properly', function() : void {
+        let a : TArray<any> = new TArray<any>(manager);
+        a.push('a'); a.push('b'); a.push('c');
+        assert.check( a.size() == 3, "Size should be 3");
+
+        let v1 : any = a.pop();
+        assert.check(v1 == 'c', "Popped element should be c")
+        assert.check( a.size() == 2, "size should be 2 after pop()");
+        assert.check( a.get(1) == 'b', "Element at index 1 should be 'b'");
+
+        let v2 : any = a.pop();
+        assert.check(v2 == 'b', "Popped element should be c")
+        assert.check( a.size() == 1, "Size should be 1 after 2 pops");
+        assert.check( a.get(0) == 'a', "Element at index 0 should be 'a'");
+
+        a.pop();
+        assert.check( a.size() == 0, "Size should be 0 after 3 pops")
+        try{
+            a.pop();
+            assert.check(false, "Pop on empty TArray should fail");
+        }catch(ex){}
+    });
+
+    it('Should unshift properly', function() : void {
+        let a : TArray<any> = new TArray<any>(manager);
+
+        a.unshift(1);
+        assert.check(a.size() == 1, "Size should be 1 after unshift on empth TArray");
+        assert.check(a.get(0) == 1, "Element at index 0 should be 1");
+        a.push(2); a.push(3);
+        assert.check( a.size() == 3, "Size should be 3");
+
+        a.unshift(7);
+        assert.check( a.size() == 4, "TArray size should be 4 after unshift");
+        assert.check( a.get(0) == 7, "Element at index 0 should be 7 after unshift");
+    })
+});
 
 describe('vms.Evaluation isReady undo/redo', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false );
