@@ -81,7 +81,7 @@ module world {
 
             this.stepperFactory = {};
 
-            function addstep(vms : VMS) : void {
+            function addstep(vms: VMS) : void {
               const node = vms.getPendingNode();
               const vals : Array<number>= [];
               let ok = true;
@@ -108,24 +108,88 @@ module world {
             this.fields.push(addf);
             this.stepperFactory["+"] = addstep;
 
+            function substep(vms: VMS) : void {
+              const node = vms.getPendingNode();
+              const vals : Array<number>= [];
+              let ok = true;
+              if (node.count() > 0) {
+                  for (let i = 0; i < node.count(); i++) {
+                      let childVal = vms.getChildVal(i);
+                      if (canConvertToNumber(childVal)) {
+                          vals.push(convertToNumber(childVal))
+                      } else {
+                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
+                          ok = false; 
+                      } 
+                  }
+              }  
+              if(ok) {
+                  const diff = vals.reduce( (s, x) => s-x) ;
+                  const val = new StringV( diff+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
+
+            var sub = new BuiltInV(substep);
+            var subf = new Field("-", sub, Type.NUMBER, true);
+            this.fields.push(subf);
+            this.stepperFactory["-"] = substep;
+
+            function multstep(vms: VMS) : void {
+              const node = vms.getPendingNode();
+              const vals : Array<number>= [];
+              let ok = true;
+              if (node.count() > 0) {
+                  for (let i = 0; i < node.count(); i++) {
+                      let childVal = vms.getChildVal(i);
+                      if (canConvertToNumber(childVal)) {
+                          vals.push(convertToNumber(childVal))
+                      } else {
+                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
+                          ok = false; 
+                      } 
+                  }
+              }  
+              if(ok) {
+                  const prod = vals.reduce( (s, x) => s*x) ;
+                  const val = new StringV( prod+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
+
+            var mult = new BuiltInV(multstep);
+            var multf = new Field("*", mult, Type.NUMBER, true);
+            this.fields.push(multf);
+            this.stepperFactory["*"] = multstep;
+
+            function divstep(vms: VMS) : void {
+              const node = vms.getPendingNode();
+              const vals : Array<number>= [];
+              let ok = true;
+              if (node.count() > 0) {
+                  for (let i = 0; i < node.count(); i++) {
+                      let childVal = vms.getChildVal(i);
+                      if (canConvertToNumber(childVal)) {
+                          vals.push(convertToNumber(childVal))
+                      } else {
+                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
+                          ok = false; 
+                      } 
+                  }
+              }  
+              if(ok) {
+                  const quot = vals.reduce( (s, x) => s/x) ;
+                  const val = new StringV( quot+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
+
+            var div = new BuiltInV(divstep);
+            var divf = new Field("/", div, Type.NUMBER, true);
+            this.fields.push(divf);
+            this.stepperFactory["/"] = divstep;
+
             // TODO create the functions for the following builtin function.
-            // var sub = new BuiltInV(substep);
-            // var subf = new Field("-", sub, Type.NUMBER, true);
-
-            // this.fields.push(subf);
-
-
-            // var mult = new BuiltInV(multstep);
-            // var multf = new Field("*", mult, Type.NUMBER, true);
-
-            // this.fields.push(multf);
-
-
-            // var div = new BuiltInV(divstep);
-            // var divf = new Field("/", div, Type.NUMBER, true);
-
-            // this.fields.push(divf);
-
 
             // var greaterthan = new BuiltInV(greaterthanstep);
             // var greaterf = new Field(">", greaterthan, Type.BOOL, true);
