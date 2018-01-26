@@ -1,0 +1,174 @@
+Keyboard shortcuts example
+    Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                CallWorld[*]( Var[c], Var[d] ) ),
+                  Var[e] )
+ 
+I.e. f( (a*b) + (c*d), e )
+Infix Sequence:
+    Action   Comment/State
+             !^
+    f        Start Var node
+             !Open Var[f]^
+    enter    Close and select the Var node
+             !Var[f]^
+    _        Engulf with a Call and move to next dropzone
+             Call( Var[f], !^ )
+    a        Start a Var node
+             Call( Var[f], !Open Var[a]^ )
+    enter    Close and select the Var node
+             Call( Var[f], !Var[a]^ )
+    *        Engulf with a CallWorld and select the next PlaceHolder
+             Call( Var[f], CallWorld[*]( Var[a], !ExpPH^ )
+    b        Start a Var node
+             Call( Var[f], CallWorld[*]( Var[a], !Open Var[b]^ )
+    enter    Close and select the Var node
+             Call( Var[f], CallWorld[*]( Var[a], !Var[b]^ )
+    space    Select parent
+             Call( Var[f], !CallWorld[*]( Var[a], Var[b] )^
+    +        Engulf with a CallWorld and select the next PlaceHolder
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ), !ExpPH^ )
+    c        Start a Var node
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ), !Open Var[c]^ )
+    enter    Close and select the Var node
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ), !Var[c]^ )
+    *        Engulf with a CallWorld and select the next PlaceHolder
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], !ExpPH^ )
+    d        Start a Var node
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], !Open Var[d]^ ) )
+    tab      Close Var node and move to next insertion place
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], Var[d] !^ ) )
+    right-arrow  move right (tab would do the sameee
+    Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], Var[d] ) ^!  )
+    e        Start a Var node
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], Var[d] ),
+                           !Open Var[e]^ )
+    enter    Close and select the Var node
+             Call( Var[f], CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                                         CallWorld[*]( Var[c], Var[d] ),
+                           !Var[e]^ )
+
+Prefix sequence for (a*b) + (c*d)
+    Action   Comment/State
+             ^!
+    +        Replace with CallWorld
+             CallWorld[+]( !ExpPH^, ExpPH )
+    *        Engulf the ExpPH with CallWorld
+             CallWorld[+]( CallWorld[*]( !ExpPH^, ExpPH ),
+                           ExpPH )
+    a        Start a Var node
+             CallWorld[+]( CallWorld[*]( !Open Var[a]^, ExpPH ),
+                           ExpPH )
+    tab      Close and select next PH
+             CallWorld[+]( CallWorld[*]( Var[a], !ExpPH^ ),
+                           ExpPH )
+    b        Start a Var node
+             CallWorld[+]( CallWorld[*]( Var[a], !Open Var[b]^ ),
+                           ExpPH )
+    tab      Close and select next insertion spot
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                           !^ ExpPH )
+    tab      Select next insertion spot
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                           !ExpPH^ )
+    *        Engulf the ExpPH with CallWorld
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                            CallWorld[*]( !ExpPH^, ExpPH ) )
+    c        Start a Var node
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                            CallWorld[*]( !open Var[c]^, ExpPH ) )
+    tab      Close and select next PH
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                            CallWorld[*]( Var[c], !ExpPH^ ) )
+    d        Start a Var node
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                            CallWorld[*]( Var[c], !open Var[d]^) )
+    tab
+             CallWorld[+]( CallWorld[*]( Var[a], Var[b] ),
+                           CallWorld[*]( Var[c], Var[d] !^) )
+ 
+ Many user actions such as keypresses, click on palette buttons, and drag and
+ drop from the palette create compound nodes; i.e., nodes that can have children.
+ Examples:
+    Pressing the + * - / _ \ 0 . or ? keys.
+    Dragging the ?, while, lambda, varDecl, call or callWorld pallet items onto the view of the tree.
+    Clicking on any of the same buttons.
+
+ Each of these actions can be interpreted as replacing or engulfing the current selection.  The rules to decide are these
+    * If both edits would fail, no change to the tree.
+    * If only one edit would succeed, that edit is chosen.
+    * If the current selection is empty, replace is preferred.
+    * If the current selection is not empty, engulf is preferred.
+
+These rules are easily expressed by the edit
+          alt( compose( selectionIsAllPlaceHolder, replace ),
+               engulf,
+               replace),
+where
+   * alt, opt, and compose are as defined in the edits module,
+   * selectionIsAllPlaceHolder is an edit that fails if some node in the selection
+     is not a placeholer and that makes no change otherwise,
+   * replace is an edit that replaces the current selection with the new tree,
+   * engulf is an edit that engulfs the current selection with the new tree.
+
+Details of replace. Suppose the target (i.e., the argument to apply) is t and the template
+to be inserted is another selection s.  Let ps be the sequence of nodes selected by t.
+The ps in t are replaced by s (ala InsertChildrenEdit) to make a selection t'.
+The result is t'.  Note that the root of s will be the only selected node in t'
+Finally a tabForwardEdit (see below) is done to move the selection to a place holder within the
+newly inserted nodes.
+
+Details of engulf.  An engulf can be thought of as three edit steps.  Suppose the target
+(i.e., the argument to apply) is t and the template to be inserted is another selection s.
+Let ps be the sequence of nodes selected by t.
+*  First ps is inserted (ala InsertChildrenEdit) into s to make a selection s'.
+*  If the first step fails, the whole edit fails.
+*  Second the root of s' is inserted into t (ala InsertChildrenEdit) to make a
+   selection t'.  t' should have one selected, node, corresponding to the root of s'.
+*  The second step fails, the whole edit fails.
+*  Third, the selection is adjusted so that it is a point selection to the right of where
+   the engulfed nodes ended up. This is t''
+Finally a tabForwardEdit is optionally done.  If the current selection is suitable for
+inserting new stuff, then the tabForwardEdit is skipped. Otherwise it's done.
+
+For example suppose the target selection is  t = ExpSeq( ! var[f] ^ )
+and we engulf with a template selection s = call( !ExpPH^ ). We get
+   ps = [ var[f] ]
+   s' = call( !var[f]^ )
+   t' = ExpSeq( ! call( var[f] ) ^ )
+   t'' = ExpSeq( call( var[f] !^ ) )
+Now since t'' is at a suitable stopping point for tabForwardEdit, no tabForwardEdit is applied.
+
+Another example
+    t = ExpSeq( ! var[f] ^ )
+    s = callWorld[+]( !ExpPH^ , ExpPH ) 
+we have
+   ps = [ var[f] ]
+   s' = callWorld[+]( !var[f]^, ExpPH )
+   t' = ExpSeq( ! callWorld[+]( var[f], ExpPH ) ^ )
+   t'' = ExpSeq( callWorld[+]( var[f] !^, ExpPH ) )
+This time, since the selection is not a suitable place for a tab to stop, we do the tab to get
+    ExpSeq( callWorld[+]( var[f], !ExpPH^ ) )
+
+Details of tabForwardEdit.  A tabForwardEdit repeatedly moves the selection right in previsit
+order at least once.  (It fails if that first move can't be made and succeeds otherwise.)
+It stops moving the selection right when the selection is either a point selection
+corresponding to a dropzone or a selection of size one containing a placeholder node.
+It also stops when there are no more moves to the right possible.  However, there is
+one exception to this simple plan: It does not stop on a dropzone when if there is a
+placeholder with the same parent immediately to the right.  The reasoning here is
+that if there is one place holder just to the the right, it's probably there to]
+represent a place to put something, so it's probably better to put something where
+the placeholder is than where the dropzone is.  For example, if the selection is
+    callWorld[+]( !var[x]^, ExpPH) ,
+it's better for the tab to take us to a selection
+    callWorld[+]( var[x], !ExpPH^ )
+than to a selection
+    callWorld[+]( var[x], !^ ExpPH )
+
+Details of space.  A space expands the current selection by selecting the parent, unless
+the parent is the root, in which case there is no change.
