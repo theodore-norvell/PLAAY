@@ -192,6 +192,7 @@ module backtracking
             {            
                 this.state = States.NOTDOING;
                 this.undoStack.unshift(this.currentTransaction);
+                this.currentTransaction = new Transaction();
             }
         }
 

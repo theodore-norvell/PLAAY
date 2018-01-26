@@ -276,6 +276,44 @@ describe('Backtracking.TArray', function() : void {
         }catch(ex){}
     });
 
+    it('Should undo/redo properly', function() : void {
+        let a : TArray<any> = new TArray<any>(manager);
+        a.push('a'); a.push('b'); a.push('c');
+        //State A
+        manager.checkpoint();
+
+        a.push('d');
+        assert.check( a.size() == 4, "Size should be 4");
+        assert.check( a.get(3) == 'd', "Value at index 3 should be d after checkpoint");
+
+        //Back to State A
+        manager.undo();
+
+        assert.check( a.size() == 3, "Size should be 3 after undo");
+        assert.check( a.get(0) == 'a', "Value at index 0 should still be a after undo");
+
+        //Forward to state B
+        manager.redo();
+
+        assert.check( a.size() == 4, "Size should be 4 after redo");
+        assert.check( a.get(3) == 'd', "Value at index 3 should be d after redo");
+
+        a.push('y');
+
+        assert.check( a.size() == 5, "Size should be 5 after unshifting a value");
+        assert.check( a.get(4) == 'y', "Value at index 4 should be y after unshift");
+
+        //Undo from state C back to B
+        manager.undo();
+        assert.check( a.size() == 4, "Size should be 4 after second undo");
+        assert.check( a.get(3) == 'd', "Value at index 3 should be d after second undo");
+
+        //Branch from state B to state D
+        a.push('z');
+        assert.check(!manager.canRedo(), "Shouldn't be able to redo to a dead state")
+
+    });
+
     it('Should unshift properly', function() : void {
         let a : TArray<any> = new TArray<any>(manager);
 
