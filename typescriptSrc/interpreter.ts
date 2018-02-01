@@ -91,6 +91,9 @@ module interpreter {
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
 
+    theStepperRegistry[ labels.ExprSeqLabel.kindConst ] = exprSeqStepper ;
+    theSelectorRegistry[ labels.ExprSeqLabel.kindConst ] = leftToRightSelector ;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -148,6 +151,10 @@ module interpreter {
         let stepper = vms.getStepper(value);        
         stepper(vms);  
       }
+    }
+
+    function exprSeqStepper( vms : VMS ) : void {
+        vms.finishStep( vms.getChildVal(0) ) ;
     }
 }
 
