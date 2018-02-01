@@ -217,3 +217,285 @@ describe( 'CallWorldLabel - division', function() : void {
       assert.check( (val as StringV).getVal() === "3");
   } );
 } ) ;
+
+describe( 'CallWorldLabel - greater than', function() : void {
+  const rootlabel = new labels.CallWorldLabel(">", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - greater than', function() : void {
+  const rootlabel = new labels.CallWorldLabel(">", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("300");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling false', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "false");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - greater than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - greater than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("300");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling false', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "false");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - greater than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("10");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - less than', function() : void {
+  const rootlabel = new labels.CallWorldLabel("<", false);
+  const op1 = labels.mkNumberLiteral("1");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - less than', function() : void {
+  const rootlabel = new labels.CallWorldLabel("<", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling false', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "false");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - less than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const op1 = labels.mkNumberLiteral("1");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - less than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const op1 = labels.mkNumberLiteral("1000");
+  const op2 = labels.mkNumberLiteral("300");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling false', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "false");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - less than or equal', function() : void {
+  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const op1 = labels.mkNumberLiteral("10");
+  const op2 = labels.mkNumberLiteral("10");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "true");
+  } );
+} ) ;
+
+

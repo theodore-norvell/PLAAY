@@ -93,7 +93,7 @@ module world {
                   const val = new StringV( sum+"" ) ;
                   vms.finishStep( val ) ;
               }
-          }
+            }
 
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true);
@@ -114,7 +114,7 @@ module world {
                   const val = new StringV( diff+"" ) ;
                   vms.finishStep( val ) ;
               }
-          }
+            }
 
             var sub = new BuiltInV(substep);
             var subf = new Field("-", sub, Type.NUMBER, true);
@@ -135,7 +135,7 @@ module world {
                   const val = new StringV( prod+"" ) ;
                   vms.finishStep( val ) ;
               }
-          }
+            }
 
             var mult = new BuiltInV(multstep);
             var multf = new Field("*", mult, Type.NUMBER, true);
@@ -159,34 +159,107 @@ module world {
                   const val = new StringV( quot+"" ) ;
                   vms.finishStep( val ) ;
               }
-          }
+            }
 
             var div = new BuiltInV(divstep);
             var divf = new Field("/", div, Type.NUMBER, true);
             this.fields.push(divf);
 
-            // TODO create the functions for the following builtin function.
+            function greaterthanstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
+                  let bool = true;
+                  for(let i = 0; i < vals.length-1; i++) { 
+                    if (!(vals[i] > vals[i+1])) bool = false;
+                  }
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
-            // var greaterthan = new BuiltInV(greaterthanstep);
-            // var greaterf = new Field(">", greaterthan, Type.BOOL, true);
+            var greaterthan = new BuiltInV(greaterthanstep);
+            var greaterf = new Field(">", greaterthan, Type.BOOL, true);
+            this.fields.push(greaterf);
 
-            // this.fields.push(greaterf);
+            function greaterthanequalstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
+                  let bool = true;
+                  for(let i = 0; i < vals.length-1; i++) { 
+                    if (!(vals[i] >= vals[i+1])) bool = false;
+                  }
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
+            var greaterthanequal = new BuiltInV(greaterthanequalstep);
+            var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
+            this.fields.push(greaterequalf);
 
-            // var greaterthanequal = new BuiltInV(greaterthanequalstep);
-            // var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
+            function lessthanstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
+                  let bool = true;
+                  for(let i = 0; i < vals.length-1; i++) { 
+                    if (!(vals[i] < vals[i+1])) bool = false;
+                  }
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
-            // this.fields.push(greaterequalf);
+            var lessthan = new BuiltInV(lessthanstep);
+            var lessf = new Field("<", lessthan, Type.BOOL, true);
+            this.fields.push(lessf);
 
-            // var lessthan = new BuiltInV(lessthanstep);
-            // var lessf = new Field("<", lessthan, Type.BOOL, true);
+            function lessthanequalstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
+                  let bool = true;
+                  for(let i = 0; i < vals.length-1; i++) { 
+                    if (!(vals[i] <= vals[i+1])) bool = false;
+                  }
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
-            // this.fields.push(lessf);
-
-            // var lessequalthan = new BuiltInV(lessthanequalstep);
-            // var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
-
-            // this.fields.push(lessequalf);
+            var lessequalthan = new BuiltInV(lessthanequalstep);
+            var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
+            this.fields.push(lessequalf);
 
             // var equal = new BuiltInV(equalstep);
             // var equalf = new Field("==", equal, Type.BOOL, true);
