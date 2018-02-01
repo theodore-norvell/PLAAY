@@ -217,3 +217,37 @@ describe( 'CallWorldLabel - division', function() : void {
       assert.check( (val as StringV).getVal() === "3");
   } );
 } ) ;
+
+describe( 'ExprSeqLabel', function () : void {
+    const rootLabel = new labels.ExprSeqLabel();
+    const callWorldLabel = new labels.CallWorldLabel( "+", false ) ;
+    const op1 = labels.mkNumberLiteral( "1" ) ;
+    const op2 = labels.mkNumberLiteral( "2" ) ;
+    const addLabel = new PNode( callWorldLabel, [op1, op2] ) ;
+    const root = new PNode( rootLabel, [addLabel] ) ;
+    const vm = new VMS( root, wlds, interp ) ;
+
+    it( 'should evaluate to a StringV equaling 3', function () : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof StringV ) ;
+        assert.check( ( val as StringV ).getVal() === "3" ) ;
+    } );
+} );
