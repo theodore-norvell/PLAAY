@@ -84,7 +84,6 @@ describe( 'backtracking.TransactionManager ', function() : void {
         y = new TVar<string>("c", manager);
         // We've created a new variable that doesn't exist in states A and B
         assert.check( y.get() === "c", "y should be initialized properly" );
-        manager.checkpoint();
         manager.undo() ; // This makes an implicit checkpoint, so
         // call this state C: { x -> 2, y -> "c" } parent state is B
         // And we should now be back to state B
@@ -119,8 +118,10 @@ describe( 'backtracking.TransactionManager ', function() : void {
         // forward from state B.
         // State C should no longer be reached.
         assert.check( !manager.canRedo(), "Manager is in the wrong state.");
-        manager.checkpoint() ; // Explicitly createing a new state.
+        manager.checkpoint() ; // Explicitly creating a new state.
         // Call it D: { x -> 2, z -> "z" } parent state is B
+        manager.checkpoint() ; // Redundant checkpoint should have not effect
+        manager.checkpoint() ;  // One more. Why not.
 
         manager.undo() ;
         // We should be in state B
