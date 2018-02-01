@@ -40,3 +40,4 @@ fabric.properties
 
 *.DS_Store
 tasks.json
+npm-debug.log
