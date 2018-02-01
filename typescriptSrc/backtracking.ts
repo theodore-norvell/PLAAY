@@ -135,6 +135,85 @@ module backtracking
         }
     }
 
+    export class TMap<K,T>
+    {
+        private map : Map<K, TVar<T>>;
+        private manager : TransactionManager;
+
+        public constructor(manager : TransactionManager)
+        {
+            this.map = new Map<K, TVar<T>>();
+            this.manager = manager;
+        }
+
+        public keys() : Array<K>
+        {
+            let returnArray : Array<K> = new Array<K>();
+            for(let key of this.map.keys())
+            {
+                let myVal : TVar<T> | undefined = this.map.get(key);
+                if(myVal !== undefined && myVal.isAlive())
+                {
+                    returnArray.push(key);
+                }
+            }
+            return returnArray;
+        }
+
+        public values() : Array<T>
+        {
+            let returnArray : Array<T> = new Array<T>();
+            for(let key of this.map.keys())
+            {
+                let myVal : TVar<T> | undefined = this.map.get(key);
+                if(myVal !== undefined && myVal.isAlive())
+                {
+                    returnArray.push(myVal.get());
+                }
+            }
+            return returnArray;        }
+
+        public size() : number
+        {
+            let size : number = 0;
+            for(let val of this.map.values())
+            {
+                if(val.isAlive())
+                {
+                    size++;
+                }
+            }
+            return size;
+        }
+
+        public get(K : K) : T | null
+        {
+            let myTVar : TVar<T> | undefined = this.map.get(K);
+            if(myTVar === undefined || !myTVar.isAlive())
+            {
+                return null;
+            }
+            else
+            {
+                return myTVar.get();
+            } 
+        }
+
+        public set(key: K, val : T) : void
+        {
+            let myTVar : TVar<T> | undefined = this.map.get(key);
+            if(myTVar === undefined || !myTVar.isAlive())
+            {
+                myTVar = new TVar<T>(val, this.manager);
+                this.map.set(key, myTVar);
+            }
+            else
+            {
+                myTVar.set(val);
+            }
+        }
+    }
+
     export class TransactionManager
     {
         private undoStack : Array<Transaction>;

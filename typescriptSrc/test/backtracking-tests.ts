@@ -19,6 +19,7 @@ import labels = require('../labels') ;
 
 import TVar = backtracking.TVar;
 import TArray = backtracking.TArray;
+import TMap = backtracking.TMap;
 import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
@@ -283,6 +284,7 @@ describe('Backtracking.TArray', function() : void {
         manager.checkpoint();
 
         a.push('d');
+        //State B
         assert.check( a.size() == 4, "Size should be 4");
         assert.check( a.get(3) == 'd', "Value at index 3 should be d after checkpoint");
 
@@ -299,7 +301,7 @@ describe('Backtracking.TArray', function() : void {
         assert.check( a.get(3) == 'd', "Value at index 3 should be d after redo");
 
         a.push('y');
-
+        //State C
         assert.check( a.size() == 5, "Size should be 5 after unshifting a value");
         assert.check( a.get(4) == 'y', "Value at index 4 should be y after unshift");
 
@@ -310,7 +312,24 @@ describe('Backtracking.TArray', function() : void {
 
         //Branch from state B to state D
         a.push('z');
-        assert.check(!manager.canRedo(), "Shouldn't be able to redo to a dead state")
+        assert.check(!manager.canRedo(), "Shouldn't be able to redo to a dead state");
+        assert.check(a.size() == 5, "Size should be 5 after pushing a value.");
+        assert.check(a.get(4) == 'z', "Value at index 4 should be z after pushing.");
+        manager.checkpoint();
+        
+        a.set(4, 'a');
+        //State E
+        assert.check(a.get(4) == 'a', "Value at index 4 should be a after setting.");
+
+        //Back to state D
+        manager.undo();
+        assert.check(a.size() == 5, "Size should remain 5 after third undo");
+        assert.check(a.get(4) == 'z', "Value at index 4 should be z after third undo.");
+
+        //Forward again to state E
+        manager.redo();
+        assert.check(a.size() == 5, "Size should remain 5 after second redo.");
+        assert.check(a.get(4) == 'a', "Value at index 4 should be a after second redo.");
 
     });
 
@@ -327,6 +346,149 @@ describe('Backtracking.TArray', function() : void {
         assert.check( a.size() == 4, "TArray size should be 4 after unshift");
         assert.check( a.get(0) == 7, "Element at index 0 should be 7 after unshift");
     })
+});
+
+describe('Backtracking.TMap', function() : void {
+    const manager : TransactionManager = new TransactionManager();
+
+    it('Should be initialized properly', function() : void{
+        let a : TMap<string, number> = new TMap<string, number>(manager);
+        let keys : Array<string> = a.keys();
+        let vals : Array<number> = a.values();
+
+        assert.check( a.size() == 0 , "Map's size should be 0 after initialization");
+        assert.check(a.get("one") === null, "Get on a key not in the map should return null.");
+        assert.check(keys.length == 0, "Key set should be empty after initialization");
+        assert.check(vals.length == 0, "Values set should be empty after initialization");
+    });
+
+    it('Should set and get properly', function() : void {
+        let a : TMap<string, number> = new TMap<string, number>(manager);
+        a.set("one", 1);
+        a.set("two", 2);
+        a.set("three", 3);
+
+        assert.check( a.size() == 3, "Size of TMap should be 3 after setting" );
+        assert.check( a.get("one") == 1, "Get on 'one' should return 1 after setting");
+        assert.check( a.get("two") == 2, "Get on 'two' should return 2 after setting");
+        assert.check( a.get("three") == 3, "Get on 'three' should return 3 after setting");
+
+        a.set("one", 1111);
+        assert.check( a.size() == 3, "Size of TMap should still be 3");
+        assert.check( a.get("one") == 1111, "Get on 'one' should return 1111 after second setting");
+    });
+
+    it('Should return proper keys and values', function() : void {
+        let a : TMap<string, number> = new TMap<string, number>(manager);
+        a.set("one", 1);
+        a.set("two", 2);
+        a.set("three", 3);        
+        assert.check( a.size() == 3, "Size should be 3");
+
+        let keys : Array<string> = a.keys();
+        let vals : Array<number> = a.values();
+
+        assert.check(keys.includes("one"), "Keys set should contain 'one'");
+        assert.check(keys.includes("two"), "Keys set should contain 'two'");
+        assert.check(keys.includes("three"), "Keys set should contain 'three'");
+        assert.check(vals.includes(1), "Values set should contain 1");
+        assert.check(vals.includes(2), "Values set should contain 2");
+        assert.check(vals.includes(3), "Values set should contain 3");
+    });
+
+    it('Should undo/redo properly', function() : void {
+        let a : TMap<string, number> = new TMap<string, number>(manager);
+        a.set("one", 1);
+        a.set("two", 2);
+        a.set("three", 3);        
+        assert.check( a.size() == 3, "Size should be 3");
+        //State A
+        manager.checkpoint();
+
+        a.set("four", 4);
+        //State B
+        let keys : Array<string> = a.keys();
+        let vals : Array<number> = a.values();
+        assert.check( a.size() == 4, "Size should be 4 after set");
+        assert.check( a.get("four") == 4, "Get on 'four' should return 4 after set.");
+        assert.check(keys.includes("four"), "Keys set should contain 'four' after set");
+        assert.check(vals.includes(4), "Values set should contain 4 after set");
+
+        //Back to State A
+        manager.undo();
+
+        keys = a.keys();
+        vals = a.values();
+        assert.check( a.size() == 3, "Size should be 3 after undo");
+        assert.check( a.get("four") == null, "Get on 'four' should return null after undo.");
+        assert.check(!keys.includes("four"), "Keys set should no longer contain 'four' after undo");
+        assert.check(!vals.includes(4), "Values set should no longer contain 4 after undo");
+
+        //Forward to state B
+        manager.redo();
+
+        keys = a.keys();
+        vals = a.values();
+        assert.check( a.size() == 4, "Size should be 4 after redo");
+        assert.check( a.get("four") == 4, "Get on 'four' should return 4 after redo.");
+        assert.check(keys.includes("four"), "Keys set should contain 'four' after redo");
+        assert.check(vals.includes(4), "Values set should contain 4 after redo");
+
+        a.set("five", 5);
+        //State C
+        keys = a.keys();
+        vals = a.values();
+        assert.check( a.size() == 5, "Size should be 5 after set");
+        assert.check( a.get("five") == 5, "Get on 'five' should return 5 after set.");
+        assert.check(keys.includes("five"), "Keys set should contain 'five' after set");
+        assert.check(vals.includes(5), "Values set should contain 5 after set");
+
+        //Undo from state C back to B
+        manager.undo();
+
+        keys = a.keys();
+        vals = a.values();
+        assert.check( a.size() == 4, "Size should be 4 after second undo");
+        assert.check( a.get("five") == null, "Get on 'five' should return null after second undo.");
+        assert.check(!keys.includes("five"), "Keys set should no longer contain 'five0' after second undo");
+        assert.check(!vals.includes(5), "Values set should no longer contain 5 after second undo");
+
+        //Branch from state B to state D
+        a.set("six", 6);
+
+        assert.check( a.size() == 5, "Size should be 5 after set");
+        assert.check(!manager.canRedo(), "Shouldn't be able to redo to a dead state");
+        assert.check(a.size() == 5, "Size should be 5 after setting a value.");
+        assert.check(a.get("six") == 6, "Get on 'six' should return 6 after set");
+        manager.checkpoint();
+        
+        a.set("three", 333);
+        //State E
+        vals = a.values();
+        assert.check( a.size() == 5, "Size should remain 5 after setting already present variable");
+        assert.check(a.get("three") == 333, "Get on 'three' should return 333 after set");
+        assert.check(!vals.includes(3), "Values set should no longer contain 3 after set");
+        assert.check(vals.includes(333), "Values set should contain 333 after set");
+
+        //Back to state D
+        manager.undo();
+
+        vals = a.values();
+        assert.check( a.size() == 5, "Size should remain 5 after undo");
+        assert.check(a.get("three") == 3, "Get on 'three' should return 3 after undo");
+        assert.check(!vals.includes(333), "Values set should no longer contain 333 after undo");
+        assert.check(vals.includes(3), "Values set should contain 3 after undo");
+
+        //Forward again to state E
+        manager.redo();
+
+        vals = a.values();
+        assert.check( a.size() == 5, "Size should remain 5 after redo");
+        assert.check(a.get("three") == 333, "Get on 'three' should return 333 after redo");
+        assert.check(!vals.includes(3), "Values set should no longer contain 3 after redo");
+        assert.check(vals.includes(333), "Values set should contain 333 after redo");
+
+    });
 });
 
 describe('vms.Evaluation isReady undo/redo', function() : void {
