@@ -73,121 +73,97 @@ module world {
     }
 
     export class World extends ObjectV {
-        protected stepperFactory: {[value: string]: (vms : VMS) => void;};
 
         constructor() {
             super();
             //console.log("World's fields array is length: " + this.fields.length);
 
-            this.stepperFactory = {};
-
-            function addstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
+            function addstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
                   const sum = vals.reduce( (s, x) => s+x, 0 ) ;
                   const val = new StringV( sum+"" ) ;
                   vms.finishStep( val ) ;
               }
-            }
+          }
 
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true);
             this.fields.push(addf);
-            this.stepperFactory["+"] = addstep;
 
-            function substep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
-                  const diff = vals.reduce( (s, x) => s-x) ;
+            function substep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
+                  const diff = vals.reduce( (s, x) => s-x,);
                   const val = new StringV( diff+"" ) ;
                   vms.finishStep( val ) ;
               }
-            }
+          }
 
             var sub = new BuiltInV(substep);
             var subf = new Field("-", sub, Type.NUMBER, true);
             this.fields.push(subf);
-            this.stepperFactory["-"] = substep;
 
-            function multstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
+            function multstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              
+              if( ok ) {
                   const prod = vals.reduce( (s, x) => s*x) ;
                   const val = new StringV( prod+"" ) ;
                   vms.finishStep( val ) ;
               }
-            }
+          }
 
             var mult = new BuiltInV(multstep);
             var multf = new Field("*", mult, Type.NUMBER, true);
             this.fields.push(multf);
-            this.stepperFactory["*"] = multstep;
 
-            function divstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
+            function divstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<number>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if( canConvertToNumber( args[i] ) ) {
+                      vals.push( convertToNumber( args[i] ) ) ; }
+                  else {
+                      vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ; } }
+              if (vals[vals.length] == 0) {
+                vms.reportError("Denominator is equal to zero.");
+                ok = false;
+              }              
+              if( ok ) {
                   const quot = vals.reduce( (s, x) => s/x) ;
                   const val = new StringV( quot+"" ) ;
                   vms.finishStep( val ) ;
               }
-            }
+          }
 
             var div = new BuiltInV(divstep);
             var divf = new Field("/", div, Type.NUMBER, true);
             this.fields.push(divf);
-            this.stepperFactory["/"] = divstep;
 
             // TODO create the functions for the following builtin function.
 
@@ -228,10 +204,6 @@ module world {
             // var orf = new Field("|", or, Type.BOOL, true);
 
             // this.fields.push(orf);
-        }
-
-        public getStepperFactory() : {[value: string]: (vms : VMS) => void;} {
-          return this.stepperFactory;
         }
     }
 

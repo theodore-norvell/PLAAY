@@ -13,6 +13,7 @@ import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
 import { Value } from './vms';
+import { BuiltInV } from './valueTypes';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -143,10 +144,20 @@ module interpreter {
     }
 
     function callWorldStepper( vms : VMS ) : void {
-      const value = vms.getPendingNode().label().getVal();
+      const node = vms.getPendingNode();
+      const value = node.label().getVal();
       if (vms.getStack().hasField(value)) {
-        let stepper = vms.getStepper(value);        
-        stepper(vms);  
+        let field = vms.getStack().getField(value).getValue();
+        if (field instanceof BuiltInV) {
+          let stepper = field.getStepper();
+          const args : Array<Value> = [];
+          if (node.hasChildren()) {
+            for (let i = 0; i < node.count(); i++) {
+              args.push(vms.getChildVal(i));
+            }
+          }
+          stepper(vms, args);
+        } 
       }
     }
 }
