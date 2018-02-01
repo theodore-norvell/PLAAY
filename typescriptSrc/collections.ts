@@ -140,7 +140,7 @@ module collections {
     export abstract class List<A> implements Collection<A> {
         public abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
         
-        public abstract choose<B,C>( f: (h:A, r:List<B>) => C, g : () => C ) : C ;
+        public abstract choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B ;
 
         public abstract map<B>(f : (a:A) => B ) : List<B> ;
         
@@ -215,7 +215,7 @@ module collections {
         public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
             return  g() ; }
         
-        public choose<B,C>( f: (h:A, r:List<B>) => C, g : () => C ) : C {
+        public choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B {
             return g() ; }
 
         public map<B>( f : (a:A) => B ) : List<B> {
