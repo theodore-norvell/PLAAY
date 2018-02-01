@@ -265,11 +265,6 @@ module vms{
             this.extraInformationMap.removeAllBelow( path ) ;
         }
 
-        public scrub( path : List<number> ) : void {
-            this.map.removeAllBelow( path ) ;
-            this.extraInformationMap.removeAllBelow( path ) ;
-        }
-
         public getValMap( ) : ValueMap {
             return this.map ; 
         }
