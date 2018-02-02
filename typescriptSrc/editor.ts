@@ -301,13 +301,13 @@ module editor {
         const inputs : JQuery = $("#container .input") ;
         if( inputs.length > 0 ) {
             inputs.focus(); // Set the focus to the first item in inputs
-            inputs.keyup(keyUpHandlerForInputs) ;
+            $(document).off( "keydown" ) ;
+            inputs.keydown(keyDownHandlerForInputs) ;
             // If there is any change to the input controls
             // then update the label on the next blur.
             inputs.change( function( ev : JQueryEventObject) : void {
                 inputs.blur( updateLabelHandler ) ;
             }) ;
-            $(document).off( "keydown" ) ;
             // TODO Scroll the container so that the element in focus is visible.
         } else {
             $(document).off( "keydown" ) ;
@@ -354,12 +354,19 @@ module editor {
             opt.map( sel => update(sel) );
             console.log( "<< updateLabelHandler") ; } ;
 
-    const keyUpHandlerForInputs 
+    const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            if (e.keyCode === 13) {
-                console.log( ">>keyup handler") ;
+            if (e.keyCode === 13 || e.keyCode === 9) {
+                console.log( ">>input keydown handler") ;
                 updateLabelHandler.call( this, e ) ;
-                console.log( "<< keyup handler") ;
+                if(e.keyCode === 9)
+                {
+                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                }
+                e.stopPropagation() ;
+                e.preventDefault();
+                console.log( "<<input keydown handler") ;
             } } ;
 
     const keyDownHandler
@@ -426,6 +433,27 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            // Undo: Cntl-Z or Cmd-Z
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey &&  e.which === 90) 
+            {
+                keyboardUndo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Redo: Cntl-Y or Cmd-Y (or Ctrl-Shift-Z or Cmd-Shift-Z)
+            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which == 90))) 
+            {
+                keyboardRedo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 32) // space bar
+            {
+                treeMgr.moveOut( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
             else if (e.which === 38) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
@@ -454,27 +482,41 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (isValidSelectionForKeyboardNodeCreation(currentSelection))
+            else if (!e.shiftKey && e.which === 9) // tab
+            {
+                treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.shiftKey && e.which === 9) // shift+tab
+            {
+                treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else 
             {
                 tryKeyboardNodeCreation(e);
             }
             console.log( "<<keydown handler") ;
     };
 
-    function tryKeyboardNodeCreation(e)
+    function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
+            console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
             // Create var decl node: Cntl-Shift-V or Cmd-Shift-V
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which == 86) 
+            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
             {
                 createNode("vardecl", currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             //Create assignment node: shift+; (aka :)
-            else if (e.shiftKey && (e.which == 59 || e.which == 186))
+            else if (e.shiftKey && (e.which === 59 || e.which === 186))
             {
                 createNode("assign", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -492,29 +534,41 @@ module editor {
                 e.preventDefault();
             }
             //Create if node: shift+/ (aka ?)
-            else if (e.shiftKey && e.which == 191)
+            else if (e.shiftKey && e.which === 191)
             {
                 createNode("if", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create while node: shift+2 (aka @)
-            else if (e.shiftKey && e.which == 50)
+            else if (e.shiftKey && e.which === 50)
             {
                 createNode("while", currentSelection );
-                currentSelection = selectFirstChild(currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create lambda node: with the \ key
+            else if (!e.shiftKey && e.which === 220)
+            {
+                createNode("lambda", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create call node: with the shift - key (aka _)
+            else if (e.shiftKey && (e.which === 189 || e.which === 173) )
+            {
+                createNode("call", currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create string literal node: shift+' (aka ")
-            else if (e.shiftKey && e.which == 222)
+            else if (e.shiftKey && e.which === 222)
             {
                 createNode("stringliteral", currentSelection, "" );
                 e.stopPropagation();
                 e.preventDefault();
             }
-            //Create variable node: any character
+            //Create variable node: any letter
             else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
             {
                 let charCode : number = e.which;
@@ -526,17 +580,18 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
-            //Create math node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
-            else if ((e.shiftKey && ((e.which === 61 || e.which == 187) || e.which === 56))
-                   || e.which === 191 || (e.which === 173 || e.which == 189)
+            //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
+            // TODO:  What for shifts (and lack of shifts) here.
+            else if ((e.shiftKey && ((e.which === 61 || e.which === 187) || e.which === 56))
+                   || e.which === 191 || (e.which === 173 || e.which === 189)
                    || e.which === 107 || e.which === 106 || e.which === 111 || e.which === 109)
             {
-                let charCode : number = e.which;
-                if(charCode === 61 || charCode === 107 || charCode == 187)
+                const charCode : number = e.which;
+                if(charCode === 61 || charCode === 107 || charCode === 187)
                 {
                     createNode("worldcall", currentSelection, "+");
                 }
-                else if(charCode === 109 || charCode === 173 || charCode == 189)
+                else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
                     createNode("worldcall", currentSelection, "-");
                 }
@@ -548,18 +603,10 @@ module editor {
                 {
                     createNode("worldcall", currentSelection, "/");
                 }
-                //We need to manipulate the selection so the first input placeholder is selected.
-                currentSelection = selectFirstChild(currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             return;
-    }
-
-    function selectFirstChild(sel) : Selection
-    {
-        let pathAddition : number = Math.min(sel.anchor(), sel.focus());
-        return new Selection(sel.root(), snoc(sel.path(), pathAddition), 0, 1)
     }
 
     export function update( sel : Selection ) : void {
@@ -573,39 +620,19 @@ module editor {
         return currentSelection ;
     }
 
-    function createNode(id: string, sel : Selection, nodeText?: string) : void
+    function createNode(id: string, selection : Selection, nodeText?: string) : void
     {
-        let selection : Option<Selection>|null = null;
-        if(nodeText != undefined){
-            selection = treeMgr.createNodeWithText(id, sel, nodeText);
-        }
-        else{
-            selection = treeMgr.createNode(id, sel );
-        }
-        console.log("  selection is " + selection );
-        assert.check( selection !== undefined ) ;
-        selection.map(
+        const opt : Option<Selection> =
+            (nodeText !== undefined) 
+            ? treeMgr.createNodeWithText(id, selection, nodeText)
+            : treeMgr.createNode(id, selection );
+        //console.log("  opt is " + opt );
+        opt.map(
             sel => {
-                console.log("  createNode is possible." ) ;
+                // console.log("  createNode is possible." ) ;
                 update( sel ) ;
-                console.log("  HTML generated" ) ;
+                // console.log("  HTML generated" ) ;
             } );
-    }
-
-    //We only want to be able to create nodes with the keyboard if the current selection is either empty or has no
-    //children. This prevents accidentally destroying large sections of code with an errant button press.
-    function isValidSelectionForKeyboardNodeCreation(sel: Selection) : boolean
-    {
-        if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 0)
-        {
-            return true;
-        }
-        else if(Math.abs(currentSelection.anchor() - currentSelection.focus()) == 1
-             && sel.selectedNodes()[0].count() == 0)
-        {
-            return true;
-        }
-        else return false;
     }
 
     function undo() : void {
@@ -624,15 +651,90 @@ module editor {
         }
     }
 
+    // Scroll container to make a selected element fully visible
+    function scrollIntoView() : void {
+        let container : JQuery | null = $("#container ");
+        let selection : JQuery | null = $(".selected");
+        if (selection.get(0) == undefined) { return; } //Return if no selected nodes
+
+        let selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
+        let selectionTop : number | null = selection.position().top; // Relative to visible container top
+        let selectionBot : number | null = (selectionHeight + selectionTop); 
+        let visibleHeight : number | null = container.outerHeight(); // Height of visible container   
+        let visibleTop : number | null = container.scrollTop(); // Top of visible container
+        let scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
+        let scrollSpeed : number = 50;
+
+        // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
+        if ( selectionBot > (visibleHeight-scrollBarWidth) && selectionHeight < visibleHeight) {
+            container.animate({
+                scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)
+            }, scrollSpeed);
+
+        // If the top edge of an element is not visible or element is too large, scroll to the top edge
+        // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
+        } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
+            container.animate({
+                scrollTop: (selectionTop + visibleTop - 10)
+            }, scrollSpeed);
+        }
+    }
+                                                           
+    //This version of undo is meant to be called by the keyboard shortcut.
+    //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
+    function keyboardUndo() : void {
+        let finished : boolean = false;
+        let sel : Selection = currentSelection;
+        while (undostack.length !== 0 && !finished)  {
+            redostack.push(sel);
+            sel = undostack.pop() as Selection ;
+            finished = hasOpenNodes(sel)
+        }
+        currentSelection = sel;
+        generateHTMLSoon();
+        return;
+    }
+
+    //This version of redo is meant to be called by the keyboard shortcut.
+    function keyboardRedo() : void {
+        let finished : boolean = false;
+        let sel : Selection = currentSelection;
+        while (redostack.length !== 0 && !finished)  {
+            undostack.push(sel);
+            sel = redostack.pop() as Selection;
+            finished = hasOpenNodes(sel)
+        }
+        currentSelection = sel;
+        generateHTMLSoon();
+        return;
+    }
+
+    function hasOpenNodes(sel: Selection) : boolean
+    {
+            if(Math.abs(sel.anchor() - sel.focus()) == 1)
+            {
+                if(sel.selectedNodes()[0].label().isOpen())
+                { //Keep going if the selected node is open.
+                    return false;
+                }
+                for(let child of sel.selectedNodes()[0].children())
+                { //deal with cases where a child of the selected node is open, but not the selected node itself.
+                    if(child.label().isOpen())
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+    }
+
     let pendingAction : number|null = null ;
     function generateHTMLSoon( ) : void {
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
-            function() : void { generateHTML() ; }, 20) ;
+            function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
     }
-
-
 }
 
 export = editor;

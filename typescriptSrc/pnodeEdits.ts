@@ -22,15 +22,20 @@ module pnodeEdits {
     import none = collections.none;
     import some = collections.some;
     import List = collections.List ;
+    import list = collections.list ;
     import cons = collections.cons ;
     import snoc = collections.snoc;
     import last = collections.last;
     import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
+    import Label = pnode.Label;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
-    import Label = pnode.Label;
+    import compose = edits.compose ;
+    import alt = edits.alt ;
+    import opt = edits.opt ;
+    import testEdit = edits.testEdit ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -103,7 +108,7 @@ module pnodeEdits {
         public toString() : string { return "Selection( " + "_root:" + this._root.toString() +
                             " _path:" + this._path.toString() +
                             " _anchor: " + this._anchor +
-                            " _focus: " + this._focus + ")"  ;}
+                            " _focus: " + this._focus + ")"  ; }
     }
     
     function isInteger( n : number ) : boolean {
@@ -125,6 +130,19 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Move out. I.e. to the parent if possible. */
+    function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
+        const root = selection.root();
+        const path = selection.path();
+        if( path.isEmpty() ) { return none<Selection>() ; }
+        else {
+            const last = collections.last(path) ;
+            return some( new Selection( root, collections.butLast( path ),
+                                        normal ? last : last+1,
+                                        normal ? last+1 : last ) ) ;
+        }
+
+    }
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
         const start = selection.start() ;
@@ -132,32 +150,29 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point (empty) selection.
         if (start === end)
         {
-            //there is node at start-1
+            //If there is there is node to the point's left
             if(start > 0)
             {
+                // Select the right most point under that node.
                 const newPath : List<number> = snoc(path, start-1);
                 const numOfChildren : number = root.get(newPath).count();
                 return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
             }
-            //the path is empty
+            //If there is no node to the left and the parent is the root.
             else if (path.isEmpty())
             {
+                // This is the start of the line. Fail
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
+            //If there is no node to the point's left. Select the parent of the point.
+            else {
                 return some( new Selection(root, butLast(path), last(path), last(path)+1));
             }
-            else 
-            {
-                //return a selection representing the position to the left of the parent
-                return some( new Selection(root, butLast(path), last(path), last(path)));
-            }
         }      
-        else
+        else // This is a nonempty selection.
         {
             //return a selection representing the position to the left of the leftmost selected node
             return some( new Selection(root, path, start, start));
@@ -171,33 +186,32 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point selection:
         if (start === end)
         {
-            //there is node at start
+            // If there is a node to the right.
             if(root.get(path).count() > start)
             {
-                return some( new Selection(root, snoc(path, start), 0, 0));
+                // Select that node
+                return some( new Selection(root, path, start, start+1));
             }
-            //the path is empty
+            //If there is no node to the right and the parent is the root"
             else if (path.isEmpty())
             {
+                // This is the end of the line. Fail.
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
-                return some( new Selection(root, butLast(path), last(path), last(path)+1));
-            }
-            else 
-            {
+            //If there is no node to the right and the parent is
+            // not the root.
+            else {
                 //return a selection representing the position to the right of the parent
                 return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
             }
         }      
-        else
+        else // This is a nonempty selection
         {
-            //return a selection representing the position to the right of the rightmost selected node
-            return some( new Selection(root, path, end, end));
+            // Go to the first point under the first node
+            return some( new Selection(root, snoc(path, start), 0, 0));
         }
     }
 
@@ -209,6 +223,16 @@ module pnodeEdits {
     /** Move down. */
     function moveDown( selection : Selection ) : Option<Selection> {
         return moveRight(selection) ; //In our case this is the same.
+    }
+    
+    /** Move Tab forward. */
+    function moveTabForward( selection : Selection ) : Option<Selection> {
+        return moveRight(selection) ; //In our case this is the same.
+    }
+
+    /** Move Tab back. */
+    function moveTabBack( selection : Selection ) : Option<Selection> {
+        return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -232,7 +256,7 @@ module pnodeEdits {
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
-            return opt.bind<Selection>( (newSeln : Selection)  => {
+            return opt.bind<Selection>( (newSeln : Selection) => {
                 const p0 = node.children(0, k ) ;
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
@@ -462,6 +486,10 @@ module pnodeEdits {
         }
     }
 
+    export function insertChildrenEdit( newNodes : Array<PNode> ) : Edit<Selection> {
+        return new InsertChildrenEdit( newNodes ) ;
+    }
+
     /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
      * The resulting selection indicates the position where the nodes
      * used to be.
@@ -627,15 +655,13 @@ module pnodeEdits {
         const start = sel.start() ;
         const end = sel.end() ;
         if( end - start === 1 ) {
-            // Placeholders and such are suitable
-            const node = sel.selectedNodes()[0] ;
-            return node.isPlaceHolder() ; }
+            // Any single node selection is suitable
+            return true ; }
         else if( end === start ) {
-            const node = sel.root().get( sel.path() ) ;
-            return node.hasDropZonesAt( start ) ;
+            // Dropzones are suitable
+            return sel.parent().hasDropZonesAt( start ) ;
         } else {
-            return assert.failedPrecondition(
-                "leftRightSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
 
@@ -645,28 +671,70 @@ module pnodeEdits {
     function upDownSuitable( opt : Option<Selection> ) : boolean {
         // Need to stop when we can go no further to the up or down.
         if( opt.isEmpty() ) return true ;
-        // Otherwise stop on dropzones or placeholders and similar nodes.
+        // Otherwise stop only on point selections whose
+        // parents have vertical layout.
         const sel = opt.first() ;
         const start = sel.start() ;
         const end = sel.end() ;
         if(end - start === 1)
         {
-            return false
+            return false ;
         }
         else if( end === start ) {
-            const node = sel.root().get( sel.path() ) ;
-            return node.hasVerticalLayout() ;
+            return sel.parent().hasVerticalLayout() ;
         }
         else
         {
-            return assert.failedPrecondition(
-                "upDownSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
+
+    /** Is this a suitable selection to stop at for tab keys.
+     * 
+    */
+    function tabSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop on dropzones or placeholders and similar nodes.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if( end - start === 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end === start ) {
+            // Dropzones are suitable unless there is a place holder
+            // (or similar) immediately to the right
+            return sel.parent().hasDropZonesAt( start )
+                && ! (   sel.parent().count() > start
+                      && sel.parent().child( start ).isPlaceHolder() ) ;
+        } else {
+            return false ;
+        }
+    }
+
+    /** 
+     * OutEdit
+     */
+    class OutEdit extends AbstractEdit<Selection> {
+        private readonly normal : boolean ;
+
+        constructor(normal : boolean ) { super() ; this.normal = normal ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            return moveOut( selection, this.normal ) ;
+        }
+    }
+
+    export const moveOutNormal = new OutEdit( true ) ;
+
+    export const moveOutReversed = new OutEdit( false ) ;
+
     /** 
      * Left edit
      */
-    export class LeftEdit extends AbstractEdit<Selection> {
+    class LeftEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -677,10 +745,12 @@ module pnodeEdits {
         }
     }
 
+    export const leftEdit = new LeftEdit() ;
+
     /** 
      * Right edit
      */
-    export class RightEdit extends AbstractEdit<Selection> {
+    class RightEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -691,10 +761,12 @@ module pnodeEdits {
         }
     }
 
+    export const rightEdit = new RightEdit() ;
+
     /** 
      * Up edit
      */
-    export class UpEdit extends AbstractEdit<Selection> {
+    class UpEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -704,6 +776,8 @@ module pnodeEdits {
             return opt ;
         }
     }
+
+    export const upEdit = new UpEdit() ;
 
     /** 
      * Down edit
@@ -717,6 +791,132 @@ module pnodeEdits {
             while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
             return opt ;
         }
+    }
+
+    export const downEdit = new DownEdit() ;
+
+    /** 
+     * Tab edit
+     */
+    class TabForwardEdit extends AbstractEdit<Selection> {
+
+        private readonly moveFirst : boolean;
+        constructor(moveFirst : boolean ) { super() ; this.moveFirst = moveFirst ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = this.moveFirst ? moveTabForward( selection ) : some( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    export const tabForwardEdit = new TabForwardEdit( true ) ;
+
+    export const tabForwardIfNeededEdit = new TabForwardEdit( false ) ;
+
+    /** 
+     * Tab edit
+     */
+    class TabBackEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabBack( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    export const tabBackEdit = new TabBackEdit() ;
+
+    /** 
+     * Select Parent Edit
+     */
+    class SelectParentEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            const path = selection.path() ;
+            if( path.isEmpty() ) { return none<Selection>() ; }
+            else { return some( new Selection( selection.root(),
+                                               butLast( path ),
+                                               last(path),
+                                               last(path)+1 ) ) ; }
+        }
+    }
+
+    export const selectParentEdit = new SelectParentEdit() ;
+
+    /** replaceWithTemplateEdit is basically an InsertChidren 
+     */
+    export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        const nodes = [ template.root() ] ;
+        return new InsertChildrenEdit( nodes ) ;
+    }
+
+    /** 
+     * Engulf the selected nodes with a template
+     */
+    class EngulfEdit extends AbstractEdit<Selection> {
+
+        private  t : Selection ;
+        constructor(template : Selection  ) {
+            super() ;
+            this.t = template ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            // console.log( ">> EngulfEdit.applyEdit") ;
+            const nodes = selection.selectedNodes() ;
+            // First step: Insert the selected nodes into the template.
+            const i0 = insertChildrenEdit( nodes ) ;
+            // console.log( "   EngulfEdit.applyEdit: Applying first step") ;
+            const opt0 = i0.applyEdit( this.t ) ;
+            const res = opt0.bind( sel0 => {
+                // Second step: Insert the result into the selection
+                const i1 = insertChildrenEdit( [sel0.root() ] );
+                // Do the second steps
+                // console.log( "   EngulfEdit.applyEdit: Applying second step") ;
+                const opt1 =  i1.applyEdit( selection ) ;
+                // console.log( "   EngulfEdit.applyEdit: Done second step") ;
+                return opt1.map( sel1 => {
+                    // The third step adjusts the selection so that it is a point
+                    // selection with the point being to the right of the engulfed nodes.
+                    // console.log( "   EngulfEdit.applyEdit: Applying third step") ;
+                    const sel1Nodes = sel1.selectedNodes() ;
+                    assert.check( sel1Nodes.length === 1 && sel1Nodes[0] === sel0.root() ) ;
+                    const path2 = sel1.path().cat( list( sel1.start() ) ).cat( sel0.path() ) ;
+                    const anchor2 = sel0.end() ;
+                    return new Selection( sel1.root(), path2, anchor2, anchor2 ) ;
+                }) ; } ) ;
+            // console.log( "<< EngulfEdit.applyEdit") ;
+            return res ;
+        }
+    }
+
+    /** Engulf the selected nodes with a template. */
+    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        return new EngulfEdit( template ) ;
+    }
+
+    /** Either replace the current seletion with a given template or
+     * engulf the current selection with the template.
+     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * preferred.
+     * 
+     * @param template 
+     */
+    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
+        const replace = compose( replaceWithTemplateEdit( template ), opt( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( template ), opt( tabForwardIfNeededEdit ) ) ;
+        const selectionIsAllPlaceHolder
+            = testEdit( (sel:Selection) =>
+                           sel.selectedNodes().every( (p : PNode) =>
+                                                       p.isPlaceHolder() ) ) ;
+        return  alt( compose( selectionIsAllPlaceHolder, replace ),
+                     engulf,
+                     replace ) ;
     }
 
 }
