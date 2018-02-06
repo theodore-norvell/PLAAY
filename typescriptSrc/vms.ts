@@ -49,7 +49,7 @@ module vms{
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
-            this.manager = new TransactionManager();;
+            this.manager = new TransactionManager();
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
@@ -207,8 +207,8 @@ module vms{
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
 
-        constructor (root : PNode, varStack : VarStack, vms : VMS) {
-            const manager = vms.getTransactionManager();
+        constructor (root : PNode, varStack : VarStack, vm : VMS) {
+            const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.ready = new TVar<boolean>(false, manager);
@@ -347,14 +347,14 @@ module vms{
             return this.pending.get() === null;
         }
 
-        public advance( interpreter : Interpreter, vms : VMS ) : void {
+        public advance( interpreter : Interpreter, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
 
             if( this.ready.get() ){
-                interpreter.step( vms ) ;
+                interpreter.step( vm ) ;
             }
             else{
-                interpreter.select( vms ) ;
+                interpreter.select( vm ) ;
             }
         }
     }
