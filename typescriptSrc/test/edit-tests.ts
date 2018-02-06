@@ -1121,7 +1121,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
 
 } ) ;
 
-describe( 'swap without common parent', function() {
+describe( 'swap without common parent', function() : void {
     it( 'should swap (1) (0,..1) with (2) (0,..1)', () => {
         const sel0 = new pnodeEdits.Selection( ite1, list(1), 0, 1 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
@@ -1129,27 +1129,27 @@ describe( 'swap without common parent', function() {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a](), seq(string[c]()), seq(string[b]())"
-                                 + " _path:(2) _anchor: 0 _focus: 1)",
+                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq( string[b]()))"
+                                      + " _path:( 2 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (2) (0,..1) with (2) (0,..1)', () => {
+    it( 'should swap (2) (0,..1) with (2) (0,..1)', function() : void {
         const sel0 = new pnodeEdits.Selection( ite1, list(2), 0, 1 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( ite1, list(1), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a](), seq(string[c]()), seq(string[b]())"
-                                 + " _path:(1) _anchor: 0 _focus: 1)",
+                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq( string[b]()))"
+                                     + " _path:( 1 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 } ) ;
 
-describe( 'move without common parent', function() {
+describe( 'move without common parent', function() : void {
     it( 'should move from (1) (0,..1) to (2) (0,..1)', () => {
         const sel0 = new pnodeEdits.Selection( ite1, list(1), 0, 1 ) ;
         const edit = new pnodeEdits.MoveEdit( sel0 ) ;
@@ -1157,21 +1157,21 @@ describe( 'move without common parent', function() {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a](), seq(), seq(string[b]())"
-                                 + " _path:(2) _anchor: 0 _focus: 1)",
+                assert.checkEqual( "Selection( _root:if( string[a]() seq() seq( string[b]()))"
+                                      + " _path:( 2 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
-    it( 'should move from (2) (0,..1) to (1) (0,..1)', () => {
+    it( 'should move from (2) (0,..1) to (1) (0,..1)', function() : void {
         const sel0 = new pnodeEdits.Selection( ite1, list(2), 0, 1 ) ;
         const edit = new pnodeEdits.MoveEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( ite1, list(1), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a](), seq(string[c]()), seq()"
-                                    + " _path:(1) _anchor: 0 _focus: 1)",
-                                    s.toString() ) ;
+                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq())"
+                                       + " _path:( 1 ) _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 } ) ;

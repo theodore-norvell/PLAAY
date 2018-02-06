@@ -123,7 +123,8 @@ module edits {
     export function id<A>() : Edit<A> {
         return new IdentityEdit<A>()  ; }
 
-    export function opt<A>( edit : Edit<A> ) : Edit<A> {
+    /** An edit that optionally applies another edit. */
+    export function optionally<A>( edit : Edit<A> ) : Edit<A> {
         return alt( edit, id<A>() ) ;
     }
 
