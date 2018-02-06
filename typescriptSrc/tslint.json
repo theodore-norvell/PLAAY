@@ -39,7 +39,6 @@
         "strict-boolean-expressions": true,
         "strict-type-predicates": true,
         "triple-equals": true,
-        "typeof-compare": true,
         "use-isnan": true,
         "no-default-export": true,
         "no-mergeable-namespace": true,
