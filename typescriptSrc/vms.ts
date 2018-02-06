@@ -134,12 +134,12 @@ module vms{
             return this.evalStack.top().hasExtraInformation( ) ;
         }
 
-        public getExtraInformation( ) : any {
+        public getExtraInformation( ) : {} {
             assert.checkPrecondition( this.canAdvance() ) ;
             return this.evalStack.top().getExtraInformation( ) ;
         }
 
-        public putExtraInformation( v : any ) : void {
+        public putExtraInformation( v : {} ) : void {
             assert.checkPrecondition( this.canAdvance() ) ;
             this.evalStack.top().putExtraInformation( v ) ;
         }
@@ -179,7 +179,7 @@ module vms{
             const ev = this.evalStack.top();
             
             if( ev.isDone() ) {
-                const value = ev.getVal(nil<number>()) as Value;
+                const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
                 if(this.evalStack.notEmpty()){
                     this.evalStack.top().setResult( value );
@@ -309,13 +309,13 @@ module vms{
             return this.extraInformationMap.isMapped( p ) ; 
         }
 
-        public getExtraInformation( ) : any {
+        public getExtraInformation( ) : {} {
             assert.checkPrecondition( this.pending.get() !== null ) ;
             const p = this.pending.get() as List<number> ;
             return this.extraInformationMap.get( p ) ; 
         }
 
-        public putExtraInformation( v : any ) : void {
+        public putExtraInformation( v : {} ) : void {
             assert.checkPrecondition( this.pending.get() !== null ) ;
             const p = this.pending.get() as List<number> ;
             this.extraInformationMap.put( p, v ) ; 
@@ -471,7 +471,7 @@ module vms{
      */
     export class ValueMap extends Map<Value> {}
 
-    class AnyMap extends Map<any> {} 
+    class AnyMap extends Map<{}> {} 
 
     /* A VarStack is the context for expression evaluation. I.e. it is where
     * variables are looked up.  See the run-time model for more detail.

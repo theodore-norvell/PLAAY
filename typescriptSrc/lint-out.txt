@@ -8,10 +8,10 @@ WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/t
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[131, 21]: Shadowed name: 'vms'
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[158, 16]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[158, 16]: Avoid referencing unbound methods which may cause unintentional scoping of 'this'.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[162, 16]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[162, 16]: Avoid referencing unbound methods which may cause unintentional scoping of 'this'.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[167, 27]: Unsafe use of expression of type 'any'.
+WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[162, 16]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[167, 27]: Avoid referencing unbound methods which may cause unintentional scoping of 'this'.
+WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/animator.ts[167, 27]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/assert.ts[10, 21]: forbidden eval
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/assert.ts[14, 13]: Expression is always true.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/assert.ts[106, 29]: Unsafe use of expression of type 'any'.
@@ -215,12 +215,6 @@ WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/t
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/userRelated.ts[239, 30]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/userRelated.ts[263, 25]: Unsafe use of expression of type 'any'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/userRelated.ts[264, 9]: Unsafe use of expression of type 'any'.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[137, 41]: Type declaration of 'any' loses type-safety. Consider replacing it with a more precise type.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[142, 41]: Type declaration of 'any' loses type-safety. Consider replacing it with a more precise type.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[182, 31]: This assertion is unnecessary since it does not change the type of the expression.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[312, 41]: Type declaration of 'any' loses type-safety. Consider replacing it with a more precise type.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[318, 41]: Type declaration of 'any' loses type-safety. Consider replacing it with a more precise type.
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/vms.ts[474, 30]: Type declaration of 'any' loses type-safety. Consider replacing it with a more precise type.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/workspace.ts[23, 25]: Shadowed name: 'world'
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[18, 1]: Import sources within a group must be alphabetized.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[42, 80]: Shadowed name: 'vms'
@@ -249,6 +243,6 @@ WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/t
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[188, 13]: Forbidden 'var' keyword, use 'let' or 'const' instead
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[188, 17]: Identifier 'divf' is never reassigned; use 'const' instead of 'var'.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[250, 26]: Shadowed name: 'vms'
-WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[251, 25]: Expression has type `void`. Put it on its own line as a statement.
 WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[251, 25]: This type is not allowed in the 'if' condition because it is always falsy. Only booleans are allowed.
+WARNING: /Users/theo/Documents/courses/term8projects/2016-Plaay/PLAY-2016-Repo/typescriptSrc/world.ts[251, 25]: Expression has type `void`. Put it on its own line as a statement.
 
