@@ -8,7 +8,7 @@
     "test": "mocha",
     "preinstall": "tsc && browserify --debug -o plaay.js -s main main.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
-    "lint": "tslint --type-check --project tsconfig.json"
+    "lint": "tslint --project tsconfig.json"
   },
   "author": "",
   "license": "Copyright of the developers"

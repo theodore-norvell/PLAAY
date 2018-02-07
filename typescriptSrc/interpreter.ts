@@ -12,6 +12,7 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
+import { Value } from './vms';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -81,6 +82,9 @@ module interpreter {
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
 
+    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
+
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
 
@@ -136,6 +140,14 @@ module interpreter {
 
     function nullLiteralStepper( vms : VMS ) : void {
         vms.finishStep( theNullValue ) ;
+    }
+
+    function callWorldStepper( vms : VMS ) : void {
+      const value = vms.getPendingNode().label().getVal();
+      if (vms.getStack().hasField(value)) {
+        //let stepper = vms.getStepper(value);        
+        //stepper(vms);  
+      }
     }
 }
 

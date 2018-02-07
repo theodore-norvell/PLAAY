@@ -9,9 +9,9 @@
 /// <reference path="backtracking.ts" />
 
 import assert = require( './assert' ) ;
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
-import backtracking = require( './backtracking' ) ;
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -40,16 +40,16 @@ module vms{
      */
     export class VMS {
 
-        private evalStack : EvalStack ;
+        private readonly evalStack : EvalStack ;
 
-        private manager : TransactionManager ;
+        private readonly manager : TransactionManager ;
 
-        private interpreter : Interpreter ;
+        private readonly interpreter : Interpreter ;
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
-            this.manager = new TransactionManager();;
+            this.manager = new TransactionManager();
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
@@ -134,12 +134,12 @@ module vms{
             return this.evalStack.top().hasExtraInformation( ) ;
         }
 
-        public getExtraInformation( ) : any {
+        public getExtraInformation( ) : {} {
             assert.checkPrecondition( this.canAdvance() ) ;
             return this.evalStack.top().getExtraInformation( ) ;
         }
 
-        public putExtraInformation( v : any ) : void {
+        public putExtraInformation( v : {} ) : void {
             assert.checkPrecondition( this.canAdvance() ) ;
             this.evalStack.top().putExtraInformation( v ) ;
         }
@@ -179,7 +179,7 @@ module vms{
             const ev = this.evalStack.top();
             
             if( ev.isDone() ) {
-                const value = ev.getVal(nil<number>()) as Value;
+                const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
                 if(this.evalStack.notEmpty()){
                     this.evalStack.top().setResult( value );
@@ -200,17 +200,17 @@ module vms{
      * See the run-time model documentation for details.
      * */
     export class Evaluation {
-        private root : TVar<PNode>;
-        private varStack : VarStack ;
-        private pending : List<number> | null ;
-        private ready : TVar<boolean>;
-        private map : ValueMap;
-        private extraInformationMap : AnyMap;
+        private readonly root : TVar<PNode>;
+        private readonly varStack : VarStack ;
+        private readonly pending : TVar<List<number> | null> ;
+        private readonly ready : TVar<boolean>;
+        private readonly map : ValueMap;
+        private readonly extraInformationMap : AnyMap;
 
-        constructor (root : PNode, varStack : VarStack, vms : VMS) {
-            let manager = vms.getTransactionManager();
+        constructor (root : PNode, varStack : VarStack, vm : VMS) {
+            const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
-            this.pending = nil<number>();
+            this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.ready = new TVar<boolean>(false, manager);
             this.varStack = varStack ;
             this.map = new ValueMap();
@@ -235,29 +235,29 @@ module vms{
 
         public getPending() : List<number> {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             return p ;
         }
 
         public getPendingNode() : PNode {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             return this.root.get().get(p) ;
         }
 
         public pushPending( childNum : number ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
-            this.pending = p.cat( list( childNum ) ) ;
+            const p = this.pending.get() as List<number> ;
+            this.pending.set( p.cat( list( childNum ) ) ) ;
         }
         
         public popPending( ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             if( p.size() === 0 ) {
-                this.pending = null ;
+                this.pending.set( null ) ;
             } else {
-                this.pending = collections.butLast( p ) ; }
+                this.pending.set( collections.butLast( p ) ) ; }
         }
 
         public scrub( path : List<number> ) : void {
@@ -288,7 +288,7 @@ module vms{
 
         public isChildMapped( childNum : number ) : boolean {
             if( this.isDone() ) return false ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             return this.map.isMapped( collections.snoc(p, childNum ) ) ; 
         }
 
@@ -299,32 +299,32 @@ module vms{
          */
         public getChildVal( childNum : number ) : Value {
             assert.checkPrecondition( !this.isDone() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
         public hasExtraInformation(  ) : boolean {
-            if( this.pending === null ) return false ;
-            const p = this.pending as List<number> ;
+            if( this.pending.get() === null ) return false ;
+            const p = this.pending.get() as List<number> ;
             return this.extraInformationMap.isMapped( p ) ; 
         }
 
-        public getExtraInformation( ) : any {
-            assert.checkPrecondition( this.pending !== null ) ;
-            const p = this.pending as List<number> ;
+        public getExtraInformation( ) : {} {
+            assert.checkPrecondition( this.pending.get() !== null ) ;
+            const p = this.pending.get() as List<number> ;
             return this.extraInformationMap.get( p ) ; 
         }
 
-        public putExtraInformation( v : any ) : void {
-            assert.checkPrecondition( this.pending !== null ) ;
-            const p = this.pending as List<number> ;
+        public putExtraInformation( v : {} ) : void {
+            assert.checkPrecondition( this.pending.get() !== null ) ;
+            const p = this.pending.get() as List<number> ;
             this.extraInformationMap.put( p, v ) ; 
         }
 
         public finishStep( value : Value ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
             this.popPending() ;
             this.setReady( false ) ;
@@ -334,7 +334,7 @@ module vms{
             // This is used for function calls.
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending as List<number> ;
+            const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
             // At this point, the evaluation is
             // ready and the call node is pending.
@@ -344,17 +344,17 @@ module vms{
         }
 
         public isDone() : boolean {
-            return this.pending === null;
+            return this.pending.get() === null;
         }
 
-        public advance( interpreter : Interpreter, vms : VMS ) : void {
+        public advance( interpreter : Interpreter, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
 
-            if( this.ready ){
-                interpreter.step( vms ) ;
+            if( this.ready.get() ){
+                interpreter.step( vm ) ;
             }
             else{
-                interpreter.select( vms ) ;
+                interpreter.select( vm ) ;
             }
         }
     }
@@ -471,7 +471,7 @@ module vms{
      */
     export class ValueMap extends Map<Value> {}
 
-    class AnyMap extends Map<any> {} 
+    class AnyMap extends Map<{}> {} 
 
     /* A VarStack is the context for expression evaluation. I.e. it is where
     * variables are looked up.  See the run-time model for more detail.

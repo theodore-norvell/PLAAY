@@ -23,6 +23,7 @@ module valueTypes {
     import ObjectI = vms.ObjectI ;
     import FieldI = vms.FieldI ;
     import Type = vms.Type ;
+    import VMS = vms.VMS;
 
 
     /** A field of an object. */
@@ -112,6 +113,7 @@ module valueTypes {
             this.fields = new Array<Field>();
         }
 
+
         public numFields():number {
             return this.fields.length;
         }
@@ -160,7 +162,6 @@ module valueTypes {
             }
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
         }
-
 
         public isClosureV() : boolean {
             return false;

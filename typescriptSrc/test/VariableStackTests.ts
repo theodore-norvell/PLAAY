@@ -48,6 +48,9 @@ describe( 'Variable Stack ', function() : void {
         assert.check( yStack.getTop().getField(f.getName()) === f );
         assert.check( yStack.getField(f.getName()) === f );
         assert.check( yStack.hasField("+") );
+        assert.check( yStack.hasField("-") );
+        assert.check( yStack.hasField("*") );
+        assert.check( yStack.hasField("/") );
         assert.check( ! yStack.hasField("not in stack") );
     } );
 } ) ;

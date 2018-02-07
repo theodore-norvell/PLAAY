@@ -105,3 +105,115 @@ describe( 'NullLiteralLabel', function() : void {
         assert.check( val instanceof NullV ) ;
     } );
 } ) ;
+
+describe( 'CallWorldLabel - addition', function() : void {
+  const rootlabel = new labels.CallWorldLabel("+", false);
+  const op1 = labels.mkNumberLiteral("2");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling 5', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "5");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - subtraction', function() : void {
+  const rootlabel = new labels.CallWorldLabel("-", false);
+  const op1 = labels.mkNumberLiteral("5");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling 2', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "2");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - multiplication', function() : void {
+  const rootlabel = new labels.CallWorldLabel("*", false);
+  const op1 = labels.mkNumberLiteral("5");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling 15', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "15");
+  } );
+} ) ;
+
+describe( 'CallWorldLabel - division', function() : void {
+  const rootlabel = new labels.CallWorldLabel("/", false);
+  const op1 = labels.mkNumberLiteral("9");
+  const op2 = labels.mkNumberLiteral("3");
+  const root = new PNode(rootlabel, [op1, op2]);
+  const vm = new VMS(root, wlds, interp);
+
+  it('should evaluate to a StringV equaling 3', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val = vm.getVal( emptyList ) ;
+      assert.check( val instanceof StringV ) ;
+      assert.check( (val as StringV).getVal() === "3");
+  } );
+} ) ;
