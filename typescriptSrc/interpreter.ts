@@ -94,6 +94,9 @@ module interpreter {
     theStepperRegistry[ labels.ExprSeqLabel.kindConst ] = exprSeqStepper ;
     theSelectorRegistry[ labels.ExprSeqLabel.kindConst ] = leftToRightSelector ;
 
+    theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
+    theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -153,9 +156,53 @@ module interpreter {
       }
     }
 
-    function exprSeqStepper( vms : VMS ) : void {
-        vms.finishStep( vms.getChildVal(0) ) ;
+    function exprSeqStepper(vms : VMS) : void {
+        //set it to the value of the last child node :)
+        const numberOfChildren : number = vms.getPendingNode().count();
+        vms.finishStep(vms.getChildVal(numberOfChildren - 1));
     }
+
+    function ifSelector(vms : VMS) : void {
+        //check if the condition node is mapped
+        let choiceNode = -1;
+        if (vms.isChildMapped(0)) {
+            //if it is, get the result of the condition node
+            assert.check(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
+            const result : string = (<StringV> vms.getChildVal(0)).getVal();
+            if (result === "true") {
+                choiceNode = 1;
+            }
+            else if (result === "false") {
+                choiceNode = 2;
+            }
+
+            assert.check(choiceNode === 1 || choiceNode === 2, "Condition is neither true nor false.");
+            if (!vms.isChildMapped(choiceNode)) {
+                vms.pushPending(choiceNode);
+                vms.getInterpreter().select(vms);
+            }
+
+            else {
+                vms.setReady(true);
+            }
+        }
+
+        else {
+            vms.pushPending(0);
+            vms.getInterpreter().select(vms);
+        }
+
+    }
+     function ifStepper(vms : VMS) : void {
+        assert.checkPrecondition(vms.isChildMapped(0), "Condition is not ready.");
+        assert.checkPrecondition(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
+        const result : string = (<StringV> vms.getChildVal(0)).getVal();
+        assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
+        const choice = result === "true" ? 1 : 2;
+        vms.finishStep(vms.getChildVal(choice));
+
+     }
+
 }
 
 export = interpreter ;
