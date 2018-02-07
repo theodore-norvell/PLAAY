@@ -133,13 +133,25 @@ module backtracking
             this.array.unshift(newVal);
             this.sizeVar.set(this.sizeVar.get()+1);
         }
+
+        public slice(start: number, end : number) : TArray<TVar<T>>
+        {
+            if (!(start < end) || !(start >= 0) || !(end <= this.sizeVar.get())){
+                throw new Error("Tried to slice TArray with invalid indicies")
+            }
+            let newArray : Array<TVar<T>> = this.array.slice(start, end);
+            let newSlice : TArray<any> = new TArray<any>(this.manager);
+            newArray.forEach(el=>{
+                newSlice.push(el.get());
+            });
+            return newSlice;
+        }
     }
 
     export class TMap<K,T>
     {
         private map : Map<K, TVar<T>>;
         private manager : TransactionManager;
-
         public constructor(manager : TransactionManager)
         {
             this.map = new Map<K, TVar<T>>();

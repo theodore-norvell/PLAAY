@@ -373,6 +373,64 @@ describe('Backtracking.TArray', function() : void {
         assert.check( a.size() === 4, "TArray size should be 4 after unshift");
         assert.check( a.get(0) === 7, "Element at index 0 should be 7 after unshift");
     })
+
+    it('Should slice properly', function() : void {
+        const a : TArray<any> = new TArray<any>(manager);
+        a.push(0); a.push(1); a.push(2); a.push(3); a.push(4);
+
+        //State A
+        manager.checkpoint();
+        assert.check(a.size() === 5, "TArray should be of size 5 after initialization");
+
+        //State B
+        const b : TArray<any> = a.slice(0, 3);
+
+        assert.check(b.size() === 3, "Returned TArray from slice should be of size 3");
+        assert.check(a.size() === 5, "Size of initial Tarray should still be 5");
+        assert.check(a.get(0) === b.get(0), "Values for each TArray at idx 0 should be equal");
+
+        //Invalid index checks
+        let ok = true;
+        try{
+            a.slice(0, 6);
+            ok = false;
+        }catch(ex){}
+        assert.check(ok, "slice of TArray a with end index > a.size should fail");
+
+        try{
+            a.slice(1, 1);
+            ok = false;
+        }catch(ex){}
+        assert.check(ok, "slice of TArray a with start index == end index should fail");
+
+        try{
+            a.slice(3, 2);
+            ok = false;
+        }catch(ex){}
+        assert.check(ok, "slice of TArray a with end index < start index should fail");
+
+        //Back to State A
+        manager.undo();
+
+        try {
+            b.get(0);
+            ok = false ;
+        }catch(ex){}
+        assert.check(ok, "get of an element in TArray slice after undo should fail (get of dead TVar)");
+
+        assert.check(a.get(0) == 0 && a.get(4) == 4 && a.size() == 5, "Initial TArray should be unchanged after slice undo");
+
+        //Back to State B
+        manager.redo();
+        assert.check(b.size() === 3, "Returned TArray from slice should be of size 3 after redo");
+        assert.check(a.size() === 5, "Size of initial Tarray should still be 5 after redo");
+        assert.check(a.get(0) === b.get(0), "Values for each TArray at idx 0 should be equal after redo");
+
+        //Test single element slice
+        const c : TArray<any> = a.slice(1, 2);
+        assert.check(c.size() === 1, "Size of array slice c should be 1");
+        assert.check(c.get(0) === 1, "First and only element in array slice c should be 1");
+    })
 });
 
 describe('Backtracking.TMap', function() : void {
