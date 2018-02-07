@@ -28,6 +28,8 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
+import {IfLabel} from "../labels";
+import {Value} from "../vms";
 
 const emptyList = collections.nil<number>() ;
 const wld = new World();
@@ -220,18 +222,12 @@ describe( 'CallWorldLabel - division', function() : void {
 
 describe( 'ExprSeqLabel', function () : void {
     const rootLabel = new labels.ExprSeqLabel();
-    const callWorldLabel = new labels.CallWorldLabel( "+", false ) ;
     const op1 = labels.mkNumberLiteral( "1" ) ;
     const op2 = labels.mkNumberLiteral( "2" ) ;
-    const addLabel = new PNode( callWorldLabel, [op1, op2] ) ;
-    const root = new PNode( rootLabel, [addLabel] ) ;
+    const root = new PNode( rootLabel, [op1, op2] ) ;
     const vm = new VMS( root, wlds, interp ) ;
 
     it( 'should evaluate to a StringV equaling 3', function () : void {
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
         assert.check( ! vm.isReady() ) ;
         vm.advance() ;
         assert.check(  vm.isReady() ) ;
@@ -248,6 +244,86 @@ describe( 'ExprSeqLabel', function () : void {
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
         assert.check( val instanceof StringV ) ;
-        assert.check( ( val as StringV ).getVal() === "3" ) ;
+        assert.check( ( val as StringV ).getVal() === "2" ) ;
     } );
 } );
+
+describe('IfLabel', function () : void{
+    it('should evaluate to a StringV equaling 5 when true', function() : void {
+        //setup
+        const ifLabel : IfLabel = new labels.IfLabel();
+        const condition : PNode = labels.mkTrueBooleanLiteral();
+        const ifTrue : PNode = labels.mkNumberLiteral("5");
+        const ifFalse : PNode = labels.mkNumberLiteral("7");
+        const trueExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifTrue]);
+        const falseExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
+        const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
+        const root : PNode = new PNode(ifLabel, ifArray);
+        const vm : VMS = new VMS(root, wlds, interp);
+
+        //run test
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        assert.check(vm.isDone(), "VMS is not done.");
+        assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
+        const val : Value = vm.getVal(emptyList);
+        assert.check(val instanceof StringV, "The value is not a StringV.");
+        const result : string = (<StringV> val).getVal();
+        assert.check(result === "5", "It did not return 5 as expected. It returned " + result);
+
+    });
+
+    it('should evaluate to a StringV equaling 7 when false', function() : void {
+        //setup
+        const ifLabel : IfLabel = new labels.IfLabel();
+        const condition : PNode = labels.mkFalseBooleanLiteral();
+        const ifTrue : PNode = labels.mkNumberLiteral("5");
+        const ifFalse : PNode = labels.mkNumberLiteral("7");
+        const trueExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifTrue]);
+        const falseExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
+        const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
+        const root : PNode = new PNode(ifLabel, ifArray);
+        const vm : VMS = new VMS(root, wlds, interp);
+
+        //run test
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        assert.check(vm.isDone(), "VMS is not done.");
+        assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
+        const val : Value = vm.getVal(emptyList);
+        assert.check(val instanceof StringV, "The value is not a StringV.");
+        const result : string = (<StringV> val).getVal();
+        assert.check(result === "7", "It did not return 7 as expected. It returned " + result);
+
+    });
+});
