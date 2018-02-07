@@ -147,6 +147,7 @@ module interpreter {
       const node = vms.getPendingNode();
       const value = node.label().getVal();
       if (vms.getStack().hasField(value)) {
+<<<<<<< HEAD
         let field = vms.getStack().getField(value).getValue();
         if (field instanceof BuiltInV) {
           let stepper = field.getStepper();
@@ -158,6 +159,10 @@ module interpreter {
           }
           stepper(vms, args);
         } 
+=======
+        //let stepper = vms.getStepper(value);        
+        //stepper(vms);  
+>>>>>>> master
       }
     }
 }
