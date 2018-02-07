@@ -145,8 +145,8 @@ module interpreter {
     function callWorldStepper( vms : VMS ) : void {
       const value = vms.getPendingNode().label().getVal();
       if (vms.getStack().hasField(value)) {
-        let stepper = vms.getStepper(value);        
-        stepper(vms);  
+        //let stepper = vms.getStepper(value);        
+        //stepper(vms);  
       }
     }
 }
