@@ -356,7 +356,7 @@ module vms{
         public advance( interpreter : Interpreter, vms : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
 
-            if( this.ready ){
+            if( this.ready.get() ){
                 interpreter.step( vms ) ;
             }
             else{
