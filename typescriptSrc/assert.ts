@@ -100,14 +100,14 @@ module assert {
     export function checkEqual( a : any, b : any ) : void  {
     /* tslint:enable:no-any */
         if( !( a===b) ) {
-            let message = "Assertion failed: Expected " ;
+            let message = "Assertion failed:\nExpected " ;
             if( a===undefined ) message += "undefined" ;
             else if( a===null) message += "null" ;
-            else message += a.toString() ;
-            message += " === " ;
+            else message += "<<" + a.toString() + ">>" ;
+            message += "\n but got " ;
             if( b===undefined ) message += "undefined" ;
             else if( b===null) message += "null" ;
-            else message += b.toString() ;
+            else message += "<<"+ b.toString() +">>";
             raiseTheAlarm( message ) ;
         }
     }

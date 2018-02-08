@@ -121,7 +121,7 @@ module edits {
     *  It is `Some( a )` if `x.applyEdit(a)` fails.
     */
     export function id<A>() : Edit<A> {
-        return new IdentityEdit<A>()  ; }
+        return new IdentityEdit<A>() ; }
 
     /** An edit that optionally applies another edit. */
     export function optionally<A>( edit : Edit<A> ) : Edit<A> {

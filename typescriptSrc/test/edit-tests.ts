@@ -19,6 +19,7 @@ const a : pnode.PNode = labels.mkStringLiteral( "a" ) ;
 const b : pnode.PNode = labels.mkStringLiteral( "b" ) ;
 const c : pnode.PNode = labels.mkStringLiteral( "c" ) ;
 const d : pnode.PNode = labels.mkStringLiteral( "d" ) ;
+const e : pnode.PNode = labels.mkStringLiteral( "e" ) ;
 const s0 : pnode.PNode = labels.mkExprSeq( [a,b] ) ;
 const s1 : pnode.PNode = labels.mkExprSeq( [c] ) ;
 const ite0 = labels.mkIf( a, s0, s1 )  ;
@@ -29,7 +30,7 @@ const seq1= labels.mkExprSeq( [a] ) ;
 const seq2 = labels.mkExprSeq( [a,b] ) ;
 const seq3 = labels.mkExprSeq( [a,b,c] ) ;
 
-const ite1 = labels.mkIf( a, labels.mkExprSeq([b]), labels.mkExprSeq([c])) ;
+const ite1 = labels.mkIf( labels.mkCall(a, b), labels.mkExprSeq([b,c]), labels.mkExprSeq([d,e])) ;
 // ite0 is if( a, seq(b), seq(c))
 
 
@@ -1129,21 +1130,55 @@ describe( 'swap without common parent', function() : void {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq( string[b]()))"
-                                      + " _path:( 2 ) _anchor: 0 _focus: 1)",
+                assert.checkEqual( "Selection( _root:if( call( string[a]() string[b]())"
+                                 + " seq( string[d]() string[c]())"
+                                 + " seq( string[b]() string[e]()))"
+                                 + " _path:( 2 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 
-    it( 'should swap (2) (0,..1) with (2) (0,..1)', function() : void {
+    it( 'should swap (2) (0,..1) with (1) (0,..1)', function() : void {
         const sel0 = new pnodeEdits.Selection( ite1, list(2), 0, 1 ) ;
         const edit = new pnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new pnodeEdits.Selection( ite1, list(1), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq( string[b]()))"
-                                     + " _path:( 1 ) _anchor: 0 _focus: 1)",
+                assert.checkEqual( "Selection( _root:if( call( string[a]() string[b]())"
+                                 + " seq( string[d]() string[c]())"
+                                 + " seq( string[b]() string[e]()))"
+                                 + " _path:( 1 ) _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (0) (0,..2) with (1) (1,..2)', function() : void {
+        const sel0 = new pnodeEdits.Selection( ite1, list(0), 0, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( ite1, list(1), 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:if( call( string[c]())"
+                                 + " seq( string[b]() string[a]() string[b]())"
+                                 + " seq( string[d]() string[e]()))"
+                                 + " _path:( 1 ) _anchor: 1 _focus: 3)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should swap (1) (1,..2) with (0) (0,..2)', function() : void {
+        const sel0 = new pnodeEdits.Selection( ite1, list(1), 1, 2 ) ;
+        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( ite1, list(0), 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:if( call( string[c]())"
+                                    + " seq( string[b]() string[a]() string[b]())"
+                                    + " seq( string[d]() string[e]()))"
+                                    + " _path:( 0 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
@@ -1157,7 +1192,9 @@ describe( 'move without common parent', function() : void {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a]() seq() seq( string[b]()))"
+                assert.checkEqual( "Selection( _root:if( call( string[a]() string[b]())"
+                                      + " seq( string[c]())"
+                                      + " seq( string[b]() string[e]()))"
                                       + " _path:( 2 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
@@ -1169,8 +1206,40 @@ describe( 'move without common parent', function() : void {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( string[a]() seq( string[c]()) seq())"
+                assert.checkEqual( "Selection( _root:if( call( string[a]() string[b]())"
+                                       + " seq( string[d]() string[c]()) seq( string[e]()))"
                                        + " _path:( 1 ) _anchor: 0 _focus: 1)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+    
+
+    it( 'should move (0) (0,..2) to (1) (1,..2)', function() : void {
+        const sel0 = new pnodeEdits.Selection( ite1, list(0), 0, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( ite1, list(1), 1, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:if( call()"
+                                    + " seq( string[b]() string[a]() string[b]())"
+                                    + " seq( string[d]() string[e]()))"
+                                    + " _path:( 1 ) _anchor: 1 _focus: 3)",
+                                   s.toString() ) ;
+            },
+            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
+
+    it( 'should move (1) (1,..2) to (0) (0,..2)', function() : void {
+        const sel0 = new pnodeEdits.Selection( ite1, list(1), 1, 2 ) ;
+        const edit = new pnodeEdits.MoveEdit( sel0 ) ;
+        const sel1 = new pnodeEdits.Selection( ite1, list(0), 0, 2 ) ;
+        const editResult = edit.applyEdit( sel1 ) ;
+        editResult.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:if( call( string[c]())"
+                                    + " seq( string[b]())"
+                                    + " seq( string[d]() string[e]()))"
+                                    + " _path:( 0 ) _anchor: 0 _focus: 1)",
                                    s.toString() ) ;
             },
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
