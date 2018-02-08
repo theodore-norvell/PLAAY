@@ -281,5 +281,60 @@ module valueTypes {
         }
     }
 
+    /** variable list */
+    export class VariableV implements ObjectI {
+        protected fields : Array<Field>;
+
+        constructor() {
+            this.fields = [];
+        }
+
+        public numFields() : number {
+            return this.fields.length;
+        }
+
+        public addField(field : Field) : void {
+            if (!this.hasField(field.getName())) {
+                this.fields.push(field);
+            }
+        }
+
+        public hasField(name : string) : boolean {
+            for (let i : number = 0; i < this.fields.length; i++) {
+                if (name === this.fields[i].getName()) {
+                    return true;
+                }
+            }
+            return false;
+        }
+
+        public getFieldByNumber(i : number) : Field {
+            assert.checkPrecondition(i >=0 && i < this.fields.length, "Index out of range");
+            return this.fields[i];
+        }
+
+        public getField(name : string) : Field {
+            for (let i : number = 0; i < this.fields.length; i++) {
+                if (name === this.fields[i].getName()) {
+                    return this.fields[i];
+                }
+            }
+            return assert.failedPrecondition("No variable with name " + name + " exists.");
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+    }
+
 }
 export = valueTypes ;

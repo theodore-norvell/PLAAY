@@ -12,7 +12,11 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
-import { Value } from './vms';
+import {Type, Value, VarStack} from './vms';
+import {mkVarDecl} from "./labels";
+import {first} from "./collections";
+import {Field} from "./valueTypes";
+import {Label} from "./pnode";
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -96,6 +100,15 @@ module interpreter {
 
     theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
     theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
+
+    theStepperRegistry[labels.AssignLabel.kindConst] = assignStepper;
+    theSelectorRegistry[labels.AssignLabel.kindConst] = assignSelector;
+
+    theSelectorRegistry[labels.VariableLabel.kindConst] = alwaysSelector;
+    theStepperRegistry[labels.VariableLabel.kindConst] = variableStepper;
+
+    theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
+    theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
 
 
     // Selectors.  Selectors take the state from not ready to ready.
@@ -202,6 +215,62 @@ module interpreter {
         vms.finishStep(vms.getChildVal(choice));
 
      }
+
+     function assignSelector(vms : VMS) : void {
+        if (!vms.isChildMapped(1)) {
+            vms.pushPending(1);
+            vms.getInterpreter().select(vms);
+        }
+        else {
+            vms.setReady(true);
+        }
+
+     }
+
+     function assignStepper(vms : VMS) : void {
+         const assignNode : PNode = vms.getPendingNode();
+         const variableNode : PNode = assignNode.child(0);
+         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to assign to something that isn't a variable.");
+         const variableName : string = variableNode.label().getVal();
+         const variableStack : VarStack = vms.getStack();
+         const value : Value = vms.getChildVal(1);
+         variableStack.setField(variableName, value);
+         vms.finishStep(value);
+     }
+
+     function variableStepper(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode();
+        const variableStack : VarStack = vms.getStack();
+        const variableName : string = variableNode.label().getVal();
+        assert.checkPrecondition(variableStack.hasField(variableName), "The variable " + variableName + " is not assigned a value.");
+        vms.finishStep(variableStack.getField(variableName).getValue());
+     }
+
+     function varDeclSelector(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode().child(0);
+        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        if (!vms.isChildMapped(2)) {
+            vms.pushPending(2);
+            vms.getInterpreter().select(vms);
+        }
+        else {
+            vms.setReady(true);
+        }
+     }
+
+     function varDeclStepper(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode().child(0);
+        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        const name : string = variableNode.label().getVal();
+        const value : Value = vms.getChildVal(2);
+        const type : Type = Type.NULL; //todo: actually select the type based on the type entered
+        const isConstant : boolean = false;
+        const field : Field = new Field(name, value, type, isConstant);
+        vms.addVariable(field);
+        vms.finishStep(value);
+
+     }
+
 
 }
 

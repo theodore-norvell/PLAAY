@@ -12,6 +12,7 @@ import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
 import backtracking = require( './backtracking' ) ;
+import {Field, VariableV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -54,7 +55,10 @@ module vms{
             this.manager = new TransactionManager();;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
-                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
+                varStack = new NonEmptyVarStack( worlds[i], varStack ) ;
+            }
+            const variables = new VariableV() ;
+            varStack = new NonEmptyVarStack(variables, varStack);
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
@@ -194,6 +198,13 @@ module vms{
 
         public getStepper(value: string) : (vms : VMS) => void {
           return this.stepperFactory[value];
+        }
+
+        public addVariable(field : Field) : void {
+            const varStack : NonEmptyVarStack = <NonEmptyVarStack> this.evalStack.top().getStack();
+            const variables : VariableV = <VariableV> varStack.getTop();
+            variables.addField(field);
+
         }
 
         public reportError( message : String ) : void {
