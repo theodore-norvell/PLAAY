@@ -20,6 +20,8 @@ module vms{
 
     import PNode = pnode.PNode;
     import TVar = backtracking.TVar;
+    import TArray = backtracking.TArray;
+    import TMap = backtracking.TMap;
     import TransactionManager = backtracking.TransactionManager;
 
     import List = collections.List ;
@@ -54,7 +56,7 @@ module vms{
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
             const evalu = new Evaluation(root, varStack, this);
-            this.evalStack = new EvalStack();
+            this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
         }
 
@@ -213,8 +215,8 @@ module vms{
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.ready = new TVar<boolean>(false, manager);
             this.varStack = varStack ;
-            this.map = new ValueMap();
-            this.extraInformationMap = new AnyMap() ;
+            this.map = new ValueMap(manager);
+            this.extraInformationMap = new AnyMap(manager) ;
         }
 
         public getRoot() : PNode {
@@ -375,12 +377,12 @@ module vms{
         public setValue( v : T ) : void { this.val = v ; }
     }
     
-    class Map<T> {
-        private size : number ;
-        private entries : Array<MapEntry<T>>;
+    class Map< T > {
+        private entries : TArray<MapEntry<T>>;
+        private size : number;
 
-        constructor(){
-            this.entries = new Array<MapEntry<T>>();
+        constructor(manager : TransactionManager){
+            this.entries = new TArray<MapEntry<T>>(manager);
             this.size = 0;
         }
 
@@ -398,25 +400,25 @@ module vms{
             return true ;
         }
 
-        public getEntries() : Array<MapEntry<T>> {
-            return this.entries.concat() ;
+        public getEntries() : TArray<MapEntry<T>> {
+            return this.entries.concat();
         }
 
         public isMapped(p : List<number>) : boolean {
             for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
                     return true ;
                 }
             }
             return false ;
         }
-
+        
         public get(p : List<number>) : T {
             for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    return this.entries[i].getValue();
+                    return this.entries.get(i).getValue();
                 }
             }
             return assert.failedPrecondition(
@@ -426,9 +428,9 @@ module vms{
         public put(p : List<number>, v : T) : void {
             let notIn = true;
             for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    this.entries[i].setValue(v);
+                    this.entries.get(i).setValue(v);
                     notIn = false;
                 }
             }
@@ -441,11 +443,11 @@ module vms{
 
         public remove(p : List<number>) : void {
             for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
                     this.size--;
-                    const firstPart = this.entries.slice(0, i);
-                    const lastPart = this.entries.slice(i+1, this.entries.length);
+                    const firstPart : TArray<MapEntry<T>> = this.entries.slice(0, i);
+                    const lastPart : TArray<MapEntry<T>> = this.entries.slice(i+1, this.entries.size());
                     this.entries = firstPart.concat(lastPart);
                 }
             }
@@ -454,11 +456,11 @@ module vms{
 
         public removeAllBelow(p : List<number>) : void {
             for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+                const tmp = this.entries.get(i).getPath();
                 if( this.isPrefix(p, tmp) ) {
                     this.size--;
-                    const firstPart = this.entries.slice(0, i);
-                    const lastPart = this.entries.slice(i+1, this.entries.length);
+                    const firstPart : TArray<MapEntry<T>> = this.entries.slice(0, i);
+                    const lastPart : TArray<MapEntry<T>> = this.entries.slice(i+1, this.entries.size());
                     this.entries = firstPart.concat(lastPart);
                 }
             }
@@ -558,9 +560,10 @@ module vms{
      */
     export class EvalStack { 
 
-        private readonly stk : Array<Evaluation> = [] ;
+        private readonly stk : TArray<Evaluation>;
 
-        constructor(){
+        constructor(manager : TransactionManager){
+            this.stk = new TArray<Evaluation>(manager);
         }
 
         public push(evaluation : Evaluation ) : void {
@@ -568,17 +571,17 @@ module vms{
         }
 
         public pop() : Evaluation {
-            assert.checkPrecondition( this.stk.length > 0 ) ;
+            assert.checkPrecondition( this.stk.size() > 0 ) ;
             return this.stk.pop() as Evaluation;
         }
 
         public top() : Evaluation{
-            assert.checkPrecondition( this.stk.length > 0 ) ;
-            return this.stk[ this.stk.length - 1 ] ;
+            assert.checkPrecondition( this.stk.size() > 0 ) ;
+            return this.stk.get(this.stk.size() - 1) as Evaluation;
         }
 
         public notEmpty() : boolean{
-            return this.stk.length !== 0 ;
+            return this.stk.size() !== 0 ;
         }
     }
 
