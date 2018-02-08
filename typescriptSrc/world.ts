@@ -81,7 +81,7 @@ module world {
 
             this.stepperFactory = {};
 
-            function addstep(vms: VMS) : void {
+            function addStep(vms: VMS) : void {
               const node = vms.getPendingNode();
               const vals : Array<number>= [];
               let ok = true;
@@ -103,12 +103,12 @@ module world {
               }
             }
 
-            const plus = new BuiltInV(addstep);
-            const addf = new Field("+", plus, Type.METHOD, true);
-            this.fields.push(addf);
-            this.stepperFactory["+"] = addstep;
+            const plus = new BuiltInV(addStep);
+            const addF = new Field("+", plus, Type.METHOD, true);
+            this.fields.push(addF);
+            this.stepperFactory["+"] = addStep;
 
-            function substep(vms: VMS) : void {
+            function subStep(vms: VMS) : void {
               const node = vms.getPendingNode();
               const vals : Array<number>= [];
               let ok = true;
@@ -130,12 +130,12 @@ module world {
               }
             }
 
-            var sub = new BuiltInV(substep);
-            var subf = new Field("-", sub, Type.NUMBER, true);
-            this.fields.push(subf);
-            this.stepperFactory["-"] = substep;
+            var sub = new BuiltInV(subStep);
+            var subF = new Field("-", sub, Type.NUMBER, true);
+            this.fields.push(subF);
+            this.stepperFactory["-"] = subStep;
 
-            function multstep(vms: VMS) : void {
+            function multStep(vms: VMS) : void {
               const node = vms.getPendingNode();
               const vals : Array<number>= [];
               let ok = true;
@@ -157,12 +157,12 @@ module world {
               }
             }
 
-            var mult = new BuiltInV(multstep);
-            var multf = new Field("*", mult, Type.NUMBER, true);
-            this.fields.push(multf);
-            this.stepperFactory["*"] = multstep;
+            var mult = new BuiltInV(multStep);
+            var multF = new Field("*", mult, Type.NUMBER, true);
+            this.fields.push(multF);
+            this.stepperFactory["*"] = multStep;
 
-            function divstep(vms: VMS) : void {
+            function divStep(vms: VMS) : void {
               const node = vms.getPendingNode();
               const vals : Array<number>= [];
               let ok = true;
@@ -184,10 +184,10 @@ module world {
               }
             }
 
-            var div = new BuiltInV(divstep);
-            var divf = new Field("/", div, Type.NUMBER, true);
-            this.fields.push(divf);
-            this.stepperFactory["/"] = divstep;
+            var div = new BuiltInV(divStep);
+            var divF = new Field("/", div, Type.NUMBER, true);
+            this.fields.push(divF);
+            this.stepperFactory["/"] = divStep;
 
             // TODO create the functions for the following builtin function.
 

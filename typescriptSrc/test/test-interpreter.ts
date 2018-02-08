@@ -107,10 +107,10 @@ describe( 'NullLiteralLabel', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - addition', function() : void {
-  const rootlabel = new labels.CallWorldLabel("+", false);
+  const rootLabel = new labels.CallWorldLabel("+", false);
   const op1 = labels.mkNumberLiteral("2");
   const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
+  const root = new PNode(rootLabel, [op1, op2]);
   const vm = new VMS(root, wlds, interp);
 
   it('should evaluate to a StringV equaling 5', function() : void {
@@ -135,10 +135,10 @@ describe( 'CallWorldLabel - addition', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - subtraction', function() : void {
-  const rootlabel = new labels.CallWorldLabel("-", false);
+  const rootLabel = new labels.CallWorldLabel("-", false);
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
+  const root = new PNode(rootLabel, [op1, op2]);
   const vm = new VMS(root, wlds, interp);
 
   it('should evaluate to a StringV equaling 2', function() : void {
@@ -163,10 +163,10 @@ describe( 'CallWorldLabel - subtraction', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - multiplication', function() : void {
-  const rootlabel = new labels.CallWorldLabel("*", false);
+  const rootLabel = new labels.CallWorldLabel("*", false);
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
+  const root = new PNode(rootLabel, [op1, op2]);
   const vm = new VMS(root, wlds, interp);
 
   it('should evaluate to a StringV equaling 15', function() : void {
@@ -191,10 +191,10 @@ describe( 'CallWorldLabel - multiplication', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - division', function() : void {
-  const rootlabel = new labels.CallWorldLabel("/", false);
+  const rootLabel = new labels.CallWorldLabel("/", false);
   const op1 = labels.mkNumberLiteral("9");
   const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
+  const root = new PNode(rootLabel, [op1, op2]);
   const vm = new VMS(root, wlds, interp);
 
   it('should evaluate to a StringV equaling 3', function() : void {
