@@ -431,6 +431,24 @@ describe('Backtracking.TArray', function() : void {
         assert.check(c.size() === 1, "Size of array slice c should be 1");
         assert.check(c.get(0) === 1, "First and only element in array slice c should be 1");
     })
+
+    it('Should concatenate properly', function() : void {
+        const a : TArray<any> = new TArray<any>(manager);
+        a.push(0); a.push(1); a.push(2); a.push(3); a.push(4);
+        const b : TArray<any> = new TArray<any>(manager);
+        b.push('a'); b.push('b'); b.push('c'); 
+
+        const c : TArray<any> = a.concat(b);
+
+        assert.check(c.size() === a.size() + b.size(), "Concatenated TArray size should be the sum of the original TArray's sizes");
+        assert.check(c.get(0) === 0, "Concatenated TArray should have a 0 at index 0");
+        assert.check(c.get(7) === 'c', "Concatenated TArray should have a 'c' at index 7");
+
+        const d : TArray<any> = a.concat();
+
+        assert.check(d.size() === a.size(), "Size of TArray concatenated with no arguments should be unchanged");
+        assert.check(d.get(1) === a.get(1), "Elements in original TArray and concatenated TArray with no arguments should be the same");
+    })
 });
 
 describe('Backtracking.TMap', function() : void {

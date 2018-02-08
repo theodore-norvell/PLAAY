@@ -134,7 +134,7 @@ module backtracking
             this.sizeVar.set(this.sizeVar.get()+1);
         }
 
-        public slice(start: number, end : number) : TArray<TVar<T>>
+        public slice(start : number, end : number) : TArray<TVar<T>>
         {
             if (!(start < end) || !(start >= 0) || !(end <= this.sizeVar.get())){
                 throw new Error("Tried to slice TArray with invalid indicies")
@@ -145,6 +145,20 @@ module backtracking
                 newSlice.push(el.get());
             });
             return newSlice;
+        }
+
+        public concat(arr? : TArray<TVar<T>>) : TArray<TVar<T>>
+        {
+            let newConcat : TArray<any> = new TArray<any>(this.manager);
+            this.array.forEach(el=>{
+                newConcat.push(el.get());
+            });
+            if (arr){
+                for (let i = 0; i < arr.size(); i++){
+                    newConcat.push(arr.get(i));
+                }
+            }
+            return newConcat;
         }
     }
 
