@@ -147,23 +147,22 @@ module interpreter {
       const node = vms.getPendingNode();
       const value = node.label().getVal();
       if (vms.getStack().hasField(value)) {
-<<<<<<< HEAD
         let field = vms.getStack().getField(value).getValue();
         if (field instanceof BuiltInV) {
           let stepper = field.getStepper();
           const args : Array<Value> = [];
-          if (node.hasChildren()) {
-            for (let i = 0; i < node.count(); i++) {
-              args.push(vms.getChildVal(i));
-            }
-          }
+          for (let i = 0; i < node.count(); i++) {
+            args.push(vms.getChildVal(i));
+          }          
           stepper(vms, args);
         } 
-=======
-        //let stepper = vms.getStepper(value);        
-        //stepper(vms);  
->>>>>>> master
-      }
+        else {
+          vms.reportError("Field was not a BuiltInV");
+        } 
+      } 
+      else {
+        vms.reportError("Var stack did not contain specified value");
+      } 
     }
 }
 

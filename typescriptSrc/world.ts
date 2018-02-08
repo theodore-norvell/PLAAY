@@ -72,6 +72,15 @@ module world {
         }
     }
 
+    function isBool(val: Value) : boolean {
+      let str = (val as StringV).getVal();
+      return str === "true" || str === "false";
+    }
+
+    function convertToBool(val: Value) : boolean {
+      return (val as StringV).getVal() === "true" ? true : false;
+    }
+
     export class World extends ObjectV {
 
         constructor() {
@@ -154,9 +163,13 @@ module world {
                 vms.reportError("Denominator is equal to zero.");
                 ok = false;
               }              
-              if( ok ) {
-                  const quot = vals.reduce( (s, x) => s/x) ;
-                  const val = new StringV( quot+"" ) ;
+              if(ok) {
+                  let callback = function(dividend: number, divisor: number) : number {
+                    assert.check(divisor !== 0, "Division by zero");
+                    return dividend/divisor;
+                  }
+                  const quot = vals.reduce(callback);
+                  const val = new StringV( quot+"" );
                   vms.finishStep( val ) ;
               }
             }
@@ -261,22 +274,62 @@ module world {
             var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
             this.fields.push(lessequalf);
 
-            // var equal = new BuiltInV(equalstep);
-            // var equalf = new Field("==", equal, Type.BOOL, true);
+            function equalstep( vms : VMS, args : Array<Value> ) : void {
+              let bool = true;
+              for(let i = 0; i < args.length-1; i++) { 
+                if (!(args[i] === args[i+1])) bool = false;
+              }
+              const val = new StringV( bool+"" ) ;
+              vms.finishStep( val ) ;  
+            }
 
-            // this.fields.push(equalf);
+            var equal = new BuiltInV(equalstep);
+            var equalf = new Field("==", equal, Type.BOOL, true);
+            this.fields.push(equalf);
 
+            function andstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<boolean>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if(isBool(args[i])) {
+                    vals.push(convertToBool(args[i]));                    
+                  } else {
+                    vms.reportError("The "+nth(i+1)+" argument is not a bool.");
+                    ok = false;
+                  }
+              }    
+              if(ok) {
+                  const bool = vals.reduce((s,x) => s&&x);
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
-            // var and = new BuiltInV(andstep);
-            // var andf = new Field("&", and, Type.BOOL, true);
+            var and = new BuiltInV(andstep);
+            var andf = new Field("&", and, Type.BOOL, true);
+            this.fields.push(andf);
 
-            // this.fields.push(andf);
+            function orstep( vms : VMS, args : Array<Value> ) : void {
+              const vals : Array<boolean>= [] ;
+              let ok = true ;
+              for( let i=0 ; i < args.length ; ++i ) {
+                  if(isBool(args[i])) {
+                    vals.push(convertToBool(args[i]));                    
+                  } else {
+                    vms.reportError("The "+nth(i+1)+" argument is not a bool.");
+                    ok = false;
+                  }
+              }    
+              if(ok) {
+                  const bool = vals.reduce((s,x) => s||x);
+                  const val = new StringV( bool+"" ) ;
+                  vms.finishStep( val ) ;
+              }
+            }
 
-
-            // var or = new BuiltInV(orstep);
-            // var orf = new Field("|", or, Type.BOOL, true);
-
-            // this.fields.push(orf);
+            var or = new BuiltInV(orstep);
+            var orf = new Field("|", or, Type.BOOL, true);
+            this.fields.push(orf);
         }
     }
 

@@ -51,6 +51,13 @@ describe( 'Variable Stack ', function() : void {
         assert.check( yStack.hasField("-") );
         assert.check( yStack.hasField("*") );
         assert.check( yStack.hasField("/") );
+        assert.check( yStack.hasField("<") );
+        assert.check( yStack.hasField("<=") );
+        assert.check( yStack.hasField(">") );
+        assert.check( yStack.hasField(">=") );
+        assert.check( yStack.hasField("==") );
+        assert.check( yStack.hasField("&") );
+        assert.check( yStack.hasField("|") );
         assert.check( ! yStack.hasField("not in stack") );
     } );
 } ) ;
