@@ -614,7 +614,7 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
         manager.undo();
         assert.check(evaluation.isReady() === false, 'var should be false after undo');
         assert.check( !manager.canUndo(), 'manager is in the wrong state') ;
-        assert.check( manager.canUndo(), 'manager is in the wrong state') ;
+        assert.check( manager.canRedo(), 'manager is in the wrong state') ;
         manager.redo();
         assert.check(evaluation.isReady() === true, 'var should be true after redo');
         assert.check( manager.canUndo(), 'manager is in the wrong state') ;
@@ -630,11 +630,11 @@ describe('vms.Evaluation root undo/redo', function() : void {
     const evaluation = new Evaluation(root, vm.getStack(), vm);
 
     it('Should be initialized properly', function() : void {
-        assert.check( !manager.canRedo(), "Manager is in the wrong state." ) ;
-        assert.check( !manager.canUndo(), "Manager is in the wrong state." ) ;
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo before checkpoint." ) ;
+        assert.check( !manager.canUndo(), "Manager shouldn't be able to undo before checkpoint" ) ;
         manager.checkpoint() ;
-        assert.check( !manager.canRedo(), "Manager is in the wrong state." ) ;
-        assert.check( !manager.canUndo(), "Manager is in the wrong state." ) ;
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
+        assert.check( !manager.canUndo(), "Manager shouldn't be able to redo after checkpoint." ) ;
     });
 });
 
