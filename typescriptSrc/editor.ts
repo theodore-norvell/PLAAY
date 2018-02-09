@@ -454,30 +454,57 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 38) // up arrow
+            else if (e.which === 38 && ! e.shiftKey ) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 40) // down arrow
+            else if (e.which === 40 && ! e.shiftKey) // down arrow
             {
                 treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 37) // left arrow
+            else if (e.which === 37 && ! e.shiftKey) // left arrow
             {
                 treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
-            else if (e.which === 39) // right arrow
+            else if (e.which === 39 && ! e.shiftKey) // right arrow
             {
                 treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }else if (e.which === 38 && e.shiftKey ) // up arrow
+            {
+                treeMgr.moveFocusUp( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 40 && e.shiftKey) // down arrow
+            {
+                treeMgr.moveFocusDown( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 37 && e.shiftKey) // left arrow
+            {
+                treeMgr.moveFocusLeft( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }            
+            else if (e.which === 39 && e.shiftKey) // right arrow
+            {
+                treeMgr.moveFocusRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
