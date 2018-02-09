@@ -130,7 +130,10 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
-    /** Move out. I.e. to the parent if possible. */
+    /** Move out. I.e. to the parent if possible.
+     * @param selection
+     * @param normal iff the anchor preceeds the focus.
+    */
     function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
         const root = selection.root();
         const path = selection.path();
@@ -143,6 +146,7 @@ module pnodeEdits {
         }
 
     }
+
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
         const start = selection.start() ;
@@ -233,6 +237,36 @@ module pnodeEdits {
     /** Move Tab back. */
     function moveTabBack( selection : Selection ) : Option<Selection> {
         return moveLeft(selection) ; //In our case this is the same.
+    }
+
+    /** Move the focus one place to the right if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusRight( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
+        const root = selection.root();
+        const path = selection.path();
+        const parent = selection.parent() ;
+        console.log( "moveFocusRight: anchor is " +anchor+
+                     " focus is " +focus+ 
+                     " parent.count() is " +parent.count() ) ;
+        if( focus < parent.count() ) {
+            return some( new Selection(root, path, anchor, focus+1) ) ; }
+        else {
+            return moveOut( selection, true ) ; }
+    }
+
+    /** Move the focus one place to the left if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusLeft( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
+        const root = selection.root();
+        const path = selection.path();
+        if( focus > 0 ) {
+            return some( new Selection(root, path, anchor, focus-1) ) ; }
+        else {
+            return moveOut( selection, false ) ; }
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -667,8 +701,8 @@ module pnodeEdits {
         const sel = opt.first() ;
         const start = sel.start() ;
         const end = sel.end() ;
-        if( end - start === 1 ) {
-            // Any single node selection is suitable
+        if( end - start >= 1 ) {
+            // Any selection containing 1 or more nodes is
             return true ; }
         else if( end === start ) {
             // Dropzones are suitable
@@ -700,6 +734,17 @@ module pnodeEdits {
         {
             return false ;
         }
+    }
+
+    /** Is this a suitable selection to stop at for the shift-up arrow and shift-down arrow keys are used to move the focus.
+    */
+    function upDownFocusMoveSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the up or down.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop only on selections whose
+        // parents have vertical layout.
+        const sel = opt.first() ;
+        return sel.parent().hasVerticalLayout() ;
     }
 
     /** Is this a suitable selection to stop at for tab keys.
@@ -807,6 +852,78 @@ module pnodeEdits {
     }
 
     export const downEdit = new DownEdit() ;
+
+    /** 
+     * Move Focus Left edit
+     */
+    class MoveFocusLeftEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusLeftEdit = new MoveFocusLeftEdit() ;
+
+    /** 
+     * Move Focus Right edit
+     */
+    class MoveFocusRightEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusRightEdit = new MoveFocusRightEdit() ;
+
+    /** 
+     * Move Focus Up edit
+     */
+    class MoveFocusUpEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusUpEdit = new MoveFocusUpEdit() ;
+
+    /** 
+     * Move Focus Down edit
+     */
+    class MoveFocusDownEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusDownEdit = new MoveFocusDownEdit() ;
 
     /** 
      * Tab edit

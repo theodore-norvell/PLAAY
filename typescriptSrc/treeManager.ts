@@ -291,6 +291,26 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        public moveFocusLeft( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusLeftEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusRight( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusRightEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusUp( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusUpEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusDown( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusDownEdit;
+            return edit.applyEdit(selection);
+        }
+
         public moveTabForward( selection:Selection ) : Option<Selection> {
             const edit = pnodeEdits.tabForwardEdit;
             return edit.applyEdit(selection);
