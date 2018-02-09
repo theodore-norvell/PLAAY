@@ -270,8 +270,8 @@ module collections {
         return list( ...a ) ; }
 
     /* Construct a nonempty list from a head and a rest. */
-    export function cons<A>( head : A, rest : List<A> ) : List<A> {
-            return new Cons<A>( head, rest ) ; }
+    export function cons<A>( head : A, tail : List<A> ) : List<A> {
+            return new Cons<A>( head, tail ) ; }
 
     /** Make an empty list. */
     export function nil<A>() : List<A> { return new Nil<A>() ; }
