@@ -379,11 +379,11 @@ module vms{
     
     class Map< T > {
         private entries : TArray<MapEntry<T>>;
-        private size : number;
+        private size : TVar<number>;
 
         constructor(manager : TransactionManager){
             this.entries = new TArray<MapEntry<T>>(manager);
-            this.size = 0;
+            this.size.set(0);
         }
 
         private samePath(a : List<number>, b : List<number>) : boolean {
@@ -405,7 +405,7 @@ module vms{
         }
 
         public isMapped(p : List<number>) : boolean {
-            for(let i = 0; i < this.size; i++){
+            for(let i = 0; i < this.size.get(); i++){
                 const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
                     return true ;
@@ -415,7 +415,7 @@ module vms{
         }
         
         public get(p : List<number>) : T {
-            for(let i = 0; i < this.size; i++){
+            for(let i = 0; i < this.size.get(); i++){
                 const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
                     return this.entries.get(i).getValue();
@@ -427,7 +427,7 @@ module vms{
 
         public put(p : List<number>, v : T) : void {
             let notIn = true;
-            for(let i = 0; i < this.size; i++){
+            for(let i = 0; i < this.size.get(); i++){
                 const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
                     this.entries.get(i).setValue(v);
@@ -437,15 +437,15 @@ module vms{
             if(notIn){
                 const me = new MapEntry(p, v);
                 this.entries.push(me);
-                this.size++;
+                this.size.set(this.size.get() + 1);
             }
         }
 
         public remove(p : List<number>) : void {
-            for(let i = 0; i < this.size; i++){
+            for(let i = 0; i < this.size.get(); i++){
                 const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    this.size--;
+                    this.size.set(this.size.get() - 1);
                     const firstPart : TArray<MapEntry<T>> = this.entries.slice(0, i);
                     const lastPart : TArray<MapEntry<T>> = this.entries.slice(i+1, this.entries.size());
                     this.entries = firstPart.concat(lastPart);
@@ -455,10 +455,10 @@ module vms{
         }
 
         public removeAllBelow(p : List<number>) : void {
-            for(let i = 0; i < this.size; i++){
+            for(let i = 0; i < this.size.get(); i++){
                 const tmp = this.entries.get(i).getPath();
                 if( this.isPrefix(p, tmp) ) {
-                    this.size--;
+                    this.size.set(this.size.get() - 1);
                     const firstPart : TArray<MapEntry<T>> = this.entries.slice(0, i);
                     const lastPart : TArray<MapEntry<T>> = this.entries.slice(i+1, this.entries.size());
                     this.entries = firstPart.concat(lastPart);
