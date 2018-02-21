@@ -52,7 +52,7 @@ module animator
 		// $("#advance").click(advanceOneStep);
 		// $("#multistep").click(multiStep);
 		// $("#run").click(stepTillDone);
-		// $("#edit").click(switchToEditor);
+		$("#edit").click(switchToEditor);
 	}
 
     function evaluate() : void
@@ -67,21 +67,27 @@ module animator
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
         let animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        animatorArea.add(traverseAndBuild(evaluationMgr.getVMS().getRoot(), animatorArea, true));
+        let animation : svg.G = animatorArea.group().move(10, 0);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, true);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
-        // svgTest();
+        //svgTest();
     }
 
-    // function svgTest() : void
-    // {
-    //     let animatorArea : svg.Doc = svg("svgContainer").size(5000,5000);
-    //     let g : svg.G = animatorArea.group();
-    //     g.cx(100).cy(100);
-    //     //g.rect(100, 100).fill("#f06").cx(100).cy(100);
-    //     g.circle(2000).fill("Blue").cx(1500).cy(1500);
-    //     //animatorArea.cx(100).cy(200);
-    // }
+    function svgTest() : void
+    {
+        let animatorArea : svg.Doc = svg("svgContainer").size(5000,5000);
+        let g2 : svg.G = animatorArea.group();
+        let g : svg.G = g2.group();
+        g.x(50).y(50);
+        let rect = g.rect(100, 100).fill("#f06").cx(100).cy(100);
+        let circ = g.circle(100).fill("Blue").cx(100).cy(250);
+        let set = g2.set().add(g);
+        let gBounds : svg.BBox = set.bbox();
+        g2.rect(gBounds.width+5, gBounds.height+5).radius(5).fill({opacity: 0}).stroke({color: "rgb(135,206,250)", opacity: 1, width: 2}).center(gBounds.cx, gBounds.cy);
+        g2.dmove(200,200);
+        //animatorArea.cx(100).cy(200);
+    }
 
     // function advanceOneStep() : void
     // {
@@ -135,13 +141,13 @@ module animator
     //     $('#advance').trigger('click');
     // }
 
-    // function switchToEditor() : void
-    // {
-    //     $(".evalHidden").css("visibility", "visible");
-    //     $(".evalVisible").css("visibility", "hidden");
-    //     $(".dropZone").show();
-    //     $(".dropZoneSmall").show();
-    // }
+    function switchToEditor() : void
+    {
+        $(".evalHidden").css("visibility", "visible");
+        $(".evalVisible").css("visibility", "hidden");
+        $(".dropZone").show();
+        $(".dropZoneSmall").show();
+    }
 
     // function redraw(vms:VMS) : void {
     //     turtleWorld.redraw() ;

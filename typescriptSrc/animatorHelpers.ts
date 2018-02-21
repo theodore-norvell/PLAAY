@@ -29,7 +29,7 @@ module animatorHelpers
         let children : svg.G = el.group();
         for(let i = 0; i < node.count(); i++)
         {
-            children.add(traverseAndBuild(node.child(i), children,  evaluating)) ;
+            traverseAndBuild(node.child(i), children,  evaluating);
         }
         return buildSVG(node, children, evaluating);
     }
@@ -37,7 +37,6 @@ module animatorHelpers
     function buildSVG(node:PNode, children : svg.G, evaluating:boolean) : svg.G
     {
         let result : svg.G ;
-        const dropzones : Array<JQuery> = [] ;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
@@ -72,33 +71,31 @@ module animatorHelpers
         //         result.append( guardbox, thenbox, elsebox ) ;
         //     }
         //     break ;
-        //     case labels.ExprSeqLabel.kindConst :
-        //     {
-        //         // TODO show only the unevaluated members during evaluation
+            case labels.ExprSeqLabel.kindConst :
+            {
+                // TODO show only the unevaluated members during evaluation
 
-        //         result = $( document.createElement("div") ) ;
-        //         result.addClass( "seqBox" ) ;
-        //         result.addClass( "V" ) ;
-        //         // Add children and drop zones.
-        //         for (let i = 0; true; ++i) {
-        //             const dz = makeDropZone(i, true ) ;
-        //             dropzones.push( dz ) ;
-        //             result.append(dz);
-        //             if (i === children.length) break;
-        //             result.append(children[i]);
-        //         }
-        //     }
-        //     break ;
-        //     case labels.ExprPHLabel.kindConst :
-        //     {
-        //         result = $( document.createElement("div") ) ;
-        //         result.addClass( "placeHolder" ) ;
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.text("...") ;
-        //     }
-        //     break ;
+                let childArray = children.children();
+                result = children.group();
+                // result.addClass( "seqBox" ) ;
+                // result.addClass( "V" ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    childArray[i].dmove(0, i*30); //testing
+                    result.add(childArray[i]);
+                }
+            }
+            break ;
+            case labels.ExprPHLabel.kindConst :
+            {
+                result = children.group() ;
+                let text : svg.Text = result.text( "..." );
+                makeExprPlaceholderSVG(result, text);
+                // result.addClass( "placeHolder" ) ;
+                // result.addClass( "V" ) ;
+            }
+            break ;
         //     case labels.ParameterListLabel.kindConst :
         //     {
         //         result = $( document.createElement("div") ) ;
@@ -208,24 +205,26 @@ module animatorHelpers
         //         }
         //     }
         //     break ;
-        //     case labels.AssignLabel.kindConst :
-        //     {
-        //         result = $(document.createElement("div")) ;
-        //         result.addClass( "assign" ) ;
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.addClass( "droppable" ) ;
+            case labels.AssignLabel.kindConst :
+            {
+                
+                let childArray = children.children();
+                result = children.group();
+                result.add(childArray[0]
+                    .dmove(0, 0) //testing
+                ); 
 
-        //         const opDiv : JQuery = $( document.createElement("div") ) ;
-        //         opDiv.addClass( "op" );
-        //         opDiv.text( ":=" ) ;
+                const opText : svg.Text = result.text(":=");
+                opText.fill("rgb(244, 140, 0)")
+                opText.dmove(20, -5); //testing
 
-        //         result.append(children[0]);
-        //         result.append(opDiv);
-        //         result.append(children[1]);
-
-        //     }
-        //     break ;
+                result.add(childArray[1]
+                    .dmove(40, 0) //testing
+                );
+                
+                makeAssignLabelBorder(result);
+            }
+            break ;
         //     case labels.LambdaLabel.kindConst :
         //     {
         //         const lambdahead : JQuery = $( document.createElement("div") ) ;
@@ -256,69 +255,41 @@ module animatorHelpers
         //         result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
         //     }
         //     break ;
-        //     case labels.VariableLabel.kindConst :
-        //     {
-        //         if( ! node.label().isOpen() ) 
-        //         {
-        //             result  = $(document.createElement("div")) ;
-        //             result.addClass( "var" ) ;
-        //             result.addClass( "H" ) ;
-        //             result.addClass( "droppable" ) ;
-        //             result.addClass( "click" ) ;
-        //             result.addClass( "canDrag" ) ;
-        //             result.text( node.label().getVal() ) ;
-        //         }
-        //         else
-        //         {
-        //             result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
-        //         }
-        //     }
-        //     break ;
-        //     case labels.StringLiteralLabel.kindConst :
-        //     {
-
-        //         if (! node.label().isOpen() )
-        //         {
-        //             result  = $(document.createElement("div")) ;
-        //             result.addClass( "stringLiteral" ) ;
-        //             result.addClass( "H" ) ;
-        //             result.addClass( "droppable" ) ;
-        //             result.addClass( "click" ) ;
-        //             result.addClass( "canDrag" ) ;
-        //             result.text( node.label().getVal() ) ;
-        //         }
-        //         else
-        //         {
-        //             result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
-        //         }
-        //     }
-        //     break ;
+            case labels.VariableLabel.kindConst :
+            {
+                result = children.group() ;
+                let text : svg.Text = result.text( node.label().getVal() );
+                makeVariableLabelSVG(result, text);
+                // result.addClass( "var" ) ;
+                // result.addClass( "H" ) ;
+            }
+            break ;
+            case labels.StringLiteralLabel.kindConst :
+            {
+                result = children.group() ;
+                let text : svg.Text = result.text( node.label().getVal() );
+                makeStringLiteralSVG(result, text);
+                // result.addClass( "stringLiteral" ) ;
+                // result.addClass( "H" ) ;
+            }
+            break ;
             case labels.NumberLiteralLabel.kindConst :
             {
                 result  = children.group() ;
                 let text : svg.Text = result.text( node.label().getVal() );
-                text.fill("rgb(244, 140, 0)");
-                text.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
-                let textBounds : svg.BBox = text.bbox();
-                let textOutline : svg.Rect = result.rect(textBounds.width + 5, textBounds.height + 5);
-                textOutline.move(textBounds.x/2, textBounds.y/2);
-                textOutline.radius(5);
-                textOutline.fill({opacity: 0});
-                textOutline.stroke({color: "rgb(135,206,250)", opacity: 1, width: 2})
-
+                makeNumberLiteralSVG(result, text);
                 // result.addClass( "numberLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
-        //     case labels.NoTypeLabel.kindConst :
-        //     {
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "noType" ) ; 
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //     }
-        //     break ;
+            case labels.NoTypeLabel.kindConst :
+            {
+                result  = children.group() ;
+                makeNoTypeLabelSVG(result);
+                // result.addClass( "noType" ) ; 
+                // result.addClass( "V" ) ;
+            }
+            break ;
         //     case labels.NoExprLabel.kindConst :
         //     {
         //         result  = $(document.createElement("div")) ;
@@ -328,34 +299,123 @@ module animatorHelpers
         //         result.addClass( "canDrag" ) ;
         //     }
         //     break ;
-        //     case labels.VarDeclLabel.kindConst :
-        //     {
+            case labels.VarDeclLabel.kindConst :
+            {
 
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "vardecl" ) ; // Need a better class for this, I think.
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.addClass( "canDrag" ) ;
+                let childArray = children.children();
+                result = children.group();
 
-        //         const colon : JQuery = $( document.createElement("div") );
-        //         colon.text(":") ;
+                const delta : svg.Text = result.text("\u03B4");
+                delta.fill("rgb(248, 248, 255)")
+                delta.dmove(0, -5); //testing
 
-        //         const becomes : JQuery = $( document.createElement("div") );
-        //         becomes.text(":=") ;
+                result.add(childArray[0]
+                    .dmove(20, 0) //testing
+                ); 
 
-        //         result.append(children[0]);
-        //         result.append(colon);
-        //         result.append(children[1]);
-        //         result.append(becomes);
-        //         result.append(children[2]);
-        //     }
-        //     break ;
+                const colon : svg.Text = result.text(":");
+                colon.fill("rgb(248, 248, 255)")
+                colon.dmove(40, -5); //testing
+
+                result.add(childArray[1]
+                    .dmove(55, 7) //testing
+                );
+
+                const becomes : svg.Text = result.text(":=");
+                becomes.fill("rgb(248, 248, 255)")
+                becomes.dmove(80, -5); //testing
+
+                result.add(childArray[2]
+                    .dmove(100, 0) //testing
+                );
+
+                makeVarDeclBorderSVG(result);
+
+                // result.addClass( "vardecl" ) ;
+                // result.addClass( "H" ) ;;
+            }
+            break ;
             default:
             {
-                result = assert.unreachable( "Unknown label in buildHTML.") ;
+                result = assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
             }
         }
         return result ;
+    }
+
+    function makeVariableLabelSVG(base : svg.Container, textElement : svg.Element)
+    {
+        textElement.fill("rgb(244, 140, 0)");
+        let bounds : svg.BBox = textElement.bbox();
+        let outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(244, 140, 0)", opacity: 1, width: 1.5})
+    }
+
+    function makeExprPlaceholderSVG(base : svg.Container, textElement : svg.Element)
+    {
+        textElement.fill("rgb(244, 140, 0)");
+        textElement.style("font-weight: normal ;font-size: medium ;");
+        let bounds : svg.BBox = textElement.bbox();
+        let outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(244, 140, 0)", opacity: 1, width: 1.5})
+    }
+
+    function makeNumberLiteralSVG(base : svg.Container, textElement : svg.Element)
+    {
+        textElement.fill("rgb(244, 140, 0)");
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        let bounds : svg.BBox = textElement.bbox();
+        let outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(135,206,250)", opacity: 1, width: 1.5})
+    }
+    
+    function makeStringLiteralSVG(base : svg.Container, textElement : svg.Element)
+    {
+        textElement.fill("rgb(255, 255, 255)");
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        let bounds : svg.BBox = textElement.bbox();
+        let outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(135,206,250)", opacity: 1, width: 1.5})
+    }
+
+    function makeAssignLabelBorder(el : svg.Container)
+    {
+        let bounds : svg.BBox = el.bbox();
+        let outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(244, 140, 0)", opacity: 1, width: 1.5})
+    }
+    
+    function makeVarDeclBorderSVG(el : svg.Container)
+    {
+        let bounds : svg.BBox = el.bbox();
+        let outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(248, 248, 255)", opacity: 1, width: 1.5})
+    }
+
+    function makeNoTypeLabelSVG(el: svg.Container)
+    {
+        let label = el.rect(20,20);
+        label.radius(5);
+        label.fill({opacity: 0});
+        label.stroke({color: "rgb(153,153,153)", opacity: 1, width: 1.5})
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
