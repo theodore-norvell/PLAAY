@@ -383,7 +383,7 @@ module vms{
 
         constructor(manager : TransactionManager){
             this.entries = new TArray<MapEntry<T>>(manager);
-            this.size.set(0);
+            this.size = new TVar(0, manager);
         }
 
         private samePath(a : List<number>, b : List<number>) : boolean {
