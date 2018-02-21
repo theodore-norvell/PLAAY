@@ -24,17 +24,17 @@ module animatorHelpers
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
-    export function traverseAndBuild(node:PNode, el : svg.Container, evaluating:boolean) : svg.G
+    export function traverseAndBuild(node:PNode, el : svg.Container, evaluating:boolean) : void
     {
         let children : svg.G = el.group();
         for(let i = 0; i < node.count(); i++)
         {
             traverseAndBuild(node.child(i), children,  evaluating);
         }
-        return buildSVG(node, children, evaluating);
+        buildSVG(node, children, evaluating);
     }
 
-    function buildSVG(node:PNode, children : svg.G, evaluating:boolean) : svg.G
+    function buildSVG(node:PNode, children : svg.G, evaluating:boolean) : void
     {
         let result : svg.G ;
         // Switch on the LabelKind
@@ -82,7 +82,7 @@ module animatorHelpers
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    childArray[i].dmove(0, i*30); //testing
+                    childArray[i].dmove(0, i*40); //testing
                     result.add(childArray[i]);
                 }
             }
@@ -113,79 +113,70 @@ module animatorHelpers
         //         }
         //     }
         //     break ;
-        //     case labels.WhileLabel.kindConst :
-        //     {
-        //         assert.check( children.length === 2 ) ;
+            case labels.WhileLabel.kindConst :
+            {
+                let childArray = children.children();
+                assert.check( childArray.length === 2 ) ;
 
-        //         const guardBox : JQuery = $( document.createElement("div") ) ;
-        //         guardBox.addClass( "whileGuardBox") ;
-        //         guardBox.addClass( "H") ;
-        //         guardBox.addClass( "workplace") ;
-        //         guardBox.append( children[0] ) ;
+                let result  = children.group().dmove(10, 10) ;
 
-        //         const doBox : JQuery = $( document.createElement("div") ) ;
-        //         doBox.addClass( "doBox") ;
-        //         doBox.addClass( "H") ;
-        //         doBox.addClass( "workplace") ;
-        //         doBox.append( children[1] ) ;
+                const guardBox : svg.G = result.group() ;
+                // guardBox.addClass( "whileGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                let textElement = guardBox.text("\u27F3").dmove(0, -5);
+                guardBox.add( childArray[0].dmove(30, 0) ) ;
+                let len = findWidthOfLargestChild(childArray);
+                if(len <= childArray[0].bbox().width + 20)
+                {
+                    len += 20; //account for extra space due to while symbol
+                }
 
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "whileBox" ) ;
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "workplace" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.append( guardBox );
-        //         result.append( doBox );
-        //     }
-        //     break ;
-        //     case labels.CallWorldLabel.kindConst :
-        //     {
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "callWorld" ) ;
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.addClass( "droppable" ) ;
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, "rgb(190, 133, 197)", len)
 
-        //         result.attr("type", "text");
-        //         result.attr("list", "oplist");
+                const doBox :  svg.G = result.group().dmove(10, 50) ;
+                // doBox.addClass( "doBox") ;
+                // doBox.addClass( "H") ;
+                // doBox.addClass( "workplace") ;
+                doBox.add( childArray[1] ) ;
+
+                makeFancyBorderSVG(children, result, "rgb(190, 133, 197)");
+                // result.addClass( "whileBox" ) ;
+                // result.addClass( "V" ) ;
+                // result.addClass( "workplace" ) ;
+            }
+            break ;
+            case labels.CallWorldLabel.kindConst :
+            {
+                let childArray = children.children();
+                let result  = children.group() ;
+                // result.addClass( "callWorld" ) ;
+                // result.addClass( "H" ) ;
+                let opText = result.text(node.label().getVal());
+                const labelString = node.label().getVal() ;
+
+                if(childArray.length === 2 && labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null)
+                {
+                    result.add(childArray[0]);
+                    result.add(opText.dmove(20, -5)); //dmoves are for testing purposes
+                    result.add(childArray[1].dmove(40, 0));
+                }
+                else
+                {
+                    result.add(opText.dmove(0, -5));
+                    for( let i=0 ; true ; ++i)
+                    {
+                        if( i === childArray.length ) break ;
+                        childArray[i].dmove(20*(i+1), 0) //testing
+                        result.add(childArray[i]) ;
+                    }
+                }
+
+                doCallWorldLabelStylingSVG(opText);
+                makeCallWorldBorderSVG(children, result);
                 
-        //         // TODO Allow infix operators again some day.
-
-        //         let opElement : JQuery ;
-        //         if(! node.label().isOpen() )
-        //         {
-        //             opElement = $(document.createElement("div") ) ;
-        //             opElement.addClass( "op" ) ;
-        //             opElement.addClass( "H" ) ;
-        //             opElement.addClass( "click" ) ;
-        //             opElement.text( node.label().getVal() ) ;
-        //         }
-        //         else {
-        //             opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
-        //         }
-        //         result.append(opElement);
-        //         for( let i=0 ; true ; ++i) {
-        //             const dz : JQuery = makeDropZone(i, false) ;
-        //             dropzones.push( dz ) ;
-        //             result.append( dz ) ;
-        //             if( i === children.length ) break ;
-        //             result.append( children[i] ) ;
-        //         }
-        //         // Binary infix operators
-        //         if( ! node.label().isOpen() && children.length === 2 )
-        //         {
-        //             const labelString = node.label().getVal() ;
-        //             if( labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ) {
-        //                 // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
-        //                 assert.check( result.children().length === 6 ) ;
-        //                 // Move the opElement to after the first child
-        //                 opElement.insertAfter( children[0]) ;
-        //                 // TODO: Find a way to make dropzone[1] very skinny. Maybe by adding a class to it.
-        //             }
-        //         }
-        //     }
-        //     break ;
+            }
+            break ;
         //     case labels.CallLabel.kindConst :
         //     {
         //         result  = $(document.createElement("div")) ;
@@ -340,7 +331,63 @@ module animatorHelpers
                 result = assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
             }
         }
-        return result ;
+    }
+
+    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number)
+    {
+        if(text !== null)
+        {
+            text.fill(colour.toString()); //It would throw an error unless I did this
+            text.style("font-size: large");
+        }
+        let bounds = guardBox.bbox();
+        let line = guardBox.line(bounds.x - 5, bounds.y2 + 10, bounds.x + lineLength + 5, bounds.y2 + 10);
+        line.stroke({color: colour.toString(), opacity: 1, width: 4});
+        line.attr("stroke-dasharray", "10, 10");
+
+    }
+
+    function doCallWorldLabelStylingSVG(textElement : svg.Text)
+    {
+        textElement.fill("rgb(190, 133, 197)");
+        textElement.style("font-family:'Times New Roman', Times,serif;font-weight: bold ;font-size: large ;");
+    }
+
+    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container)
+    {
+        let borderGroup = base.group(); //In order to keep it organized nicely
+        borderGroup.add(el);
+        let bounds : svg.BBox = el.bbox();
+        let outline : svg.Rect = borderGroup.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: "rgb(190, 133, 197)", opacity: 1, width: 1.5});
+    }
+
+    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String)
+    {
+        let containerGroup = base.group(); //In order to keep it organized nicely
+        containerGroup.add(el);
+        let borderGroup = containerGroup.group()
+        let bounds : svg.BBox = el.bbox();
+        let x = bounds.x + 5;
+        let y = bounds.y + 10;
+        let x2 = bounds.x2 + 10;
+        let y2 = bounds.y2 + 10;
+        let topBorderPathString = "M" + (x + 5) + ',' + (y - 5) + " H" + (x2 - 5) + " A10,10 0 0,1 " + (x2 + 5) + ',' + (y + 5);
+        let topBorder = borderGroup.path(topBorderPathString)
+        topBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        let botBorderPathString = "M" + (x + 5) + ',' + (y2 + 15) + " H" + (x2 - 5) + " A10,10 0 0,0 " + (x2 + 5) + ',' + (y2 + 5);
+        let botBorder = borderGroup.path(botBorderPathString)
+        botBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        let rightBorder = borderGroup.line(x2 + 6, y2 + 5.5, x2 + 6, y + 4.5);
+        rightBorder.stroke({color: colour.toString(), opacity: 1, width: 1.5});
+        let leftBorderPathString = "M" + (x + 5.5) + ',' + (y - 7) + "A10,10 0 0,0 " + (x - 3) + ',' + (y + 3) + "V" + (y2 + 7)
+                                 + "A10,10 0 0,0 " + (x + 5.5) + ',' + (y2 + 17) + 'Z'; //These odd numbers allow me to approximate the CSS representation pretty well.
+        let leftBorder = borderGroup.path(leftBorderPathString);
+        leftBorder.stroke({color: colour.toString(), opacity: 1, width: 0});
+        leftBorder.fill(colour.toString());
     }
 
     function makeVariableLabelSVG(base : svg.Container, textElement : svg.Element)
@@ -416,6 +463,20 @@ module animatorHelpers
         label.radius(5);
         label.fill({opacity: 0});
         label.stroke({color: "rgb(153,153,153)", opacity: 1, width: 1.5})
+    }
+
+    function findWidthOfLargestChild(arr : svg.Element[])
+    {
+        let result : number = 0;
+        for(let i = 0; i < arr.length; i++)
+        {
+            let width = arr[i].bbox().width
+            if(width > result)
+            {
+                result = width;
+            }
+        }
+        return result;
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
