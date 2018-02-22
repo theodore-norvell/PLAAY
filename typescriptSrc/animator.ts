@@ -69,6 +69,8 @@ module animator
         let animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         let animation : svg.G = animatorArea.group().move(10, 0);
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, true);
+        let animationBBox : svg.BBox = animation.bbox();
+        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
         //svgTest();

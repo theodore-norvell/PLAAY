@@ -40,37 +40,48 @@ module animatorHelpers
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
-        //     case labels.IfLabel.kindConst :
-        //     {
-        //         assert.check( children.length === 3 ) ;
+            case labels.IfLabel.kindConst :
+            {
+                let childArray = children.children();
+                assert.check( childArray.length === 3 ) ;
 
-        //         const guardbox : JQuery = $(document.createElement("div")) ;
-        //         guardbox.addClass( "ifGuardBox" ) ;
-        //         guardbox.addClass( "H" ) ;
-        //         guardbox.addClass( "workplace" ) ;
-        //         guardbox.append( children[0] ) ;
+                result = children.group().dmove(10,10);
 
-        //         const thenbox : JQuery = $(document.createElement("div")) ;
-        //         thenbox.addClass( "thenBox" ) ;
-        //         thenbox.addClass( "H" ) ;
-        //         thenbox.addClass( "workplace" ) ;
-        //         thenbox.append( children[1] ) ;
+                let padding : number = 15;
+                let y : number = 0;
+                const guardBox : svg.G = result.group() ;
+                // guardbox.addClass( "ifGuardBox" ) ;
+                // guardbox.addClass( "H" ) ;
+                // guardbox.addClass( "workplace" ) ;
+                let textElement = guardBox.text("?").dmove(0, -5);
+                guardBox.add( childArray[0].dmove(20, 5) ) ;
+                y += childArray[0].bbox().height + padding;
+                let len = findWidthOfLargestChild(childArray);
+                len += padding; //account for extra space due to question mark symbol
 
-        //         const elsebox : JQuery = $(document.createElement("div")) ;
-        //         elsebox.addClass( "elseBox" ) ;
-        //         elsebox.addClass( "H" ) ;
-        //         elsebox.addClass( "workplace" ) ;
-        //         elsebox.append( children[2] ) ;
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, "rgb(190, 133, 197)", len, y);
 
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "ifBox" ) ;
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "workplace" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.append( guardbox, thenbox, elsebox ) ;
-        //     }
-        //     break ;
+                y += padding;
+                const thenBox :  svg.G = result.group().dmove(10, y) ;
+                // thenbox.addClass( "thenBox" ) ;
+                // thenbox.addClass( "H" ) ;
+                // thenbox.addClass( "workplace" ) ;
+                thenBox.add( childArray[1] ) ;
+                y += thenBox.bbox().height + (padding*2); //leave room for the separator
+
+                const elseBox : svg.G = result.group().dmove(10, y) ;
+                // elsebox.addClass( "elseBox" ) ;
+                // elsebox.addClass( "H" ) ;
+                // elsebox.addClass( "workplace" ) ;
+                elseBox.add( childArray[2] ) ;
+
+                makeFancyBorderSVG(children, result, "rgb(190, 133, 197)");
+                makeThenBoxSeparatorSVG(result, y - padding);
+                // result.addClass( "ifBox" ) ;
+                // result.addClass( "V" ) ;
+                // result.addClass( "workplace" ) ;
+            }
+            break ;
             case labels.ExprSeqLabel.kindConst :
             {
                 // TODO show only the unevaluated members during evaluation
@@ -80,10 +91,17 @@ module animatorHelpers
                 // result.addClass( "seqBox" ) ;
                 // result.addClass( "V" ) ;
                 // Add children and drop zones.
+                let padding : number = 15;
+                let y : number = 0;
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    childArray[i].dmove(0, i*40); //testing
+                    childArray[i].dmove(0, y); //testing
+                    y += childArray[i].bbox().height + padding;
                     result.add(childArray[i]);
+                }
+                if(y === 0) //i.e. there are no elements in this node
+                {
+                    result.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq nodes.
                 }
             }
             break ;
@@ -96,29 +114,32 @@ module animatorHelpers
                 // result.addClass( "V" ) ;
             }
             break ;
-        //     case labels.ParameterListLabel.kindConst :
-        //     {
-        //         result = $( document.createElement("div") ) ;
-        //         result.addClass( "paramlistOuter" ) ;
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "droppable" ) ;
+            case labels.ParameterListLabel.kindConst :
+            {
+                let childArray = children.children();
+                result = children.group() ;
+                // result.addClass( "paramlistOuter" ) ;
+                // result.addClass( "H" ) ;
                 
-        //         // Add children and dropZones.
-        //         for (let i = 0; true; ++i) {
-        //             const dz = makeDropZone(i, false) ;
-        //             dropzones.push( dz ) ;
-        //             result.append(dz);
-        //             if (i === children.length) break;
-        //             result.append(children[i]);
-        //         }
-        //     }
-        //     break ;
+                let padding : number = 15;
+                let x : number = 0;
+                // Add children and dropZones.
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    childArray[i].dmove(x, 0); //testing
+                    x += childArray[i].bbox().width + padding;
+                    result.add(childArray[i]);
+                }
+            }
+            break ;
             case labels.WhileLabel.kindConst :
             {
                 let childArray = children.children();
                 assert.check( childArray.length === 2 ) ;
 
                 let result  = children.group().dmove(10, 10) ;
+                let padding : number = 15;
+                let y = 0;
 
                 const guardBox : svg.G = result.group() ;
                 // guardBox.addClass( "whileGuardBox") ;
@@ -126,15 +147,13 @@ module animatorHelpers
                 // guardBox.addClass( "workplace") ;
                 let textElement = guardBox.text("\u27F3").dmove(0, -5);
                 guardBox.add( childArray[0].dmove(30, 0) ) ;
-                let len = findWidthOfLargestChild(childArray);
-                if(len <= childArray[0].bbox().width + 20)
-                {
-                    len += 20; //account for extra space due to while symbol
-                }
+                y += childArray[0].bbox().height + padding;
+                let len = findWidthOfLargestChild(childArray)+padding;
 
-                doGuardBoxStylingAndBorderSVG(textElement, guardBox, "rgb(190, 133, 197)", len)
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, "rgb(190, 133, 197)", len, y)
 
-                const doBox :  svg.G = result.group().dmove(10, 50) ;
+                y += padding;
+                const doBox :  svg.G = result.group().dmove(10, y) ;
                 // doBox.addClass( "doBox") ;
                 // doBox.addClass( "H") ;
                 // doBox.addClass( "workplace") ;
@@ -155,19 +174,25 @@ module animatorHelpers
                 let opText = result.text(node.label().getVal());
                 const labelString = node.label().getVal() ;
 
+                let padding : number = 10;
+                let x : number = 0;
                 if(childArray.length === 2 && labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null)
                 {
                     result.add(childArray[0]);
-                    result.add(opText.dmove(20, -5)); //dmoves are for testing purposes
-                    result.add(childArray[1].dmove(40, 0));
+                    x += childArray[0].bbox().width + padding;
+                    result.add(opText.dmove(x, -5)); //dmoves are for testing purposes
+                    x += opText.bbox().width + padding;
+                    result.add(childArray[1].dmove(x, 0));
                 }
                 else
                 {
                     result.add(opText.dmove(0, -5));
+                    x += opText.bbox().width + padding;
                     for( let i=0 ; true ; ++i)
                     {
                         if( i === childArray.length ) break ;
-                        childArray[i].dmove(20*(i+1), 0) //testing
+                        childArray[i].dmove(x, 0) //testing
+                        x += childArray[i].bbox().width + padding;
                         result.add(childArray[i]) ;
                     }
                 }
@@ -201,42 +226,56 @@ module animatorHelpers
                 
                 let childArray = children.children();
                 result = children.group();
-                result.add(childArray[0]
-                    .dmove(0, 0) //testing
-                ); 
+                let padding : number = 10;
+                let x : number = 0;
+                result.add(childArray[0]); 
 
+                x += childArray[0].bbox().width + padding;
                 const opText : svg.Text = result.text(":=");
                 opText.fill("rgb(244, 140, 0)")
-                opText.dmove(20, -5); //testing
+                opText.dmove(x, -5);
+                x += opText.bbox().width + padding;
 
-                result.add(childArray[1]
-                    .dmove(40, 0) //testing
-                );
+                result.add(childArray[1].dmove(x, 0));
                 
                 makeAssignLabelBorder(result);
             }
             break ;
-        //     case labels.LambdaLabel.kindConst :
-        //     {
-        //         const lambdahead : JQuery = $( document.createElement("div") ) ;
-        //         lambdahead.addClass( "lambdaHeader") ;
-        //         lambdahead.addClass( "V") ;
-        //         lambdahead.append( children[0] ) ;
-        //         lambdahead.append( children[1] ) ;
+            case labels.LambdaLabel.kindConst :
+            {
 
-        //         const doBox : JQuery = $( document.createElement("div") ) ;
-        //         doBox.addClass( "doBox") ;
-        //         doBox.addClass( "H") ;
-        //         doBox.append( children[2] ) ;
+                let childArray = children.children();
+                let result  = children.group().dmove(10, 10) ;
+                let padding : number = 15;
+                let y : number = 0;
 
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "lambdaBox" ) ;
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.append( lambdahead ) ;
-        //         result.append( doBox ) ;
-        //     }
-        //     break ;
+                const lambdahead : svg.G = result.group() ;
+                // guardBox.addClass( "whileGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                let textElement = lambdahead.text("\u03BB");
+                lambdahead.add( childArray[0].dmove(20, 10) ) ;
+                y += childArray[0].bbox().height + padding;
+                lambdahead.add( childArray[1].dmove(0, y) ) ;
+                let len = findWidthOfLargestChild(childArray)+padding;
+                y += childArray[1].bbox().height + padding;
+                // lambdahead.addClass( "lambdaHeader") ;
+                // lambdahead.addClass( "V") ;
+
+                doGuardBoxStylingAndBorderSVG(textElement, lambdahead, "rgb(135,206,250)", len, y);
+                y += padding;
+
+                const doBox :  svg.G = result.group().dmove(10, y) ;
+                // doBox.addClass( "doBox") ;
+                // doBox.addClass( "H") ;
+                doBox.add( childArray[2] ) ;
+
+                makeFancyBorderSVG(children, result, "rgb(135,206,250)");
+
+                // result.addClass( "lambdaBox" ) ;
+                // result.addClass( "V" ) ;
+            }
+            break ;
         //     case labels.NullLiteralLabel.kindConst :
         //     {
         //         result  = $(document.createElement("div")) ;
@@ -281,44 +320,43 @@ module animatorHelpers
                 // result.addClass( "V" ) ;
             }
             break ;
-        //     case labels.NoExprLabel.kindConst :
-        //     {
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "expOp" ) ; // Need a better class for this, I think.
-        //         result.addClass( "V" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //     }
-        //     break ;
+            case labels.NoExprLabel.kindConst :
+            {
+                result  = children.group() ;
+                makeNoExprLabelSVG(result);
+                // result.addClass( "expOp" ) ; // Need a better class for this, I think.
+                // result.addClass( "V" ) ;
+            }
+            break ;
             case labels.VarDeclLabel.kindConst :
             {
 
                 let childArray = children.children();
                 result = children.group();
 
+                let padding : number = 10;
+                let x : number = 0;
+
                 const delta : svg.Text = result.text("\u03B4");
                 delta.fill("rgb(248, 248, 255)")
                 delta.dmove(0, -5); //testing
 
-                result.add(childArray[0]
-                    .dmove(20, 0) //testing
-                ); 
+                x += delta.bbox().width + padding;
+                result.add(childArray[0].dmove(x, 0)); 
 
+                x += childArray[0].bbox().width + padding;
                 const colon : svg.Text = result.text(":");
-                colon.fill("rgb(248, 248, 255)")
-                colon.dmove(40, -5); //testing
+                colon.fill("rgb(248, 248, 255)").dmove(x, -5);
 
-                result.add(childArray[1]
-                    .dmove(55, 7) //testing
-                );
+                x += colon.bbox().width + padding;
+                result.add(childArray[1].dmove(x, 7));
 
+                x += childArray[1].bbox().width + padding;
                 const becomes : svg.Text = result.text(":=");
-                becomes.fill("rgb(248, 248, 255)")
-                becomes.dmove(80, -5); //testing
+                becomes.fill("rgb(248, 248, 255)").dmove(x, -5);
 
-                result.add(childArray[2]
-                    .dmove(100, 0) //testing
-                );
+                x += becomes.bbox().width + padding;
+                result.add(childArray[2].dmove(x, 0));
 
                 makeVarDeclBorderSVG(result);
 
@@ -333,7 +371,7 @@ module animatorHelpers
         }
     }
 
-    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number)
+    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number, lineY : number)
     {
         if(text !== null)
         {
@@ -341,10 +379,17 @@ module animatorHelpers
             text.style("font-size: large");
         }
         let bounds = guardBox.bbox();
-        let line = guardBox.line(bounds.x - 5, bounds.y2 + 10, bounds.x + lineLength + 5, bounds.y2 + 10);
+        let line = guardBox.line(bounds.x - 5, lineY, bounds.x + lineLength + 5, lineY);
         line.stroke({color: colour.toString(), opacity: 1, width: 4});
         line.attr("stroke-dasharray", "10, 10");
-
+    }
+    
+    function makeThenBoxSeparatorSVG(ifBox : svg.G, y : number)
+    {
+        let sepX1 = ifBox.bbox().x;
+        let sepX2 = ifBox.bbox().x2;
+        let line = ifBox.line(sepX1, y, sepX2, y);
+        line.stroke({color: "rgb(190, 133, 197)", opacity: 1, width: 4});
     }
 
     function doCallWorldLabelStylingSVG(textElement : svg.Text)
@@ -463,6 +508,14 @@ module animatorHelpers
         label.radius(5);
         label.fill({opacity: 0});
         label.stroke({color: "rgb(153,153,153)", opacity: 1, width: 1.5})
+    }
+
+    function makeNoExprLabelSVG(el: svg.Container)
+    {
+        let label = el.rect(20,20);
+        label.radius(5);
+        label.fill({opacity: 0});
+        label.stroke({color: "rgb(248, 248, 255)", opacity: 1, width: 1.5})
     }
 
     function findWidthOfLargestChild(arr : svg.Element[])
