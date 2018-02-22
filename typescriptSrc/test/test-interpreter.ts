@@ -583,7 +583,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
-  const rootlabel = new labels.CallWorldLabel("&", false);
+  const rootlabel = new labels.CallWorldLabel("and", false);
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("true");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -611,7 +611,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
-  const rootlabel = new labels.CallWorldLabel("&", false);
+  const rootlabel = new labels.CallWorldLabel("and", false);
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -639,7 +639,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("|", false);
+  const rootlabel = new labels.CallWorldLabel("or", false);
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("true");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -667,7 +667,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("|", false);
+  const rootlabel = new labels.CallWorldLabel("or", false);
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -695,7 +695,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("|", false);
+  const rootlabel = new labels.CallWorldLabel("or", false);
   const op1 = labels.mkNumberLiteral("false");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);

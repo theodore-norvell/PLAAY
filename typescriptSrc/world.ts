@@ -73,6 +73,7 @@ module world {
     }
 
     function isBool(val: Value) : boolean {
+      if(!val.isStringV()) return false;
       let str = (val as StringV).getVal();
       return str === "true" || str === "false";
     }
@@ -145,25 +146,25 @@ module world {
             super();
             //console.log("World's fields array is length: " + this.fields.length);
 
-            let addCallback = function(leftOperand: number, rightOperand: number): number { return leftOperand + rightOperand; } 
+            let addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; }
             let addstep = arithmeticStepperFactory(addCallback);
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true);
             this.fields.push(addf);
 
-            let subCallback = function(leftOperand: number, rightOperand: number): number { return leftOperand - rightOperand; } 
+            let subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; }
             let substep = arithmeticStepperFactory(subCallback);
             var sub = new BuiltInV(substep);
             var subf = new Field("-", sub, Type.NUMBER, true);
             this.fields.push(subf);
 
-            let multCallback = function(leftOperand: number, rightOperand: number): number { return leftOperand * rightOperand; } 
+            let multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } 
             let multstep = arithmeticStepperFactory(multCallback);
             var mult = new BuiltInV(multstep);
             var multf = new Field("*", mult, Type.NUMBER, true);
             this.fields.push(multf);
 
-            let divCallback = function(dividend: number, divisor: number) : number {
+            let divCallback = (dividend: number, divisor: number) : number => {
               assert.check(divisor !== 0, "Division by zero is not allowed");
               return dividend/divisor;
             }
@@ -172,7 +173,7 @@ module world {
             var divf = new Field("/", div, Type.NUMBER, true);
             this.fields.push(divf);
 
-            let greaterthanCallback = function(vals: Array<number>): boolean {
+            let greaterthanCallback = (vals: Array<number>): boolean => {
               let result = true;
               for(let i = 0; i < vals.length-1; i++) { 
                 if (!(vals[i] > vals[i+1])) result = false;
@@ -184,7 +185,7 @@ module world {
             var greaterf = new Field(">", greaterthan, Type.BOOL, true);
             this.fields.push(greaterf);
 
-            let greaterthanequalCallback = function(vals: Array<number>): boolean {
+            let greaterthanequalCallback = (vals: Array<number>): boolean => {
               let result = true;
               for(let i = 0; i < vals.length-1; i++) { 
                 if (!(vals[i] >= vals[i+1])) result = false;
@@ -196,7 +197,7 @@ module world {
             var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
             this.fields.push(greaterequalf);
 
-            let lessthanCallback = function(vals: Array<number>): boolean {
+            let lessthanCallback = (vals: Array<number>): boolean => {
               let result = true;
               for(let i = 0; i < vals.length-1; i++) { 
                 if (!(vals[i] < vals[i+1])) result = false;
@@ -208,7 +209,7 @@ module world {
             var lessf = new Field("<", lessthan, Type.BOOL, true);
             this.fields.push(lessf);
 
-            let lessthanequalCallback = function(vals: Array<number>): boolean {
+            let lessthanequalCallback = (vals: Array<number>): boolean => {
               let result = true;
               for(let i = 0; i < vals.length-1; i++) { 
                 if (!(vals[i] <= vals[i+1])) result = false;
@@ -220,7 +221,7 @@ module world {
             var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
             this.fields.push(lessequalf);
 
-            function equalstep( vms : VMS, args : Array<Value> ) : void {
+            function equalstep(vms : VMS, args : Array<Value>) : void {
               let bool = true;
               for(let i = 0; i < args.length-1; i++) { 
                 if (!(args[i] === args[i+1])) bool = false;
@@ -232,16 +233,16 @@ module world {
             var equalf = new Field("==", equal, Type.BOOL, true);
             this.fields.push(equalf);
 
-            let andCallback = function(leftOperand: boolean, rightOperand: boolean): boolean { return leftOperand && rightOperand; }
+            let andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; }
             let andstep = logicalStepperFactory(andCallback);
             var and = new BuiltInV(andstep);
-            var andf = new Field("&", and, Type.BOOL, true);
+            var andf = new Field("and", and, Type.BOOL, true);
             this.fields.push(andf);
 
-            let orCallback = function(leftOperand: boolean, rightOperand: boolean): boolean { return leftOperand || rightOperand; }
+            let orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; }
             let orstep = logicalStepperFactory(orCallback);
             var or = new BuiltInV(orstep);
-            var orf = new Field("|", or, Type.BOOL, true);
+            var orf = new Field("or", or, Type.BOOL, true);
             this.fields.push(orf);
         }
     }

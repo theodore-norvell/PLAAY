@@ -157,11 +157,11 @@ module interpreter {
           stepper(vms, args);
         } 
         else {
-          vms.reportError("Field was not a BuiltInV");
+          vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
         } 
       } 
       else {
-        vms.reportError("Var stack did not contain specified value");
+        vms.reportError("No variable named " + value + "is in scope.");
       } 
     }
 }
