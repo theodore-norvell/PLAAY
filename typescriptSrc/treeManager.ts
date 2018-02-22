@@ -58,7 +58,7 @@ module treeManager {
                     return this.makeNumberLiteralNode(selection);
                 case "trueliteral":
                     return this.makeTrueBooleanLiteralNode(selection);
-                case "falseiteral":
+                case "falseliteral":
                     return this.makeFalseBooleanLiteralNode(selection);
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);

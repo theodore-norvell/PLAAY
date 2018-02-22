@@ -253,7 +253,7 @@ module sharedMkHtml
                 result.addClass( "nullLiteral" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
-                result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
+                result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
             }
             break ;
             case labels.VariableLabel.kindConst :
