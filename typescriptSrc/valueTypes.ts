@@ -3,12 +3,15 @@
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="vms.ts" />
+/// <reference path="backtracking.ts" />
 
+import backtracking = require( './backtracking' ) ;
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
+import { TransactionManager } from './backtracking';
 
 /** Value types provides classes that represent the values of Plaay programs
  * at runtime.
@@ -24,6 +27,7 @@ module valueTypes {
     import FieldI = vms.FieldI ;
     import Type = vms.Type ;
     import VMS = vms.VMS;
+    import TVar = backtracking.TVar ;
 
 
     /** A field of an object. */
@@ -76,14 +80,16 @@ module valueTypes {
 
     /** A string value. */
     export class StringV implements Value {
-        private contents : string;
+        private contents : TVar<string>;
+        private manager : TransactionManager;
 
-        constructor(val : string){
-            this.contents = val;
+        constructor(val : string, manager : TransactionManager){
+            this.contents = new TVar<string>(val, manager);
+            this.manager = manager;
         }
 
         public getVal() : string {
-            return this.contents;
+            return this.contents.get();
         }
 
         public isClosureV() : boolean {
@@ -99,7 +105,7 @@ module valueTypes {
         }
 
         public toString() : string {
-            return '"' +this.contents+ '"' ;
+            return '"' +this.contents.get()+ '"' ;
         }
     }
 

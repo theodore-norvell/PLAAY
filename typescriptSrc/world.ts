@@ -98,7 +98,7 @@ module world {
               }  
               if(ok) {
                   const sum = vals.reduce( (s, x) => s+x, 0 ) ;
-                  const val = new StringV( sum+"" ) ;
+                  const val = new StringV( sum+"", vms.getTransactionManager()) ;
                   vms.finishStep( val ) ;
               }
             }
@@ -125,7 +125,7 @@ module world {
               }  
               if(ok) {
                   const diff = vals.reduce( (s, x) => s-x) ;
-                  const val = new StringV( diff+"" ) ;
+                  const val = new StringV( diff+"" , vms.getTransactionManager()) ;
                   vms.finishStep( val ) ;
               }
             }
@@ -152,7 +152,7 @@ module world {
               }  
               if(ok) {
                   const prod = vals.reduce( (s, x) => s*x) ;
-                  const val = new StringV( prod+"" ) ;
+                  const val = new StringV( prod+"" , vms.getTransactionManager()) ;
                   vms.finishStep( val ) ;
               }
             }
@@ -179,7 +179,7 @@ module world {
               }  
               if(ok) {
                   const quot = vals.reduce( (s, x) => s/x) ;
-                  const val = new StringV( quot+"" ) ;
+                  const val = new StringV( quot+"" , vms.getTransactionManager()) ;
                   vms.finishStep( val ) ;
               }
             }
