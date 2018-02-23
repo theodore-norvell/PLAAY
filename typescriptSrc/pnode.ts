@@ -109,6 +109,10 @@ module pnode {
             return this._children.length;
         }
 
+        public hasChildren(): boolean {
+          return this.count() > 0;
+        }
+
         /** Get some of the children as an array. */
         public children(start?:number, end?:number):Array<PNode> {
             if (start === undefined) start = 0;
