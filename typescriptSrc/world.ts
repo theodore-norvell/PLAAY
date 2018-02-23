@@ -72,166 +72,178 @@ module world {
         }
     }
 
+    function isBool(val: Value) : boolean {
+      if(!val.isStringV()) return false;
+      let str = (val as StringV).getVal();
+      return str === "true" || str === "false";
+    }
+
+    function convertToBool(val: Value) : boolean {
+      return (val as StringV).getVal() === "true" ? true : false;
+    }
+
+    function arithmeticStepperFactory(callback: (leftOperand: number, rightOperand: number) => number): (vms: VMS, args: Array<Value>) => void {
+        return function(vms: VMS, args: Array<Value>) : void {
+          const vals : Array<number>= [] ;
+          let ok = true ;
+          for( let i=0 ; i < args.length ; ++i ) {
+              if( canConvertToNumber( args[i] ) ) {
+                  vals.push( convertToNumber( args[i] ) ) ; }
+              else {
+                  vms.reportError( "The "+nth(i+1)+" argument is not a number.") ;
+                  ok = false ; } }
+          
+          if( ok ) {
+              const result = vals.reduce(callback);
+              const val = new StringV(result+"");
+              vms.finishStep(val);
+          }
+        }
+    }
+
+    function comparatorStepperFactory(callback: (vals: Array<number>) => boolean): (vms: VMS, args: Array<Value>) => void {
+      return function(vms : VMS, args : Array<Value>) : void {
+        const vals : Array<number>= [] ;
+        let ok = true ;
+        for( let i=0 ; i < args.length ; ++i ) {
+            if( canConvertToNumber( args[i] ) ) {
+                vals.push( convertToNumber( args[i] ) ) ; }
+            else {
+                vms.reportError( "The "+nth(i+1)+" argument is not a number.");
+                ok = false ; } }
+        
+        if( ok ) {
+            const result = callback(vals);
+            const val = new StringV( result+"" );
+            vms.finishStep( val ) ;
+        }
+      }
+    }
+
+    function logicalStepperFactory(callback: (leftOperand: boolean, rightOperand: boolean) => boolean): (vms: VMS, args: Array<Value>) => void {
+      return function andstep( vms : VMS, args : Array<Value> ) : void {
+        const vals : Array<boolean>= [] ;
+        let ok = true ;
+        for( let i=0 ; i < args.length ; ++i ) {
+            if(isBool(args[i])) {
+              vals.push(convertToBool(args[i]));                    
+            } else {
+              vms.reportError("The "+nth(i+1)+" argument is not a bool.");
+              ok = false;
+            }
+        }    
+        if(ok) {
+            const result = vals.reduce(callback);
+            const val = new StringV(result+"") ;
+            vms.finishStep(val);
+        }
+      }
+    }
+
     export class World extends ObjectV {
-        protected stepperFactory: {[value: string]: (vms : VMS) => void;};
 
         constructor() {
             super();
             //console.log("World's fields array is length: " + this.fields.length);
 
-            this.stepperFactory = {};
-
-            function addstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
-                  const sum = vals.reduce( (s, x) => s+x, 0 ) ;
-                  const val = new StringV( sum+"" ) ;
-                  vms.finishStep( val ) ;
-              }
-            }
-
+            let addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; }
+            let addstep = arithmeticStepperFactory(addCallback);
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true);
             this.fields.push(addf);
-            this.stepperFactory["+"] = addstep;
 
-            function substep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
-                  const diff = vals.reduce( (s, x) => s-x) ;
-                  const val = new StringV( diff+"" ) ;
-                  vms.finishStep( val ) ;
-              }
-            }
-
+            let subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; }
+            let substep = arithmeticStepperFactory(subCallback);
             var sub = new BuiltInV(substep);
             var subf = new Field("-", sub, Type.NUMBER, true);
             this.fields.push(subf);
-            this.stepperFactory["-"] = substep;
 
-            function multstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
-                  const prod = vals.reduce( (s, x) => s*x) ;
-                  const val = new StringV( prod+"" ) ;
-                  vms.finishStep( val ) ;
-              }
-            }
-
+            let multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } 
+            let multstep = arithmeticStepperFactory(multCallback);
             var mult = new BuiltInV(multstep);
             var multf = new Field("*", mult, Type.NUMBER, true);
             this.fields.push(multf);
-            this.stepperFactory["*"] = multstep;
 
-            function divstep(vms: VMS) : void {
-              const node = vms.getPendingNode();
-              const vals : Array<number>= [];
-              let ok = true;
-              if (node.count() > 0) {
-                  for (let i = 0; i < node.count(); i++) {
-                      let childVal = vms.getChildVal(i);
-                      if (canConvertToNumber(childVal)) {
-                          vals.push(convertToNumber(childVal))
-                      } else {
-                          vms.reportError( "The "+nth(i+1)+" argument is not a number.");
-                          ok = false; 
-                      } 
-                  }
-              }  
-              if(ok) {
-                  const quot = vals.reduce( (s, x) => s/x) ;
-                  const val = new StringV( quot+"" ) ;
-                  vms.finishStep( val ) ;
-              }
+            let divCallback = (dividend: number, divisor: number) : number => {
+              assert.check(divisor !== 0, "Division by zero is not allowed");
+              return dividend/divisor;
             }
-
+            let divstep = arithmeticStepperFactory(divCallback);
             var div = new BuiltInV(divstep);
             var divf = new Field("/", div, Type.NUMBER, true);
             this.fields.push(divf);
-            this.stepperFactory["/"] = divstep;
 
-            // TODO create the functions for the following builtin function.
+            let greaterthanCallback = (vals: Array<number>): boolean => {
+              let result = true;
+              for(let i = 0; i < vals.length-1; i++) { 
+                if (!(vals[i] > vals[i+1])) result = false;
+              }
+              return result;
+            }
+            let greaterthanstep = comparatorStepperFactory(greaterthanCallback);
+            var greaterthan = new BuiltInV(greaterthanstep);
+            var greaterf = new Field(">", greaterthan, Type.BOOL, true);
+            this.fields.push(greaterf);
 
-            // var greaterthan = new BuiltInV(greaterthanstep);
-            // var greaterf = new Field(">", greaterthan, Type.BOOL, true);
+            let greaterthanequalCallback = (vals: Array<number>): boolean => {
+              let result = true;
+              for(let i = 0; i < vals.length-1; i++) { 
+                if (!(vals[i] >= vals[i+1])) result = false;
+              }
+              return result;
+            }
+            let greaterthanequalstep = comparatorStepperFactory(greaterthanequalCallback);
+            var greaterthanequal = new BuiltInV(greaterthanequalstep);
+            var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
+            this.fields.push(greaterequalf);
 
-            // this.fields.push(greaterf);
+            let lessthanCallback = (vals: Array<number>): boolean => {
+              let result = true;
+              for(let i = 0; i < vals.length-1; i++) { 
+                if (!(vals[i] < vals[i+1])) result = false;
+              }
+              return result;
+            }
+            let lessthanstep = comparatorStepperFactory(lessthanCallback);
+            var lessthan = new BuiltInV(lessthanstep);
+            var lessf = new Field("<", lessthan, Type.BOOL, true);
+            this.fields.push(lessf);
 
+            let lessthanequalCallback = (vals: Array<number>): boolean => {
+              let result = true;
+              for(let i = 0; i < vals.length-1; i++) { 
+                if (!(vals[i] <= vals[i+1])) result = false;
+              }
+              return result;
+            }
+            let lessthanequalstep = comparatorStepperFactory(lessthanequalCallback);
+            var lessequalthan = new BuiltInV(lessthanequalstep);
+            var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
+            this.fields.push(lessequalf);
 
-            // var greaterthanequal = new BuiltInV(greaterthanequalstep);
-            // var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
+            function equalstep(vms : VMS, args : Array<Value>) : void {
+              let bool = true;
+              for(let i = 0; i < args.length-1; i++) { 
+                if (!(args[i] === args[i+1])) bool = false;
+              }
+              const val = new StringV( bool+"" ) ;
+              vms.finishStep( val ) ;  
+            }
+            var equal = new BuiltInV(equalstep);
+            var equalf = new Field("=", equal, Type.BOOL, true);
+            this.fields.push(equalf);
 
-            // this.fields.push(greaterequalf);
+            let andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; }
+            let andstep = logicalStepperFactory(andCallback);
+            var and = new BuiltInV(andstep);
+            var andf = new Field("and", and, Type.BOOL, true);
+            this.fields.push(andf);
 
-            // var lessthan = new BuiltInV(lessthanstep);
-            // var lessf = new Field("<", lessthan, Type.BOOL, true);
-
-            // this.fields.push(lessf);
-
-            // var lessequalthan = new BuiltInV(lessthanequalstep);
-            // var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
-
-            // this.fields.push(lessequalf);
-
-            // var equal = new BuiltInV(equalstep);
-            // var equalf = new Field("==", equal, Type.BOOL, true);
-
-            // this.fields.push(equalf);
-
-
-            // var and = new BuiltInV(andstep);
-            // var andf = new Field("&", and, Type.BOOL, true);
-
-            // this.fields.push(andf);
-
-
-            // var or = new BuiltInV(orstep);
-            // var orf = new Field("|", or, Type.BOOL, true);
-
-            // this.fields.push(orf);
-        }
-
-        public getStepperFactory() : {[value: string]: (vms : VMS) => void;} {
-          return this.stepperFactory;
+            let orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; }
+            let orstep = logicalStepperFactory(orCallback);
+            var or = new BuiltInV(orstep);
+            var orf = new Field("or", or, Type.BOOL, true);
+            this.fields.push(orf);
         }
     }
 
