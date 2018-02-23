@@ -44,16 +44,16 @@ module createHtmlElements {
 		createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 		createHidden("div", "edit evalVisible", "edit", leftSideArea, "Edit");
 
-		createTexted("div", "leftSideButton buildingBlockButton palette", "if", palette, "?");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "while", palette, "\u27F3");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "vardecl", palette, "\u03B4");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "assign", palette, ":=");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "var", palette, "x");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "worldcall", palette, "+");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "call", palette, "call");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "stringliteral", palette, '""');
-		createTexted("div", "leftSideButton buildingBlockButton palette", "nullliteral", palette, "\u23da");
-		createTexted("div", "leftSideButton buildingBlockButton palette", "lambda", palette, "\u03BB");
+		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
+		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
+		createTexted("div", "leftSideButton paletteItem", "vardecl", palette, "\u03B4");
+		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
+		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
+		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+");
+		createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
+		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
+		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
+		createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
 
 		//User-related elements. All added functionalities of the elements are in userRelated module.
 		create("div", "userBar", "userBar", upperArea);

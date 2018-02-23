@@ -52,7 +52,7 @@ module editor {
         $("#trash").click( toggleTrash ) ;
 
         makeTrashDroppable( $("#trash") ) ;
-        $( ".palette" ).draggable( {
+        $( ".paletteItem" ).draggable( {
             helper:"clone",
             revert: true,
             revertDuration: 500,
@@ -73,6 +73,12 @@ module editor {
                 /*tslint:enable:no-invalid-this*/
                 console.log( "<< Drag handler for things in pallette" ) ;
             } } ) ;
+
+        // When a palette item is clicked, insert a node at the current selection.
+        $( ".paletteItem" ).click(
+            function(this : HTMLElement, evt : Event) : void {
+                console.log( "click on " + $(this).attr("id") ) ;
+                createNodeOnCurrentSelection( $(this).attr("id") ) ; } ) ;
 
     }
 
@@ -645,6 +651,11 @@ module editor {
 
     export function getCurrentSelection() : Selection {
         return currentSelection ;
+    }
+
+    function createNodeOnCurrentSelection(id: string, nodeText?: string) : void
+    {
+        createNode( id, getCurrentSelection(), nodeText) ;
     }
 
     function createNode(id: string, selection : Selection, nodeText?: string) : void
