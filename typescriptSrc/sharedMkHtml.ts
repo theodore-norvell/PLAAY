@@ -153,8 +153,6 @@ module sharedMkHtml
                 result.attr("type", "text");
                 result.attr("list", "oplist");
                 
-                // TODO Allow infix operators again some day.
-
                 let opElement : JQuery ;
                 if(! node.label().isOpen() )
                 {
@@ -179,7 +177,7 @@ module sharedMkHtml
                 if( ! node.label().isOpen() && children.length === 2 )
                 {
                     const labelString = node.label().getVal() ;
-                    if( labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ) {
+                    if( stringIsInfixOperator( labelString ) ) {
                         // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
                         assert.check( result.children().length === 6 ) ;
                         // Move the opElement to after the first child
@@ -482,6 +480,10 @@ module sharedMkHtml
         // used to make the HTML.
         return some( new pnodeEdits.Selection(root, thePath, anchor, focus) ) ;
     }
+
+    export function stringIsInfixOperator( str : string ) : boolean {
+        return str.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ;
+    }  
 }
 
 export = sharedMkHtml;
