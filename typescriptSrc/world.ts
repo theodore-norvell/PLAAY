@@ -230,7 +230,7 @@ module world {
               vms.finishStep( val ) ;  
             }
             var equal = new BuiltInV(equalstep);
-            var equalf = new Field("==", equal, Type.BOOL, true);
+            var equalf = new Field("=", equal, Type.BOOL, true);
             this.fields.push(equalf);
 
             let andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; }
