@@ -66,10 +66,10 @@ module animator
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
-        let animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        let animation : svg.G = animatorArea.group().move(10, 0);
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, true);
-        let animationBBox : svg.BBox = animation.bbox();
+        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animation : svg.G = animatorArea.group().move(10, 0);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation);
+        const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
@@ -78,14 +78,14 @@ module animator
 
     function svgTest() : void
     {
-        let animatorArea : svg.Doc = svg("svgContainer").size(5000,5000);
-        let g2 : svg.G = animatorArea.group();
-        let g : svg.G = g2.group();
+        const animatorArea : svg.Doc = svg("svgContainer").size(5000,5000);
+        const g2 : svg.G = animatorArea.group();
+        const g : svg.G = g2.group();
         g.x(50).y(50);
-        let rect = g.rect(100, 100).fill("#f06").cx(100).cy(100);
-        let circ = g.circle(100).fill("Blue").cx(100).cy(250);
-        let set = g2.set().add(g);
-        let gBounds : svg.BBox = set.bbox();
+        const rect = g.rect(100, 100).fill("#f06").cx(100).cy(100);
+        const circ = g.circle(100).fill("Blue").cx(100).cy(250);
+        const set = g2.set().add(g);
+        const gBounds : svg.BBox = set.bbox();
         g2.rect(gBounds.width+5, gBounds.height+5).radius(5).fill({opacity: 0}).stroke({color: "rgb(135,206,250)", opacity: 1, width: 2}).center(gBounds.cx, gBounds.cy);
         g2.dmove(200,200);
         //animatorArea.cx(100).cy(200);
