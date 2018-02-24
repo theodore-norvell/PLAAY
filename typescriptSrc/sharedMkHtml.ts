@@ -421,10 +421,26 @@ module sharedMkHtml
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
-            element.focus() ;
+            // Give the element focus and move the caret to the end of the text.
             const len = text.length ;
-            element.setSelection(len, len) ;
+            setSelection(element, len, len) ;
             return element ;
+    }
+
+    function setSelection( element : JQuery, start : number, end : number ) : void {
+        // Precondition: element should contain one input element of type text
+        // Code based on https://www.sitepoint.com/6-jquery-cursor-functions/
+        const input = element[0] ;
+        if( typeof input["createTextRange"] !== "undefined" ) {
+            const range = input["createRange"]() ;
+            range.collapse(true) ;
+            range.moveEnd( 'character', end ) ;
+            range.moveStart( 'character', start ) ;
+            range.select() ;
+        } else if( input["setSelectionRange"] !== "undefined" ) {
+            input.focus() ;
+            input["setSelectionRange"]( start, end ) ;
+        }
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
