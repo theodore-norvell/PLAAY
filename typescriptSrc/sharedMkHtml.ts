@@ -421,9 +421,7 @@ module sharedMkHtml
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
-            element.focus() ;
-            const len = text.length ;
-            element.setSelection(len, len) ;
+            element.focus().val(element.val()); //Set the caret to the end of the text.
             return element ;
     }
 
