@@ -240,6 +240,8 @@ module sharedMkHtml
                 result  = $(document.createElement("div")) ;
                 result.addClass( "lambdaBox" ) ;
                 result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.append( lambdahead ) ;
                 result.append( doBox ) ;
@@ -250,6 +252,7 @@ module sharedMkHtml
                 result  = $(document.createElement("div")) ;
                 result.addClass( "nullLiteral" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
             }
