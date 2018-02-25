@@ -34,7 +34,7 @@ module pnodeEdits {
     import AbstractEdit = edits.AbstractEdit ;
     import compose = edits.compose ;
     import alt = edits.alt ;
-    import opt = edits.opt ;
+    import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
     
     
@@ -130,7 +130,10 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
-    /** Move out. I.e. to the parent if possible. */
+    /** Move out. I.e. to the parent if possible.
+     * @param selection
+     * @param normal iff the anchor preceeds the focus.
+    */
     function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
         const root = selection.root();
         const path = selection.path();
@@ -143,6 +146,7 @@ module pnodeEdits {
         }
 
     }
+
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
         const start = selection.start() ;
@@ -233,6 +237,36 @@ module pnodeEdits {
     /** Move Tab back. */
     function moveTabBack( selection : Selection ) : Option<Selection> {
         return moveLeft(selection) ; //In our case this is the same.
+    }
+
+    /** Move the focus one place to the right if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusRight( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
+        const root = selection.root();
+        const path = selection.path();
+        const parent = selection.parent() ;
+        console.log( "moveFocusRight: anchor is " +anchor+
+                     " focus is " +focus+ 
+                     " parent.count() is " +parent.count() ) ;
+        if( focus < parent.count() ) {
+            return some( new Selection(root, path, anchor, focus+1) ) ; }
+        else {
+            return moveOut( selection, true ) ; }
+    }
+
+    /** Move the focus one place to the left if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusLeft( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
+        const root = selection.root();
+        const path = selection.path();
+        if( focus > 0 ) {
+            return some( new Selection(root, path, anchor, focus-1) ) ; }
+        else {
+            return moveOut( selection, false ) ; }
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -352,13 +386,22 @@ module pnodeEdits {
     /** Replace all selected nodes in two places with two other sequences */
     function doubleReplaceHelper(
                             node : PNode,
-                            srcPath : List<number>, srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
-                            trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<PNode>,
-                            allowSrcAncestorOverwrite : boolean = true,  allowTrgAncestorOverwrite : boolean = true )
+                            srcPath : List<number>,
+                            srcStart : number,
+                            srcEnd : number,
+                            newNodes4Src : Array<PNode>,
+                            trgPath : List<number>,
+                            trgStart : number,
+                            trgEnd : number,
+                            newNodes4Trg : Array<PNode>,
+                            allowSrcAncestorOverwrite : boolean = true,
+                            allowTrgAncestorOverwrite : boolean = true )
     : Option<Selection>
     {
         if( srcPath.isEmpty() && trgPath.isEmpty() ) {
+            // Common parent
             if( srcEnd <= trgStart ) {
+                // Source region is before target region
                 const p0 = node.children( 0, srcStart ) ;
                 const p1 = newNodes4Src ;
                 const p2 = node.children( srcEnd, trgStart ) ;
@@ -368,8 +411,10 @@ module pnodeEdits {
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newStart = trgStart + newNodes4Src.length - (srcEnd-srcStart) ;
                 const newEnd = newStart + newNodes4Trg.length ;
-                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
+                return opt.map( newNode =>
+                                    new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
             } else if( trgEnd <= srcStart ) {
+                // Target region is before source region
                 const p0 = node.children( 0, trgStart ) ;
                 const p1 = newNodes4Trg ;
                 const p2 = node.children( trgEnd, srcStart ) ;
@@ -408,6 +453,7 @@ module pnodeEdits {
                                               srcPath, srcStart, srcEnd, newNodes4Src,
                                               allowSrcAncestorOverwrite, false ) ;
         } else if( srcPath.first() === trgPath.first() ) {
+            // Neither path is empty and they agree on their first item.
             const k = srcPath.first() ;
             const len = node.count() ;
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
@@ -424,18 +470,19 @@ module pnodeEdits {
                     new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
              } ) ;
         } else {
-            // Neither path is empty
+            // Neither path is empty and they disagree. 
+            // Here the paths diverge.
             const kSrc = srcPath.first() ;
             const kTrg = trgPath.first() ;
             const len = node.count() ;
-            assert.check( 0 <= kSrc, "Bad Path. k < 0" ) ;
-            assert.check( kSrc < len, "Bad Path. k >= len" ) ;
-            assert.check( 0 <= kTrg, "Bad Path. k < 0" ) ;
-            assert.check( kSrc < kTrg, "Bad Path. k >= len" ) ;
+            assert.check( 0 <= kSrc, "Bad Path. 0 > kSrc" ) ;
+            assert.check( kSrc < len, "Bad Path. kSrc >= len" ) ;
+            assert.check( 0 <= kTrg, "Bad Path. 0 > kTrg" ) ;
+            assert.check( kTrg < len, "Bad Path. kTrg >= len" ) ;
             const childSrc = node.child( kSrc ) ;
             const childTrg = node.child( kTrg ) ;
             const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            const optTrg = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
+            const optTrg = singleReplaceHelper( childTrg, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
             return optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
                 let p0 : Array<PNode> ;
                 let p1 : Array<PNode> ;
@@ -654,8 +701,8 @@ module pnodeEdits {
         const sel = opt.first() ;
         const start = sel.start() ;
         const end = sel.end() ;
-        if( end - start === 1 ) {
-            // Any single node selection is suitable
+        if( end - start >= 1 ) {
+            // Any selection containing 1 or more nodes is
             return true ; }
         else if( end === start ) {
             // Dropzones are suitable
@@ -687,6 +734,17 @@ module pnodeEdits {
         {
             return false ;
         }
+    }
+
+    /** Is this a suitable selection to stop at for the shift-up arrow and shift-down arrow keys are used to move the focus.
+    */
+    function upDownFocusMoveSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the up or down.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop only on selections whose
+        // parents have vertical layout.
+        const sel = opt.first() ;
+        return sel.parent().hasVerticalLayout() ;
     }
 
     /** Is this a suitable selection to stop at for tab keys.
@@ -794,6 +852,78 @@ module pnodeEdits {
     }
 
     export const downEdit = new DownEdit() ;
+
+    /** 
+     * Move Focus Left edit
+     */
+    class MoveFocusLeftEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusLeftEdit = new MoveFocusLeftEdit() ;
+
+    /** 
+     * Move Focus Right edit
+     */
+    class MoveFocusRightEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusRightEdit = new MoveFocusRightEdit() ;
+
+    /** 
+     * Move Focus Up edit
+     */
+    class MoveFocusUpEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusUpEdit = new MoveFocusUpEdit() ;
+
+    /** 
+     * Move Focus Down edit
+     */
+    class MoveFocusDownEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusDownEdit = new MoveFocusDownEdit() ;
 
     /** 
      * Tab edit
@@ -908,8 +1038,8 @@ module pnodeEdits {
      * @param template 
      */
     export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
-        const replace = compose( replaceWithTemplateEdit( template ), opt( tabForwardEdit ) ) ;
-        const engulf = compose( engulfWithTemplateEdit( template ), opt( tabForwardIfNeededEdit ) ) ;
+        const replace = compose( replaceWithTemplateEdit( template ), optionally( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( template ), optionally( tabForwardIfNeededEdit ) ) ;
         const selectionIsAllPlaceHolder
             = testEdit( (sel:Selection) =>
                            sel.selectedNodes().every( (p : PNode) =>

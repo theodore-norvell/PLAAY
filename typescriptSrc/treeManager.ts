@@ -58,7 +58,7 @@ module treeManager {
                     return this.makeNumberLiteralNode(selection);
                 case "trueliteral":
                     return this.makeTrueBooleanLiteralNode(selection);
-                case "falseiteral":
+                case "falseliteral":
                     return this.makeFalseBooleanLiteralNode(selection);
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);
@@ -288,6 +288,26 @@ module treeManager {
 
         public moveDown( selection:Selection ) : Option<Selection> {
             const edit = pnodeEdits.downEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusLeft( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusLeftEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusRight( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusRightEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusUp( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusUpEdit;
+            return edit.applyEdit(selection);
+        }
+
+        public moveFocusDown( selection:Selection ) : Option<Selection> {
+            const edit = pnodeEdits.moveFocusDownEdit;
             return edit.applyEdit(selection);
         }
 
