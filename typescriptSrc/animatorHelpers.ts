@@ -9,6 +9,7 @@ import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
+import sharedMkHtml = require('./sharedMkHtml');
 import * as svg from "svg.js";
 
 /** The animatorHelpers module looks after the conversion of trees to SVG.*/
@@ -23,6 +24,7 @@ module animatorHelpers
     const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
+    import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : String = "rgb(190, 133, 197)";
     const ORANGE : String = "rgb(244, 140, 0)";
@@ -38,25 +40,25 @@ module animatorHelpers
         {
             traverseAndBuild(node.child(i), children);
         }
-        buildSVG(node, children);
+        buildSVG(node, children, el);
     }
 
-    function buildSVG(node:PNode, children : svg.G) : void
+    //I assume element is a child of parent
+    function buildSVG(node:PNode, element : svg.G, parent : svg.Container) : void
     {
-        let result : svg.G ;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
             case labels.IfLabel.kindConst :
             {
-                const childArray = children.children();
+                const childArray = element.children();
                 assert.check( childArray.length === 3 ) ;
 
-                result = children.group().dmove(10,10);
+                element.dmove(10,10);
 
                 const padding : number = 15;
                 let y : number = 0;
-                const guardBox : svg.G = result.group() ;
+                const guardBox : svg.G = element.group() ;
                 // guardbox.addClass( "ifGuardBox" ) ;
                 // guardbox.addClass( "H" ) ;
                 // guardbox.addClass( "workplace" ) ;
@@ -69,21 +71,21 @@ module animatorHelpers
                 doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
 
                 y += padding;
-                const thenBox :  svg.G = result.group().dmove(10, y) ;
+                const thenBox :  svg.G = element.group().dmove(10, y) ;
                 // thenbox.addClass( "thenBox" ) ;
                 // thenbox.addClass( "H" ) ;
                 // thenbox.addClass( "workplace" ) ;
                 thenBox.add( childArray[1] ) ;
                 y += thenBox.bbox().height + (padding*2); //leave room for the separator
 
-                const elseBox : svg.G = result.group().dmove(10, y) ;
+                const elseBox : svg.G = element.group().dmove(10, y) ;
                 // elsebox.addClass( "elseBox" ) ;
                 // elsebox.addClass( "H" ) ;
                 // elsebox.addClass( "workplace" ) ;
                 elseBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(children, result, MAUVE);
-                makeThenBoxSeparatorSVG(result, y - padding);
+                makeFancyBorderSVG(parent, element, MAUVE);
+                makeThenBoxSeparatorSVG(element, y - padding);
                 // result.addClass( "ifBox" ) ;
                 // result.addClass( "V" ) ;
                 // result.addClass( "workplace" ) ;
@@ -93,8 +95,7 @@ module animatorHelpers
             {
                 // TODO show only the unevaluated members during evaluation
 
-                const childArray = children.children();
-                result = children.group();
+                const childArray = element.children();
                 // result.addClass( "seqBox" ) ;
                 // result.addClass( "V" ) ;
                 // Add children and drop zones.
@@ -104,26 +105,23 @@ module animatorHelpers
                     if (i === childArray.length) break;
                     childArray[i].dmove(0, y);
                     y += childArray[i].bbox().height + padding;
-                    result.add(childArray[i]);
                 }
                 if(y === 0) //i.e. there are no elements in this node
                 {
-                    result.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq nodes.
+                    element.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq nodes.
                 }
             }
             break ;
             case labels.ExprPHLabel.kindConst :
             {
-                result = children.group() ;
-                makeExprPlaceholderSVG(result);
+                makeExprPlaceholderSVG(element);
                 // result.addClass( "placeHolder" ) ;
                 // result.addClass( "V" ) ;
             }
             break ;
             case labels.ParameterListLabel.kindConst :
             {
-                const childArray = children.children();
-                result = children.group() ;
+                const childArray = element.children();
                 // result.addClass( "paramlistOuter" ) ;
                 // result.addClass( "H" ) ;
                 
@@ -134,20 +132,19 @@ module animatorHelpers
                     if (i === childArray.length) break;
                     childArray[i].dmove(x, 0); //testing
                     x += childArray[i].bbox().width + padding;
-                    result.add(childArray[i]);
                 }
             }
             break ;
             case labels.WhileLabel.kindConst :
             {
-                const childArray = children.children();
+                const childArray = element.children();
                 assert.check( childArray.length === 2 ) ;
 
-                result  = children.group().dmove(10, 10) ;
+                element.dmove(10, 10) ;
                 const padding : number = 15;
                 let y = 0;
 
-                const guardBox : svg.G = result.group() ;
+                const guardBox : svg.G = element.group() ;
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
@@ -159,13 +156,13 @@ module animatorHelpers
                 doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
 
                 y += padding;
-                const doBox :  svg.G = result.group().dmove(10, y) ;
+                const doBox :  svg.G = element.group().dmove(10, y) ;
                 // doBox.addClass( "doBox") ;
                 // doBox.addClass( "H") ;
                 // doBox.addClass( "workplace") ;
                 doBox.add( childArray[1] ) ;
 
-                makeFancyBorderSVG(children, result, MAUVE);
+                makeFancyBorderSVG(parent, element, MAUVE);
                 // result.addClass( "whileBox" ) ;
                 // result.addClass( "V" ) ;
                 // result.addClass( "workplace" ) ;
@@ -173,45 +170,41 @@ module animatorHelpers
             break ;
             case labels.CallWorldLabel.kindConst :
             {
-                const childArray = children.children();
-                result  = children.group() ;
+                const childArray = element.children();
                 // result.addClass( "callWorld" ) ;
                 // result.addClass( "H" ) ;
-                const opText = result.text(node.label().getVal());
+                const opText = element.text(node.label().getVal());
                 const labelString = node.label().getVal() ;
 
                 const padding : number = 10;
                 let x : number = 0;
-                if(childArray.length === 2 && labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null)
+                if(childArray.length === 2 && stringIsInfixOperator(labelString))
                 {
-                    result.add(childArray[0]);
                     x += childArray[0].bbox().width + padding;
-                    result.add(opText.dmove(x, -5)); //dmoves are for testing purposes
+                    opText.dmove(x, -5);
                     x += opText.bbox().width + padding;
-                    result.add(childArray[1].dmove(x, 0));
+                    childArray[1].dmove(x, 0);
                 }
                 else
                 {
-                    result.add(opText.dmove(0, -5));
+                    opText.dmove(0, -5);
                     x += opText.bbox().width + padding;
                     for( let i=0 ; true ; ++i)
                     {
                         if( i === childArray.length ) break ;
                         childArray[i].dmove(x, 0);
                         x += childArray[i].bbox().width + padding;
-                        result.add(childArray[i]) ;
                     }
                 }
 
                 doCallWorldLabelStylingSVG(opText);
-                makeCallWorldBorderSVG(children, result);
+                makeCallWorldBorderSVG(parent, element);
                 
             }
             break ;
             case labels.CallLabel.kindConst :
             {
-                const childArray = children.children();
-                result = children.group();
+                const childArray = element.children();
                 // result.addClass( "call" ) ;
                 // result.addClass( "H" ) ;
                 // result.attr("type", "text");
@@ -220,40 +213,38 @@ module animatorHelpers
                 const padding : number = 10;
                 for( let i=0 ; true ; ++i) {
                     if( i === childArray.length ) break ;
-                    result.add( childArray[i].dmove(x, 0) ) ;
+                    childArray[i].dmove(x, 0);
                     x += childArray[i].bbox().width + padding;
                 }
-                makeCallBorderSVG(children, result);
+                makeCallBorderSVG(parent, element);
             }
             break ;
             case labels.AssignLabel.kindConst :
             {
-                const childArray = children.children();
-                result = children.group();
+                const childArray = element.children();
                 const padding : number = 10;
                 let x : number = 0;
-                result.add(childArray[0]); 
 
                 x += childArray[0].bbox().width + padding;
-                const opText : svg.Text = result.text(":=");
+                const opText : svg.Text = element.text(":=");
                 opText.fill(ORANGE.toString());
                 opText.dmove(x, -5);
                 x += opText.bbox().width + padding;
 
-                result.add(childArray[1].dmove(x, 0));
+                childArray[1].dmove(x, 0);
                 
-                makeAssignLabelBorder(result);
+                makeAssignLabelBorder(element);
             }
             break ;
             case labels.LambdaLabel.kindConst :
             {
 
-                const childArray = children.children();
-                result  = children.group().dmove(10, 10) ;
+                const childArray = element.children();
+                element.dmove(10, 10) ;
                 const padding : number = 15;
                 let y : number = 0;
 
-                const lambdahead : svg.G = result.group() ;
+                const lambdahead : svg.G = element.group() ;
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
@@ -270,12 +261,12 @@ module animatorHelpers
                 doGuardBoxStylingAndBorderSVG(textElement, lambdahead, LIGHT_BLUE, len, y);
                 y += padding;
 
-                const doBox :  svg.G = result.group().dmove(10, y) ;
+                const doBox :  svg.G = element.group().dmove(10, y) ;
                 // doBox.addClass( "doBox") ;
                 // doBox.addClass( "H") ;
                 doBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(children, result, LIGHT_BLUE);
+                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
 
                 // result.addClass( "lambdaBox" ) ;
                 // result.addClass( "V" ) ;
@@ -283,53 +274,47 @@ module animatorHelpers
             break ;
             case labels.NullLiteralLabel.kindConst :
             {
-                result = children.group() ;
-                const text : svg.Text = result.text( "\u23da" ) ;  // The Ground symbol. I hope.
+                const text : svg.Text = element.text( "\u23da" ) ;  // The Ground symbol. I hope.
                 text.dy(10); //The ground character is very large. This makes it look a bit better.
-                makeNullLiteralSVG(result, text);
+                makeNullLiteralSVG(element, text);
                 // result.addClass( "nullLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
             case labels.VariableLabel.kindConst :
             {
-                result = children.group() ;
-                const text : svg.Text = result.text( node.label().getVal() );
-                makeVariableLabelSVG(result, text);
+                const text : svg.Text = element.text( node.label().getVal() );
+                makeVariableLabelSVG(element, text);
                 // result.addClass( "var" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
             case labels.StringLiteralLabel.kindConst :
             {
-                result = children.group() ;
-                const text : svg.Text = result.text( node.label().getVal() );
-                makeStringLiteralSVG(result, text);
+                const text : svg.Text = element.text( node.label().getVal() );
+                makeStringLiteralSVG(element, text);
                 // result.addClass( "stringLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
             {
-                result  = children.group() ;
-                const text : svg.Text = result.text( node.label().getVal() );
-                makeNumberLiteralSVG(result, text);
+                const text : svg.Text = element.text( node.label().getVal() );
+                makeNumberLiteralSVG(element, text);
                 // result.addClass( "numberLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
             case labels.NoTypeLabel.kindConst :
             {
-                result  = children.group() ;
-                makeNoTypeLabelSVG(result);
+                makeNoTypeLabelSVG(element);
                 // result.addClass( "noType" ) ; 
                 // result.addClass( "V" ) ;
             }
             break ;
             case labels.NoExprLabel.kindConst :
             {
-                result  = children.group() ;
-                makeNoExprLabelSVG(result);
+                makeNoExprLabelSVG(element);
                 // result.addClass( "expOp" ) ; // Need a better class for this, I think.
                 // result.addClass( "V" ) ;
             }
@@ -337,34 +322,33 @@ module animatorHelpers
             case labels.VarDeclLabel.kindConst :
             {
 
-                const childArray = children.children();
-                result = children.group();
+                const childArray = element.children();
 
                 const padding : number = 10;
                 let x : number = 0;
 
-                const delta : svg.Text = result.text("\u03B4");
+                const delta : svg.Text = element.text("\u03B4");
                 delta.fill(GHOSTWHITE.toString());
                 delta.dmove(0, -5); //testing
 
                 x += delta.bbox().width + padding;
-                result.add(childArray[0].dmove(x, 0)); 
+                childArray[0].dmove(x, 0); 
 
                 x += childArray[0].bbox().width + padding;
-                const colon : svg.Text = result.text(":");
+                const colon : svg.Text = element.text(":");
                 colon.fill(GHOSTWHITE.toString()).dmove(x, -5);
 
                 x += colon.bbox().width + padding;
-                result.add(childArray[1].dmove(x, 7));
+                childArray[1].dmove(x, 7);
 
                 x += childArray[1].bbox().width + padding;
-                const becomes : svg.Text = result.text(":=");
+                const becomes : svg.Text = element.text(":=");
                 becomes.fill(GHOSTWHITE.toString()).dmove(x, -5);
 
                 x += becomes.bbox().width + padding;
-                result.add(childArray[2].dmove(x, 0));
+                childArray[2].dmove(x, 0);
 
-                makeVarDeclBorderSVG(result);
+                makeVarDeclBorderSVG(element);
 
                 // result.addClass( "vardecl" ) ;
                 // result.addClass( "H" ) ;;
@@ -372,7 +356,7 @@ module animatorHelpers
             break ;
             default:
             {
-                result = assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
+                assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
             }
         }
     }
