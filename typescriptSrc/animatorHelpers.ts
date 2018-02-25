@@ -102,7 +102,7 @@ module animatorHelpers
                 let y : number = 0;
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    childArray[i].dmove(0, y); //testing
+                    childArray[i].dmove(0, y);
                     y += childArray[i].bbox().height + padding;
                     result.add(childArray[i]);
                 }
@@ -208,28 +208,26 @@ module animatorHelpers
                 
             }
             break ;
-        //     case labels.CallLabel.kindConst :
-        //     {
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "call" ) ;
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "canDrag" ) ;
-        //         result.addClass( "droppable" ) ;
+            case labels.CallLabel.kindConst :
+            {
+                const childArray = children.children();
+                result = children.group();
+                // result.addClass( "call" ) ;
+                // result.addClass( "H" ) ;
+                // result.attr("type", "text");
 
-        //         result.attr("type", "text");
-
-        //         for( let i=0 ; true ; ++i) {
-        //             const dz : JQuery = makeDropZone(i, false) ;
-        //             dropzones.push( dz ) ;
-        //             result.append( dz ) ;
-        //             if( i === children.length ) break ;
-        //             result.append( children[i] ) ;
-        //         }
-        //     }
-        //     break ;
+                let x : number = 0;
+                const padding : number = 10;
+                for( let i=0 ; true ; ++i) {
+                    if( i === childArray.length ) break ;
+                    result.add( childArray[i].dmove(x, 0) ) ;
+                    x += childArray[i].bbox().width + padding;
+                }
+                makeCallBorderSVG(children, result);
+            }
+            break ;
             case labels.AssignLabel.kindConst :
             {
-                
                 const childArray = children.children();
                 result = children.group();
                 const padding : number = 10;
@@ -262,6 +260,7 @@ module animatorHelpers
                 const textElement = lambdahead.text("\u03BB");
                 lambdahead.add( childArray[0].dmove(20, 10) ) ;
                 y += childArray[0].bbox().height + padding;
+                if(y === padding) {y += padding;} //i.e. there are no arguments. This prevents the type from overlapping with the lambda symbol.
                 lambdahead.add( childArray[1].dmove(0, y) ) ;
                 const len = findWidthOfLargestChild(childArray)+padding;
                 y += childArray[1].bbox().height + padding;
@@ -282,15 +281,16 @@ module animatorHelpers
                 // result.addClass( "V" ) ;
             }
             break ;
-        //     case labels.NullLiteralLabel.kindConst :
-        //     {
-        //         result  = $(document.createElement("div")) ;
-        //         result.addClass( "nullLiteral" ) ;
-        //         result.addClass( "H" ) ;
-        //         result.addClass( "droppable" ) ;
-        //         result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
-        //     }
-        //     break ;
+            case labels.NullLiteralLabel.kindConst :
+            {
+                result = children.group() ;
+                const text : svg.Text = result.text( "\u23da" ) ;  // The Ground symbol. I hope.
+                text.dy(10); //The ground character is very large. This makes it look a bit better.
+                makeNullLiteralSVG(result, text);
+                // result.addClass( "nullLiteral" ) ;
+                // result.addClass( "H" ) ;
+            }
+            break ;
             case labels.VariableLabel.kindConst :
             {
                 result = children.group() ;
@@ -416,6 +416,18 @@ module animatorHelpers
         outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
     }
 
+    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : void
+    {
+        const borderGroup = base.group(); //In order to keep it organized nicely
+        borderGroup.add(el);
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = borderGroup.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+    }
+
     function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String) : void
     {
         const containerGroup = base.group(); //In order to keep it organized nicely
@@ -484,6 +496,19 @@ module animatorHelpers
     {
         textElement.fill(WHITE.toString());
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeNullLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(WHITE.toString());
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
