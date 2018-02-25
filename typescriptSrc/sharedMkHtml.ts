@@ -431,14 +431,8 @@ module sharedMkHtml
         // Precondition: element should contain one input element of type text
         // Code based on https://www.sitepoint.com/6-jquery-cursor-functions/
         const input = element[0] ;
-        if( typeof input["createTextRange"] !== "undefined" ) {
-            const range = input["createRange"]() ;
-            range.collapse(true) ;
-            range.moveEnd( 'character', end ) ;
-            range.moveStart( 'character', start ) ;
-            range.select() ;
-        } else if( input["setSelectionRange"] !== "undefined" ) {
-            input.focus() ;
+        input.focus() ;
+        if( input["setSelectionRange"] !== "undefined" ) {
             input["setSelectionRange"]( start, end ) ;
         }
     }
