@@ -722,4 +722,30 @@ describe( 'CallWorldLabel - logical or', function() : void {
   } );
 } ) ;
 
+describe( 'ExprSeqLabel', function () : void {
+    const rootLabel = new labels.ExprSeqLabel();
+    const op1 = labels.mkNumberLiteral( "1" ) ;
+    const op2 = labels.mkNumberLiteral( "2" ) ;
+    const root = new PNode( rootLabel, [op1, op2] ) ;
+    const vm = new VMS( root, wlds, interp ) ;
 
+    it( 'should evaluate to a StringV equaling 3', function () : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof StringV ) ;
+        assert.check( ( val as StringV ).getVal() === "2" ) ;
+    } );
+} );

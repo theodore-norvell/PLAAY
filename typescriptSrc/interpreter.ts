@@ -92,6 +92,10 @@ module interpreter {
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
 
+    // Control Labels
+    theStepperRegistry[ labels.ExprSeqLabel.kindConst ] = exprSeqStepper ;
+    theSelectorRegistry[ labels.ExprSeqLabel.kindConst ] = leftToRightSelector ;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -163,6 +167,12 @@ module interpreter {
       else {
         vms.reportError("No variable named " + value + "is in scope.");
       } 
+    }
+
+    function exprSeqStepper(vms : VMS) : void {
+        //set it to the value of the last child node
+        const numberOfChildren : number = vms.getPendingNode().count();
+        vms.finishStep(vms.getChildVal(numberOfChildren - 1));
     }
 }
 
