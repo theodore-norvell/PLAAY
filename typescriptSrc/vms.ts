@@ -12,6 +12,7 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import {Field, ObjectV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -52,7 +53,9 @@ module vms{
             this.manager = new TransactionManager();
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
-                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
+                varStack = new NonEmptyVarStack( worlds[i], varStack ) ;
+            }
+            varStack = new DynamicNonEmptyVarStack(new ObjectV(), varStack);
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack();
             this.evalStack.push(evalu);
@@ -188,6 +191,11 @@ module vms{
             else{
                 ev.advance( this.interpreter, this);
             }
+        }
+
+        public addVariable(name : string, value : Value, type : Type, isConstant : boolean) : void {
+            //TODO: implement
+
         }
 
         public reportError( message : String ) : void {
@@ -508,7 +516,7 @@ module vms{
 
     export class NonEmptyVarStack extends VarStack {
 
-        private _top : ObjectI;
+        protected _top : ObjectI;
         private _next : VarStack;
 
         constructor(object : ObjectI, next : VarStack ) {
@@ -550,6 +558,20 @@ module vms{
 
         public getAllFrames() : Array<ObjectI> {
             return [this._top].concat( this._next.getAllFrames() ) ;
+        }
+    }
+
+    //extension of a non empty var stack that has an add field method
+    export class DynamicNonEmptyVarStack extends NonEmptyVarStack {
+        constructor(object : ObjectI, next : VarStack){
+            super(object, next);
+        }
+
+        //only add if it isn't there
+        public addField(name : string, val : Value, type : Type, isConstant : boolean) : void {
+            if (!this._top.hasField(name) && top instanceof ObjectV) {
+                (<ObjectV> this._top).addField(new Field(name, val, type, isConstant));
+            }
         }
     }
 

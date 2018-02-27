@@ -268,8 +268,7 @@ module interpreter {
         const value : Value = vms.getChildVal(2);
         const type : Type = Type.NULL; //todo: actually select the type based on the type entered
         const isConstant : boolean = false;
-        const field : Field = new Field(name, value, type, isConstant);
-        // vms.addVariable(field);
+        vms.addVariable(name, value, type, isConstant);
         vms.finishStep(value);
     }
 }
