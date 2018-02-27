@@ -363,27 +363,29 @@ module vms{
 
     export class MapEntry<T> {
         private readonly path : List<number>;
-        private val : T;
+        private val : TVar<T>;
 
-        constructor (key : List<number>, value : T ){
+        constructor (key : List<number>, value : T , manager : TransactionManager){
             this.path = key;
-            this.val = value;
+            this.val = new TVar(value, manager);
         }
 
         public getPath() : List<number> {return this.path;}
         
-        public getValue() : T {return this.val;}
+        public getValue() : T {return this.val.get();}
         
-        public setValue( v : T ) : void { this.val = v ; }
+        public setValue( v : T ) : void { this.val.set(v) ; }
     }
     
     class Map< T > {
         private entries : TArray<MapEntry<T>>;
         private size : TVar<number>;
+        private manager : TransactionManager;
 
         constructor(manager : TransactionManager){
             this.entries = new TArray<MapEntry<T>>(manager);
             this.size = new TVar(0, manager);
+            this.manager = manager;
         }
 
         private samePath(a : List<number>, b : List<number>) : boolean {
@@ -435,7 +437,7 @@ module vms{
                 }
             }
             if(notIn){
-                const me = new MapEntry(p, v);
+                const me = new MapEntry(p, v, this.manager);
                 this.entries.push(me);
                 this.size.set(this.size.get() + 1);
             }

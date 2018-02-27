@@ -17,9 +17,11 @@ import World = world.World;
 import Field = valueTypes.Field;
 import Type = vms.Type;
 import VarStack = vms.VarStack;
+import { Transaction, TransactionManager } from '../backtracking';
 
+const manager : TransactionManager = new TransactionManager();
 const wld = new World();
-const str = new valueTypes.StringV("hello");
+const str = new valueTypes.StringV("hello", manager);
 const f : Field = new Field("abcd", str, Type.ANY , false);
 
 
