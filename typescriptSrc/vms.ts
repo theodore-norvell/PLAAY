@@ -194,8 +194,25 @@ module vms{
         }
 
         public addVariable(name : string, value : Value, type : Type, isConstant : boolean) : void {
-            //TODO: implement
+            let currentStack : VarStack = this.evalStack.top().getStack();
+            //find the dynamic variable stack
+            while (!(currentStack instanceof DynamicNonEmptyVarStack) && currentStack instanceof NonEmptyVarStack) {
+                currentStack = (<NonEmptyVarStack> currentStack).getNext();
+            }
+            //end result should be either the empty stack or the dynamic stack
+            assert.check(currentStack instanceof DynamicNonEmptyVarStack, "No dynamic variable stack exists, cannot declare a variable!");
+            (<DynamicNonEmptyVarStack> currentStack).addField(name, value, type, isConstant);
 
+        }
+
+        public updateVariable(name: string, value: Value) {
+            const stack : VarStack = this.evalStack.top().getStack();
+            if (stack.hasField(name)) {
+                stack.setField(name, value);
+            }
+            else {
+                assert.failedPrecondition("No variable with name " + name + " exists.");
+            }
         }
 
         public reportError( message : String ) : void {
@@ -569,8 +586,11 @@ module vms{
 
         //only add if it isn't there
         public addField(name : string, val : Value, type : Type, isConstant : boolean) : void {
-            if (!this._top.hasField(name) && top instanceof ObjectV) {
+            if (!this._top.hasField(name) && this._top instanceof ObjectV) {
                 (<ObjectV> this._top).addField(new Field(name, val, type, isConstant));
+            }
+            else {
+                assert.failedPrecondition("Cannot declare an already existing variable.");
             }
         }
     }

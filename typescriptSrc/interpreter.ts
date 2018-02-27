@@ -99,6 +99,16 @@ module interpreter {
     theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
     theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
 
+    // Variable Labels
+    theStepperRegistry[labels.AssignLabel.kindConst] = assignStepper;
+    theSelectorRegistry[labels.AssignLabel.kindConst] = assignSelector;
+
+    theSelectorRegistry[labels.VariableLabel.kindConst] = alwaysSelector;
+    theStepperRegistry[labels.VariableLabel.kindConst] = variableStepper;
+
+    theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
+    theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -247,9 +257,8 @@ module interpreter {
         const variableNode : PNode = assignNode.child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to assign to something that isn't a variable.");
         const variableName : string = variableNode.label().getVal();
-        const variableStack : VarStack = vms.getStack();
         const value : Value = vms.getChildVal(1);
-        variableStack.setField(variableName, value);
+        vms.updateVariable(variableName, value);
         vms.finishStep(value);
     }
 
