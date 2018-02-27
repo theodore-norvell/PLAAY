@@ -93,11 +93,14 @@ module interpreter {
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
 
     // Control Labels
-    theStepperRegistry[ labels.ExprSeqLabel.kindConst ] = exprSeqStepper ;
-    theSelectorRegistry[ labels.ExprSeqLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
+    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = leftToRightSelector ;
 
     theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
     theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
+
+    theStepperRegistry[labels.WhileLabel.kindConst] = whileStepper;
+    theSelectorRegistry[labels.WhileLabel.kindConst] = whileSelector;
 
 
     // Selectors.  Selectors take the state from not ready to ready.
@@ -155,6 +158,36 @@ module interpreter {
             vms.getInterpreter().select(vms);
         }
 
+    }
+
+    function whileSelector(vms : VMS) : void {
+        //check if the body is mapped and reset everything if it is
+        if (vms.isChildMapped(1)) {
+            vms.scrub(vms.getPending());
+        }
+        //check if the guard node is mapped
+        if (vms.isChildMapped(0)) {
+            assert.check(vms.getChildVal(0).isStringV(), "Guard is not a StringV");
+            const result : string = (<StringV> vms.getChildVal(0)).getVal();
+            //check if true or false, if true, check select the body
+            if (result === "true") {
+                vms.pushPending(1);
+                vms.getInterpreter().select(vms);
+            }
+            //otherwise, if it is false, set this node to ready
+            else if (result === "false"){
+                vms.setReady(true);
+            }
+            //otherwise, throw an error!
+            else {
+                assert.failedPrecondition("Guard is neither true nor false!");
+            }
+        }
+        //if it isn't, select the guard node
+        else {
+            vms.pushPending(0);
+            vms.getInterpreter().select(vms);
+        }
     }
 
     // Steppers
@@ -217,6 +250,16 @@ module interpreter {
         assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
         const choice = result === "true" ? 1 : 2;
         vms.finishStep(vms.getChildVal(choice));
+    }
+
+    function whileStepper(vms : VMS) : void {
+        //use the value of the body if it is mapped, otherwise use null
+        if (vms.isChildMapped(1)) {
+            vms.finishStep(vms.getChildVal(1));
+        }
+        else {
+            vms.finishStep(theNullValue);
+        }
     }
 }
 
