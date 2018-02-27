@@ -460,6 +460,7 @@ module vms{
                     const firstPart = this.entries.slice(0, i);
                     const lastPart = this.entries.slice(i+1, this.entries.length);
                     this.entries = firstPart.concat(lastPart);
+                    i--;
                 }
             }
             return;

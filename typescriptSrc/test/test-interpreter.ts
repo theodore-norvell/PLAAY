@@ -28,7 +28,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
-import {IfLabel} from "../labels";
+import {ExprSeqLabel, IfLabel, NumberLiteralLabel} from "../labels";
 import {Value} from "../vms";
 
 const emptyList = collections.nil<number>() ;
@@ -896,4 +896,123 @@ describe('IfLabel', function () : void{
     });
 });
 
+//test this here since it is needed for while
+describe('scrub', function () : void {
+   it ('should unmap a single element', function () {
+       //setup
+       const numberNode : PNode = labels.mkNumberLiteral("5");
+       const root : PNode = new PNode(new ExprSeqLabel(), [numberNode]);
+       const vm : VMS = new VMS(root, wlds, interp);
+
+       //run test
+       //select number literal node
+       assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+       vm.advance();
+
+       //step number literal node
+       assert.check(vm.isReady(), "VMS is not ready when it should be.");
+       vm.advance();
+
+       //ensure that the node is mapped
+       assert.check(vm.isChildMapped(0), "The number literal is not mapped.");
+
+       //scrub the node
+       vm.scrub(vm.getPending());
+
+       //ensure that it is no longer mapped
+       assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
+   });
+
+    it ('should unmap two elements', function () {
+        //setup
+        const numberNode : PNode = labels.mkNumberLiteral("5");
+        const stringNode : PNode = labels.mkStringLiteral("hello");
+        const root : PNode = new PNode(new ExprSeqLabel(), [numberNode, stringNode]);
+        const vm : VMS = new VMS(root, wlds, interp);
+
+        //run test
+        //select number literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step number literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //select string literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step string literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //ensure that the node is mapped
+        assert.check(vm.isChildMapped(0), "The number literal is not mapped.");
+        assert.check(vm.isChildMapped(1), "The string literal is not mapped.");
+
+        //scrub the node
+        vm.scrub(vm.getPending());
+
+        //ensure that it is no longer mapped
+        assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
+        assert.check(!vm.isChildMapped(1), "The string literal is still mapped.");
+    });
+        it ('should unmap four elements', function () {
+        //setup
+        const numberNode : PNode = labels.mkNumberLiteral("5");
+        const stringNode : PNode = labels.mkStringLiteral("hello");
+        const numberNode2 : PNode = labels.mkNumberLiteral("6");
+        const stringNode2 : PNode = labels.mkStringLiteral("goodbye");
+        const root : PNode = new PNode(new ExprSeqLabel(), [numberNode, stringNode, numberNode2, stringNode2]);
+        const vm : VMS = new VMS(root, wlds, interp);
+
+        //run test
+        //select number literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step number literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //select string literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step string literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+        //select number literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step number literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //select string literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step string literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //ensure that the node is mapped
+        assert.check(vm.isChildMapped(0), "The first number literal is not mapped.");
+        assert.check(vm.isChildMapped(1), "The first string literal is not mapped.");
+        assert.check(vm.isChildMapped(2), "The second number literal is not mapped.");
+        assert.check(vm.isChildMapped(3), "The second string literal is not mapped.");
+
+        //scrub the node
+        vm.scrub(vm.getPending());
+
+        //ensure that it is no longer mapped
+        assert.check(!vm.isChildMapped(0), "The first number literal is still mapped.");
+        assert.check(!vm.isChildMapped(1), "The first string literal is still mapped.");
+        assert.check(!vm.isChildMapped(2), "The second number literal is still mapped.");
+        assert.check(!vm.isChildMapped(3), "The second string literal is still mapped.");
+    });
+});
 
