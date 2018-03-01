@@ -147,9 +147,9 @@ module interpreter {
       const node = vms.getPendingNode();
       const value = node.label().getVal();
       if (vms.getStack().hasField(value)) {
-        let field = vms.getStack().getField(value).getValue();
-        if (field instanceof BuiltInV) {
-          let stepper = field.getStepper();
+        const val : Value = vms.getStack().getField(value).getValue();
+        if (val instanceof BuiltInV) {
+          const stepper = val.getStepper();
           const args : Array<Value> = [];
           for (let i = 0; i < node.count(); i++) {
             args.push(vms.getChildVal(i));

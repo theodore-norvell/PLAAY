@@ -145,8 +145,9 @@ module valueTypes {
 
         public getField(fieldName:string) : Field {
             for (let i = 0; i < this.fields.get().length; i++) {
-                if (this.fields[i].getName( )=== fieldName) {
-                    return this.fields.get()[i];
+                const f = this.fields.get()[i] ;
+                if (f.getName( ) === fieldName) {
+                    return f;
                 }
             }
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
