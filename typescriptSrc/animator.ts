@@ -9,12 +9,12 @@
 /// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 
+import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
 import collections = require( './collections' );
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
-import animatorHelpers = require('./animatorHelpers');
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
@@ -33,6 +33,8 @@ module animator
     import EvaluationManager = evaluationManager.EvaluationManager;
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
     import List = collections.List;
+    import Cons = collections.cons;
+    import Nil = collections.nil;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
     import MapEntry = vms.MapEntry ;
@@ -41,7 +43,7 @@ module animator
     import Value = vms.Value ;
 
     const evaluationMgr = new EvaluationManager();
-    let turtle : boolean = false ;
+    // let turtle : boolean = false ;
     let highlighted = false;
 
     const turtleWorld = new seymour.TurtleWorld();
@@ -49,7 +51,7 @@ module animator
     export function executingActions() : void 
 	{
 		$("#play").click(evaluate);
-		// $("#advance").click(advanceOneStep);
+		$("#advance").click(advanceOneStep);
 		// $("#multistep").click(multiStep);
 		// $("#run").click(stepTillDone);
 		$("#edit").click(switchToEditor);
@@ -60,48 +62,60 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
+        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries );
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        const animation : svg.G = animatorArea.group().move(10, 0);
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation);
+        const animation : svg.G = animatorArea.group().move(10, 10);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()));
         const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
 
-    // function advanceOneStep() : void
-    // {
-    //     evaluationMgr.next();
-    //     $("#stackVal").empty();
-    //     $("#vms").empty()
-	// 		.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-    //     const root = $("#vms :first-child").get(0);
-    //     if (!highlighted && evaluationMgr.getVMS().isReady() ) 
-    //     {
-    //         const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
-    //         const list = evaluationMgr.getVMS().getPending();
-    //         findInMap(root, evaluationMgr.getVMS().getValMap());
-    //         highlight($(root), list);
-    //         visualizeStack(evaluationMgr.getVMS().getStack());
-    //         highlighted = true;
-    //     } 
-    //     else 
-    //     {
-    //         findInMap(root, evaluationMgr.getVMS().getValMap());
-    //         visualizeStack(evaluationMgr.getVMS().getStack());
-    //         highlighted = false;
-    //     }
-    //     if(turtle) 
-    //     {
-    //         redraw(evaluationMgr.getVMS());
-    //     }
-    // }
+    function advanceOneStep() : void
+    {
+        evaluationMgr.next();
+        $("#stackVal").empty();
+        $("#vms").empty().append("<div id='svgContainer'></div>");
+        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animation : svg.G = animatorArea.group().move(10, 0);
+        let toHighlight : List<number>;
+        if (!highlighted && evaluationMgr.getVMS().isReady() ) 
+        {
+            highlighted = true;
+            toHighlight = evaluationMgr.getVMS().getPending();
+        }
+        else
+        {
+            toHighlight = Cons(-1, Nil<number>());
+            highlighted = false;
+        }
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight);
+        const animationBBox : svg.BBox = animation.bbox();
+        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        //visualizeStack(evaluationMgr.getVMS().getStack());
+        // const root = $("#vms :first-child").get(0);
+        // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
+        // {
+        //     const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
+        //     const list = evaluationMgr.getVMS().getPending();
+        //     findInMap(root, evaluationMgr.getVMS().getValMap());
+        //     highlight($(root), list);
+        //     visualizeStack(evaluationMgr.getVMS().getStack());
+        //     highlighted = true;
+        // } 
+        // else 
+        // {
+        //     findInMap(root, evaluationMgr.getVMS().getValMap());
+        //     visualizeStack(evaluationMgr.getVMS().getStack());
+        //     highlighted = false;
+        // }
+    }
 
     // function stepTillDone() : void 
 	// {

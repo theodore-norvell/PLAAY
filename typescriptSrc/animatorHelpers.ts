@@ -17,6 +17,8 @@ module animatorHelpers
 {
     import list = collections.list;
     import List = collections.List;
+    import Cons = collections.cons;
+    import Nil = collections.nil;
     import Option = collections.Option;
     import some = collections.some;
     import none = collections.none;
@@ -33,19 +35,21 @@ module animatorHelpers
     const WHITE : String = "rgb(255, 255, 255)";
     const GRAY : String = "rgb(153, 153, 153)";
 
-    export function traverseAndBuild(node:PNode, el : svg.Container) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>) : void
     {
         const children : svg.G = el.group();
         for(let i = 0; i < node.count(); i++)
         {
-            traverseAndBuild(node.child(i), children);
+            traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight);
         }
-        buildSVG(node, children, el);
+        const highlightMe : boolean = currentPath.equals(pathToHighlight);
+        buildSVG(node, children, el, highlightMe);
     }
 
     //I assume element is a child of parent
-    function buildSVG(node:PNode, element : svg.G, parent : svg.Container) : void
+    function buildSVG(node:PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean) : void
     {
+        let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
@@ -84,7 +88,7 @@ module animatorHelpers
                 // elsebox.addClass( "workplace" ) ;
                 elseBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(parent, element, MAUVE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
                 makeThenBoxSeparatorSVG(element, y - padding);
                 // result.addClass( "ifBox" ) ;
                 // result.addClass( "V" ) ;
@@ -162,7 +166,7 @@ module animatorHelpers
                 // doBox.addClass( "workplace") ;
                 doBox.add( childArray[1] ) ;
 
-                makeFancyBorderSVG(parent, element, MAUVE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
                 // result.addClass( "whileBox" ) ;
                 // result.addClass( "V" ) ;
                 // result.addClass( "workplace" ) ;
@@ -198,7 +202,7 @@ module animatorHelpers
                 }
 
                 doCallWorldLabelStylingSVG(opText);
-                makeCallWorldBorderSVG(parent, element);
+                drawHighlightOn = makeCallWorldBorderSVG(parent, element);
                 
             }
             break ;
@@ -216,7 +220,7 @@ module animatorHelpers
                     childArray[i].dmove(x, 0);
                     x += childArray[i].bbox().width + padding;
                 }
-                makeCallBorderSVG(parent, element);
+                drawHighlightOn = makeCallBorderSVG(parent, element);
             }
             break ;
             case labels.AssignLabel.kindConst :
@@ -266,7 +270,7 @@ module animatorHelpers
                 // doBox.addClass( "H") ;
                 doBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, LIGHT_BLUE);
 
                 // result.addClass( "lambdaBox" ) ;
                 // result.addClass( "V" ) ;
@@ -359,6 +363,10 @@ module animatorHelpers
                 assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
             }
         }
+        if(shouldHighlight)
+        {
+            highlightThis(drawHighlightOn);
+        }
     }
 
     function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number, lineY : number) : void
@@ -388,7 +396,7 @@ module animatorHelpers
         textElement.style("font-family:'Times New Roman', Times,serif;font-weight: bold ;font-size: large ;");
     }
 
-    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : void
+    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : svg.G
     {
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);
@@ -398,9 +406,10 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        return borderGroup;
     }
 
-    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : void
+    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : svg.G
     {
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);
@@ -410,9 +419,10 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        return borderGroup;
     }
 
-    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String) : void
+    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String) : svg.G
     {
         const containerGroup = base.group(); //In order to keep it organized nicely
         containerGroup.add(el);
@@ -435,6 +445,7 @@ module animatorHelpers
         const leftBorder = borderGroup.path(leftBorderPathString);
         leftBorder.stroke({color: colour.toString(), opacity: 1, width: 0});
         leftBorder.fill(colour.toString());
+        return containerGroup;
     }
 
     //I assume textElement is already contained within base.
@@ -549,6 +560,16 @@ module animatorHelpers
             }
         }
         return result;
+    }
+
+    function highlightThis(el : svg.Container) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1.5});
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
