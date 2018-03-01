@@ -193,7 +193,7 @@ module vms{
         }
 
         public reportError( message : String ) : void {
-            // TODO
+            console.log(message);
         }
     }
 

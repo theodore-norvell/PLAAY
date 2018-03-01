@@ -271,6 +271,10 @@ module valueTypes {
         public toString() : string {
             return "built-in" ;
         }
+
+        public getStepper() : (vms: VMS, args: Array<Value>) => void {
+          return this.stepper;
+        }
     }
 
 }

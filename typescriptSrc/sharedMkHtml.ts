@@ -153,8 +153,6 @@ module sharedMkHtml
                 result.attr("type", "text");
                 result.attr("list", "oplist");
                 
-                // TODO Allow infix operators again some day.
-
                 let opElement : JQuery ;
                 if(! node.label().isOpen() )
                 {
@@ -179,7 +177,7 @@ module sharedMkHtml
                 if( ! node.label().isOpen() && children.length === 2 )
                 {
                     const labelString = node.label().getVal() ;
-                    if( labelString.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ) {
+                    if( stringIsInfixOperator( labelString ) ) {
                         // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
                         assert.check( result.children().length === 6 ) ;
                         // Move the opElement to after the first child
@@ -242,6 +240,8 @@ module sharedMkHtml
                 result  = $(document.createElement("div")) ;
                 result.addClass( "lambdaBox" ) ;
                 result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.append( lambdahead ) ;
                 result.append( doBox ) ;
@@ -252,8 +252,9 @@ module sharedMkHtml
                 result  = $(document.createElement("div")) ;
                 result.addClass( "nullLiteral" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
-                result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
+                result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
             }
             break ;
             case labels.VariableLabel.kindConst :
@@ -420,8 +421,20 @@ module sharedMkHtml
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
-            element.focus().val(element.val()); //Set the caret to the end of the text.
+            // Give the element focus and move the caret to the end of the text.
+            const len = text.length ;
+            setSelection(element, len, len) ;
             return element ;
+    }
+
+    function setSelection( element : JQuery, start : number, end : number ) : void {
+        // Precondition: element should contain one input element of type text
+        // Code based on https://www.sitepoint.com/6-jquery-cursor-functions/
+        const input = element[0] ;
+        input.focus() ;
+        if( input["setSelectionRange"] !== "undefined" ) {
+            input["setSelectionRange"]( start, end ) ;
+        }
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
@@ -482,6 +495,10 @@ module sharedMkHtml
         // used to make the HTML.
         return some( new pnodeEdits.Selection(root, thePath, anchor, focus) ) ;
     }
+
+    export function stringIsInfixOperator( str : string ) : boolean {
+        return str.match( /^([+/!@#$%&*_+=?;:`~&]|-|^|\\)+$/ ) !== null ;
+    }  
 }
 
 export = sharedMkHtml;
