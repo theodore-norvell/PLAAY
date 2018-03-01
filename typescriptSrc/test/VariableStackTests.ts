@@ -25,7 +25,7 @@ import EmptyVarStack = vms.EmptyVarStack ;
 import { TransactionManager } from '../backtracking';
 
 const manager : TransactionManager = new TransactionManager();
-const wrld : World = new World();
+const wrld : World = new World(manager);
 const xStack : VarStack = new NonEmptyVarStack(wrld, EmptyVarStack.theEmptyVarStack);
 
 
@@ -41,9 +41,9 @@ describe( 'Variable Stack ', function() : void {
 
     it('Should be able to look up values', function() : void {
 
-        const str = new valueTypes.StringV("", manager);
-        const f : Field = new Field("abc", str, Type.ANY , false);
-        const obj : ObjectV = new ObjectV() ;
+        const str = new valueTypes.StringV("");
+        const f : Field = new Field("abc", str, Type.ANY , false, true, manager);
+        const obj : ObjectV = new ObjectV(manager ) ;
         obj.addField( f ) ;
         const yStack = new NonEmptyVarStack( obj, xStack) ;
         assert.check( yStack.hasField(f.getName()));

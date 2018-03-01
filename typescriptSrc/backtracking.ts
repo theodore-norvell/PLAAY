@@ -15,7 +15,7 @@ module backtracking
             }
             return this.currentValue;
         }
-        public set(val : T)
+        public set(val : T) : void
         {
             if(this.alive === false && this.manager.getState() !== States.UNDOING)
             {
@@ -33,7 +33,7 @@ module backtracking
             this.currentValue = val;
         }
 
-        public kill()
+        public kill() : void 
         {
             if(this.alive === false)
             {
@@ -43,7 +43,7 @@ module backtracking
             this.alive = false;
         }
 
-        public revive(val : T)
+        public revive(val : T) : void 
         {
             if(this.alive === true)
             {
@@ -54,12 +54,12 @@ module backtracking
             this.currentValue = val;
         }
 
-        public isAlive()
+        public isAlive() : boolean
         {
             return this.alive;
         }
 
-        public setAlive(alive : boolean)
+        public setAlive(alive : boolean) : void 
         {
             this.alive = alive;
         }
@@ -67,9 +67,10 @@ module backtracking
 
     export class TArray<T>
     {
+        // TODO. Reimplement this with a TVar<Array<TVar<T>>> or a TVar<Array<T>> .
         private array : Array<TVar<T>>;
         private sizeVar : TVar<number>;
-        private manager : TransactionManager
+        private manager : TransactionManager ;
 
         public constructor(manager : TransactionManager)
         {
@@ -139,8 +140,8 @@ module backtracking
             if (!(start < end) || !(start >= 0) || !(end <= this.sizeVar.get())){
                 throw new Error("Tried to slice TArray with invalid indicies")
             }
-            let newArray : Array<TVar<T>> = this.array.slice(start, end);
-            let newSlice : TArray<any> = new TArray<any>(this.manager);
+            const newArray : Array<TVar<T>> = this.array.slice(start, end);
+            const newSlice : TArray<any> = new TArray<any>(this.manager);
             newArray.forEach(el=>{
                 newSlice.push(el.get());
             });
@@ -149,7 +150,7 @@ module backtracking
 
         public concat(arr? : TArray<T>) : TArray<T>
         {
-            let newConcat : TArray<any> = new TArray<any>(this.manager);
+            const newConcat : TArray<T> = new TArray<T>(this.manager);
             this.array.forEach(el=>{
                 newConcat.push(el.get());
             });
@@ -161,25 +162,25 @@ module backtracking
             return newConcat;
         }
 
-        [Symbol.iterator]() {
+        public [Symbol.iterator]() : Iterator<T|null> {
             let pointer = 0;
-            let array = this.array;
+            const array = this.array;
         
             return {
-              next(): IteratorResult<any> {
+              next(): IteratorResult<T|null> {
                 if (pointer < array.length) {
                   return {
                     done: false,
                     value: array[pointer++].get()
-                  }
+                  } ;
                 } else {
                   return {
                     done: true,
                     value: null
-                  }
+                  } ;
                 }
               }
-            } 
+            } ;
         }
     }
 

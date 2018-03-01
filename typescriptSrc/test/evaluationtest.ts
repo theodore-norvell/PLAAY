@@ -12,6 +12,7 @@ import pnode = require( '../pnode' ) ;
 import labels = require( '../labels' ) ;
 import vms = require( '../vms' ) ;
 import evaluationManager = require( '../evaluationManager' ) ;
+import { TransactionManager } from '../backtracking';
 
 // This test checks out the execution of a varDecl in excrutiating detail.
 const varNode = labels.mkVar("aa");
@@ -20,7 +21,8 @@ const initExp = labels.mkNoExpNd();
 const root = labels.mkVarDecl( varNode,typeNode, initExp ) ;
 
 const evalmananger = new evaluationManager.EvaluationManager();
-evalmananger.initialize(root, []);
+const manager = new TransactionManager ;
+evalmananger.initialize(root, [], manager);
 const ms : vms.VMS  = evalmananger.getVMS() ;
 
 describe ("initialize evaluation", function() : void {

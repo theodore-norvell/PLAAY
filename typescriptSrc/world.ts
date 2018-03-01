@@ -16,6 +16,7 @@ import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 import { NullV } from './valueTypes';
+import { TransactionManager } from './backtracking';
 
 /** This module contains code for the standard library.
  * 
@@ -75,8 +76,8 @@ module world {
     export class World extends ObjectV {
         protected stepperFactory: {[value: string]: (vms : VMS) => void;};
 
-        constructor() {
-            super();
+        constructor(manager : TransactionManager ) {
+            super(manager);
             //console.log("World's fields array is length: " + this.fields.length);
 
             this.stepperFactory = {};
@@ -98,14 +99,14 @@ module world {
               }  
               if(ok) {
                   const sum = vals.reduce( (s, x) => s+x, 0 ) ;
-                  const val = new StringV( sum+"", vms.getTransactionManager()) ;
+                  const val = new StringV( sum+"") ;
                   vms.finishStep( val ) ;
               }
             }
 
             const plus = new BuiltInV(addstep);
-            const addf = new Field("+", plus, Type.METHOD, true);
-            this.fields.push(addf);
+            const addf = new Field("+", plus, Type.METHOD, true, true, manager);
+            this.addField( addf ) ;
             this.stepperFactory["+"] = addstep;
 
             function substep(vms: VMS) : void {
@@ -125,14 +126,14 @@ module world {
               }  
               if(ok) {
                   const diff = vals.reduce( (s, x) => s-x) ;
-                  const val = new StringV( diff+"" , vms.getTransactionManager()) ;
+                  const val = new StringV( diff+"") ;
                   vms.finishStep( val ) ;
               }
             }
 
             var sub = new BuiltInV(substep);
-            var subf = new Field("-", sub, Type.NUMBER, true);
-            this.fields.push(subf);
+            var subf = new Field("-", sub, Type.NUMBER, true, true, manager );
+            this.addField(subf);
             this.stepperFactory["-"] = substep;
 
             function multstep(vms: VMS) : void {
@@ -152,14 +153,14 @@ module world {
               }  
               if(ok) {
                   const prod = vals.reduce( (s, x) => s*x) ;
-                  const val = new StringV( prod+"" , vms.getTransactionManager()) ;
+                  const val = new StringV( prod+"") ;
                   vms.finishStep( val ) ;
               }
             }
 
             var mult = new BuiltInV(multstep);
-            var multf = new Field("*", mult, Type.NUMBER, true);
-            this.fields.push(multf);
+            var multf = new Field("*", mult, Type.NUMBER, true, true, manager );
+            this.addField(multf);
             this.stepperFactory["*"] = multstep;
 
             function divstep(vms: VMS) : void {
@@ -179,14 +180,14 @@ module world {
               }  
               if(ok) {
                   const quot = vals.reduce( (s, x) => s/x) ;
-                  const val = new StringV( quot+"" , vms.getTransactionManager()) ;
+                  const val = new StringV( quot+"") ;
                   vms.finishStep( val ) ;
               }
             }
 
             var div = new BuiltInV(divstep);
-            var divf = new Field("/", div, Type.NUMBER, true);
-            this.fields.push(divf);
+            var divf = new Field("/", div, Type.NUMBER, true, true, manager);
+            this.addField(divf);
             this.stepperFactory["/"] = divstep;
 
             // TODO create the functions for the following builtin function.
@@ -240,8 +241,8 @@ module world {
     // library stuff and syemour.
     export class TurtleWorldObject extends ObjectV {
 
-        constructor(  tw : seymour.TurtleWorld ){
-            super() ;
+        constructor(  tw : seymour.TurtleWorld, manager : TransactionManager ){
+            super(manager) ;
 
             // The forward function returns the function
             // that does the work of the builtin function.
@@ -258,8 +259,8 @@ module world {
 
             
             const forw = new BuiltInV(forward());
-            const forwardf = new Field("forward", forw, Type.METHOD, true);
-            this.fields.push(forwardf);
+            const forwardf = new Field("forward", forw, Type.METHOD, true, true, manager );
+            this.addField(forwardf);
 
             // TODO The other builtins for the TurtleWorld
 

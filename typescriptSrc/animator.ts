@@ -18,6 +18,7 @@ import sharedMkHtml = require('./sharedMkHtml');
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
+import { TransactionManager } from './backtracking';
 
 /** The animator is the execution pane of the application.
  * 
@@ -59,11 +60,13 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
+        const manager = new TransactionManager() ;
+        if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
-                                  libraries );
+                                  libraries, manager );
+        const vm = evaluationMgr.getVMS() ;
         $("#vms").empty()
-			.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
+			.append(traverseAndBuild(vm.getRoot(), -1, true)) ;
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -171,9 +174,7 @@ module animator
 
     function findInMap(root : HTMLElement, valueMap : ValueMap) : void
     {
-        for( const e of valueMap.getEntries() ) {
-            setHTMLValue(root, e.getPath(), e.getValue());
-        }
+        // TODO 
     }
 
     function visualizeStack( varStack : VarStack ) : void

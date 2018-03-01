@@ -48,10 +48,10 @@ module vms{
 
         private readonly interpreter : Interpreter ;
 
-        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
+        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter, manager : TransactionManager ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
-            this.manager = new TransactionManager();
+            this.manager = manager;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }

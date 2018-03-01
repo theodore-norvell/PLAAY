@@ -28,20 +28,25 @@ module valueTypes {
     import Type = vms.Type ;
     import VMS = vms.VMS;
     import TVar = backtracking.TVar ;
+    import TArray = backtracking.TArray ;
 
 
     /** A field of an object. */
     export class Field implements FieldI {
-        private name : string;
-        private value : Value;
-        private type : Type;
-        private isConstant : boolean;
+        private readonly manager : TransactionManager ;
+        private readonly name : string;
+        private readonly value : TVar<Value>;
+        private readonly type : Type;
+        private readonly isConstant : boolean;
+        private readonly isDeclared : TVar<boolean> ;
 
-        constructor(name : string, value : Value, type : Type, isConstant : boolean) {
+        constructor(name : string, value : Value, type : Type, isConstant : boolean, isDeclared : boolean, manager : TransactionManager) {
+            this.manager = manager ;
             this.name = name;
-            this.value = value;
+            this.value = new TVar<Value>( NullV.theNullValue, manager ) ;
             this.type = type;
             this. isConstant = isConstant;
+            this.isDeclared = new TVar<boolean>( isDeclared, manager ) ;
         }
 
         // getters and setters
@@ -49,47 +54,41 @@ module valueTypes {
             return this.name;
         }
 
-        public setName(name : string) : void {
-            this.name = name;
-        }
-
         public getValue() : Value {
-            return this.value;
+            return this.value.get();
         }
 
         public setValue(value : Value) : void {
-            this.value = value;
+            this.value.set( value ) ;
         }
 
         public getType() : Type {
             return this.type;
         }
 
-        public setType(type : Type) : void  {
-            this.type = type;
-        }
-
         public getIsConstant() : boolean {
             return this.isConstant;
         }
 
-        public setIsConstant(isConstant :boolean) : void {
-            this.isConstant = isConstant;
+        public getIsDeclared() : boolean {
+            return this.isDeclared.get() ;
+        }
+
+        public setIsDeclared() : void {
+            this.isDeclared.set(true) ;
         }
     }
 
     /** A string value. */
     export class StringV implements Value {
-        private contents : TVar<string>;
-        private manager : TransactionManager;
+        private readonly contents : string;
 
-        constructor(val : string, manager : TransactionManager){
-            this.contents = new TVar<string>(val, manager);
-            this.manager = manager;
+        constructor(val : string){
+            this.contents = val ;
         }
 
         public getVal() : string {
-            return this.contents.get();
+            return this.contents;
         }
 
         public isClosureV() : boolean {
@@ -105,44 +104,28 @@ module valueTypes {
         }
 
         public toString() : string {
-            return '"' +this.contents.get()+ '"' ;
+            return '"' +this.contents+ '"' ;
         }
     }
 
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
-        // TODO make this private and enforce invariant
-        // that no two fields have the same name.
-        protected fields:Array<Field>;
 
-        constructor() {
-            this.fields = new Array<Field>();
+        protected readonly fields:TVar<Array<Field>> ;
+
+        constructor(manager : TransactionManager) {
+            this.fields = new TVar( [], manager ) ;
         }
 
 
         public numFields():number {
-            return this.fields.length;
+            return this.fields.get().length ;
         }
 
-        // TODO: Is there really a good reason to be
-        // able to add fields to an object.
-        // Maybe we should just pass a list or array of
-        // fields in to the constructor.
         public addField(field:Field) : void {
             assert.checkPrecondition( ! this.hasField( field.getName()) ) ;
-            this.fields.push(field);
-        }
-
-        // TODO: Do we really need to be able to
-        // delete fields from an object.
-        public deleteField(fieldName:string):boolean {
-            for (let i = 0; i < this.fields.length; i++) {
-                if (this.fields[i].getName() === fieldName) {
-                    this.fields.splice(i, 1) ;
-                    return true ;
-                }
-            }
-            return false ;
+            const newArray = this.fields.get().concat( [field] ) ;
+            this.fields.set( newArray ) ;
         }
 
         public hasField( name : string ) : boolean {
@@ -155,15 +138,15 @@ module valueTypes {
         }
 
         public getFieldByNumber( i : number ) : Field {
-            assert.checkPrecondition( 0 <= i && i < this.fields.length,
+            assert.checkPrecondition( 0 <= i && i < this.fields.get().length,
                                       "ObjectV.getFieldByNumber called with bad argument." ) ;
-            return this.fields[i] ;
+            return this.fields.get()[i] ;
         }
 
         public getField(fieldName:string) : Field {
-            for (let i = 0; i < this.fields.length; i++) {
+            for (let i = 0; i < this.fields.get().length; i++) {
                 if (this.fields[i].getName( )=== fieldName) {
-                    return this.fields[i];
+                    return this.fields.get()[i];
                 }
             }
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
@@ -189,8 +172,8 @@ module valueTypes {
     /** Closures.  */
     export class ClosureV implements ClosureI {
 
-        private func : PNode ;
-        private context : VarStack;
+        private readonly func : PNode ;
+        private readonly context : VarStack;
 
         constructor( func : PNode, context : VarStack ) {
             assert.check( func.label() instanceof labels.LambdaLabel ) ;
@@ -241,6 +224,7 @@ module valueTypes {
             return "null" ;
         }
 
+        public static  readonly theNullValue = new NullV() ;
     }
 
     /** The Done value. Used to indicate completion of a command. */
@@ -260,6 +244,8 @@ module valueTypes {
         public toString() : string {
             return "done" ;
         }
+
+        public static  readonly theDoneValue = new DoneV() ;
     }
 
     /** A built in function. */

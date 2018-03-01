@@ -131,7 +131,7 @@ module interpreter {
             // Normally steppers and selectors should make no changes to anything
             // other than the vms. This is so that undo and redo work.
             // Here we make a harmeless exception by updating the cache.
-            result = theStringCache[ str ] = new StringV( str, vms.getTransactionManager() ) ;
+            result = theStringCache[ str ] = new StringV( str ) ;
         }
         vms.finishStep( result ) ;
     }

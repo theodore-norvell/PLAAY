@@ -35,9 +35,7 @@ import Evaluation = vms.Evaluation;
 import StringV = valueTypes.StringV;
 
 
-const wld = new World();
-const wlds : Array<ObjectV> = new Array();
-wlds.push(wld);
+
 const interp = interpreter.getInterpreter();
 
 describe( 'backtracking.TransactionManager ', function() : void {
@@ -600,8 +598,11 @@ describe('Backtracking.TMap', function() : void {
 describe('vms.Evaluation isReady undo/redo', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false );
     const root = new PNode( label, [] );
-    const vm = new VMS(root, wlds, interp);
-    const manager : TransactionManager = vm.getTransactionManager();
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS(root, wlds, interp, manager);
     const evaluation = new Evaluation(root, vm.getStack(), vm);
 
     it('Should be initialized properly', function() : void {
@@ -637,8 +638,11 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
     const op1 = labels.mkNumberLiteral("9");
     const op2 = labels.mkNumberLiteral("3");
     const root = new PNode(rootlabel, [op1, op2]);
-    const vm = new VMS(root, wlds, interp);
-    const manager : TransactionManager = vm.getTransactionManager();
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS(root, wlds, interp, manager);
     const evaluation = new Evaluation(root, vm.getStack(), vm);
     const emptyList = collections.nil<number>() ;
 

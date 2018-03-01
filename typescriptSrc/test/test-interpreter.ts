@@ -9,6 +9,7 @@
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
+import backtracking = require( '../backtracking' ) ;
 import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
@@ -28,17 +29,19 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
+import TransactionManager = backtracking.TransactionManager ;
 
 const emptyList = collections.nil<number>() ;
-const wld = new World();
-const wlds : Array<ObjectV> = new Array();
-wlds.push(wld);
 const interp = interpreter.getInterpreter() ;
 
 describe( 'StringLiteralLabel', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS( root, wlds, interp, manager ) ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -56,7 +59,11 @@ describe( 'StringLiteralLabel', function() : void {
 describe( 'NumberLiteralLabel', function() : void {
     const label = new labels.NumberLiteralLabel( "123", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS( root, wlds, interp, manager ) ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -74,7 +81,11 @@ describe( 'NumberLiteralLabel', function() : void {
 describe( 'BooleanLiteralLabel', function() : void {
     const label = new labels.BooleanLiteralLabel( "true", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS( root, wlds, interp, manager ) ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -92,7 +103,11 @@ describe( 'BooleanLiteralLabel', function() : void {
 describe( 'NullLiteralLabel', function() : void {
     const label = new labels.NullLiteralLabel() ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS( root, wlds, interp, manager ) ;
 
     it('should evaluate to a NullV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -111,7 +126,11 @@ describe( 'CallWorldLabel - addition', function() : void {
   const op1 = labels.mkNumberLiteral("2");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  const vm = new VMS(root, wlds, interp, manager);
 
   it('should evaluate to a StringV equaling 5', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -139,7 +158,11 @@ describe( 'CallWorldLabel - subtraction', function() : void {
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  const vm = new VMS( root, wlds, interp, manager ) ;
 
   it('should evaluate to a StringV equaling 2', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -167,7 +190,11 @@ describe( 'CallWorldLabel - multiplication', function() : void {
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  const vm = new VMS( root, wlds, interp, manager ) ;
 
   it('should evaluate to a StringV equaling 15', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -195,7 +222,11 @@ describe( 'CallWorldLabel - division', function() : void {
   const op1 = labels.mkNumberLiteral("9");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  const vm = new VMS( root, wlds, interp, manager ) ;
 
   it('should evaluate to a StringV equaling 3', function() : void {
       assert.check( ! vm.isReady() ) ;
