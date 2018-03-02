@@ -40,10 +40,10 @@ module valueTypes {
         private readonly isConstant : boolean;
         private readonly isDeclared : TVar<boolean> ;
 
-        constructor(name : string, value : Value, type : Type, isConstant : boolean, isDeclared : boolean, manager : TransactionManager) {
+        constructor(name : string, initialValue : Value, type : Type, isConstant : boolean, isDeclared : boolean, manager : TransactionManager) {
             this.manager = manager ;
             this.name = name;
-            this.value = new TVar<Value>( NullV.theNullValue, manager ) ;
+            this.value = new TVar<Value>( initialValue, manager ) ;
             this.type = type;
             this. isConstant = isConstant;
             this.isDeclared = new TVar<boolean>( isDeclared, manager ) ;
