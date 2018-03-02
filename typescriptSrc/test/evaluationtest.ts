@@ -8,6 +8,7 @@
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
+import {list} from '../collections' ;
 import pnode = require( '../pnode' ) ;
 import labels = require( '../labels' ) ;
 import vms = require( '../vms' ) ;
@@ -63,7 +64,7 @@ describe('second step', function() : void {
         assert.check(! ms.isReady());
     });
     it('should have 1 thing in varmap', function() : void {
-        assert.check(ms.getValMap().getEntries().size() === 1);
+        assert.check(ms.getValMap().isMapped( list(0) ));
         // TODO check the value
     });
 });
@@ -93,7 +94,7 @@ describe('fourth step', function() : void {
         assert.check( ! ms.getEval().isReady() );
     });
     it('should have 2 things in varmap', function() : void {
-        assert.check(ms.getValMap().getEntries().size() === 2);
+        assert.check(ms.getValMap().isMapped( list(2) ) );
         // TODO. Check the value at (2)
     });
 });
@@ -121,7 +122,7 @@ describe('sixth step', function() : void {
         assert.check( ms.isDone() );
     });
     it('should have 3 things in varmap', function() : void {
-        assert.check(ms.getValMap().getEntries().size() === 3);
+        assert.check(ms.getValMap().isMapped( list(0) ) ) ;
     });
     it('should have something in stack named aa', function() : void {
         const stack = ms.getStack() ;
