@@ -229,7 +229,7 @@ module vms{
      * */
     export class Evaluation {
         private readonly root : TVar<PNode>;
-        private readonly varStack : VarStack ;
+        private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
         private readonly ready : TVar<boolean>;
         private readonly map : ValueMap;
@@ -240,7 +240,7 @@ module vms{
             this.root = new TVar<PNode>(root, manager) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.ready = new TVar<boolean>(false, manager);
-            this.varStack = varStack ;
+            this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
             this.extraInformationMap = new AnyMap(manager) ;
         }
@@ -258,7 +258,21 @@ module vms{
         }
 
         public getStack() : VarStack {
-            return this.varStack ;
+            return this.varStack.get() ;
+        }
+
+        public varStackIsEmpty( ) : boolean {
+            return this.varStack.get().isEmpty() ;
+        }
+
+        public pushOntoVarStack( newFrame : ObjectI ) : void {
+            const oldStack = this.varStack.get() ;
+            this.varStack.set( new NonEmptyVarStack(newFrame, oldStack)) ;
+        }
+
+        public popFromVarStack(  ) : void {
+            const oldStack = this.varStack.get() ;
+            this.varStack.set( oldStack.getNext() ) ;
         }
 
         public getPending() : List<number> {
@@ -508,6 +522,8 @@ module vms{
     * variables are looked up.  See the run-time model for more detail.
     */
     export abstract class VarStack {
+        public abstract isEmpty() : boolean ;
+        public abstract getNext() : VarStack ;
         public abstract hasField(name : string) : boolean ;
         public abstract setField(name : string, val : Value) : void ;
         public abstract getField(name : string) : FieldI ;
@@ -517,6 +533,12 @@ module vms{
         constructor() { super() ; }
 
         public static readonly theEmptyVarStack = new EmptyVarStack() ;
+
+        public isEmpty() : boolean { return true ; }
+
+        public getNext() : VarStack {
+            assert.checkPrecondition(false) ;
+            return assert.unreachable() ; }
 
         public hasField(name : string) : boolean {
             return false ;
@@ -547,6 +569,8 @@ module vms{
             this._top = object;
             this._next = next;
         }
+
+        public isEmpty() : boolean { return false ; }
 
         // TODO Is this ever used?
         public getTop() : ObjectI {
