@@ -529,7 +529,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("==", false);
+  const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -557,7 +557,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("==", false);
+  const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("This is a string");
   const op2 = labels.mkNumberLiteral("This is not the same string");
   const root = new PNode(rootlabel, [op1, op2]);
