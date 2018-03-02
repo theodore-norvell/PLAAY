@@ -41,13 +41,38 @@ module vms{
      * The state of the machine includes
      * 
      * * An evaluation stack.
+     * * a last error.
+     * 
+     * The states of the vms are
+     * 
+     * * RUNNING: In the running state,the interpreter can be advanced by by calling the advance method.
+     *   You can tell if the machine is in the running state by calling `vms.canAdvance()`.
+     *   The running state has three substates
+     *
+     *      * DONE.   In the RUNNING and DONE, the top evaluation is done and can not be advanced. Use
+     *         `vms.canAdvance() && vms.isDone()`
+     *         to tell if the top evaluation is done.  When the vms is in the DONE substate, an advance will
+     *         pop the top evaluation off the evaluation stack.
+     *      * READY.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
+     *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.isReady()`
+     *      * NOT READY. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
+     *         The machine is in the NOT READY substate iff `vms.canAdvance() && !vms.isDone() && !vms.isReady()`
+     * 
+     * * ERROR:  In the error state, the machine has encountered a run time error and can not advance because of that.
+     *   Use `vms.hasError()` to check if the machine has encountered an error.  Use `vms.getError()` to
+     *   Retrieve a string describing the error
+     * 
+     * * FINISHED: In the finished state. The evaluation has completely finished. If `vms.canAdvance()` an
+     *   `vms.hasError()` are both false, then the machine is in the FINISHED state and the value of
+     *   the last expression evaluated can be found with a call to getValue().
      */
     export class VMS {
 
         private readonly evalStack : EvalStack ;
         private readonly manager : TransactionManager ;
         private readonly interpreter : Interpreter ;
-        private lastError : TVar<string|null> ;
+        private readonly lastError : TVar<string|null> ;
+        private readonly value : TVar<Value|null> ;
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter, manager : TransactionManager ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
@@ -61,7 +86,10 @@ module vms{
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
+            // Invariant: this.lastError.get() !== null iff this.hasError() 
             this.lastError = new TVar<string|null>( null, manager ) ;
+            // Invariant: this.lastError.get() !== null iff !this.canAdvance() && this.hasError()
+            this.value = new TVar<Value|null>( null, manager) ;
         }
 
         public getTransactionManager() : TransactionManager { //testing purposes
@@ -170,9 +198,10 @@ module vms{
             this.evalStack.top().finishStep( value ) ;
         }
 
-        public setResult(value : Value ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().setResult( value ) ;
+        public getValue( ) : Value {
+            assert.checkPrecondition( !this.canAdvance() && ! this.hasError() ) ;
+            assert.check( this.value.get() !== null ) ;
+            return this.value.get() as Value ;
         }
 
         public isDone() : boolean {
@@ -187,13 +216,16 @@ module vms{
             if( ev.isDone() ) {
                 const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
-                if(this.evalStack.notEmpty()){
-                    this.evalStack.top().setResult( value );
-                }
+                this.setResult( value ) ;
             }
             else{
                 ev.advance( this.interpreter, this);
             }
+        }
+
+        private setResult(value : Value ) : void {
+            if( this.evalStack.notEmpty() ) this.evalStack.top().setResult( value ) ;
+            else this.value.set( value ) ;
         }
 
         public addVariable(name : string, value : Value, type : Type, isConstant : boolean) : void {
@@ -388,11 +420,6 @@ module vms{
             assert.checkPrecondition( this.ready.get() ) ;
             const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
-            // At this point, the evaluation is
-            // ready and the call node is pending.
-            // Thus the call is stepped a second time.
-            // On the second step, the type of the
-            // result should be checked.
         }
 
         public isDone() : boolean {

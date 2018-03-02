@@ -38,7 +38,7 @@ module evaluationManager {
         }
 
         public next() : void {
-            this._vms.advance();
+            if( this._vms.canAdvance() ) this._vms.advance();
         }
 
         public getVMS() : VMS {

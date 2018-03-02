@@ -103,7 +103,7 @@ module animator
 	{
         evaluationMgr.next();
         const STEPLIMIT = 10000 ;
-        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
+        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().canAdvance() ; --k) 
         {
             evaluationMgr.next();
 		}
