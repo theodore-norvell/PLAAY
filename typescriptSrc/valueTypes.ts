@@ -111,21 +111,20 @@ module valueTypes {
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
 
-        protected readonly fields:TVar<Array<Field>> ;
+        protected readonly fields:TArray<Field> ;
 
         constructor(manager : TransactionManager) {
-            this.fields = new TVar( [], manager ) ;
+            this.fields = new TArray( manager ) ;
         }
 
 
         public numFields():number {
-            return this.fields.get().length ;
+            return this.fields.size() ;
         }
 
         public addField(field:Field) : void {
             assert.checkPrecondition( ! this.hasField( field.getName()) ) ;
-            const newArray = this.fields.get().concat( [field] ) ;
-            this.fields.set( newArray ) ;
+            this.fields.push( field ) ;
         }
 
         public hasField( name : string ) : boolean {
@@ -138,14 +137,12 @@ module valueTypes {
         }
 
         public getFieldByNumber( i : number ) : Field {
-            assert.checkPrecondition( 0 <= i && i < this.fields.get().length,
-                                      "ObjectV.getFieldByNumber called with bad argument." ) ;
-            return this.fields.get()[i] ;
+            return this.fields.get(i) ;
         }
 
         public getField(fieldName:string) : Field {
-            for (let i = 0; i < this.fields.get().length; i++) {
-                const f = this.fields.get()[i] ;
+            for (let i = 0, sz=this.fields.size(); i < sz; i++) {
+                const f = this.fields.get(i) ;
                 if (f.getName( ) === fieldName) {
                     return f;
                 }
