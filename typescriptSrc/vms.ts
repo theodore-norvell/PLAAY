@@ -12,6 +12,8 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+// TODO.  We can not import from valueTypes as it creates a circular reference.
+import {Field, ObjectV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -54,7 +56,9 @@ module vms{
             this.manager = manager;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
-                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
+                varStack = new NonEmptyVarStack( worlds[i], varStack ) ;
+            }
+            varStack = new DynamicNonEmptyVarStack(new ObjectV(manager), varStack);
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
@@ -189,6 +193,28 @@ module vms{
             }
             else{
                 ev.advance( this.interpreter, this);
+            }
+        }
+
+        public addVariable(name : string, value : Value, type : Type, isConstant : boolean) : void {
+            let currentStack : VarStack = this.evalStack.top().getStack();
+            //find the dynamic variable stack
+            while (!(currentStack instanceof DynamicNonEmptyVarStack) && currentStack instanceof NonEmptyVarStack) {
+                currentStack = (<NonEmptyVarStack> currentStack).getNext();
+            }
+            //end result should be either the empty stack or the dynamic stack
+            assert.check(currentStack instanceof DynamicNonEmptyVarStack, "No dynamic variable stack exists, cannot declare a variable!");
+            (currentStack as DynamicNonEmptyVarStack).addField(name, value, type, isConstant, this.manager);
+
+        }
+
+        public updateVariable(name: string, value: Value) {
+            const stack : VarStack = this.evalStack.top().getStack();
+            if (stack.hasField(name)) {
+                stack.setField(name, value);
+            }
+            else {
+                assert.failedPrecondition("No variable with name " + name + " exists.");
             }
         }
 
@@ -464,6 +490,7 @@ module vms{
                     const firstPart : TArray<MapEntry<T>> = this.entries.slice(0, i);
                     const lastPart : TArray<MapEntry<T>> = this.entries.slice(i+1, this.entries.size());
                     this.entries = firstPart.concat(lastPart);
+                    i--;
                 }
             }
             return;
@@ -512,7 +539,7 @@ module vms{
 
     export class NonEmptyVarStack extends VarStack {
 
-        private _top : ObjectI;
+        protected _top : ObjectI;
         private _next : VarStack;
 
         constructor(object : ObjectI, next : VarStack ) {
@@ -554,6 +581,24 @@ module vms{
 
         public getAllFrames() : Array<ObjectI> {
             return [this._top].concat( this._next.getAllFrames() ) ;
+        }
+    }
+
+    //extension of a non empty var stack that has an add field method
+    export class DynamicNonEmptyVarStack extends NonEmptyVarStack {
+        // TODO.  I don't like this class.  For one thing it depends on the valueTypes module, which creates a circular dependence.
+        constructor(object : ObjectI, next : VarStack){
+            super(object, next);
+        }
+
+        //only add if it isn't there
+        public addField(name : string, val : Value, type : Type, isConstant : boolean, manager : TransactionManager ) : void {
+            if (!this._top.hasField(name) && this._top instanceof ObjectV) {
+                (this._top as ObjectV).addField(new Field(name, val, type, isConstant, true, manager));
+            }
+            else {
+                assert.failedPrecondition("Cannot declare an already existing variable.");
+            }
         }
     }
 

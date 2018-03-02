@@ -12,8 +12,8 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
-import { Value } from './vms';
-import { BuiltInV } from './valueTypes';
+import {Type, Value, VarStack} from './vms';
+import {BuiltInV, Field} from './valueTypes';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -92,6 +92,26 @@ module interpreter {
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
 
+    // Control Labels
+    theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
+    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = leftToRightSelector ;
+
+    theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
+    theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
+
+    theStepperRegistry[labels.WhileLabel.kindConst] = whileStepper;
+    theSelectorRegistry[labels.WhileLabel.kindConst] = whileSelector;
+
+    // Variable Labels
+    theStepperRegistry[labels.AssignLabel.kindConst] = assignStepper;
+    theSelectorRegistry[labels.AssignLabel.kindConst] = assignSelector;
+
+    theSelectorRegistry[labels.VariableLabel.kindConst] = alwaysSelector;
+    theStepperRegistry[labels.VariableLabel.kindConst] = variableStepper;
+
+    theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
+    theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -115,6 +135,92 @@ module interpreter {
             // recursively select from that child.
             vms.pushPending( i ) ;
             vms.getInterpreter().select( vms ) ;
+        }
+    }
+
+    function ifSelector(vms : VMS) : void {
+        //check if the condition node is mapped
+        let choiceNode = -1;
+        if (vms.isChildMapped(0)) {
+            //if it is, get the result of the condition node
+            assert.check(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
+            const result : string = (<StringV> vms.getChildVal(0)).getVal();
+            if (result === "true") {
+                choiceNode = 1;
+            }
+            else if (result === "false") {
+                choiceNode = 2;
+            }
+
+            assert.check(choiceNode === 1 || choiceNode === 2, "Condition is neither true nor false.");
+            if (!vms.isChildMapped(choiceNode)) {
+                vms.pushPending(choiceNode);
+                vms.getInterpreter().select(vms);
+            }
+
+            else {
+                vms.setReady(true);
+            }
+        }
+
+        else {
+            vms.pushPending(0);
+            vms.getInterpreter().select(vms);
+        }
+
+    }
+
+    function whileSelector(vms : VMS) : void {
+        //check if the body is mapped and reset everything if it is
+        if (vms.isChildMapped(1)) {
+            vms.scrub(vms.getPending());
+        }
+        //check if the guard node is mapped
+        if (vms.isChildMapped(0)) {
+            assert.check(vms.getChildVal(0).isStringV(), "Guard is not a StringV");
+            const result : string = (<StringV> vms.getChildVal(0)).getVal();
+            //check if true or false, if true, check select the body
+            if (result === "true") {
+                vms.pushPending(1);
+                vms.getInterpreter().select(vms);
+            }
+            //otherwise, if it is false, set this node to ready
+            else if (result === "false"){
+                vms.setReady(true);
+            }
+            //otherwise, throw an error!
+            else {
+                assert.failedPrecondition("Guard is neither true nor false!");
+            }
+        }
+        //if it isn't, select the guard node
+        else {
+            vms.pushPending(0);
+            vms.getInterpreter().select(vms);
+        }
+
+    }
+
+    function assignSelector(vms : VMS) : void {
+        if (!vms.isChildMapped(1)) {
+            vms.pushPending(1);
+            vms.getInterpreter().select(vms);
+        }
+        else {
+            vms.setReady(true);
+        }
+
+    }
+
+    function varDeclSelector(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode().child(0);
+        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        if (!vms.isChildMapped(2)) {
+            vms.pushPending(2);
+            vms.getInterpreter().select(vms);
+        }
+        else {
+            vms.setReady(true);
         }
     }
 
@@ -163,6 +269,60 @@ module interpreter {
       else {
         vms.reportError("No variable named " + value + "is in scope.");
       } 
+    }
+
+    function exprSeqStepper(vms : VMS) : void {
+        //set it to the value of the last child node
+        const numberOfChildren : number = vms.getPendingNode().count();
+        vms.finishStep(vms.getChildVal(numberOfChildren - 1));
+    }
+
+    function ifStepper(vms : VMS) : void {
+        assert.checkPrecondition(vms.isChildMapped(0), "Condition is not ready.");
+        assert.checkPrecondition(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
+        const result : string = (<StringV> vms.getChildVal(0)).getVal();
+        assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
+        const choice = result === "true" ? 1 : 2;
+        vms.finishStep(vms.getChildVal(choice));
+    }
+
+    function whileStepper(vms : VMS) : void {
+        //use the value of the body if it is mapped, otherwise use null
+        if (vms.isChildMapped(1)) {
+            vms.finishStep(vms.getChildVal(1));
+        }
+        else {
+            vms.finishStep(theNullValue);
+        }
+    }
+
+    function assignStepper(vms : VMS) : void {
+        const assignNode : PNode = vms.getPendingNode();
+        const variableNode : PNode = assignNode.child(0);
+        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to assign to something that isn't a variable.");
+        const variableName : string = variableNode.label().getVal();
+        const value : Value = vms.getChildVal(1);
+        vms.updateVariable(variableName, value);
+        vms.finishStep(value);
+    }
+
+    function variableStepper(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode();
+        const variableStack : VarStack = vms.getStack();
+        const variableName : string = variableNode.label().getVal();
+        assert.checkPrecondition(variableStack.hasField(variableName), "The variable " + variableName + " is not assigned a value.");
+        vms.finishStep(variableStack.getField(variableName).getValue());
+    }
+
+    function varDeclStepper(vms : VMS) : void {
+        const variableNode : PNode = vms.getPendingNode().child(0);
+        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        const name : string = variableNode.label().getVal();
+        const value : Value = vms.getChildVal(2);
+        const type : Type = Type.NULL; //todo: actually select the type based on the type entered
+        const isConstant : boolean = false;
+        vms.addVariable(name, value, type, isConstant);
+        vms.finishStep(value);
     }
 }
 
