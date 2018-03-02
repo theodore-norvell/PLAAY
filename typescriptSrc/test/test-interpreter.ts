@@ -789,14 +789,9 @@ describe('IfLabel', function () : void{
         //parse condition node to select either true or false
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         //it should fail here
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            //make sure the correct error message is thrown. this should be its own error type. but assert.ts doesn't allow for that
-            if (e.message !== "Assertion failed: Condition is neither true nor false.")
-                throw new Error(e.message);
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(), "Condition is neither true nor false." ) ;
     });
 
     it('should evaluate to a StringV equaling 5 when true', function() : void {
@@ -1117,14 +1112,9 @@ describe('VarDeclLabel', function () : void {
 
         //step varDeclNode2
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: Cannot declare an already existing variable.") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "Cannot declare an already existing variable.")
     });
 });
 
@@ -1191,19 +1181,14 @@ describe('VariableLabel', function () : void {
 
         //step root (this should fail)
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: The variable a is not assigned a value.") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "The variable a is not assigned a value." ) ;
     });
 });
 
 describe('AssignLabel', function () : void {
-    it('should fail when assigning a non-declared label', function () : void {
+    it('should fail when assigning a non-declared variable', function () : void {
         //setup
         const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
@@ -1226,14 +1211,9 @@ describe('AssignLabel', function () : void {
 
         //step root(this should fail)
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: No variable with name a exists.") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "No variable with name a exists.") ;
 
     });
 
@@ -1319,14 +1299,9 @@ describe('WhileLabel', function () : void {
 
         //attempt to select the another node, but it should fail
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: Guard is neither true nor false!") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "Guard is neither true nor false!" ) ;
     });
 
     it('should unmap the body after one iteration of the loop has happened', function () : void {

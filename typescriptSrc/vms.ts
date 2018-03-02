@@ -45,10 +45,9 @@ module vms{
     export class VMS {
 
         private readonly evalStack : EvalStack ;
-
         private readonly manager : TransactionManager ;
-
         private readonly interpreter : Interpreter ;
+        private lastError : TVar<string|null> ;
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter, manager : TransactionManager ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
@@ -62,6 +61,7 @@ module vms{
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
+            this.lastError = new TVar<string|null>( null, manager ) ;
         }
 
         public getTransactionManager() : TransactionManager { //testing purposes
@@ -69,7 +69,7 @@ module vms{
         }
 
         public canAdvance() : boolean {
-            return this.evalStack.notEmpty();
+            return !this.hasError() && this.evalStack.notEmpty();
         }
 
         public getInterpreter() : Interpreter {
@@ -218,8 +218,18 @@ module vms{
             }
         }
 
-        public reportError( message : String ) : void {
+        public reportError( message : string ) : void {
             console.log(message);
+            this.lastError.set( message ) ;
+        }
+
+        public hasError( ) : boolean {
+            return this.lastError.get() != null ;
+        }
+
+        public getError( ) : string {
+            assert.checkPrecondition( this.hasError() ) ;
+            return this.lastError.get() as string ;
         }
     }
 
