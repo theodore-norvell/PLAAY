@@ -82,7 +82,6 @@ module vms{
             for( let i = 0 ; i < worlds.length ; ++i ) {
                 varStack = new NonEmptyVarStack( worlds[i], varStack ) ;
             }
-            varStack = new DynamicNonEmptyVarStack(new ObjectV(manager), varStack);
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
@@ -226,28 +225,6 @@ module vms{
         private setResult(value : Value ) : void {
             if( this.evalStack.notEmpty() ) this.evalStack.top().setResult( value ) ;
             else this.value.set( value ) ;
-        }
-
-        public addVariable(name : string, value : Value, type : Type, isConstant : boolean) : void {
-            let currentStack : VarStack = this.evalStack.top().getStack();
-            //find the dynamic variable stack
-            while (!(currentStack instanceof DynamicNonEmptyVarStack) && currentStack instanceof NonEmptyVarStack) {
-                currentStack = (<NonEmptyVarStack> currentStack).getNext();
-            }
-            //end result should be either the empty stack or the dynamic stack
-            assert.check(currentStack instanceof DynamicNonEmptyVarStack, "No dynamic variable stack exists, cannot declare a variable!");
-            (currentStack as DynamicNonEmptyVarStack).addField(name, value, type, isConstant, this.manager);
-
-        }
-
-        public updateVariable(name: string, value: Value) {
-            const stack : VarStack = this.evalStack.top().getStack();
-            if (stack.hasField(name)) {
-                stack.setField(name, value);
-            }
-            else {
-                assert.failedPrecondition("No variable with name " + name + " exists.");
-            }
         }
 
         public reportError( message : string ) : void {
@@ -566,8 +543,8 @@ module vms{
         public isEmpty() : boolean { return true ; }
 
         public getNext() : VarStack {
-            assert.checkPrecondition(false) ;
-            return assert.unreachable() ; }
+            return assert.failedPrecondition("getNext called on EmptyVarStack") ;
+        }
 
         public hasField(name : string) : boolean {
             return false ;
@@ -637,24 +614,6 @@ module vms{
         }
     }
 
-    //extension of a non empty var stack that has an add field method
-    export class DynamicNonEmptyVarStack extends NonEmptyVarStack {
-        // TODO.  I don't like this class.  For one thing it depends on the valueTypes module, which creates a circular dependence.
-        constructor(object : ObjectI, next : VarStack){
-            super(object, next);
-        }
-
-        //only add if it isn't there
-        public addField(name : string, val : Value, type : Type, isConstant : boolean, manager : TransactionManager ) : void {
-            if (!this._top.hasField(name) && this._top instanceof ObjectV) {
-                (this._top as ObjectV).addField(new Field(name, val, type, isConstant, true, manager));
-            }
-            else {
-                assert.failedPrecondition("Cannot declare an already existing variable.");
-            }
-        }
-    }
-
     /** An EvalStack is simply a stack of evaluations.
      * 
      */
@@ -712,11 +671,16 @@ module vms{
     export interface FieldI  {
         getName : () => string ;
         getValue : () => Value ;
+        getType : () => Type ;
         setValue : ( value : Value ) => void ;
+        getIsDeclared : () => boolean ;
+        getIsConstant : () => boolean ;
+        setIsDeclared : () => void ;
     }
 
 
     export enum Type {
+        NOTYPE,
         STRING,
         BOOL,
         NUMBER,
