@@ -98,7 +98,7 @@ module interpreter {
 
     // Control Labels
     theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
-    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = leftToRightSelector ;
+    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = exprSeqSelector ;
 
     theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
     theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
@@ -139,6 +139,19 @@ module interpreter {
             // recursively select from that child.
             vms.pushPending( i ) ;
             vms.getInterpreter().select( vms ) ;
+        }
+    }
+
+    function exprSeqSelector(vms : VMS) : void {
+        // ExprSeqLabels are usually stepped twice. Once on a previsit to 
+        // create the stack frame.  Then on a postvisit when the value of
+        // the last expression becomes the value of the sequence.
+        // TODO Optimize the case where there are no variable declarations.
+        if( ! vms.hasExtraInformation() ) {
+            // Must previsit.
+            vms.setReady( true ) ; }
+        else {
+            leftToRightSelector( vms ) ;
         }
     }
 
@@ -251,11 +264,9 @@ module interpreter {
         }
         vms.finishStep( result ) ;
     }
-    
-    const theNullValue = new NullV() ;
 
     function nullLiteralStepper( vms : VMS ) : void {
-        vms.finishStep( theNullValue ) ;
+        vms.finishStep( NullV.theNullValue ) ;
     }
 
     function callWorldStepper( vms : VMS ) : void {
@@ -281,9 +292,42 @@ module interpreter {
     }
 
     function exprSeqStepper(vms : VMS) : void {
-        //set it to the value of the last child node
-        const numberOfChildren : number = vms.getPendingNode().count();
-        vms.finishStep(vms.getChildVal(numberOfChildren - 1));
+        // We must step the node twice. Once on a previsit and once on a postvisit.
+        if( ! vms.hasExtraInformation() ) {
+            // Previsit. Build and push stack frame
+            const manager = vms.getTransactionManager() ;
+            const stackFrame = new ObjectV( manager ) ;
+            const node = vms.getPendingNode() ;
+            const sz = node.count() ;
+            const names = new Array<string>() ;
+            for( let i=0; i < sz ; ++i ) {
+                const childNode = node.child(i) ;
+                if( childNode.label() instanceof labels.VarDeclLabel ) {
+                    const name : string = childNode.child(0).label().getVal() ;
+                    const initialValue = null ;
+                    const type : Type = Type.NOTYPE ;
+                    const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+                    if( names.some( (v : string) => v===name ) ) {
+                        vms.reportError( "Variable " +name+ " is declared twice." ) ;
+                        return ;
+                    } else {
+                        stackFrame.addField( field ) ;
+                        names.push( name ) ; }
+                }
+            } // end for
+            vms.getEval().pushOntoVarStack( stackFrame ) ;
+            // Now map this node to say it's been previsited.
+            vms.putExtraInformation( 0 ) ;
+            vms.setReady( false ) ; }
+        else {
+            // Postvisit.
+            // Set it to the value of the last child node if there is one and pop the stack frame.
+            const numberOfChildren : number = vms.getPendingNode().count();
+            const value : Value = (numberOfChildren === 0
+                                   ? DoneV.theDoneValue
+                                   : vms.getChildVal( numberOfChildren - 1) ) ;
+            vms.finishStep( value );
+            vms.getEval().popFromVarStack() ; }
     }
 
     function ifStepper(vms : VMS) : void {
@@ -301,7 +345,7 @@ module interpreter {
             vms.finishStep(vms.getChildVal(1));
         }
         else {
-            vms.finishStep(theNullValue);
+            vms.finishStep( DoneV.theDoneValue ) ;
         }
     }
 
