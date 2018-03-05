@@ -1299,6 +1299,25 @@ describe('AssignLabel', function () : void {
         assert.check( vm.hasError() ) ;
         assert.checkEqual( vm.getError(),"The variable named a has not been declared yet." ) ;
     });
+
+    it('should fail when trying to assign to something that is not a variable', function () : void {
+        //setup
+        // exprSeq( a := 2, decl a: := 1 )
+        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const valueNode1 : PNode = labels.mkNumberLiteral("1");
+        const valueNode2 : PNode = labels.mkNumberLiteral("2");
+        const assignNode : PNode = new PNode(assignLabel, [valueNode1, valueNode2]);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
+        const vm = makeStdVMS( root )  ;
+
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
+        
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(),"Attempting to assign to something that isn't a variable." ) ;
+    });
 });
 
 describe('WhileLabel', function () : void {

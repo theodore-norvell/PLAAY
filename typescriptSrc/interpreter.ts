@@ -352,7 +352,9 @@ module interpreter {
     function assignStepper(vms : VMS) : void {
         const assignNode : PNode = vms.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
-        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to assign to something that isn't a variable.");
+        if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
+            vms.reportError("Attempting to assign to something that isn't a variable.");
+            return ; }
         const variableName : string = variableNode.label().getVal();
         const value : Value = vms.getChildVal(1);
         const variableStack : VarStack = vms.getStack();
