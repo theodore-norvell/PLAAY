@@ -316,6 +316,7 @@ div.vms
     margin-right:4px;
     margin-left:159px;
     background-color:black;
+    overflow: scroll;
 }
 
 /*actual visualization*/
