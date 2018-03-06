@@ -28,6 +28,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
+import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral } from '../labels';
 
 const emptyList = collections.nil<number>() ;
 const wld = new World();
@@ -105,6 +106,26 @@ describe( 'NullLiteralLabel', function() : void {
         assert.check( val instanceof NullV ) ;
     } );
 } ) ;
+
+describe ('LambdaLabel', function() : void {
+    const params: Array<PNode> = [labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())];
+    const paramlist = mkParameterList(params);
+    const exprseq: Array<PNode> = [labels.mkCallWorld("+", mkVar("x"), mkNumberLiteral("1"))];
+    const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq(exprseq));
+    const vm = new VMS(root, wlds, interp);
+
+    it('should evaluate to a ClosureV', function(): void {
+        assert.check(!vm.isReady());
+        vm.advance();
+        assert.check(vm.isReady());
+        vm.advance();
+        assert.check(vm.isDone());
+        assert.check(vm.isMapped(emptyList));
+        const val = vm.getVal(emptyList);
+        assert.check(val instanceof ClosureV);
+        assert.check((val as ClosureV).getLambdaNode().label() instanceof labels.LambdaLabel);
+    });
+});
 
 describe( 'CallWorldLabel - addition', function() : void {
   const rootlabel = new labels.CallWorldLabel("+", false);

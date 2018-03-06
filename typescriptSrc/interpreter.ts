@@ -88,6 +88,7 @@ module interpreter {
 
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
+    theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
 
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
@@ -141,6 +142,12 @@ module interpreter {
 
     function nullLiteralStepper( vms : VMS ) : void {
         vms.finishStep( theNullValue ) ;
+    }
+
+    function lambdaStepper(vms: VMS) {
+        const node = vms.getPendingNode();
+        const closure = new ClosureV(node, vms.getStack());
+        vms.finishStep(closure);
     }
 
     function callWorldStepper( vms : VMS ) : void {
