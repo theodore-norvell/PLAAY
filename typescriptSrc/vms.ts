@@ -197,7 +197,7 @@ module vms{
             this.evalStack.top().finishStep( value ) ;
         }
 
-        public getValue( ) : Value {
+        public getFinalValue( ) : Value {
             assert.checkPrecondition( !this.canAdvance() && ! this.hasError() ) ;
             assert.check( this.value.get() !== null ) ;
             return this.value.get() as Value ;

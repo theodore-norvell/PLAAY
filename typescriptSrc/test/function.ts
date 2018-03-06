@@ -100,7 +100,7 @@ describe( 'Call', function() : void {
         for( ; timeOut > 0 && vm.canAdvance() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const val : vms.Value = vm.getValue() ;
+        const val : vms.Value = vm.getFinalValue() ;
         assert.check( val instanceof valueTypes.StringV ) ;
         const stringVal =  val as valueTypes.StringV ;
         assert.check( stringVal.getVal() === expectedResult ) ;
