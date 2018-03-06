@@ -13,7 +13,6 @@ import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
 import {Type, Value, VarStack} from './vms';
-import {BuiltInV, Field} from './valueTypes';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -23,17 +22,22 @@ module interpreter {
 
     import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
+    import Type = vms.Type ;
+    import Value = vms.Value ;
+    import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
+    import BuiltInV = valueTypes.BuiltInV ;
     import StringV = valueTypes.StringV ;
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
     import DoneV = valueTypes.DoneV ;
+    import Field = valueTypes.Field ;
 
     class PlaayInterpreter implements vms.Interpreter {
 
         public step( vms : VMS ) : void {
-            assert.checkPrecondition( vms.isReady() ) ;
+            assert.checkPrecondition( vms.canAdvance() && vms.isReady() ) ;
             const node = vms.getPendingNode() ;
             const label = node.label() ;
             const stepper = theStepperRegistry[ label.kind() ] ;
@@ -42,13 +46,13 @@ module interpreter {
         }
 
         public select( vms : VMS ) : void {
-            assert.checkPrecondition( ! vms.isReady() ) ;
+            assert.checkPrecondition( vms.canAdvance() && ! vms.isReady() ) ;
             const node = vms.getPendingNode() ;
             const label = node.label() ;
             const selector = theSelectorRegistry[ label.kind() ] ;
             assert.check( selector !== undefined, "No selector for labels of kind " + label.kind() ) ;
             selector( vms ) ;
-            assert.check( vms.isReady() ) ;
+            assert.check( vms.hasError() || vms.canAdvance() && vms.isReady() ) ;
         }
     }
 
@@ -94,7 +98,7 @@ module interpreter {
 
     // Control Labels
     theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
-    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = leftToRightSelector ;
+    theSelectorRegistry[labels.ExprSeqLabel.kindConst] = exprSeqSelector ;
 
     theStepperRegistry[labels.IfLabel.kindConst] = ifStepper;
     theSelectorRegistry[labels.IfLabel.kindConst] = ifSelector;
@@ -138,26 +142,42 @@ module interpreter {
         }
     }
 
+    function exprSeqSelector(vms : VMS) : void {
+        // ExprSeqLabels are usually stepped twice. Once on a previsit to 
+        // create the stack frame.  Then on a postvisit when the value of
+        // the last expression becomes the value of the sequence.
+        // TODO Optimize the case where there are no variable declarations.
+        if( ! vms.hasExtraInformation() ) {
+            // Must previsit.
+            vms.setReady( true ) ; }
+        else {
+            leftToRightSelector( vms ) ;
+        }
+    }
+
     function ifSelector(vms : VMS) : void {
         //check if the condition node is mapped
-        let choiceNode = -1;
         if (vms.isChildMapped(0)) {
             //if it is, get the result of the condition node
-            assert.check(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
+            if( ! vms.getChildVal(0).isStringV() ) {
+                vms.reportError( "Condition is not a StringV." );
+                return ; }
             const result : string = (<StringV> vms.getChildVal(0)).getVal();
+            let choiceNode = -1;
             if (result === "true") {
                 choiceNode = 1;
             }
             else if (result === "false") {
                 choiceNode = 2;
-            }
+            } else {
+                vms.reportError("Condition is neither true nor false.") ;
+                return ; }
 
-            assert.check(choiceNode === 1 || choiceNode === 2, "Condition is neither true nor false.");
+            assert.check(choiceNode === 1 || choiceNode === 2, );
             if (!vms.isChildMapped(choiceNode)) {
                 vms.pushPending(choiceNode);
                 vms.getInterpreter().select(vms);
             }
-
             else {
                 vms.setReady(true);
             }
@@ -177,7 +197,10 @@ module interpreter {
         }
         //check if the guard node is mapped
         if (vms.isChildMapped(0)) {
-            assert.check(vms.getChildVal(0).isStringV(), "Guard is not a StringV");
+            if( ! vms.getChildVal(0).isStringV() ) {
+                vms.reportError("Guard is not a StringV") ;
+                return ;
+            }
             const result : string = (<StringV> vms.getChildVal(0)).getVal();
             //check if true or false, if true, check select the body
             if (result === "true") {
@@ -188,17 +211,16 @@ module interpreter {
             else if (result === "false"){
                 vms.setReady(true);
             }
-            //otherwise, throw an error!
+            //otherwise, report an error!
             else {
-                assert.failedPrecondition("Guard is neither true nor false!");
+                vms.reportError( "Guard is neither true nor false!" ) ;
             }
         }
-        //if it isn't, select the guard node
+        //if it isn't selected, select the guard node
         else {
             vms.pushPending(0);
             vms.getInterpreter().select(vms);
         }
-
     }
 
     function assignSelector(vms : VMS) : void {
@@ -214,7 +236,7 @@ module interpreter {
 
     function varDeclSelector(vms : VMS) : void {
         const variableNode : PNode = vms.getPendingNode().child(0);
-        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        assert.check(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
         if (!vms.isChildMapped(2)) {
             vms.pushPending(2);
             vms.getInterpreter().select(vms);
@@ -242,20 +264,18 @@ module interpreter {
         }
         vms.finishStep( result ) ;
     }
-    
-    const theNullValue = new NullV() ;
 
     function nullLiteralStepper( vms : VMS ) : void {
-        vms.finishStep( theNullValue ) ;
+        vms.finishStep( NullV.theNullValue ) ;
     }
 
     function callWorldStepper( vms : VMS ) : void {
       const node = vms.getPendingNode();
       const value = node.label().getVal();
       if (vms.getStack().hasField(value)) {
-        let field = vms.getStack().getField(value).getValue();
-        if (field instanceof BuiltInV) {
-          let stepper = field.getStepper();
+        const val : Value = vms.getStack().getField(value).getValue();
+        if (val instanceof BuiltInV) {
+          const stepper = val.getStepper();
           const args : Array<Value> = [];
           for (let i = 0; i < node.count(); i++) {
             args.push(vms.getChildVal(i));
@@ -272,9 +292,42 @@ module interpreter {
     }
 
     function exprSeqStepper(vms : VMS) : void {
-        //set it to the value of the last child node
-        const numberOfChildren : number = vms.getPendingNode().count();
-        vms.finishStep(vms.getChildVal(numberOfChildren - 1));
+        // We must step the node twice. Once on a previsit and once on a postvisit.
+        if( ! vms.hasExtraInformation() ) {
+            // Previsit. Build and push stack frame
+            const manager = vms.getTransactionManager() ;
+            const stackFrame = new ObjectV( manager ) ;
+            const node = vms.getPendingNode() ;
+            const sz = node.count() ;
+            const names = new Array<string>() ;
+            for( let i=0; i < sz ; ++i ) {
+                const childNode = node.child(i) ;
+                if( childNode.label() instanceof labels.VarDeclLabel ) {
+                    const name : string = childNode.child(0).label().getVal() ;
+                    const initialValue = null ;
+                    const type : Type = Type.NOTYPE ;
+                    const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+                    if( names.some( (v : string) => v===name ) ) {
+                        vms.reportError( "Variable " +name+ " is declared twice." ) ;
+                        return ;
+                    } else {
+                        stackFrame.addField( field ) ;
+                        names.push( name ) ; }
+                }
+            } // end for
+            vms.getEval().pushOntoVarStack( stackFrame ) ;
+            // Now map this node to say it's been previsited.
+            vms.putExtraInformation( 0 ) ;
+            vms.setReady( false ) ; }
+        else {
+            // Postvisit.
+            // Set it to the value of the last child node if there is one and pop the stack frame.
+            const numberOfChildren : number = vms.getPendingNode().count();
+            const value : Value = (numberOfChildren === 0
+                                   ? DoneV.theDoneValue
+                                   : vms.getChildVal( numberOfChildren - 1) ) ;
+            vms.finishStep( value );
+            vms.getEval().popFromVarStack() ; }
     }
 
     function ifStepper(vms : VMS) : void {
@@ -292,37 +345,67 @@ module interpreter {
             vms.finishStep(vms.getChildVal(1));
         }
         else {
-            vms.finishStep(theNullValue);
+            vms.finishStep( DoneV.theDoneValue ) ;
         }
     }
 
     function assignStepper(vms : VMS) : void {
         const assignNode : PNode = vms.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
-        assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to assign to something that isn't a variable.");
+        if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
+            vms.reportError("Attempting to assign to something that isn't a variable.");
+            return ; }
         const variableName : string = variableNode.label().getVal();
         const value : Value = vms.getChildVal(1);
-        vms.updateVariable(variableName, value);
-        vms.finishStep(value);
+        const variableStack : VarStack = vms.getStack();
+        if( ! variableStack.hasField(variableName) ) {
+            vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+            return ;
+        }
+        const field = variableStack.getField(variableName) ;
+        if( ! field.getIsDeclared() ) {
+            vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+            return ;
+        }
+        // TODO Check that the value is assignable to the field.
+        field.setValue( value ) ;
+        vms.finishStep( DoneV.theDoneValue ) ;
     }
 
     function variableStepper(vms : VMS) : void {
         const variableNode : PNode = vms.getPendingNode();
-        const variableStack : VarStack = vms.getStack();
         const variableName : string = variableNode.label().getVal();
-        assert.checkPrecondition(variableStack.hasField(variableName), "The variable " + variableName + " is not assigned a value.");
-        vms.finishStep(variableStack.getField(variableName).getValue());
+        const variableStack : VarStack = vms.getStack();
+        if( ! variableStack.hasField(variableName) ) {
+            vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+            return ;
+        }
+        const field = variableStack.getField(variableName) ;
+        if( ! field.getIsDeclared() ) {
+            vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+            return ;
+        }
+        vms.finishStep(field.getValue());
     }
 
     function varDeclStepper(vms : VMS) : void {
         const variableNode : PNode = vms.getPendingNode().child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        const name : string = variableNode.label().getVal();
+        const variableName : string = variableNode.label().getVal();
         const value : Value = vms.getChildVal(2);
-        const type : Type = Type.NULL; //todo: actually select the type based on the type entered
-        const isConstant : boolean = false;
-        vms.addVariable(name, value, type, isConstant);
-        vms.finishStep(value);
+        // TODO. Variable should be added to the frame at the start when the stack frame is created.
+            //const type : Type = Type.NOTYPE; //TODO: actually select the type based on the type entered
+            //const isConstant : boolean = false;
+            //vms.addVariable(name, value, type, isConstant);
+        
+        const variableStack : VarStack = vms.getStack();
+        assert.check( variableStack.hasField(variableName) ) ;
+        const field = variableStack.getField(variableName) ;
+        assert.check( ! field.getIsDeclared() ) ;
+        field.setIsDeclared() ;
+        // TODO Check that the value is assignable to the field.
+        field.setValue( value ) ;
+        vms.finishStep( DoneV.theDoneValue ) ;
     }
 }
 

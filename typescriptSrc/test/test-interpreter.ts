@@ -9,6 +9,7 @@
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
+import backtracking = require( '../backtracking' ) ;
 import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
@@ -28,19 +29,25 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
+import TransactionManager = backtracking.TransactionManager ;
 import {AssignLabel, ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
 
 const emptyList = collections.nil<number>() ;
-const wld = new World();
-const wlds : Array<ObjectV> = new Array();
-wlds.push(wld);
 const interp = interpreter.getInterpreter() ;
+
+function makeStdVMS( root : PNode ) : VMS {
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  return new VMS( root, wlds, interp, manager ) ;
+}
 
 describe( 'StringLiteralLabel', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -58,7 +65,7 @@ describe( 'StringLiteralLabel', function() : void {
 describe( 'NumberLiteralLabel', function() : void {
     const label = new labels.NumberLiteralLabel( "123", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -76,7 +83,7 @@ describe( 'NumberLiteralLabel', function() : void {
 describe( 'BooleanLiteralLabel', function() : void {
     const label = new labels.BooleanLiteralLabel( "true", false ) ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a StringV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -94,7 +101,7 @@ describe( 'BooleanLiteralLabel', function() : void {
 describe( 'NullLiteralLabel', function() : void {
     const label = new labels.NullLiteralLabel() ;
     const root = new PNode( label, [] ) ;
-    const vm = new VMS( root, wlds, interp ) ;
+    const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a NullV', function() : void {
         assert.check( ! vm.isReady() ) ;
@@ -113,7 +120,7 @@ describe( 'CallWorldLabel - addition', function() : void {
   const op1 = labels.mkNumberLiteral("2");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling 5', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -141,7 +148,7 @@ describe( 'CallWorldLabel - subtraction', function() : void {
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling 2', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -169,7 +176,7 @@ describe( 'CallWorldLabel - multiplication', function() : void {
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling 15', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -197,7 +204,11 @@ describe( 'CallWorldLabel - division', function() : void {
   const op1 = labels.mkNumberLiteral("9");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const manager = new TransactionManager() ;
+  const wld = new World(manager);
+  const wlds : Array<ObjectV> = new Array();
+  wlds.push(wld);
+  const vm = new VMS( root, wlds, interp, manager ) ;
 
   it('should evaluate to a StringV equaling 3', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -225,7 +236,7 @@ describe( 'CallWorldLabel - division', function() : void {
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("2");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling 2.5', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -253,7 +264,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -281,7 +292,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -309,7 +320,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -337,7 +348,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -365,7 +376,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -393,7 +404,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const op1 = labels.mkNumberLiteral("1");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -421,7 +432,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -449,7 +460,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("1");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -477,7 +488,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("1000");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -505,7 +516,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -529,11 +540,11 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("==", false);
+  const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -557,11 +568,11 @@ describe( 'CallWorldLabel - equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("==", false);
+  const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("This is a string");
   const op2 = labels.mkNumberLiteral("This is not the same string");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -589,7 +600,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("true");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -617,7 +628,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -645,7 +656,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("true");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -673,7 +684,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const op1 = labels.mkNumberLiteral("true");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -701,7 +712,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const op1 = labels.mkNumberLiteral("false");
   const op2 = labels.mkNumberLiteral("false");
   const root = new PNode(rootlabel, [op1, op2]);
-  const vm = new VMS(root, wlds, interp);
+  const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a StringV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
@@ -725,29 +736,50 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'ExprSeqLabel', function () : void {
-    const rootLabel = new labels.ExprSeqLabel();
-    const op1 = labels.mkNumberLiteral("1");
-    const op2 = labels.mkNumberLiteral("2");
-    const root = new PNode(rootLabel, [op1, op2]);
-    const vm = new VMS(root, wlds, interp);
     it( 'should evaluate to a StringV equaling 3', function () : void {
+        const rootLabel = new labels.ExprSeqLabel();
+        const op1 = labels.mkNumberLiteral("1");
+        const op2 = labels.mkNumberLiteral("2");
+        const root = new PNode(rootLabel, [op1, op2]);
+        const vm = makeStdVMS( root )  ;
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // select the root
         assert.check(  vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // previsits the root
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // select the first child
         assert.check(  vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // step the first child
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // select the second child
         assert.check(  vm.isReady() ) ;
-        vm.advance() ;
+        vm.advance() ; // step the second child
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ; // select root again
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ; // step the root again
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
         assert.check( val instanceof StringV ) ;
         assert.check( ( val as StringV ).getVal() === "2" ) ;
+    } );
+    it( 'should work when the sequence is empty', function () : void {
+        const rootLabel = new labels.ExprSeqLabel();
+        const root = new PNode(rootLabel, []);
+        const vm = makeStdVMS( root )  ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ; // select the root
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ; // previsits the root
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ; // select root again
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ; // step the root again
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof valueTypes.DoneV ) ;
     } );
 });
 
@@ -764,7 +796,7 @@ describe('IfLabel', function () : void{
         const falseExprSeqNode: PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
         const ifArray: Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
         const root: PNode = new PNode(ifLabel, ifArray);
-        const vm: VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
         //select condition node
@@ -778,14 +810,9 @@ describe('IfLabel', function () : void{
         //parse condition node to select either true or false
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         //it should fail here
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            //make sure the correct error message is thrown. this should be its own error type. but assert.ts doesn't allow for that
-            if (e.message !== "Assertion failed: Condition is neither true nor false.")
-                throw new Error(e.message);
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(), "Condition is neither true nor false." ) ;
     });
 
     it('should evaluate to a StringV equaling 5 when true', function() : void {
@@ -798,9 +825,8 @@ describe('IfLabel', function () : void{
         const falseExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
         const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
         const root : PNode = new PNode(ifLabel, ifArray);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
-        //run test
         //select condition node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
@@ -809,7 +835,15 @@ describe('IfLabel', function () : void{
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
-        //parse condition node to select the first node in the either true or false expr sequence(true in this case)
+        //parse condition node to select the first expr sequence
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step expr seq node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //select number literal 5
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
 
@@ -852,7 +886,7 @@ describe('IfLabel', function () : void{
         const falseExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
         const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
         const root : PNode = new PNode(ifLabel, ifArray);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
         //select condition node
@@ -863,7 +897,15 @@ describe('IfLabel', function () : void{
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
-        //parse condition node to select the first node in the either true or false expr sequence(false in this case)
+        //parse condition node to select the second expr sequence
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step expr seq node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
+        //select number literal 7
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
 
@@ -898,39 +940,55 @@ describe('IfLabel', function () : void{
 
 //test this here since it is needed for while
 describe('scrub', function () : void {
-   it ('should unmap a single element', function () {
-       //setup
-       const numberNode : PNode = labels.mkNumberLiteral("5");
-       const root : PNode = new PNode(new ExprSeqLabel(), [numberNode]);
-       const vm : VMS = new VMS(root, wlds, interp);
+    it ('should unmap a single element', function () {
+        //setup
+        const numberNode : PNode = labels.mkNumberLiteral("5");
+        const root : PNode = new PNode(new ExprSeqLabel(), [numberNode]);
+        const vm = makeStdVMS( root )  ;
 
-       //run test
-       //select number literal node
-       assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-       vm.advance();
+        //run test
+        //select expr seq node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
 
-       //step number literal node
-       assert.check(vm.isReady(), "VMS is not ready when it should be.");
-       vm.advance();
+        //step expr seq node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
 
-       //ensure that the node is mapped
-       assert.check(vm.isChildMapped(0), "The number literal is not mapped.");
+        //select number literal node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
 
-       //scrub the node
-       vm.scrub(vm.getPending());
+        //step number literal node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
 
-       //ensure that it is no longer mapped
-       assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
-   });
+        //ensure that the node is mapped
+        assert.check(vm.isChildMapped(0), "The number literal is not mapped.");
+
+        //scrub the node
+        vm.scrub(vm.getPending());
+
+        //ensure that it is no longer mapped
+        assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
+    });
 
     it ('should unmap two elements', function () {
         //setup
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const stringNode : PNode = labels.mkStringLiteral("hello");
         const root : PNode = new PNode(new ExprSeqLabel(), [numberNode, stringNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
+        //select expr seq node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step expr seq node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
         //select number literal node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
@@ -958,16 +1016,24 @@ describe('scrub', function () : void {
         assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
         assert.check(!vm.isChildMapped(1), "The string literal is still mapped.");
     });
-        it ('should unmap four elements', function () {
+    it ('should unmap four elements', function () {
         //setup
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const stringNode : PNode = labels.mkStringLiteral("hello");
         const numberNode2 : PNode = labels.mkNumberLiteral("6");
         const stringNode2 : PNode = labels.mkStringLiteral("goodbye");
         const root : PNode = new PNode(new ExprSeqLabel(), [numberNode, stringNode, numberNode2, stringNode2]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
+        //select expr seq node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step expr seq node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance();
+
         //select number literal node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
@@ -1023,28 +1089,44 @@ describe('VarDeclLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode : PNode = labels.mkNumberLiteral("5");
-        const root : PNode = new PNode(varDeclLabel, [variableNode, typeNode, valueNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const varDeclNode : PNode = new PNode(varDeclLabel, [variableNode, typeNode, valueNode]);
+        const root : PNode = labels.mkExprSeq( [varDeclNode] ) ;
+        const vm = makeStdVMS( root )  ;
 
         //run the test
-        //select the valueNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        let stackDepth = vm.getEval().getStack().getAllFrames().length ;
+        // step the expr seq node to create a new stack frame.
+        selectAndStep( vm ) ; 
 
-        //step the valueNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        let newStackDepth = vm.getEval().getStack().getAllFrames().length ;
+        assert.checkEqual( stackDepth+1, newStackDepth ) ;
+        
+        assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
+        let f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
+        assert.check( f.getIsDeclared() === false ) ;
 
-        //select the declaration node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        // step the mumber literal node
+        selectAndStep( vm ) ;
 
-        //step the declaration node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        // step the declaration node
+        selectAndStep( vm ) ;
+
+        assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
+        let f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
+        assert.check( f === f1 ) ;
+        assert.check( f.getIsDeclared() === true ) ;
+        assert.check( f.getValue() instanceof StringV ) ;
+        assert.check( (f.getValue() as StringV ).getVal() === "5" ) ;
+
+        // step the expr seq node
+        selectAndStep( vm ) ;
+
+        const finalStackDepth = vm.getEval().getStack().getAllFrames().length ;
+        assert.checkEqual( finalStackDepth, stackDepth ) ;
 
         assert.check(vm.isDone(), "VMS is not done");
         assert.check(vm.isMapped(emptyList), "Empty list is not mapped.");
+        assert.check( vm.getVal( emptyList ) instanceof valueTypes.DoneV ) ;
     });
 
     it('should fail when not using a variable node as the first node', function () : void {
@@ -1073,47 +1155,14 @@ describe('VarDeclLabel', function () : void {
         const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
         const varDeclNode2 : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode2);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode1, varDeclNode2]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
-        //run the test
-        //select valueNode1
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step valueNode1
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varDeclNode1
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varDeclNode1
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select valueNode2
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step valueNode2
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varDeclNode2
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varDeclNode2
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: Cannot declare an already existing variable.") {
-                throw new Error(e.message);
-            }
-        }
+        // Select the expr seq node
+        vm.advance() ;
+        // Step the expr seq node
+        vm.advance() ;
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(), "Variable a is declared twice." )
     });
 });
 
@@ -1125,53 +1174,42 @@ describe('VariableLabel', function () : void {
         const valueNode : PNode = labels.mkNumberLiteral("1729");
         const varDeclNode : PNode = labels.mkVarDecl(varNode, typeNode, valueNode);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, varNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
-        //run the test
-        //select valueNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step valueNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varDeclNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varDeclNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
 
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
         assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (<StringV> val).getVal();
+        const result : string = (val as StringV ).getVal();
         assert.check(result === "1729", "It did not return 1729 as expected. It returned " + result);
+    });
+
+    it('should fail if used before being declared', function () : void {
+        //setup
+        const varNode : PNode = labels.mkVar("a");
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const valueNode : PNode = labels.mkNumberLiteral("1729");
+        const varDeclNode : PNode = labels.mkVarDecl(varNode, typeNode, valueNode);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varNode, varDeclNode]);
+        const vm = makeStdVMS( root )  ;
+
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
+
+        
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(),"The variable named a has not been declared yet." ) ;
     });
 
     it('should fail when trying to reference an undeclared node', function () : void {
         //setup
         const root : PNode = labels.mkVar("a");
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
         //select root
@@ -1180,25 +1218,20 @@ describe('VariableLabel', function () : void {
 
         //step root (this should fail)
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: The variable a is not assigned a value.") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "No variable named a is in scope." ) ;
     });
 });
 
 describe('AssignLabel', function () : void {
-    it('should fail when assigning a non-declared label', function () : void {
+    it('should fail when assigning a non-declared variable', function () : void {
         //setup
         const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
         const root : PNode = new PNode(assignLabel, [variableNode, valueNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
         //run test
         //select valueNode
@@ -1215,19 +1248,15 @@ describe('AssignLabel', function () : void {
 
         //step root(this should fail)
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: No variable with name a exists.") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(), "No variable named a is in scope.") ;
 
     });
 
     it('should assign a new value to a previously declared variable', function () {
         //setup
+        // exprSeq( decl a:= 1, a := 2, a )
         const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
@@ -1235,49 +1264,12 @@ describe('AssignLabel', function () : void {
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
         const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
-        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
+        const vm = makeStdVMS( root )  ;
 
-        //run the test
-        //select valueNode1
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step valueNode1
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varDeclNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varDeclNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select valueNode2
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step valueNode2
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select assignNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step assignNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
 
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
@@ -1286,16 +1278,56 @@ describe('AssignLabel', function () : void {
         const result : string = (<StringV> val).getVal();
         assert.check(result === "2", "It did not return 2 as expected. It returned " + result);
     });
+
+    it('should fail when trying to assign to a variable not yet declared', function () : void {
+        //setup
+        // exprSeq( a := 2, decl a: := 1 )
+        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
+        const variableNode : PNode = labels.mkVar("a");
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const valueNode1 : PNode = labels.mkNumberLiteral("1");
+        const valueNode2 : PNode = labels.mkNumberLiteral("2");
+        const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
+        const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode, varDeclNode]);
+        const vm = makeStdVMS( root )  ;
+
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
+        
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(),"The variable named a has not been declared yet." ) ;
+    });
+
+    it('should fail when trying to assign to something that is not a variable', function () : void {
+        //setup
+        // exprSeq( a := 2, decl a: := 1 )
+        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const valueNode1 : PNode = labels.mkNumberLiteral("1");
+        const valueNode2 : PNode = labels.mkNumberLiteral("2");
+        const assignNode : PNode = new PNode(assignLabel, [valueNode1, valueNode2]);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
+        const vm = makeStdVMS( root )  ;
+
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() )
+            vm.advance() ;
+        
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( vm.getError(),"Attempting to assign to something that isn't a variable." ) ;
+    });
 });
 
 describe('WhileLabel', function () : void {
     it('should not work when the guard does not evaluate to true or false', function () : void {
-        //setup
+        //setup  while( "not_a_boolean ", exprSeq( 5 ) )
         const guardNode : PNode = labels.mkStringLiteral("not_a_boolean");
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [numberNode]);
         const whileNode : PNode = labels.mkWhile(guardNode, bodyNode);
-        const vm : VMS = new VMS(whileNode, wlds, interp);
+        const vm = makeStdVMS( whileNode )  ;
 
         //run the test
         //select guardNode
@@ -1308,59 +1340,114 @@ describe('WhileLabel', function () : void {
 
         //attempt to select the another node, but it should fail
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        try {
-            vm.advance();
-        }
-        catch (e) {
-            if (e.message !== "Precondition failed: Guard is neither true nor false!") {
-                throw new Error(e.message);
-            }
-        }
+        vm.advance();
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "Guard is neither true nor false!" ) ;
     });
 
     it('should unmap the body after one iteration of the loop has happened', function () : void {
-        //setup
+        //setup   while( "true", exprSeq( 5 ) )
         const guardNode : PNode = labels.mkTrueBooleanLiteral();
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [numberNode]);
         const whileNode : PNode = labels.mkWhile(guardNode, bodyNode);
-        const vm : VMS = new VMS(whileNode, wlds, interp);
+        const vm = makeStdVMS( whileNode )  ;
 
         //run the test
-        //select guardNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        selectAndStep( vm ) ; // The guard, which is true
 
-        //step guardNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        vm.advance() ; // Select the body
+        assert.check( vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
+        
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        assert.check( ! vm.hasExtraInformation() ) ;
 
-        //select numberNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        vm.advance() ; // Step the body for the first time this iteration
+        assert.check( ! vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
+        
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        assert.check( vm.hasExtraInformation() ) ;
 
-        //step numberNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        selectAndStep( vm ) ; // The number node.
 
-        //select bodyNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        selectAndStep( vm ) ; // The expression seq again
 
-        //step bodyNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        // So the expression seq is now mapped.
+        assert.check( ! vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list() ) ) ;
 
-        //unmap and select guard node again
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( vm.getValMap().isMapped( collections.list(1,0) ) );
+        // TODO Check that the expr seq has extra information still
 
-        assert.check(!vm.isChildMapped(1), 'The body node is mapped when it should have been unmapped.');
+        // Select the guard again.  This should have the side effect of scrubbing.
+        vm.advance() ;
+        assert.check( vm.isReady() )
+        assert.check( vm.getPending().equals( collections.list(0) ) ) ;
+        
+        assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        // TODO Find a way to check that the extra information on the ExpSeq was scrubbed
+
+        //  Run a second iteration 
+        vm.advance() ; // Step the guard.
+
+        vm.advance() ; // Select the body
+        assert.check( vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
+        
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        assert.check( ! vm.hasExtraInformation() ) ;
+
+        vm.advance() ; // Step the body for the first time this iteration
+        assert.check( ! vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
+        
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        assert.check( vm.hasExtraInformation() ) ;
+
+        selectAndStep( vm ) ; // The number node.
+
+        selectAndStep( vm ) ; // The expression seq again
+
+        // So the expression seq is now mapped.
+        assert.check( ! vm.isReady() ) ;
+        assert.check( vm.getPending().equals( collections.list() ) ) ;
+
+        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( vm.getValMap().isMapped( collections.list(1,0) ) );
+        // TODO Check that the expr seq has extra information still
+
+        // Select the guard again.  This should have the side effect of scrubbing.
+        vm.advance() ;
+        assert.check( vm.isReady() )
+        assert.check( vm.getPending().equals( collections.list(0) ) ) ;
+        
+        assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
+        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
+        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
+        // TODO Find a way to check that the extra information on the ExpSeq was scrubbed
 
     });
 
     it('should run one time when flipping the value of the guard in the body', function () : void {
-        //setup
+        //setup:  seq( decl guard:= true,
+        //             while( guard,
+        //                    seq( guard := false ) ),
+        //             guard ) 
         const guardNode : PNode = labels.mkVar("guard");
         const trueNode : PNode = labels.mkTrueBooleanLiteral();
         const varDeclNode : PNode = labels.mkVarDecl(guardNode, labels.mkNoTypeNd(), trueNode);
@@ -1369,88 +1456,26 @@ describe('WhileLabel', function () : void {
         const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
         const whileNode : PNode = labels.mkWhile(guardNode, bodyNode);
         const root : PNode = new PNode(new ExprSeqLabel(), [varDeclNode, whileNode, guardNode]);
-        const vm : VMS = new VMS(root, wlds, interp);
+        const vm = makeStdVMS( root )  ;
 
-        //run the test
-        //select trueNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step trueNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select varDeclNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step varDeclNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select guardNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step guardNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select falseNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step falseNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select assignNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step assignNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select bodyNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step bodyNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select guardNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step guardNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select whileNode
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step whileNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select guardNode (outside of while loop)
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step guardNode
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
+        //run the test.  We expect to select  and step the following nodes.
+        const nodes = [root, trueNode, varDeclNode,
+                       guardNode, bodyNode, falseNode, assignNode, bodyNode,
+                       guardNode, whileNode,
+                       guardNode, root ] ;
+        
+        let i = 0 ;
+        nodes.forEach( (n : PNode) : void => {
+            assert.check( vm.canAdvance() ) ;
+            assert.check( !vm.isReady()  ) ;
+            vm.advance() ; // Select
+            assert.check( vm.isReady()  ) ;
+            assert.check( vm.getPendingNode() === n,
+                "Wrong node selected on iteration " +i+ ".\nSelected " +vm.getPendingNode()
+                + "\nrather than " +n+ ".") ;
+            vm.advance() ; // Step
+            i += 1 ;
+        } ) ;
 
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
@@ -1462,3 +1487,12 @@ describe('WhileLabel', function () : void {
     })
 
 });
+
+function selectAndStep( vm : VMS ) {
+    assert.checkPrecondition(!vm.isReady() ) ;
+    // Select
+    vm.advance();
+    assert.check(vm.isReady(), "VMS is not ready when it should be.");
+    // Step
+    vm.advance();
+}

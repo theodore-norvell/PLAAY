@@ -6,10 +6,11 @@
 
 
 import assert = require('./assert') ;
+import { TransactionManager } from './backtracking';
 import interpreter = require('./interpreter') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
-import workspace = require('./workspace') ;
+import {World} from './world' ;
 
 /** The evaluation manager is a thin layer between the VMS and the animator.
  * 
@@ -20,27 +21,24 @@ module evaluationManager {
     import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
     import VMS = vms.VMS;
-    import Workspace = workspace.Workspace;
 
     export class EvaluationManager {
 
         private _vms : VMS;
-        private workspace : Workspace;
 
         constructor() {
-            this.workspace = new Workspace();
         }
 
-        public initialize(root : PNode, libraries : vms.ObjectI[] ) : void {
+        public initialize(root : PNode, libraries : vms.ObjectI[], manager : TransactionManager ) : void {
             const worlds = new Array<vms.ObjectI>();
-            worlds.push(this.workspace.getWorld());
+            worlds.push( new World( manager ) ) ;
             libraries.forEach( (w) => worlds.push( w ) ) ;
             const interp : vms.Interpreter = interpreter.getInterpreter() ;
-            this._vms = new VMS(root, worlds, interp);
+            this._vms = new VMS(root, worlds, interp, manager );
         }
 
         public next() : void {
-            this._vms.advance();
+            if( this._vms.canAdvance() ) this._vms.advance();
         }
 
         public getVMS() : VMS {
