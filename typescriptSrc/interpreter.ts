@@ -306,6 +306,7 @@ module interpreter {
             const val = vms.getChildVal(i);
             //TODO: check that the types of val and vardecl are the same
             const field = new Field(varName, val, Type.ANY, false, false, manager);
+            field.setIsDeclared();
             stackFrame.addField(field);
           }
           const func = lambda.child(2);
