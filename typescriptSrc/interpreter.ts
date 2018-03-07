@@ -29,6 +29,9 @@ module interpreter {
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
     import DoneV = valueTypes.DoneV ;
+    import Type = vms.Type ;
+    import Field = valueTypes.Field;
+    import NonEmptyVarStack = vms.NonEmptyVarStack;
 
     class PlaayInterpreter implements vms.Interpreter {
 
@@ -162,6 +165,26 @@ module interpreter {
             args.push(vms.getChildVal(i));
           }          
           stepper(vms, args);
+        } 
+        else if (field instanceof ClosureV) {
+          const lambda = field.getLambdaNode();
+          const varStack = field.getContext();
+          const args = node.children(0, node.count());
+          const paramlist = lambda.child(0);
+          if(args.length != paramlist.children.length) {
+            vms.reportError("Number of arguments for lambda does not match parameter list.");
+            return
+          }
+          const stackFrame = new ObjectV();
+          for (let i = 0; i < args.length; i++) {
+            const varName = paramlist.child(i).child(0).label().getVal();
+            const val = vms.getChildVal(i);
+            //TODO: check that the types of val and vardecl are the same
+            const field = new Field(varName, val, Type.ANY, true);
+            stackFrame.addField(field);
+          }
+          const func = lambda.child(2);
+          vms.pushEvaluation(func, new NonEmptyVarStack(stackFrame, varStack));
         } 
         else {
           vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");

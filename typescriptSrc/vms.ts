@@ -190,6 +190,11 @@ module vms{
             }
         }
 
+        public pushEvaluation(root: PNode, varStack: VarStack) {
+          const evaluation = new Evaluation(root, varStack, this);
+          this.evalStack.push(evaluation);
+        }
+
         public reportError( message : String ) : void {
             console.log(message);
         }

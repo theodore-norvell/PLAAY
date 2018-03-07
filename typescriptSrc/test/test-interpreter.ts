@@ -28,7 +28,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
-import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral } from '../labels';
+import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld } from '../labels';
 
 const emptyList = collections.nil<number>() ;
 const wld = new World();
@@ -108,10 +108,8 @@ describe( 'NullLiteralLabel', function() : void {
 } ) ;
 
 describe ('LambdaLabel', function() : void {
-    const params: Array<PNode> = [labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())];
-    const paramlist = mkParameterList(params);
-    const exprseq: Array<PNode> = [labels.mkCallWorld("+", mkVar("x"), mkNumberLiteral("1"))];
-    const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq(exprseq));
+    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+    const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
     const vm = new VMS(root, wlds, interp);
 
     it('should evaluate to a ClosureV', function(): void {
@@ -124,6 +122,17 @@ describe ('LambdaLabel', function() : void {
         const val = vm.getVal(emptyList);
         assert.check(val instanceof ClosureV);
         assert.check((val as ClosureV).getLambdaNode().label() instanceof labels.LambdaLabel);
+    });
+});
+
+describe ('CallWorldLabel - closure', function(): void {
+    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
+    const varDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda)
+    const root = mkExprSeq([varDecl, mkCallWorld("f")]);
+    const vm = new VMS(root, wlds, interp);
+
+    it('should evaluate to a StringV equaling 1', function() : void {
+
     });
 });
 
