@@ -197,7 +197,7 @@ module vms{
             this.evalStack.top().finishStep( value ) ;
         }
 
-        public getValue( ) : Value {
+        public getFinalValue( ) : Value {
             assert.checkPrecondition( !this.canAdvance() && ! this.hasError() ) ;
             assert.check( this.value.get() !== null ) ;
             return this.value.get() as Value ;
@@ -228,8 +228,10 @@ module vms{
         }
 
         private setResult(value : Value ) : void {
-            if( this.evalStack.notEmpty() ) this.evalStack.top().setResult( value ) ;
-            else this.value.set( value ) ;
+            if( this.evalStack.notEmpty() ) {
+                this.evalStack.top().finishStep( value ) ; }
+            else {
+                this.value.set( value ) ; }
         }
 
         public reportError( message : string ) : void {
@@ -238,7 +240,7 @@ module vms{
         }
 
         public hasError( ) : boolean {
-            return this.lastError.get() != null ;
+            return this.lastError.get() !== null ;
         }
 
         public getError( ) : string {
@@ -394,14 +396,6 @@ module vms{
             this.map.put( p, value ) ;
             this.popPending() ;
             this.setReady( false ) ;
-        }
-
-        public setResult(value : Value ) : void {
-            // This is used for function calls.
-            assert.checkPrecondition( !this.isDone() ) ;
-            assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending.get() as List<number> ;
-            this.map.put( p, value ) ;
         }
 
         public isDone() : boolean {
