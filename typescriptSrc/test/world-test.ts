@@ -11,6 +11,7 @@ import assert = require( '../assert' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
+import ObjectV = valueTypes.ObjectV;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
