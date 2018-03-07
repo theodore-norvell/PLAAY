@@ -295,7 +295,7 @@ module interpreter {
           const varStack = val.getContext();
           const args = node.children(0, node.count());
           const paramlist = lambda.child(0);
-          if(args.length != paramlist.children.length) {
+          if(args.length != paramlist.children(0, paramlist.count()).length) {
             vms.reportError("Number of arguments for lambda does not match parameter list.");
             return
           }

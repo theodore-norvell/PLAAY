@@ -135,13 +135,20 @@ describe ('LambdaLabel', function() : void {
 });
 
 describe ('CallWorldLabel - closure', function(): void {
-    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
+    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
     const varDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda)
-    const root = mkExprSeq([varDecl, mkCallWorld("f")]);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const root = mkExprSeq([varDecl, callWorld]);
     const vm = makeStdVMS(root);
     
-    it('should evaluate to a StringV equaling 1', function() : void {
-
+    it('should evaluate to a StringV equaling 42', function() : void {
+      while (!vm.isMapped(emptyList)){
+        vm.advance();
+      }
+      assert.check(vm.isDone());
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "42");
     });
 });
 
