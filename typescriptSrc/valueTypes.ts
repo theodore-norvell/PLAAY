@@ -5,13 +5,12 @@
 /// <reference path="vms.ts" />
 /// <reference path="backtracking.ts" />
 
-import backtracking = require( './backtracking' ) ;
 import assert = require( './assert' ) ;
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
-import { TransactionManager } from './backtracking';
 
 /** Value types provides classes that represent the values of Plaay programs
  * at runtime.
@@ -29,6 +28,7 @@ module valueTypes {
     import VMS = vms.VMS;
     import TVar = backtracking.TVar ;
     import TArray = backtracking.TArray ;
+    import TransactionManager = backtracking.TransactionManager ;
 
 
     /** A field of an object. */

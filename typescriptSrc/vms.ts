@@ -3,17 +3,14 @@
  */
 
 /// <reference path="assert.ts" />
+/// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="world.ts" />
-/// <reference path="backtracking.ts" />
 
 import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
-// TODO.  We can not import from valueTypes as it creates a circular reference.
-import {Field, ObjectV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.

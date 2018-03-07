@@ -2,7 +2,6 @@
 /// <reference path="interpreter.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="workspace.ts" />
 
 
 import assert = require('./assert') ;
