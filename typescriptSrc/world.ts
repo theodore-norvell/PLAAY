@@ -16,6 +16,7 @@ import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 import { NullV } from './valueTypes';
+import { TransactionManager } from './backtracking';
 
 /** This module contains code for the standard library.
  * 
@@ -142,27 +143,27 @@ module world {
 
     export class World extends ObjectV {
 
-        constructor() {
-            super();
+        constructor(manager : TransactionManager ) {
+            super(manager);
             //console.log("World's fields array is length: " + this.fields.length);
 
             let addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; }
             let addstep = arithmeticStepperFactory(addCallback);
             const plus = new BuiltInV(addstep);
-            const addf = new Field("+", plus, Type.METHOD, true);
-            this.fields.push(addf);
+            const addf = new Field("+", plus, Type.METHOD, true, true, manager);
+            this.addField(addf);
 
             let subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; }
             let substep = arithmeticStepperFactory(subCallback);
             var sub = new BuiltInV(substep);
-            var subf = new Field("-", sub, Type.NUMBER, true);
-            this.fields.push(subf);
+            var subf = new Field("-", sub, Type.NUMBER, true, true, manager);
+            this.addField(subf);
 
             let multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } 
             let multstep = arithmeticStepperFactory(multCallback);
             var mult = new BuiltInV(multstep);
-            var multf = new Field("*", mult, Type.NUMBER, true);
-            this.fields.push(multf);
+            var multf = new Field("*", mult, Type.NUMBER, true, true, manager);
+            this.addField(multf);
 
             let divCallback = (dividend: number, divisor: number) : number => {
               assert.check(divisor !== 0, "Division by zero is not allowed");
@@ -170,8 +171,8 @@ module world {
             }
             let divstep = arithmeticStepperFactory(divCallback);
             var div = new BuiltInV(divstep);
-            var divf = new Field("/", div, Type.NUMBER, true);
-            this.fields.push(divf);
+            var divf = new Field("/", div, Type.NUMBER, true, true, manager);
+            this.addField(divf);
 
             let greaterthanCallback = (vals: Array<number>): boolean => {
               let result = true;
@@ -182,8 +183,8 @@ module world {
             }
             let greaterthanstep = comparatorStepperFactory(greaterthanCallback);
             var greaterthan = new BuiltInV(greaterthanstep);
-            var greaterf = new Field(">", greaterthan, Type.BOOL, true);
-            this.fields.push(greaterf);
+            var greaterf = new Field(">", greaterthan, Type.BOOL, true, true, manager);
+            this.addField(greaterf);
 
             let greaterthanequalCallback = (vals: Array<number>): boolean => {
               let result = true;
@@ -194,8 +195,8 @@ module world {
             }
             let greaterthanequalstep = comparatorStepperFactory(greaterthanequalCallback);
             var greaterthanequal = new BuiltInV(greaterthanequalstep);
-            var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true);
-            this.fields.push(greaterequalf);
+            var greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true, true, manager);
+            this.addField(greaterequalf);
 
             let lessthanCallback = (vals: Array<number>): boolean => {
               let result = true;
@@ -206,8 +207,8 @@ module world {
             }
             let lessthanstep = comparatorStepperFactory(lessthanCallback);
             var lessthan = new BuiltInV(lessthanstep);
-            var lessf = new Field("<", lessthan, Type.BOOL, true);
-            this.fields.push(lessf);
+            var lessf = new Field("<", lessthan, Type.BOOL, true, true, manager);
+            this.addField(lessf);
 
             let lessthanequalCallback = (vals: Array<number>): boolean => {
               let result = true;
@@ -218,8 +219,8 @@ module world {
             }
             let lessthanequalstep = comparatorStepperFactory(lessthanequalCallback);
             var lessequalthan = new BuiltInV(lessthanequalstep);
-            var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true);
-            this.fields.push(lessequalf);
+            var lessequalf = new Field("<=", lessequalthan, Type.BOOL, true, true, manager);
+            this.addField(lessequalf);
 
             function equalstep(vms : VMS, args : Array<Value>) : void {
               let bool = true;
@@ -230,20 +231,20 @@ module world {
               vms.finishStep( val ) ;  
             }
             var equal = new BuiltInV(equalstep);
-            var equalf = new Field("=", equal, Type.BOOL, true);
-            this.fields.push(equalf);
+            var equalf = new Field("=", equal, Type.BOOL, true, true, manager);
+            this.addField(equalf);
 
             let andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; }
             let andstep = logicalStepperFactory(andCallback);
             var and = new BuiltInV(andstep);
-            var andf = new Field("and", and, Type.BOOL, true);
-            this.fields.push(andf);
+            var andf = new Field("and", and, Type.BOOL, true, true, manager);
+            this.addField(andf);
 
             let orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; }
             let orstep = logicalStepperFactory(orCallback);
             var or = new BuiltInV(orstep);
-            var orf = new Field("or", or, Type.BOOL, true);
-            this.fields.push(orf);
+            var orf = new Field("or", or, Type.BOOL, true, true, manager);
+            this.addField(orf);
         }
     }
 
@@ -252,8 +253,8 @@ module world {
     // library stuff and syemour.
     export class TurtleWorldObject extends ObjectV {
 
-        constructor(  tw : seymour.TurtleWorld ){
-            super() ;
+        constructor(  tw : seymour.TurtleWorld, manager : TransactionManager ){
+            super(manager) ;
 
             // The forward function returns the function
             // that does the work of the builtin function.
@@ -270,34 +271,34 @@ module world {
 
             
             const forw = new BuiltInV(forward());
-            const forwardf = new Field("forward", forw, Type.METHOD, true);
-            this.fields.push(forwardf);
+            const forwardf = new Field("forward", forw, Type.METHOD, true, true, manager );
+            this.addField(forwardf);
 
             // TODO The other builtins for the TurtleWorld
 
             // var pen = new BuiltInV(this.penUp);
             // var penf = new Field("penup", pen, Type.NUMBER, true);
-            // this.fields.push(penf);
+            // this.addField(penf);
 
             // var right = new BuiltInV(this.right);
             // var rightf = new Field("right", right, Type.NUMBER, true);
-            // this.fields.push(rightf);
+            // this.addField(rightf);
 
             // var left = new BuiltInV(this.left);
             // var leftf = new Field("left", left, Type.NUMBER, true);
-            // this.fields.push(leftf);
+            // this.addField(leftf);
 
             // var clear = new BuiltInV(this.clear);
             // var clearf = new Field("clear", clear, Type.NUMBER, true);
-            // this.fields.push(clearf);
+            // this.addField(clearf);
 
             // var show = new BuiltInV(this.show);
             // var showf = new Field("show", show, Type.NUMBER, true);
-            // this.fields.push(showf);
+            // this.addField(showf);
 
             // var hide = new BuiltInV(this.hide);
             // var hidef = new Field("hide", hide, Type.NUMBER, true);
-            // this.fields.push(hidef);
+            // this.addField(hidef);
         }
     }
 }

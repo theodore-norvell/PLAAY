@@ -144,7 +144,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L208">collections.ts:208</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L236">collections.ts:236</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections.nil.html" class="tsd-signature-type">Nil</a></h4>
@@ -165,9 +165,19 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="collections.list.html">List</a>.<a href="collections.list.html#bind">bind</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L155">collections.ts:155</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L182">collections.ts:182</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>The monadic bind or flat map.</p>
+									<p><p> This function applies maps the given function, which must map
+										each element to a list and then flattens the result.</p>
+										<p><p> For example if <code>list(a,b,c).map(f)</code> gives
+												<code>list([a0,a1],[], [c0,c1,c3])</code>, then
+											<code>list(a,b,c).bind(f)</code> gives <code>list(a0,a1,c0,c1,c3)</code>.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -213,9 +223,14 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="collections.list.html">List</a>.<a href="collections.list.html#cat">cat</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L159">collections.ts:159</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L187">collections.ts:187</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Concatenate one list with another.</p>
+								</div>
+							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
@@ -230,23 +245,20 @@
 					<a name="choose" class="tsd-anchor"></a>
 					<h3>choose</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-has-type-parameter tsd-is-overwrite">
-						<li class="tsd-signature tsd-kind-icon">choose&lt;B, C&gt;<span class="tsd-signature-symbol">(</span>f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span>, g<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">C</span></li>
+						<li class="tsd-signature tsd-kind-icon">choose&lt;B&gt;<span class="tsd-signature-symbol">(</span>f<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span>, g<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">B</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#choose">choose</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L218">collections.ts:218</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L246">collections.ts:246</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
 									<h4>B</h4>
-								</li>
-								<li>
-									<h4>C</h4>
 								</li>
 							</ul>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -256,7 +268,7 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>h<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span>, r<span class="tsd-signature-symbol">: </span><a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">C</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>h<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span>, r<span class="tsd-signature-symbol">: </span><a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">B</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
@@ -266,10 +278,10 @@
 															<h5>h: <span class="tsd-signature-type">A</span></h5>
 														</li>
 														<li>
-															<h5>r: <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">B</span><span class="tsd-signature-symbol">&gt;</span></h5>
+															<h5>r: <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
 														</li>
 													</ul>
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">C</span></h4>
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">B</span></h4>
 												</li>
 											</ul>
 										</li>
@@ -280,18 +292,18 @@
 									<ul class="tsd-parameters">
 										<li class="tsd-parameter-siganture">
 											<ul class="tsd-signatures tsd-kind-type-literal">
-												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">C</span></li>
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">B</span></li>
 											</ul>
 											<ul class="tsd-descriptions">
 												<li class="tsd-description">
-													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">C</span></h4>
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">B</span></h4>
 												</li>
 											</ul>
 										</li>
 									</ul>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">C</span></h4>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">B</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -306,12 +318,12 @@
 							<aside class="tsd-sources">
 								<p>Inherited from <a href="collections.list.html">List</a>.<a href="collections.list.html#equals">equals</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L164">collections.ts:164</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L192">collections.ts:192</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>Compare for equality using ===</p>
+									<p>Compare for equality using === on the items</p>
 								</div>
 							</div>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -335,7 +347,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#first">first</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L224">collections.ts:224</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L252">collections.ts:252</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">A</span></h4>
@@ -353,7 +365,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#fold">fold</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L215">collections.ts:215</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L243">collections.ts:243</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -419,7 +431,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#isempty">isEmpty</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L211">collections.ts:211</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L239">collections.ts:239</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -437,7 +449,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#map">map</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L221">collections.ts:221</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L249">collections.ts:249</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -485,7 +497,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#rest">rest</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L226">collections.ts:226</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L254">collections.ts:254</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -503,7 +515,7 @@
 							<aside class="tsd-sources">
 								<p>Overrides <a href="collections.list.html">List</a>.<a href="collections.list.html#size">size</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L213">collections.ts:213</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L241">collections.ts:241</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -520,7 +532,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L228">collections.ts:228</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L256">collections.ts:256</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -540,6 +552,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/backtracking.html">backtracking</a>
 					</li>
 					<li class="current tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
@@ -588,9 +603,6 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/vms.html">vms</a>
-					</li>
-					<li class=" tsd-kind-module">
-						<a href="../modules/workspace.html">workspace</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/world.html">world</a>
@@ -672,6 +684,9 @@
 						<a href="../modules/collections.html#cons-1" class="tsd-kind-icon">cons</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="../modules/collections.html#first" class="tsd-kind-icon">first</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../modules/collections.html#last" class="tsd-kind-icon">last</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
@@ -682,6 +697,9 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../modules/collections.html#none-1" class="tsd-kind-icon">none</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="../modules/collections.html#rest" class="tsd-kind-icon">rest</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../modules/collections.html#snoc" class="tsd-kind-icon">snoc</a>

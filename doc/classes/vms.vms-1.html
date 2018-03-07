@@ -77,6 +77,32 @@
 					<p>The state of the machine includes</p>
 					<ul>
 						<li>An evaluation stack.</li>
+						<li>a last error.</li>
+					</ul>
+					<p>The states of the vms are</p>
+					<ul>
+						<li><p>RUNNING: In the running state,the interpreter can be advanced by by calling the advance method.
+								You can tell if the machine is in the running state by calling <code>vms.canAdvance()</code>.
+							The running state has three substates</p>
+							<ul>
+								<li>DONE.   In the RUNNING and DONE, the top evaluation is done and can not be advanced. Use
+									<code>vms.canAdvance() &amp;&amp; vms.isDone()</code>
+									to tell if the top evaluation is done.  When the vms is in the DONE substate, an advance will
+								pop the top evaluation off the evaluation stack.</li>
+								<li>READY.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
+								The machine is in the READY substate iff <code>vms.canAdvance() &amp;&amp; !vms.isDone() &amp;&amp; vms.isReady()</code></li>
+								<li>NOT READY. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
+								The machine is in the NOT READY substate iff <code>vms.canAdvance() &amp;&amp; !vms.isDone() &amp;&amp; !vms.isReady()</code></li>
+							</ul>
+						</li>
+						<li><p>ERROR:  In the error state, the machine has encountered a run time error and can not advance because of that.
+								Use <code>vms.hasError()</code> to check if the machine has encountered an error.  Use <code>vms.getError()</code> to
+							Retrieve a string describing the error</p>
+						</li>
+						<li><p>FINISHED: In the finished state. The evaluation has completely finished. If <code>vms.canAdvance()</code> an
+								<code>vms.hasError()</code> are both false, then the machine is in the FINISHED state and the value of
+							the last expression evaluated can be found with a call to getValue().</p>
+						</li>
 					</ul>
 				</div>
 			</section>
@@ -101,25 +127,36 @@
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#addvariable" class="tsd-kind-icon">add<wbr>Variable</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#advance" class="tsd-kind-icon">advance</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#canadvance" class="tsd-kind-icon">can<wbr>Advance</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#finishstep" class="tsd-kind-icon">finish<wbr>Step</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getchildval" class="tsd-kind-icon">get<wbr>Child<wbr>Val</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#geterror" class="tsd-kind-icon">get<wbr>Error</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#geteval" class="tsd-kind-icon">get<wbr>Eval</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getextrainformation" class="tsd-kind-icon">get<wbr>Extra<wbr>Information</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getinterpreter" class="tsd-kind-icon">get<wbr>Interpreter</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getpending" class="tsd-kind-icon">get<wbr>Pending</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getpendingnode" class="tsd-kind-icon">get<wbr>Pending<wbr>Node</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getroot" class="tsd-kind-icon">get<wbr>Root</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getstack" class="tsd-kind-icon">get<wbr>Stack</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#gettransactionmanager" class="tsd-kind-icon">get<wbr>Transaction<wbr>Manager</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getval" class="tsd-kind-icon">get<wbr>Val</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getvalmap" class="tsd-kind-icon">get<wbr>Val<wbr>Map</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#getvalue" class="tsd-kind-icon">get<wbr>Value</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#haserror" class="tsd-kind-icon">has<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#hasextrainformation" class="tsd-kind-icon">has<wbr>Extra<wbr>Information</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#ischildmapped" class="tsd-kind-icon">is<wbr>Child<wbr>Mapped</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#isdone" class="tsd-kind-icon">is<wbr>Done</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#ismapped" class="tsd-kind-icon">is<wbr>Mapped</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#isready" class="tsd-kind-icon">is<wbr>Ready</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#poppending" class="tsd-kind-icon">pop<wbr>Pending</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#pushpending" class="tsd-kind-icon">push<wbr>Pending</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#putextrainformation" class="tsd-kind-icon">put<wbr>Extra<wbr>Information</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#reporterror" class="tsd-kind-icon">report<wbr>Error</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#scrub" class="tsd-kind-icon">scrub</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#setready" class="tsd-kind-icon">set<wbr>Ready</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#setresult" class="tsd-kind-icon">set<wbr>Result</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class"><a href="vms.vms-1.html#updatevariable" class="tsd-kind-icon">update<wbr>Variable</a></li>
 							</ul>
 						</section>
 					</div>
@@ -131,13 +168,13 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new VMS<span class="tsd-signature-symbol">(</span>root<span class="tsd-signature-symbol">: </span><a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, worlds<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/vms.objecti.html" class="tsd-signature-type">ObjectI</a><span class="tsd-signature-symbol">&gt;</span>, interpreter<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.interpreter.html" class="tsd-signature-type">Interpreter</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></li>
+						<li class="tsd-signature tsd-kind-icon">new VMS<span class="tsd-signature-symbol">(</span>root<span class="tsd-signature-symbol">: </span><a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a>, worlds<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="../interfaces/vms.objecti.html" class="tsd-signature-type">ObjectI</a><span class="tsd-signature-symbol">&gt;</span>, interpreter<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.interpreter.html" class="tsd-signature-type">Interpreter</a>, manager<span class="tsd-signature-symbol">: </span><a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L41">vms.ts:41</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L75">vms.ts:75</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -151,6 +188,9 @@
 								<li>
 									<h5>interpreter: <a href="../interfaces/vms.interpreter.html" class="tsd-signature-type">Interpreter</a></h5>
 								</li>
+								<li>
+									<h5>manager: <a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a></h5>
+								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="vms.vms-1.html" class="tsd-signature-type">VMS</a></h4>
 						</li>
@@ -159,6 +199,38 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="addvariable" class="tsd-anchor"></a>
+					<h3>add<wbr>Variable</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">add<wbr>Variable<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a>, type<span class="tsd-signature-symbol">: </span><a href="../enums/vms.type.html" class="tsd-signature-type">Type</a>, isConstant<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L231">vms.ts:231</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+								</li>
+								<li>
+									<h5>value: <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h5>
+								</li>
+								<li>
+									<h5>type: <a href="../enums/vms.type.html" class="tsd-signature-type">Type</a></h5>
+								</li>
+								<li>
+									<h5>isConstant: <span class="tsd-signature-type">boolean</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="advance" class="tsd-anchor"></a>
 					<h3>advance</h3>
@@ -169,7 +241,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L138">vms.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L212">vms.ts:212</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -186,7 +258,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L55">vms.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L99">vms.ts:99</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -203,7 +275,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L123">vms.ts:123</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L196">vms.ts:196</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -226,7 +298,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L108">vms.ts:108</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L161">vms.ts:161</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -240,6 +312,23 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="geterror" class="tsd-anchor"></a>
+					<h3>get<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Error<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L262">vms.ts:262</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="geteval" class="tsd-anchor"></a>
 					<h3>get<wbr>Eval</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -249,10 +338,27 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L118">vms.ts:118</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L191">vms.ts:191</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.evaluation.html" class="tsd-signature-type">Evaluation</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getextrainformation" class="tsd-anchor"></a>
+					<h3>get<wbr>Extra<wbr>Information</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Extra<wbr>Information<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">__type</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L171">vms.ts:171</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">__type</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -266,7 +372,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L59">vms.ts:59</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L103">vms.ts:103</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/vms.interpreter.html" class="tsd-signature-type">Interpreter</a></h4>
@@ -283,7 +389,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L78">vms.ts:78</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L122">vms.ts:122</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -300,7 +406,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L83">vms.ts:83</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L127">vms.ts:127</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h4>
@@ -317,7 +423,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L63">vms.ts:63</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L107">vms.ts:107</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="pnode.pnode-1.html" class="tsd-signature-type">PNode</a></h4>
@@ -334,10 +440,27 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L113">vms.ts:113</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L186">vms.ts:186</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.varstack.html" class="tsd-signature-type">VarStack</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="gettransactionmanager" class="tsd-anchor"></a>
+					<h3>get<wbr>Transaction<wbr>Manager</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Transaction<wbr>Manager<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L95">vms.ts:95</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a></h4>
 						</li>
 					</ul>
 				</section>
@@ -351,7 +474,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L103">vms.ts:103</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L151">vms.ts:151</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -374,10 +497,84 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L98">vms.ts:98</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L142">vms.ts:142</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="vms.valuemap.html" class="tsd-signature-type">ValueMap</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="getvalue" class="tsd-anchor"></a>
+					<h3>get<wbr>Value</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">get<wbr>Value<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L201">vms.ts:201</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="haserror" class="tsd-anchor"></a>
+					<h3>has<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">has<wbr>Error<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L258">vms.ts:258</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="hasextrainformation" class="tsd-anchor"></a>
+					<h3>has<wbr>Extra<wbr>Information</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">has<wbr>Extra<wbr>Information<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L166">vms.ts:166</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ischildmapped" class="tsd-anchor"></a>
+					<h3>is<wbr>Child<wbr>Mapped</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Child<wbr>Mapped<span class="tsd-signature-symbol">(</span>childNum<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L156">vms.ts:156</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>childNum: <span class="tsd-signature-type">number</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -391,9 +588,32 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L133">vms.ts:133</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L207">vms.ts:207</a></li>
 								</ul>
 							</aside>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="ismapped" class="tsd-anchor"></a>
+					<h3>is<wbr>Mapped</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">is<wbr>Mapped<span class="tsd-signature-symbol">(</span>path<span class="tsd-signature-symbol">: </span><a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L147">vms.ts:147</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>path: <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
@@ -408,7 +628,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L68">vms.ts:68</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L112">vms.ts:112</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -425,7 +645,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L93">vms.ts:93</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L137">vms.ts:137</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -442,7 +662,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L88">vms.ts:88</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L132">vms.ts:132</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -456,22 +676,68 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="reporterror" class="tsd-anchor"></a>
-					<h3>report<wbr>Error</h3>
+					<a name="putextrainformation" class="tsd-anchor"></a>
+					<h3>put<wbr>Extra<wbr>Information</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">report<wbr>Error<span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">String</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">put<wbr>Extra<wbr>Information<span class="tsd-signature-symbol">(</span>v<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">__type</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L157">vms.ts:157</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L176">vms.ts:176</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>message: <span class="tsd-signature-type">String</span></h5>
+									<h5>v: <span class="tsd-signature-type">__type</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="reporterror" class="tsd-anchor"></a>
+					<h3>report<wbr>Error</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">report<wbr>Error<span class="tsd-signature-symbol">(</span>message<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L253">vms.ts:253</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>message: <span class="tsd-signature-type">string</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
+					<a name="scrub" class="tsd-anchor"></a>
+					<h3>scrub</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
+						<li class="tsd-signature tsd-kind-icon">scrub<span class="tsd-signature-symbol">(</span>path<span class="tsd-signature-symbol">: </span><a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L181">vms.ts:181</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>path: <a href="collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">number</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
@@ -488,7 +754,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L73">vms.ts:73</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L117">vms.ts:117</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -502,20 +768,23 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setresult" class="tsd-anchor"></a>
-					<h3>set<wbr>Result</h3>
+					<a name="updatevariable" class="tsd-anchor"></a>
+					<h3>update<wbr>Variable</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>Result<span class="tsd-signature-symbol">(</span>value<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+						<li class="tsd-signature tsd-kind-icon">update<wbr>Variable<span class="tsd-signature-symbol">(</span>name<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span>, value<span class="tsd-signature-symbol">: </span><a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/vms.ts#L128">vms.ts:128</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/vms.ts#L243">vms.ts:243</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
+								<li>
+									<h5>name: <span class="tsd-signature-type">string</span></h5>
+								</li>
 								<li>
 									<h5>value: <a href="../interfaces/vms.value.html" class="tsd-signature-type">Value</a></h5>
 								</li>
@@ -537,6 +806,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/backtracking.html">backtracking</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
@@ -587,9 +859,6 @@
 						<a href="../modules/vms.html">vms</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="../modules/world.html">world</a>
 					</li>
 				</ul>
@@ -600,13 +869,28 @@
 						<a href="../enums/vms.type.html" class="tsd-kind-icon">Type</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="vms.anymap.html" class="tsd-kind-icon">Any<wbr>Map</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="vms.dynamicnonemptyvarstack.html" class="tsd-kind-icon">Dynamic<wbr>Non<wbr>Empty<wbr>Var<wbr>Stack</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="vms.emptyvarstack.html" class="tsd-kind-icon">Empty<wbr>Var<wbr>Stack</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="vms.evalstack.html" class="tsd-kind-icon">Eval<wbr>Stack</a>
 					</li>
 					<li class=" tsd-kind-class tsd-parent-kind-module">
 						<a href="vms.evaluation.html" class="tsd-kind-icon">Evaluation</a>
 					</li>
-					<li class=" tsd-kind-class tsd-parent-kind-module">
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="vms.map.html" class="tsd-kind-icon">Map</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="vms.mapentry.html" class="tsd-kind-icon">Map<wbr>Entry</a>
+					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module">
+						<a href="vms.nonemptyvarstack.html" class="tsd-kind-icon">Non<wbr>Empty<wbr>Var<wbr>Stack</a>
 					</li>
 				</ul>
 				<ul class="current">
@@ -615,6 +899,9 @@
 						<ul>
 							<li class=" tsd-kind-constructor tsd-parent-kind-class">
 								<a href="vms.vms-1.html#constructor" class="tsd-kind-icon">constructor</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#addvariable" class="tsd-kind-icon">add<wbr>Variable</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#advance" class="tsd-kind-icon">advance</a>
@@ -629,7 +916,13 @@
 								<a href="vms.vms-1.html#getchildval" class="tsd-kind-icon">get<wbr>Child<wbr>Val</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#geterror" class="tsd-kind-icon">get<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#geteval" class="tsd-kind-icon">get<wbr>Eval</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#getextrainformation" class="tsd-kind-icon">get<wbr>Extra<wbr>Information</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#getinterpreter" class="tsd-kind-icon">get<wbr>Interpreter</a>
@@ -647,13 +940,31 @@
 								<a href="vms.vms-1.html#getstack" class="tsd-kind-icon">get<wbr>Stack</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#gettransactionmanager" class="tsd-kind-icon">get<wbr>Transaction<wbr>Manager</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#getval" class="tsd-kind-icon">get<wbr>Val</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#getvalmap" class="tsd-kind-icon">get<wbr>Val<wbr>Map</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#getvalue" class="tsd-kind-icon">get<wbr>Value</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#haserror" class="tsd-kind-icon">has<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#hasextrainformation" class="tsd-kind-icon">has<wbr>Extra<wbr>Information</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#ischildmapped" class="tsd-kind-icon">is<wbr>Child<wbr>Mapped</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#isdone" class="tsd-kind-icon">is<wbr>Done</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#ismapped" class="tsd-kind-icon">is<wbr>Mapped</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#isready" class="tsd-kind-icon">is<wbr>Ready</a>
@@ -665,13 +976,19 @@
 								<a href="vms.vms-1.html#pushpending" class="tsd-kind-icon">push<wbr>Pending</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#putextrainformation" class="tsd-kind-icon">put<wbr>Extra<wbr>Information</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#reporterror" class="tsd-kind-icon">report<wbr>Error</a>
+							</li>
+							<li class=" tsd-kind-method tsd-parent-kind-class">
+								<a href="vms.vms-1.html#scrub" class="tsd-kind-icon">scrub</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="vms.vms-1.html#setready" class="tsd-kind-icon">set<wbr>Ready</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="vms.vms-1.html#setresult" class="tsd-kind-icon">set<wbr>Result</a>
+								<a href="vms.vms-1.html#updatevariable" class="tsd-kind-icon">update<wbr>Variable</a>
 							</li>
 						</ul>
 					</li>

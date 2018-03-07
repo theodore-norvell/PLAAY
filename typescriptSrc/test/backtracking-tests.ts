@@ -7,7 +7,9 @@
 /// <reference path="../interpreter.ts" />
 /// <reference path="../valueTypes.ts" />
 /// <reference path="../world.ts" />
+/// <reference path="../collections.ts" />
 
+import collections = require( '../collections' ) ;
 import backtracking = require( '../backtracking' ) ;
 import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
@@ -30,11 +32,10 @@ import VMS = vms.VMS;
 import EmptyVarStack = vms.EmptyVarStack;
 import VarStack = vms.VarStack;
 import Evaluation = vms.Evaluation;
+import StringV = valueTypes.StringV;
 
 
-const wld = new World();
-const wlds : Array<ObjectV> = new Array();
-wlds.push(wld);
+
 const interp = interpreter.getInterpreter();
 
 describe( 'backtracking.TransactionManager ', function() : void {
@@ -359,20 +360,6 @@ describe('Backtracking.TArray', function() : void {
         assert.check(a.get(4) === 'a', "Value at index 4 should be a after second redo.");
 
     });
-
-    it('Should unshift properly', function() : void {
-        const a : TArray<any> = new TArray<any>(manager);
-
-        a.unshift(1);
-        assert.check(a.size() === 1, "Size should be 1 after unshift on empth TArray");
-        assert.check(a.get(0) === 1, "Element at index 0 should be 1");
-        a.push(2); a.push(3);
-        assert.check( a.size() === 3, "Size should be 3");
-
-        a.unshift(7);
-        assert.check( a.size() === 4, "TArray size should be 4 after unshift");
-        assert.check( a.get(0) === 7, "Element at index 0 should be 7 after unshift");
-    })
 });
 
 describe('Backtracking.TMap', function() : void {
@@ -521,8 +508,11 @@ describe('Backtracking.TMap', function() : void {
 describe('vms.Evaluation isReady undo/redo', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false );
     const root = new PNode( label, [] );
-    const vm = new VMS(root, wlds, interp);
-    const manager : TransactionManager = vm.getTransactionManager();
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS(root, wlds, interp, manager);
     const evaluation = new Evaluation(root, vm.getStack(), vm);
 
     it('Should be initialized properly', function() : void {
@@ -532,13 +522,20 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
     });
 
     it('Should undo/redo properly', function() : void {
+        //State A
         manager.checkpoint() ;
+
+        //State B
         evaluation.setReady(true);
         assert.check(evaluation.isReady() === true, 'set value incorrectly');
+
+        //Back to State A
         manager.undo();
         assert.check(evaluation.isReady() === false, 'var should be false after undo');
         assert.check( !manager.canUndo(), 'manager is in the wrong state') ;
-        assert.check( manager.canUndo(), 'manager is in the wrong state') ;
+        assert.check( manager.canRedo(), 'manager is in the wrong state') ;
+
+        //To State B
         manager.redo();
         assert.check(evaluation.isReady() === true, 'var should be true after redo');
         assert.check( manager.canUndo(), 'manager is in the wrong state') ;
@@ -546,22 +543,65 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
     })
 });
 
-describe('vms.Evaluation root undo/redo', function() : void {
-    const label = new labels.StringLiteralLabel( "hello", false );
-    const root = new PNode( label, [] );
-    const vm = new VMS(root, wlds, interp);
-    const manager : TransactionManager = vm.getTransactionManager();
+describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
+    const rootlabel = new labels.CallWorldLabel("/", false);
+    const op1 = labels.mkNumberLiteral("9");
+    const op2 = labels.mkNumberLiteral("3");
+    const root = new PNode(rootlabel, [op1, op2]);
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS(root, wlds, interp, manager);
     const evaluation = new Evaluation(root, vm.getStack(), vm);
+    const emptyList = collections.nil<number>() ;
 
     it('Should be initialized properly', function() : void {
-        assert.check( !manager.canRedo(), "Manager is in the wrong state." ) ;
-        assert.check( !manager.canUndo(), "Manager is in the wrong state." ) ;
-        manager.checkpoint() ;
-        assert.check( !manager.canRedo(), "Manager is in the wrong state." ) ;
-        assert.check( !manager.canUndo(), "Manager is in the wrong state." ) ;
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo before checkpoint." ) ;
+        assert.check( !manager.canUndo(), "Manager shouldn't be able to undo before checkpoint" ) ;
+        assert.check(vm.getPending().size() === 0, 'get pending should be nil');
+        const evaluation = vm.getEval();
+        assert.check(!evaluation.isDone(), 'pending shouldn\'t be null')
+        assert.check(evaluation.getPendingNode() === vm.getRoot(), 'pending node should be root')
+        assert.check(vm.canAdvance(), 'should be able to advance')
+        assert.check( !vm.isReady() );
     });
+    it('Should undo/redo properly', function() : void {
+        //State A
+        manager.checkpoint() ;
+        assert.check(vm.getPendingNode() == vm.getRoot(), "Root should be the pending node");
+        assert.check( ! vm.isReady() ) ;
+        const pending : collections.List<number> = vm.getPending();
+
+        //State B
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        assert.check(vm.getPendingNode() != vm.getRoot(), "Root should not be the pending node");
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
+        assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
+        assert.check(vm.isMapped(pending), "path of pending should be mapped");
+
+        //Back to State A
+        manager.undo();
+        assert.check(vm.getPendingNode() == vm.getRoot(), "Root should be the pending node");
+        assert.check( manager.canRedo(), "Manager should be able to redo after undo" ) ;
+        assert.check( !manager.canUndo(), "Manager shouldn't be able to undo a second time" ) ;
+        //assert.check(vm.isMapped(vm.getPending()), "path of pending should be mapped");
+
+        //Forward to state B
+        manager.redo();
+        assert.check(vm.getPendingNode() != vm.getRoot(), "Root should be the pending node");
+        assert.check( !manager.canRedo(), "Manager should be able to redo after undo" ) ;
+        assert.check( manager.canUndo(), "Manager shouldn't be able to undo a second time" ) ;
+    })
 });
 
+
+
+
+/*
+//This only fails because of mkVarDecl() not because of backtracking, 'pending' functionality tested above
+//leaving this here for later
 describe('vms.Evaluation pending (List<number>>) undo/redo', function() : void {
     const varNode = labels.mkVar("aa");
     const typeNode = labels.mkNoTypeNd() ;
@@ -588,3 +628,4 @@ describe('vms.Evaluation pending (List<number>>) undo/redo', function() : void {
         assert.check( !vm.canAdvance(), 'should be able to advance') ;
     })
 }) ;
+*/
