@@ -134,11 +134,11 @@ describe ('LambdaLabel', function() : void {
     });
 });
 
-describe ('CallWorldLabel - closure', function(): void {
+describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
-    const varDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda)
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
-    const root = mkExprSeq([varDecl, callWorld]);
+    const root = mkExprSeq([lambdaDecl, callWorld]);
     const vm = makeStdVMS(root);
     
     it('should evaluate to a StringV equaling 42', function() : void {
@@ -150,6 +150,46 @@ describe ('CallWorldLabel - closure', function(): void {
       assert.check(val instanceof StringV);
       assert.check((val as StringV).getVal() === "42");
     });
+});
+
+describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
+    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkNumberLiteral("5"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("3")]);
+    const root = mkExprSeq([lambdaDecl, callWorld]);
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a StringV equaling 8', function() : void {
+      while (!vm.isMapped(emptyList)) {
+        vm.advance();
+      }
+      assert.check(vm.isDone());
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "8");
+    });
+});
+
+describe ('CallWorldLabel - closure (w/ context)', function(): void {
+  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+  const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkNumberLiteral("5"))]);
+  const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
+  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+  const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
+  const vm = makeStdVMS(root);
+
+  it('should evaluate to a StringV equaling 8', function() : void {
+    while (!vm.isMapped(emptyList)) {
+      vm.advance();
+    }
+    assert.check(vm.isDone());
+    const val = vm.getVal(emptyList);
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "8");
+  });
 });
 
 describe( 'CallWorldLabel - addition', function() : void {
