@@ -88,15 +88,15 @@ module interpreter {
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
 
-    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
-    theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
-
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
 
-    theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
+
+    theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[labels.CallLabel.kindConst] = callStepper;
 
     // Control Labels
     theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
@@ -318,6 +318,36 @@ module interpreter {
       } 
       else {
         vms.reportError("No variable named " + value + "is in scope.");
+      } 
+    }
+
+    function callStepper(vms: VMS) : void {
+      const node = vms.getPendingNode();
+      if (node.child(0).label() instanceof labels.LambdaLabel) {
+        const lambda = node.child(0);
+        const varStack = vms.getStack();
+        const args = node.children(1, node.count());
+        const paramlist = lambda.child(0);
+        if(args.length != paramlist.children(0, paramlist.count()).length) {
+          vms.reportError("Number of arguments for lambda does not match parameter list.");
+          return;
+        }
+        const manager = vms.getTransactionManager();
+        const stackFrame = new ObjectV(manager);
+        for (let i = 0; i < args.length; i++) {
+          const varName = paramlist.child(i).child(0).label().getVal();
+          const val = vms.getChildVal(i+1);
+          //TODO: check that the types of val and vardecl are the same
+          const field = new Field(varName, val, Type.ANY, false, false, manager);
+          field.setIsDeclared();
+          stackFrame.addField(field);
+        }
+        const func = lambda.child(2);
+        vms.pushEvaluation(func, new NonEmptyVarStack(stackFrame, varStack));
+      }
+      else {
+        vms.reportError("First child should be a lambda function.");
+        return;
       } 
     }
 

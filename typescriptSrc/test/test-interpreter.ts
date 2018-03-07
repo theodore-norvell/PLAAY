@@ -29,7 +29,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
-import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld } from '../labels';
+import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld, mkCall } from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {AssignLabel, ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
@@ -211,6 +211,25 @@ describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void 
     assert.check(val instanceof StringV);
     assert.check((val as StringV).getVal() === "1");
   });
+});
+
+describe ('Call Label', function(): void {
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a StringV equaling 136', function() : void {
+      while (!vm.isMapped(emptyList)) {
+        vm.advance();
+      }
+      assert.check(vm.isDone());
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "136");
+    });
 });
 
 describe( 'CallWorldLabel - addition', function() : void {
