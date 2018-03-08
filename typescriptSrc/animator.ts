@@ -72,7 +72,7 @@ module animator
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()));
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null);
         const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         $(".dropZone").hide();
@@ -85,19 +85,17 @@ module animator
         $("#stackVal").empty();
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        const animation : svg.G = animatorArea.group().move(10, 0);
+        const animation : svg.G = animatorArea.group().move(10, 10);
         let toHighlight : List<number>;
-        if (!highlighted && evaluationMgr.getVMS().isReady() ) 
+        if (evaluationMgr.getVMS().isReady() ) 
         {
-            highlighted = true;
             toHighlight = evaluationMgr.getVMS().getPending();
         }
         else
         {
             toHighlight = Cons(-1, Nil<number>());
-            highlighted = false;
         }
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
         const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         //visualizeStack(evaluationMgr.getVMS().getStack());

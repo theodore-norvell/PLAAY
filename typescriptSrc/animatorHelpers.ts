@@ -10,6 +10,7 @@ import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
+import vms = require('./vms');
 import * as svg from "svg.js";
 
 /** The animatorHelpers module looks after the conversion of trees to SVG.*/
@@ -26,6 +27,8 @@ module animatorHelpers
     const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
+    import ValueMap = vms.ValueMap;
+    import Value = vms.Value;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : String = "rgb(190, 133, 197)";
@@ -35,20 +38,28 @@ module animatorHelpers
     const WHITE : String = "rgb(255, 255, 255)";
     const GRAY : String = "rgb(153, 153, 153)";
 
-    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
     {
         const children : svg.G = el.group();
-        for(let i = 0; i < node.count(); i++)
+        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes from being drawn.
         {
-            traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight);
+            for(let i = 0; i < node.count(); i++)
+            {
+                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap);
+            }
         }
         const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        buildSVG(node, children, el, highlightMe);
+        buildSVG(node, children, el, highlightMe, currentPath, valueMap);
     }
 
     //I assume element is a child of parent
-    function buildSVG(node:PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean) : void
+    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>, valueMap : ValueMap | null) : void
     {
+        if(valueMap !== null && valueMap.isMapped(myPath))
+        {
+            buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
+            return;
+        }
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
@@ -278,9 +289,7 @@ module animatorHelpers
             break ;
             case labels.NullLiteralLabel.kindConst :
             {
-                const text : svg.Text = element.text( "\u23da" ) ;  // The Ground symbol. I hope.
-                text.dy(10); //The ground character is very large. This makes it look a bit better.
-                makeNullLiteralSVG(element, text);
+                makeNullLiteralSVG(element);
                 // result.addClass( "nullLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
@@ -367,6 +376,46 @@ module animatorHelpers
         {
             highlightThis(drawHighlightOn);
         }
+    }
+
+    function buildSVGForMappedNode(node : PNode, element : svg.G, parent : svg.Container, value : Value) : void
+    {
+        if(value.isNullV())
+        {
+            makeNullLiteralSVG(element);
+            return;
+        }
+        if(value.isDoneV())
+        {
+            const text : svg.Text = element.text( "Done" );
+            makeDoneSVG(element, text);
+            return;
+        }
+        if(value.isStringV())
+        {
+            const text : svg.Text = element.text( value.toString() );
+            makeStringLiteralSVG(element, text);
+            return;
+        }
+        if(value.isClosureV())
+        {
+            const text : svg.Text = element.text("Closure");
+            makeClosureSVG(element, text);
+            return;
+        }
+        if(value.isBuiltInV())
+        {
+            const text : svg.Text = element.text("Built-in");
+            makeBuiltInSVG(element, text);
+            return;
+        }
+        if(value.isObjectV())
+        {
+            const text : svg.Text = element.text("Object");
+            makeObjectSVG(element, text);
+            return;
+        }
+        assert.unreachable("Found value with unkown type");
     }
 
     function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number, lineY : number) : void
@@ -499,9 +548,10 @@ module animatorHelpers
         outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
 
-    //I assume textElement is already contained within base.
-    function makeNullLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeNullLiteralSVG(base : svg.Container) : void
     {
+        const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
+        textElement.dy(10); //The ground character is very large. This makes it look a bit better.
         textElement.fill(WHITE.toString());
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
         const bounds : svg.BBox = textElement.bbox();
@@ -546,6 +596,58 @@ module animatorHelpers
         label.radius(5);
         label.fill({opacity: 0});
         label.stroke({color: GHOSTWHITE.toString(), opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE.toString());
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeBuiltInSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE.toString());
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeObjectSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE.toString());
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE.toString());
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
     }
 
     function findWidthOfLargestChild(arr : svg.Element[]) : number

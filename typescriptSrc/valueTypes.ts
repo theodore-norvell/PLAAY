@@ -103,6 +103,18 @@ module valueTypes {
             return true;
         }
 
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
         public toString() : string {
             return '"' +this.contents+ '"' ;
         }
@@ -162,6 +174,18 @@ module valueTypes {
             return false ;
         }
 
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return true;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
         public toString() : string {
             return "object" ;
         }
@@ -199,6 +223,18 @@ module valueTypes {
             return false ;
         }
 
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
         public toString() : string {
             return "closure" ;
         }
@@ -216,6 +252,18 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return true;
         }
 
         public toString() : string {
@@ -239,9 +287,22 @@ module valueTypes {
             return false ;
         }
 
+        public isDoneV() : boolean {
+            return true;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
         public toString() : string {
             return "done" ;
         }
+        
 
         public static  readonly theDoneValue = new DoneV() ;
     }
@@ -264,6 +325,18 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
         }
 
         public toString() : string {
