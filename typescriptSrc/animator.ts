@@ -18,6 +18,7 @@ import seymour = require( './seymour' ) ;
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
+import { TransactionManager } from './backtracking';
 import * as svg from "svg.js";
 
 /** The animator is the execution pane of the application.
@@ -62,9 +63,10 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld) ) ;
+        const manager = new TransactionManager() ;
+        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
-                                  libraries );
+                                  libraries, manager );
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");

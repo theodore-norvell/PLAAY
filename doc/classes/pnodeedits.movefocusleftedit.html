@@ -3,7 +3,7 @@
 <head>
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
-	<title>Workspace | plaay</title>
+	<title>MoveFocusLeftEdit | plaay</title>
 	<meta name="description" content="">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<link rel="stylesheet" href="../assets/css/main.css">
@@ -56,25 +56,43 @@
 					<a href="../globals.html">Globals</a>
 				</li>
 				<li>
-					<a href="../modules/workspace.html">workspace</a>
+					<a href="../modules/pnodeedits.html">pnodeEdits</a>
 				</li>
 				<li>
-					<a href="workspace.workspace-1.html">Workspace</a>
+					<a href="pnodeedits.movefocusleftedit.html">MoveFocusLeftEdit</a>
 				</li>
 			</ul>
-			<h1>Class Workspace</h1>
+			<h1>Class MoveFocusLeftEdit</h1>
 		</div>
 	</div>
 </header>
 <div class="container container-main">
 	<div class="row">
 		<div class="col-8 col-content">
+			<section class="tsd-panel tsd-comment">
+				<div class="tsd-comment tsd-typography">
+					<div class="lead">
+						<p>Move Focus Left edit</p>
+					</div>
+				</div>
+			</section>
 			<section class="tsd-panel tsd-hierarchy">
 				<h3>Hierarchy</h3>
 				<ul class="tsd-hierarchy">
 					<li>
-						<span class="target">Workspace</span>
+						<a href="edits.abstractedit.html" class="tsd-signature-type">AbstractEdit</a><span class="tsd-signature-symbol">&lt;</span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span>
+						<ul class="tsd-hierarchy">
+							<li>
+								<span class="target">MoveFocusLeftEdit</span>
+							</li>
+						</ul>
 					</li>
+				</ul>
+			</section>
+			<section class="tsd-panel">
+				<h3>Implements</h3>
+				<ul class="tsd-hierarchy">
+					<li><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
 				</ul>
 			</section>
 			<section class="tsd-panel-group tsd-index-group">
@@ -84,14 +102,14 @@
 						<section class="tsd-index-section ">
 							<h3>Constructors</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-constructor tsd-parent-kind-class"><a href="workspace.workspace-1.html#constructor" class="tsd-kind-icon">constructor</a></li>
+								<li class="tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite"><a href="pnodeedits.movefocusleftedit.html#constructor" class="tsd-kind-icon">constructor</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="workspace.workspace-1.html#getworld" class="tsd-kind-icon">get<wbr>World</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="workspace.workspace-1.html#setworld" class="tsd-kind-icon">set<wbr>World</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-overwrite"><a href="pnodeedits.movefocusleftedit.html#applyedit" class="tsd-kind-icon">apply<wbr>Edit</a></li>
+								<li class="tsd-kind-method tsd-parent-kind-class tsd-is-inherited"><a href="pnodeedits.movefocusleftedit.html#canapply" class="tsd-kind-icon">can<wbr>Apply</a></li>
 							</ul>
 						</section>
 					</div>
@@ -99,63 +117,72 @@
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Constructors</h2>
-				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class">
+				<section class="tsd-panel tsd-member tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
-					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>Workspace<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="workspace.workspace-1.html" class="tsd-signature-type">Workspace</a></li>
+					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">new <wbr>Move<wbr>Focus<wbr>Left<wbr>Edit<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="pnodeedits.movefocusleftedit.html" class="tsd-signature-type">MoveFocusLeftEdit</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Overrides <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#constructor">constructor</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/workspace.ts#L13">workspace.ts:13</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/pnodeEdits.ts#L859">pnodeEdits.ts:859</a></li>
 								</ul>
 							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="workspace.workspace-1.html" class="tsd-signature-type">Workspace</a></h4>
+							<h4 class="tsd-returns-title">Returns <a href="pnodeedits.movefocusleftedit.html" class="tsd-signature-type">MoveFocusLeftEdit</a></h4>
 						</li>
 					</ul>
 				</section>
 			</section>
 			<section class="tsd-panel-group tsd-member-group ">
 				<h2>Methods</h2>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="getworld" class="tsd-anchor"></a>
-					<h3>get<wbr>World</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">get<wbr>World<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="world.world-1.html" class="tsd-signature-type">World</a></li>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+					<a name="applyedit" class="tsd-anchor"></a>
+					<h3>apply<wbr>Edit</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+						<li class="tsd-signature tsd-kind-icon">apply<wbr>Edit<span class="tsd-signature-symbol">(</span>selection<span class="tsd-signature-symbol">: </span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
+								<p>Overrides <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#applyedit">applyEdit</a></p>
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/workspace.ts#L19">workspace.ts:19</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-returns-title">Returns <a href="world.world-1.html" class="tsd-signature-type">World</a></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="setworld" class="tsd-anchor"></a>
-					<h3>set<wbr>World</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">set<wbr>World<span class="tsd-signature-symbol">(</span>world<span class="tsd-signature-symbol">: </span><a href="world.world-1.html" class="tsd-signature-type">World</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/workspace.ts#L23">workspace.ts:23</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/pnodeEdits.ts#L863">pnodeEdits.ts:863</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
 							<ul class="tsd-parameters">
 								<li>
-									<h5>world: <a href="world.world-1.html" class="tsd-signature-type">World</a></h5>
+									<h5>selection: <a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
 								</li>
 							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/collections.option.html" class="tsd-signature-type">Option</a><span class="tsd-signature-symbol">&lt;</span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+					<a name="canapply" class="tsd-anchor"></a>
+					<h3>can<wbr>Apply</h3>
+					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+						<li class="tsd-signature tsd-kind-icon">can<wbr>Apply<span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<p>Inherited from <a href="edits.abstractedit.html">AbstractEdit</a>.<a href="edits.abstractedit.html#canapply">canApply</a></p>
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L44">edits.ts:44</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>a: <a href="pnodeedits.selection.html" class="tsd-signature-type">Selection</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -172,6 +199,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/backtracking.html">backtracking</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
@@ -200,7 +230,7 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/pnode.html">pnode</a>
 					</li>
-					<li class=" tsd-kind-module">
+					<li class="current tsd-kind-module">
 						<a href="../modules/pnodeedits.html">pnode<wbr>Edits</a>
 					</li>
 					<li class=" tsd-kind-module">
@@ -221,9 +251,6 @@
 					<li class=" tsd-kind-module">
 						<a href="../modules/vms.html">vms</a>
 					</li>
-					<li class="current tsd-kind-module">
-						<a href="../modules/workspace.html">workspace</a>
-					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/world.html">world</a>
 					</li>
@@ -234,16 +261,16 @@
 				</ul>
 				<ul class="current">
 					<li class="current tsd-kind-class tsd-parent-kind-module">
-						<a href="workspace.workspace-1.html" class="tsd-kind-icon">Workspace</a>
+						<a href="pnodeedits.movefocusleftedit.html" class="tsd-kind-icon">Move<wbr>Focus<wbr>Left<wbr>Edit</a>
 						<ul>
-							<li class=" tsd-kind-constructor tsd-parent-kind-class">
-								<a href="workspace.workspace-1.html#constructor" class="tsd-kind-icon">constructor</a>
+							<li class=" tsd-kind-constructor tsd-parent-kind-class tsd-is-overwrite">
+								<a href="pnodeedits.movefocusleftedit.html#constructor" class="tsd-kind-icon">constructor</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="workspace.workspace-1.html#getworld" class="tsd-kind-icon">get<wbr>World</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-overwrite">
+								<a href="pnodeedits.movefocusleftedit.html#applyedit" class="tsd-kind-icon">apply<wbr>Edit</a>
 							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="workspace.workspace-1.html#setworld" class="tsd-kind-icon">set<wbr>World</a>
+							<li class=" tsd-kind-method tsd-parent-kind-class tsd-is-inherited">
+								<a href="pnodeedits.movefocusleftedit.html#canapply" class="tsd-kind-icon">can<wbr>Apply</a>
 							</li>
 						</ul>
 					</li>

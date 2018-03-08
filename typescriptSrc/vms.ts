@@ -12,6 +12,8 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+// TODO.  We can not import from valueTypes as it creates a circular reference.
+import {Field, ObjectV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -20,6 +22,8 @@ module vms{
 
     import PNode = pnode.PNode;
     import TVar = backtracking.TVar;
+    import TArray = backtracking.TArray;
+    import TMap = backtracking.TMap;
     import TransactionManager = backtracking.TransactionManager;
 
     import List = collections.List ;
@@ -37,25 +41,54 @@ module vms{
      * The state of the machine includes
      * 
      * * An evaluation stack.
+     * * a last error.
+     * 
+     * The states of the vms are
+     * 
+     * * RUNNING: In the running state,the interpreter can be advanced by by calling the advance method.
+     *   You can tell if the machine is in the running state by calling `vms.canAdvance()`.
+     *   The running state has three substates
+     *
+     *      * DONE.   In the RUNNING and DONE, the top evaluation is done and can not be advanced. Use
+     *         `vms.canAdvance() && vms.isDone()`
+     *         to tell if the top evaluation is done.  When the vms is in the DONE substate, an advance will
+     *         pop the top evaluation off the evaluation stack.
+     *      * READY.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
+     *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.isReady()`
+     *      * NOT READY. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
+     *         The machine is in the NOT READY substate iff `vms.canAdvance() && !vms.isDone() && !vms.isReady()`
+     * 
+     * * ERROR:  In the error state, the machine has encountered a run time error and can not advance because of that.
+     *   Use `vms.hasError()` to check if the machine has encountered an error.  Use `vms.getError()` to
+     *   Retrieve a string describing the error
+     * 
+     * * FINISHED: In the finished state. The evaluation has completely finished. If `vms.canAdvance()` an
+     *   `vms.hasError()` are both false, then the machine is in the FINISHED state and the value of
+     *   the last expression evaluated can be found with a call to getValue().
      */
     export class VMS {
 
         private readonly evalStack : EvalStack ;
-
         private readonly manager : TransactionManager ;
-
         private readonly interpreter : Interpreter ;
+        private readonly lastError : TVar<string|null> ;
+        private readonly value : TVar<Value|null> ;
 
-        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter) {
+        constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter, manager : TransactionManager ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
             this.interpreter = interpreter ;
-            this.manager = new TransactionManager();
+            this.manager = manager;
             let varStack : VarStack = EmptyVarStack.theEmptyVarStack ;
             for( let i = 0 ; i < worlds.length ; ++i ) {
-                varStack = new NonEmptyVarStack( worlds[i], varStack ) ; }
+                varStack = new NonEmptyVarStack( worlds[i], varStack ) ;
+            }
             const evalu = new Evaluation(root, varStack, this);
-            this.evalStack = new EvalStack();
+            this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
+            // Invariant: this.lastError.get() !== null iff this.hasError() 
+            this.lastError = new TVar<string|null>( null, manager ) ;
+            // Invariant: this.lastError.get() !== null iff !this.canAdvance() && this.hasError()
+            this.value = new TVar<Value|null>( null, manager) ;
         }
 
         public getTransactionManager() : TransactionManager { //testing purposes
@@ -63,7 +96,7 @@ module vms{
         }
 
         public canAdvance() : boolean {
-            return this.evalStack.notEmpty();
+            return !this.hasError() && this.evalStack.notEmpty();
         }
 
         public getInterpreter() : Interpreter {
@@ -164,9 +197,10 @@ module vms{
             this.evalStack.top().finishStep( value ) ;
         }
 
-        public setResult(value : Value ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().setResult( value ) ;
+        public getFinalValue( ) : Value {
+            assert.checkPrecondition( !this.canAdvance() && ! this.hasError() ) ;
+            assert.check( this.value.get() !== null ) ;
+            return this.value.get() as Value ;
         }
 
         public isDone() : boolean {
@@ -181,17 +215,32 @@ module vms{
             if( ev.isDone() ) {
                 const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
-                if(this.evalStack.notEmpty()){
-                    this.evalStack.top().setResult( value );
-                }
+                this.setResult( value ) ;
             }
             else{
                 ev.advance( this.interpreter, this);
             }
         }
 
-        public reportError( message : String ) : void {
+        private setResult(value : Value ) : void {
+            if( this.evalStack.notEmpty() ) {
+                this.evalStack.top().finishStep( value ) ; }
+            else {
+                this.value.set( value ) ; }
+        }
+
+        public reportError( message : string ) : void {
             console.log(message);
+            this.lastError.set( message ) ;
+        }
+
+        public hasError( ) : boolean {
+            return this.lastError.get() !== null ;
+        }
+
+        public getError( ) : string {
+            assert.checkPrecondition( this.hasError() ) ;
+            return this.lastError.get() as string ;
         }
     }
 
@@ -201,7 +250,7 @@ module vms{
      * */
     export class Evaluation {
         private readonly root : TVar<PNode>;
-        private readonly varStack : VarStack ;
+        private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
         private readonly ready : TVar<boolean>;
         private readonly map : ValueMap;
@@ -212,9 +261,9 @@ module vms{
             this.root = new TVar<PNode>(root, manager) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.ready = new TVar<boolean>(false, manager);
-            this.varStack = varStack ;
-            this.map = new ValueMap();
-            this.extraInformationMap = new AnyMap() ;
+            this.varStack = new TVar<VarStack>( varStack, manager ) ;
+            this.map = new ValueMap(manager);
+            this.extraInformationMap = new AnyMap(manager) ;
         }
 
         public getRoot() : PNode {
@@ -230,7 +279,21 @@ module vms{
         }
 
         public getStack() : VarStack {
-            return this.varStack ;
+            return this.varStack.get() ;
+        }
+
+        public varStackIsEmpty( ) : boolean {
+            return this.varStack.get().isEmpty() ;
+        }
+
+        public pushOntoVarStack( newFrame : ObjectI ) : void {
+            const oldStack = this.varStack.get() ;
+            this.varStack.set( new NonEmptyVarStack(newFrame, oldStack)) ;
+        }
+
+        public popFromVarStack(  ) : void {
+            const oldStack = this.varStack.get() ;
+            this.varStack.set( oldStack.getNext() ) ;
         }
 
         public getPending() : List<number> {
@@ -330,19 +393,6 @@ module vms{
             this.setReady( false ) ;
         }
 
-        public setResult(value : Value ) : void {
-            // This is used for function calls.
-            assert.checkPrecondition( !this.isDone() ) ;
-            assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending.get() as List<number> ;
-            this.map.put( p, value ) ;
-            // At this point, the evaluation is
-            // ready and the call node is pending.
-            // Thus the call is stepped a second time.
-            // On the second step, the type of the
-            // result should be checked.
-        }
-
         public isDone() : boolean {
             return this.pending.get() === null;
         }
@@ -361,27 +411,27 @@ module vms{
 
     export class MapEntry<T> {
         private readonly path : List<number>;
-        private val : T;
+        private val : TVar<T>;
 
-        constructor (key : List<number>, value : T ){
+        constructor (key : List<number>, value : T , manager : TransactionManager){
             this.path = key;
-            this.val = value;
+            this.val = new TVar(value, manager);
         }
 
         public getPath() : List<number> {return this.path;}
         
-        public getValue() : T {return this.val;}
+        public getValue() : T {return this.val.get();}
         
-        public setValue( v : T ) : void { this.val = v ; }
+        public setValue( v : T ) : void { this.val.set(v) ; }
     }
     
-    class Map<T> {
-        private size : number ;
-        private entries : Array<MapEntry<T>>;
+    class Map< T > {
+        private readonly entries : TArray<MapEntry<T>>;
+        private readonly manager : TransactionManager;
 
-        constructor(){
-            this.entries = new Array<MapEntry<T>>();
-            this.size = 0;
+        constructor(manager : TransactionManager){
+            this.entries = new TArray<MapEntry<T>>(manager);
+            this.manager = manager;
         }
 
         private samePath(a : List<number>, b : List<number>) : boolean {
@@ -398,25 +448,25 @@ module vms{
             return true ;
         }
 
-        public getEntries() : Array<MapEntry<T>> {
-            return this.entries.concat() ;
-        }
+        // public getEntries() : TArray<MapEntry<T>> {
+        //     return this.entries.concat();
+        // }
 
         public isMapped(p : List<number>) : boolean {
-            for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
-                if(this.samePath(tmp, p)){
+            for(let i = 0; i < this.entries.size(); i++){
+                const tmp = this.entries.get(i).getPath();
+                if(this.samePath(tmp, p)) {
                     return true ;
                 }
             }
             return false ;
         }
-
+        
         public get(p : List<number>) : T {
-            for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+            for(let i = 0; i < this.entries.size(); i++){
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    return this.entries[i].getValue();
+                    return this.entries.get(i).getValue();
                 }
             }
             return assert.failedPrecondition(
@@ -425,41 +475,36 @@ module vms{
 
         public put(p : List<number>, v : T) : void {
             let notIn = true;
-            for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+            for(let i = 0; i < this.entries.size(); i++){
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    this.entries[i].setValue(v);
+                    this.entries.get(i).setValue(v);
                     notIn = false;
                 }
             }
             if(notIn){
-                const me = new MapEntry(p, v);
+                const me = new MapEntry(p, v, this.manager);
                 this.entries.push(me);
-                this.size++;
             }
         }
 
         public remove(p : List<number>) : void {
-            for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+            for(let i = 0; i < this.entries.size(); i++){
+                const tmp = this.entries.get(i).getPath();
                 if(this.samePath(tmp, p)){
-                    this.size--;
-                    const firstPart = this.entries.slice(0, i);
-                    const lastPart = this.entries.slice(i+1, this.entries.length);
-                    this.entries = firstPart.concat(lastPart);
+                    this.entries.cutItem(i);
+                    i -= 1 ;
                 }
             }
             return;
         }
 
         public removeAllBelow(p : List<number>) : void {
-            for(let i = 0; i < this.size; i++){
-                const tmp = this.entries[i].getPath();
+            for(let i = 0; i < this.entries.size(); i++){
+                const tmp = this.entries.get(i).getPath();
                 if( this.isPrefix(p, tmp) ) {
-                    this.size--;
-                    const firstPart = this.entries.slice(0, i);
-                    const lastPart = this.entries.slice(i+1, this.entries.length);
-                    this.entries = firstPart.concat(lastPart);
+                    this.entries.cutItem(i);
+                    i -= 1 ;
                 }
             }
             return;
@@ -477,6 +522,8 @@ module vms{
     * variables are looked up.  See the run-time model for more detail.
     */
     export abstract class VarStack {
+        public abstract isEmpty() : boolean ;
+        public abstract getNext() : VarStack ;
         public abstract hasField(name : string) : boolean ;
         public abstract setField(name : string, val : Value) : void ;
         public abstract getField(name : string) : FieldI ;
@@ -486,6 +533,12 @@ module vms{
         constructor() { super() ; }
 
         public static readonly theEmptyVarStack = new EmptyVarStack() ;
+
+        public isEmpty() : boolean { return true ; }
+
+        public getNext() : VarStack {
+            return assert.failedPrecondition("getNext called on EmptyVarStack") ;
+        }
 
         public hasField(name : string) : boolean {
             return false ;
@@ -508,7 +561,7 @@ module vms{
 
     export class NonEmptyVarStack extends VarStack {
 
-        private _top : ObjectI;
+        protected _top : ObjectI;
         private _next : VarStack;
 
         constructor(object : ObjectI, next : VarStack ) {
@@ -516,6 +569,8 @@ module vms{
             this._top = object;
             this._next = next;
         }
+
+        public isEmpty() : boolean { return false ; }
 
         // TODO Is this ever used?
         public getTop() : ObjectI {
@@ -558,9 +613,10 @@ module vms{
      */
     export class EvalStack { 
 
-        private readonly stk : Array<Evaluation> = [] ;
+        private readonly stk : TArray<Evaluation>;
 
-        constructor(){
+        constructor(manager : TransactionManager){
+            this.stk = new TArray<Evaluation>(manager);
         }
 
         public push(evaluation : Evaluation ) : void {
@@ -568,17 +624,17 @@ module vms{
         }
 
         public pop() : Evaluation {
-            assert.checkPrecondition( this.stk.length > 0 ) ;
+            assert.checkPrecondition( this.stk.size() > 0 ) ;
             return this.stk.pop() as Evaluation;
         }
 
         public top() : Evaluation{
-            assert.checkPrecondition( this.stk.length > 0 ) ;
-            return this.stk[ this.stk.length - 1 ] ;
+            assert.checkPrecondition( this.stk.size() > 0 ) ;
+            return this.stk.get(this.stk.size() - 1) as Evaluation;
         }
 
         public notEmpty() : boolean{
-            return this.stk.length !== 0 ;
+            return this.stk.size() !== 0 ;
         }
     }
 
@@ -609,11 +665,16 @@ module vms{
     export interface FieldI  {
         getName : () => string ;
         getValue : () => Value ;
+        getType : () => Type ;
         setValue : ( value : Value ) => void ;
+        getIsDeclared : () => boolean ;
+        getIsConstant : () => boolean ;
+        setIsDeclared : () => void ;
     }
 
 
     export enum Type {
+        NOTYPE,
         STRING,
         BOOL,
         NUMBER,

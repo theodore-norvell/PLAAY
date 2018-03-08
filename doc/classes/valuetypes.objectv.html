@@ -118,7 +118,6 @@
 							<h3>Methods</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="valuetypes.objectv.html#addfield" class="tsd-kind-icon">add<wbr>Field</a></li>
-								<li class="tsd-kind-method tsd-parent-kind-class"><a href="valuetypes.objectv.html#deletefield" class="tsd-kind-icon">delete<wbr>Field</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="valuetypes.objectv.html#getfield" class="tsd-kind-icon">get<wbr>Field</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="valuetypes.objectv.html#getfieldbynumber" class="tsd-kind-icon">get<wbr>Field<wbr>ByNumber</a></li>
 								<li class="tsd-kind-method tsd-parent-kind-class"><a href="valuetypes.objectv.html#hasfield" class="tsd-kind-icon">has<wbr>Field</a></li>
@@ -138,15 +137,21 @@
 					<a name="constructor" class="tsd-anchor"></a>
 					<h3>constructor</h3>
 					<ul class="tsd-signatures tsd-kind-constructor tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">new <wbr>ObjectV<span class="tsd-signature-symbol">(</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="valuetypes.objectv.html" class="tsd-signature-type">ObjectV</a></li>
+						<li class="tsd-signature tsd-kind-icon">new <wbr>ObjectV<span class="tsd-signature-symbol">(</span>manager<span class="tsd-signature-symbol">: </span><a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="valuetypes.objectv.html" class="tsd-signature-type">ObjectV</a></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L107">valueTypes.ts:107</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L114">valueTypes.ts:114</a></li>
 								</ul>
 							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>manager: <a href="backtracking.transactionmanager.html" class="tsd-signature-type">TransactionManager</a></h5>
+								</li>
+							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="valuetypes.objectv.html" class="tsd-signature-type">ObjectV</a></h4>
 						</li>
 					</ul>
@@ -157,10 +162,10 @@
 				<section class="tsd-panel tsd-member tsd-kind-property tsd-parent-kind-class tsd-is-protected">
 					<a name="fields" class="tsd-anchor"></a>
 					<h3><span class="tsd-flag ts-flagProtected">Protected</span> fields</h3>
-					<div class="tsd-signature tsd-kind-icon">fields<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">Array</span><span class="tsd-signature-symbol">&lt;</span><a href="valuetypes.field.html" class="tsd-signature-type">Field</a><span class="tsd-signature-symbol">&gt;</span></div>
+					<div class="tsd-signature tsd-kind-icon">fields<span class="tsd-signature-symbol">:</span> <a href="backtracking.tarray.html" class="tsd-signature-type">TArray</a><span class="tsd-signature-symbol">&lt;</span><a href="valuetypes.field.html" class="tsd-signature-type">Field</a><span class="tsd-signature-symbol">&gt;</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L107">valueTypes.ts:107</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L114">valueTypes.ts:114</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -177,7 +182,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L121">valueTypes.ts:121</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L125">valueTypes.ts:125</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -191,29 +196,6 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
-					<a name="deletefield" class="tsd-anchor"></a>
-					<h3>delete<wbr>Field</h3>
-					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
-						<li class="tsd-signature tsd-kind-icon">delete<wbr>Field<span class="tsd-signature-symbol">(</span>fieldName<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">string</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
-					</ul>
-					<ul class="tsd-descriptions">
-						<li class="tsd-description">
-							<aside class="tsd-sources">
-								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L128">valueTypes.ts:128</a></li>
-								</ul>
-							</aside>
-							<h4 class="tsd-parameters-title">Parameters</h4>
-							<ul class="tsd-parameters">
-								<li>
-									<h5>fieldName: <span class="tsd-signature-type">string</span></h5>
-								</li>
-							</ul>
-							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
-						</li>
-					</ul>
-				</section>
-				<section class="tsd-panel tsd-member tsd-kind-method tsd-parent-kind-class">
 					<a name="getfield" class="tsd-anchor"></a>
 					<h3>get<wbr>Field</h3>
 					<ul class="tsd-signatures tsd-kind-method tsd-parent-kind-class">
@@ -223,7 +205,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L153">valueTypes.ts:153</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L143">valueTypes.ts:143</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -246,7 +228,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L147">valueTypes.ts:147</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L139">valueTypes.ts:139</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -269,7 +251,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L138">valueTypes.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L130">valueTypes.ts:130</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -292,7 +274,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L166">valueTypes.ts:166</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L157">valueTypes.ts:157</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -309,7 +291,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L163">valueTypes.ts:163</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L153">valueTypes.ts:153</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -326,7 +308,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L169">valueTypes.ts:169</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L161">valueTypes.ts:161</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
@@ -343,7 +325,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L113">valueTypes.ts:113</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L121">valueTypes.ts:121</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">number</span></h4>
@@ -360,7 +342,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/valueTypes.ts#L173">valueTypes.ts:173</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/valueTypes.ts#L165">valueTypes.ts:165</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">string</span></h4>
@@ -380,6 +362,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="../modules/backtracking.html">backtracking</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="../modules/collections.html">collections</a>
@@ -430,9 +415,6 @@
 						<a href="../modules/vms.html">vms</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="../modules/workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="../modules/world.html">world</a>
 					</li>
 				</ul>
@@ -467,9 +449,6 @@
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="valuetypes.objectv.html#addfield" class="tsd-kind-icon">add<wbr>Field</a>
-							</li>
-							<li class=" tsd-kind-method tsd-parent-kind-class">
-								<a href="valuetypes.objectv.html#deletefield" class="tsd-kind-icon">delete<wbr>Field</a>
 							</li>
 							<li class=" tsd-kind-method tsd-parent-kind-class">
 								<a href="valuetypes.objectv.html#getfield" class="tsd-kind-icon">get<wbr>Field</a>

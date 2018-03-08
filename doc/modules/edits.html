@@ -84,6 +84,7 @@
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/edits.alternateedit.html" class="tsd-kind-icon">Alternate<wbr>Edit</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/edits.compositeedit.html" class="tsd-kind-icon">Composite<wbr>Edit</a></li>
 								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/edits.identityedit.html" class="tsd-kind-icon">Identity<wbr>Edit</a></li>
+								<li class="tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter"><a href="../classes/edits.testedit.html" class="tsd-kind-icon">Test<wbr>Edit</a></li>
 							</ul>
 						</section>
 						<section class="tsd-index-section ">
@@ -98,6 +99,8 @@
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="edits.html#alt" class="tsd-kind-icon">alt</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="edits.html#compose" class="tsd-kind-icon">compose</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="edits.html#id" class="tsd-kind-icon">id</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="edits.html#optionally" class="tsd-kind-icon">optionally</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="edits.html#testedit-1" class="tsd-kind-icon">test<wbr>Edit</a></li>
 							</ul>
 						</section>
 					</div>
@@ -109,23 +112,25 @@
 					<a name="alt" class="tsd-anchor"></a>
 					<h3>alt</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">alt&lt;A&gt;<span class="tsd-signature-symbol">(</span>first<span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span>, second<span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">alt&lt;A&gt;<span class="tsd-signature-symbol">(</span>first<span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span>, <span class="tsd-signature-symbol">...</span>rest<span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/edits.ts#L102">edits.ts:102</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L103">edits.ts:103</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
 								<div class="lead">
-									<p>A biased choice between two edits.
+									<p>A biased choice between or one, two, or more edits.
 									Given  <code>var z = alt(x,y) ;</code></p>
 								</div>
 								<ul>
 									<li><code>z.applyEdit(a)</code>  is the same as <code>x.applyEdit(a)</code> if that is successful.</li>
-									<li><code>z.applyEdit(a)</code>  is the same as <code>y.applyEdit(a)</code> if <code>x.applyEdit(a)</code> is not successful.</li>
+									<li><code>z.applyEdit(a)</code>  is the same as <code>y.applyEdit(a)</code> if <code>x.applyEdit(a)</code> is not successful.
+										Given <code>var z = alt( v, w, x, y)</code> z tries each edit in order until one is successfull
+									or all have failed.</li>
 								</ul>
 							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -140,7 +145,7 @@
 									<h5>first: <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 								<li>
-									<h5>second: <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5><span class="tsd-flag ts-flagRest">Rest</span> <span class="tsd-signature-symbol">...</span>rest: <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">[]</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
@@ -157,7 +162,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/edits.ts#L75">edits.ts:75</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L74">edits.ts:74</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -197,7 +202,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/edits.ts#L121">edits.ts:121</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L123">edits.ts:123</a></li>
 								</ul>
 							</aside>
 							<div class="tsd-comment tsd-typography">
@@ -218,6 +223,87 @@
 						</li>
 					</ul>
 				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+					<a name="optionally" class="tsd-anchor"></a>
+					<h3>optionally</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">optionally&lt;A&gt;<span class="tsd-signature-symbol">(</span>edit<span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L127">edits.ts:127</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>An edit that optionally applies another edit.</p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>A</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>edit: <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+					<a name="testedit-1" class="tsd-anchor"></a>
+					<h3>test<wbr>Edit</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">test<wbr>Edit&lt;A&gt;<span class="tsd-signature-symbol">(</span>pred<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">function</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/edits.ts#L146">edits.ts:146</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>A</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>pred: <span class="tsd-signature-type">function</span></h5>
+									<ul class="tsd-parameters">
+										<li class="tsd-parameter-siganture">
+											<ul class="tsd-signatures tsd-kind-type-literal">
+												<li class="tsd-signature tsd-kind-icon"><span class="tsd-signature-symbol">(</span>a<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">boolean</span></li>
+											</ul>
+											<ul class="tsd-descriptions">
+												<li class="tsd-description">
+													<h4 class="tsd-parameters-title">Parameters</h4>
+													<ul class="tsd-parameters">
+														<li>
+															<h5>a: <span class="tsd-signature-type">A</span></h5>
+														</li>
+													</ul>
+													<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">boolean</span></h4>
+												</li>
+											</ul>
+										</li>
+									</ul>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../interfaces/edits.edit.html" class="tsd-signature-type">Edit</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
 			</section>
 		</div>
 		<div class="col-4 col-menu menu-sticky-wrap menu-highlight">
@@ -231,6 +317,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="backtracking.html">backtracking</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="collections.html">collections</a>
@@ -281,9 +370,6 @@
 						<a href="vms.html">vms</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="world.html">world</a>
 					</li>
 				</ul>
@@ -302,6 +388,9 @@
 					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../classes/edits.identityedit.html" class="tsd-kind-icon">Identity<wbr>Edit</a>
 					</li>
+					<li class=" tsd-kind-class tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="../classes/edits.testedit.html" class="tsd-kind-icon">Test<wbr>Edit</a>
+					</li>
 					<li class=" tsd-kind-interface tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="../interfaces/edits.edit.html" class="tsd-kind-icon">Edit</a>
 					</li>
@@ -313,6 +402,12 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="edits.html#id" class="tsd-kind-icon">id</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="edits.html#optionally" class="tsd-kind-icon">optionally</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="edits.html#testedit-1" class="tsd-kind-icon">test<wbr>Edit</a>
 					</li>
 				</ul>
 			</nav>
