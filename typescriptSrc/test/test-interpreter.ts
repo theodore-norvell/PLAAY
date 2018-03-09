@@ -134,6 +134,26 @@ describe ('LambdaLabel', function() : void {
     });
 });
 
+describe ('LambdaLabel w/ duplicate parameter names', function() : void {
+  const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+  const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
+  const vm = makeStdVMS(root);
+
+  it('should fail with duplicate parameter names', function(): void {
+      assert.check(!vm.isReady());
+      vm.advance();
+      assert.check(vm.isReady());
+      try {
+        vm.advance();
+      }
+      catch (e) {
+          if (e.message !== "Lambda contains duplicate parameter names.") {
+              throw new Error(e.message);
+          }
+      }
+  });
+});
+
 describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
@@ -142,10 +162,20 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const vm = makeStdVMS(root);
     
     it('should evaluate to a StringV equaling 42', function() : void {
-      while (!vm.isMapped(emptyList)){
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
         vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
       }
-      assert.check(vm.isDone());
+      assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
       assert.check(val instanceof StringV);
       assert.check((val as StringV).getVal() === "42");
@@ -162,10 +192,20 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
     const vm = makeStdVMS(root);
 
     it('should evaluate to a StringV equaling 15', function() : void {
-      while (!vm.isMapped(emptyList)) {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
         vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
       }
-      assert.check(vm.isDone());
+      }
+      assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
       assert.check(val instanceof StringV);
       assert.check((val as StringV).getVal() === "15");
@@ -182,10 +222,20 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
   const vm = makeStdVMS(root);
 
   it('should evaluate to a StringV equaling 8', function() : void {
-    while (!vm.isMapped(emptyList)) {
+    let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
       vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
     }
-    assert.check(vm.isDone());
+          else {
+            firstEvalDone = true;
+          }
+        }
+      }
+      assert.check(vm.isMapped(emptyList));
     const val = vm.getVal(emptyList);
     assert.check(val instanceof StringV);
     assert.check((val as StringV).getVal() === "8");
@@ -203,10 +253,20 @@ describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void 
   const vm = makeStdVMS(root);
 
   it('should evaluate to a StringV equaling 1', function() : void {
-    while (!vm.isMapped(emptyList)) {
+    let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
       vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
     }
-    assert.check(vm.isDone());
+      assert.check(vm.isMapped(emptyList));
     const val = vm.getVal(emptyList);
     assert.check(val instanceof StringV);
     assert.check((val as StringV).getVal() === "1");
@@ -222,10 +282,20 @@ describe ('Call Label', function(): void {
     const vm = makeStdVMS(root);
 
     it('should evaluate to a StringV equaling 136', function() : void {
-      while (!vm.isMapped(emptyList)) {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
         vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
       }
-      assert.check(vm.isDone());
+      assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
       assert.check(val instanceof StringV);
       assert.check((val as StringV).getVal() === "136");

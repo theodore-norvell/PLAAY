@@ -273,6 +273,19 @@ module interpreter {
 
     function lambdaStepper(vms: VMS) {
         const node = vms.getPendingNode();
+        const paramlist = node.child(0);
+        //Check for duplicate parameter names
+        let paramNames: String[] = [];
+        for (let i = 0; i < paramlist.count(); i++) {
+          let name = paramlist.child(i).child(0).label().getVal();
+          if (paramNames.includes(name)) {
+            vms.reportError("Lambda contains duplicate parameter names.");
+            return;
+          }
+          else {
+            paramNames.push(name);
+          }
+        }
         const closure = new ClosureV(node, vms.getStack());
         vms.finishStep(closure);
     }
@@ -292,25 +305,12 @@ module interpreter {
         } 
         else if (val instanceof ClosureV) {
           const lambda = val.getLambdaNode();
-          const varStack = val.getContext();
-          const args = node.children(0, node.count());
+          let args: Value[] = [];
           const paramlist = lambda.child(0);
-          if(args.length != paramlist.children(0, paramlist.count()).length) {
-            vms.reportError("Number of arguments for lambda does not match parameter list.");
-            return
+          for (let i = 0; i < node.count(); i++) {
+            args.push(vms.getChildVal(i));
           }
-          const manager = vms.getTransactionManager();
-          const stackFrame = new ObjectV(manager);
-          for (let i = 0; i < args.length; i++) {
-            const varName = paramlist.child(i).child(0).label().getVal();
-            const val = vms.getChildVal(i);
-            //TODO: check that the types of val and vardecl are the same
-            const field = new Field(varName, val, Type.ANY, false, false, manager);
-            field.setIsDeclared();
-            stackFrame.addField(field);
-          }
-          const func = lambda.child(2);
-          vms.pushEvaluation(func, new NonEmptyVarStack(stackFrame, varStack));
+          processAndPushArgs(args, paramlist, lambda.child(2), vms);
         } 
         else {
           vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
@@ -325,30 +325,35 @@ module interpreter {
       const node = vms.getPendingNode();
       if (node.child(0).label() instanceof labels.LambdaLabel) {
         const lambda = node.child(0);
-        const varStack = vms.getStack();
-        const args = node.children(1, node.count());
+        let args: Value[] = [];
         const paramlist = lambda.child(0);
-        if(args.length != paramlist.children(0, paramlist.count()).length) {
-          vms.reportError("Number of arguments for lambda does not match parameter list.");
-          return;
+        for (let i = 1; i < node.count(); i++) {
+          args.push(vms.getChildVal(i));
         }
-        const manager = vms.getTransactionManager();
-        const stackFrame = new ObjectV(manager);
-        for (let i = 0; i < args.length; i++) {
-          const varName = paramlist.child(i).child(0).label().getVal();
-          const val = vms.getChildVal(i+1);
-          //TODO: check that the types of val and vardecl are the same
-          const field = new Field(varName, val, Type.ANY, false, false, manager);
-          field.setIsDeclared();
-          stackFrame.addField(field);
-        }
-        const func = lambda.child(2);
-        vms.pushEvaluation(func, new NonEmptyVarStack(stackFrame, varStack));
+        processAndPushArgs(args, paramlist, lambda.child(2), vms);  
       }
       else {
         vms.reportError("First child should be a lambda function.");
         return;
       } 
+    }
+
+    function processAndPushArgs(args: Value[], paramlist: PNode, root: PNode, vms: VMS) {
+      if(args.length != paramlist.children(0, paramlist.count()).length) {
+        vms.reportError("Number of arguments for lambda does not match parameter list.");
+        return;
+      }
+      const manager = vms.getTransactionManager();
+      const stackFrame = new ObjectV(manager);
+      for (let i = 0; i < args.length; i++) {
+        const varName = paramlist.child(i).child(0).label().getVal();
+        const val = args[i];
+        //TODO: check that the types of val and vardecl are the same
+        const field = new Field(varName, val, Type.ANY, true, true, manager);
+        field.setIsDeclared();
+        stackFrame.addField(field);
+      }
+      vms.pushEvaluation(root, new NonEmptyVarStack(stackFrame, vms.getStack()));
     }
 
     function exprSeqStepper(vms : VMS) : void {
