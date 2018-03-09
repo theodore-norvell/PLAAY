@@ -56,6 +56,30 @@ module editor {
 export = editor;
 ~~~~
 
+### Use of reference directives and imports.
+
+Although the references directives and imports seem redundant, as I understand it, we need them both. So when a new import is added (or removed) the corresponding reference directive should be added (or removed).  Also the dependence should be documented in "dependence.gv" and possibly "dependence-js.gv" as mentioned above.
+
+To give simple names for entities within imported modules, use import declarations within the module declaration like this.
+
+
+~~~~typescript
+....
+
+/** The editor module ... */
+module editor {
+    import list = collections.list;
+    import Option = collections.Option ;
+    import some = collections.some ;
+    import none = collections.none ;
+    import snoc = collections.snoc;
+    import Selection = pnodeEdits.Selection;
+    ....
+}
+
+export = editor;
+~~~~
+
 ### Formatting
 
 #### Semicolons
@@ -269,7 +293,7 @@ Typescript will infer the return type based on the return statements.  So for ve
         }
 ~~~~
 
-For the first lambda expression, there is no need to declare the type of the result since it is clearly the same as the type of the variable `result` and its type case be seen 2 lines earlier.  For the second lambda expression, the reader may have to think a little more, but if they know about `choose`, they know that both argument sshould have the same result type.
+For the first lambda expression, there is no need to declare the type of the result since it is clearly the same as the type of the variable `result` and its type can be seen 2 lines earlier.  For the second lambda expression, the reader may have to think a little more, but if they know about `choose`, they know that both argument should have the same result type.
 
 #### Declare parameter types
 
@@ -293,9 +317,17 @@ The compiler can infer the types of local variables if they are initialized.  Fo
 
 The compiler will infer the type of `i` from the type of `j` and so the compiler will detect the error in the assignment.
 
-However for readability it is often a good idea to declare the type of the variable any way.
+However for readability it is often a good idea to declare the type of the variable anyway.
 
-For uninitialized variables, the type should always be given.  For example
+~~~~typescript
+    function foo( j : number ) : number {
+        let i : number = j ; // GOOD
+        i = "hello" ;  // Error reported.
+        return i ;
+    }
+~~~~
+
+For uninitialized variables, the type should *always* be given.  For example
 
 ~~~~typescript
     function foo( j : number ) : number {
@@ -510,3 +542,4 @@ Likewise avoid assignments and other side effects in arguments.
 Avoid `throw` and `catch`.
 
 Avoid use of `null` and `undefined` as much as possible.
+

@@ -100,10 +100,12 @@
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#arraytolist" class="tsd-kind-icon">array<wbr>ToList</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#butlast" class="tsd-kind-icon">but<wbr>Last</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#cons-1" class="tsd-kind-icon">cons</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#first" class="tsd-kind-icon">first</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#last" class="tsd-kind-icon">last</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#list-1" class="tsd-kind-icon">list</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#nil-1" class="tsd-kind-icon">nil</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#none-1" class="tsd-kind-icon">none</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#rest" class="tsd-kind-icon">rest</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#snoc" class="tsd-kind-icon">snoc</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter"><a href="collections.html#some-1" class="tsd-kind-icon">some</a></li>
 							</ul>
@@ -123,9 +125,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L239">collections.ts:239</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L269">collections.ts:269</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Make a list from  an array.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -152,9 +159,15 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L250">collections.ts:250</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L298">collections.ts:298</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>A list of all but the last item</p>
+									<p><p>Precondition. <code> ! xs.isEmpty() </code></p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -175,13 +188,13 @@
 					<a name="cons-1" class="tsd-anchor"></a>
 					<h3>cons</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
-						<li class="tsd-signature tsd-kind-icon">cons&lt;A&gt;<span class="tsd-signature-symbol">(</span>head<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span>, rest<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+						<li class="tsd-signature tsd-kind-icon">cons&lt;A&gt;<span class="tsd-signature-symbol">(</span>head<span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span>, tail<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
 					</ul>
 					<ul class="tsd-descriptions">
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L242">collections.ts:242</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L273">collections.ts:273</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -196,10 +209,45 @@
 									<h5>head: <span class="tsd-signature-type">A</span></h5>
 								</li>
 								<li>
-									<h5>rest: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+									<h5>tail: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
 								</li>
 							</ul>
 							<h4 class="tsd-returns-title">Returns <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+					<a name="first" class="tsd-anchor"></a>
+					<h3>first</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">first&lt;A&gt;<span class="tsd-signature-symbol">(</span>xs<span class="tsd-signature-symbol">: </span><a href="../interfaces/collections.collection.html" class="tsd-signature-type">Collection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">A</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L292">collections.ts:292</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>The first item of a nonempty collection.</p>
+									<p><p>Precondition. <code> ! xs.isEmpty() </code></p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>A</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xs: <a href="../interfaces/collections.collection.html" class="tsd-signature-type">Collection</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">A</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -213,9 +261,15 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L254">collections.ts:254</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L305">collections.ts:305</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>The last item of a nonempty list.</p>
+									<p><p>Precondition. <code> ! xs.isEmpty() </code></p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -242,9 +296,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L232">collections.ts:232</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L261">collections.ts:261</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Make a list out of any numner of arguments.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -271,9 +330,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L245">collections.ts:245</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L277">collections.ts:277</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Make an empty list.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -294,7 +358,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L136">collections.ts:136</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L136">collections.ts:136</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -308,6 +372,41 @@
 					</ul>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+					<a name="rest" class="tsd-anchor"></a>
+					<h3>rest</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<li class="tsd-signature tsd-kind-icon">rest&lt;A&gt;<span class="tsd-signature-symbol">(</span>xs<span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L286">collections.ts:286</a></li>
+								</ul>
+							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>A list of all but the first item of a list</p>
+									<p><p>Precondition. <code> ! xs.isEmpty() </code></p>
+								</div>
+							</div>
+							<h4 class="tsd-type-parameters-title">Type parameters</h4>
+							<ul class="tsd-type-parameters">
+								<li>
+									<h4>A</h4>
+								</li>
+							</ul>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>xs: <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <a href="../classes/collections.list.html" class="tsd-signature-type">List</a><span class="tsd-signature-symbol">&lt;</span><span class="tsd-signature-type">A</span><span class="tsd-signature-symbol">&gt;</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 					<a name="snoc" class="tsd-anchor"></a>
 					<h3>snoc</h3>
 					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
@@ -317,9 +416,14 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L247">collections.ts:247</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L280">collections.ts:280</a></li>
 								</ul>
 							</aside>
+							<div class="tsd-comment tsd-typography">
+								<div class="lead">
+									<p>Make a nonempty list by tacking an item on the end.</p>
+								</div>
+							</div>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
 							<ul class="tsd-type-parameters">
 								<li>
@@ -349,7 +453,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/collections.ts#L133">collections.ts:133</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/collections.ts#L133">collections.ts:133</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-type-parameters-title">Type parameters</h4>
@@ -381,6 +485,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="backtracking.html">backtracking</a>
 					</li>
 					<li class="current tsd-kind-module">
 						<a href="collections.html">collections</a>
@@ -431,9 +538,6 @@
 						<a href="vms.html">vms</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="world.html">world</a>
 					</li>
 				</ul>
@@ -471,6 +575,9 @@
 						<a href="collections.html#cons-1" class="tsd-kind-icon">cons</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="collections.html#first" class="tsd-kind-icon">first</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="collections.html#last" class="tsd-kind-icon">last</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
@@ -481,6 +588,9 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="collections.html#none-1" class="tsd-kind-icon">none</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
+						<a href="collections.html#rest" class="tsd-kind-icon">rest</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module tsd-has-type-parameter">
 						<a href="collections.html#snoc" class="tsd-kind-icon">snoc</a>

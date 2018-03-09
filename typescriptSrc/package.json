@@ -4,12 +4,15 @@
   "description": "The plaay web IDE.",
   "main": "mkHTML.js",
   "scripts": {
-    "pretest" : "tsc",
+    "pretest": "tsc",
     "test": "mocha",
     "preinstall": "tsc && browserify --debug -o plaay.js -s main main.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
     "lint": "tslint --project tsconfig.json"
   },
   "author": "",
-  "license": "Copyright of the developers"
+  "license": "Copyright of the developers",
+  "dependencies": {
+    "svg.js": "^2.6.4"
+  }
 }

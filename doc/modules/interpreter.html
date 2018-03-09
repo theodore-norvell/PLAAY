@@ -113,10 +113,21 @@
 							<h3>Functions</h3>
 							<ul class="tsd-index-list">
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#alwaysselector" class="tsd-kind-icon">always<wbr>Selector</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#assignselector" class="tsd-kind-icon">assign<wbr>Selector</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#assignstepper" class="tsd-kind-icon">assign<wbr>Stepper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#callworldstepper" class="tsd-kind-icon">call<wbr>World<wbr>Stepper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#exprseqstepper" class="tsd-kind-icon">expr<wbr>Seq<wbr>Stepper</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#getinterpreter" class="tsd-kind-icon">get<wbr>Interpreter</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#ifselector" class="tsd-kind-icon">if<wbr>Selector</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#ifstepper" class="tsd-kind-icon">if<wbr>Stepper</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#lefttorightselector" class="tsd-kind-icon">left<wbr>ToRight<wbr>Selector</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#nullliteralstepper" class="tsd-kind-icon">null<wbr>Literal<wbr>Stepper</a></li>
 								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#stringliteralstepper" class="tsd-kind-icon">string<wbr>Literal<wbr>Stepper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#vardeclselector" class="tsd-kind-icon">var<wbr>Decl<wbr>Selector</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#vardeclstepper" class="tsd-kind-icon">var<wbr>Decl<wbr>Stepper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#variablestepper" class="tsd-kind-icon">variable<wbr>Stepper</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#whileselector" class="tsd-kind-icon">while<wbr>Selector</a></li>
+								<li class="tsd-kind-function tsd-parent-kind-module"><a href="interpreter.html#whilestepper" class="tsd-kind-icon">while<wbr>Stepper</a></li>
 							</ul>
 						</section>
 					</div>
@@ -130,7 +141,7 @@
 					<div class="tsd-signature tsd-kind-icon">Selector<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L61">interpreter.ts:61</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L63">interpreter.ts:63</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -161,7 +172,7 @@
 					<div class="tsd-signature tsd-kind-icon">Stepper<span class="tsd-signature-symbol">:</span> <span class="tsd-signature-type">function</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L59">interpreter.ts:59</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L61">interpreter.ts:61</a></li>
 						</ul>
 					</aside>
 					<div class="tsd-type-declaration">
@@ -191,51 +202,51 @@
 				<h2>Variables</h2>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="theinterpreter" class="tsd-anchor"></a>
-					<h3>the<wbr>Interpreter</h3>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> the<wbr>Interpreter</h3>
 					<div class="tsd-signature tsd-kind-icon">the<wbr>Interpreter<span class="tsd-signature-symbol">:</span> <a href="../classes/interpreter.plaayinterpreter.html" class="tsd-signature-type">PlaayInterpreter</a><span class="tsd-signature-symbol"> =&nbsp;new PlaayInterpreter</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L53">interpreter.ts:53</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L55">interpreter.ts:55</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="thenullvalue" class="tsd-anchor"></a>
-					<h3>the<wbr>Null<wbr>Value</h3>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> the<wbr>Null<wbr>Value</h3>
 					<div class="tsd-signature tsd-kind-icon">the<wbr>Null<wbr>Value<span class="tsd-signature-symbol">:</span> <a href="../classes/valuetypes.nullv.html" class="tsd-signature-type">NullV</a><span class="tsd-signature-symbol"> =&nbsp;new NullV()</span></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L136">interpreter.ts:136</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L246">interpreter.ts:246</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="theselectorregistry" class="tsd-anchor"></a>
-					<h3>the<wbr>Selector<wbr>Registry</h3>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> the<wbr>Selector<wbr>Registry</h3>
 					<div class="tsd-signature tsd-kind-icon">the<wbr>Selector<wbr>Registry<span class="tsd-signature-symbol">:</span> <a href="../interfaces/interpreter.selectorregistry.html" class="tsd-signature-type">SelectorRegistry</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L69">interpreter.ts:69</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L71">interpreter.ts:71</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="thestepperregistry" class="tsd-anchor"></a>
-					<h3>the<wbr>Stepper<wbr>Registry</h3>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> the<wbr>Stepper<wbr>Registry</h3>
 					<div class="tsd-signature tsd-kind-icon">the<wbr>Stepper<wbr>Registry<span class="tsd-signature-symbol">:</span> <a href="../interfaces/interpreter.stepperregistry.html" class="tsd-signature-type">StepperRegistry</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L65">interpreter.ts:65</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L67">interpreter.ts:67</a></li>
 						</ul>
 					</aside>
 				</section>
 				<section class="tsd-panel tsd-member tsd-kind-variable tsd-parent-kind-module">
 					<a name="thestringcache" class="tsd-anchor"></a>
-					<h3>the<wbr>String<wbr>Cache</h3>
+					<h3><span class="tsd-flag ts-flagConst">Const</span> the<wbr>String<wbr>Cache</h3>
 					<div class="tsd-signature tsd-kind-icon">the<wbr>String<wbr>Cache<span class="tsd-signature-symbol">:</span> <a href="../interfaces/interpreter.stringcache.html" class="tsd-signature-type">StringCache</a></div>
 					<aside class="tsd-sources">
 						<ul>
-							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L120">interpreter.ts:120</a></li>
+							<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L231">interpreter.ts:231</a></li>
 						</ul>
 					</aside>
 				</section>
@@ -252,7 +263,99 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L93">interpreter.ts:93</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L118">interpreter.ts:118</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="assignselector" class="tsd-anchor"></a>
+					<h3>assign<wbr>Selector</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">assign<wbr>Selector<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L204">interpreter.ts:204</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="assignstepper" class="tsd-anchor"></a>
+					<h3>assign<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">assign<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L299">interpreter.ts:299</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="callworldstepper" class="tsd-anchor"></a>
+					<h3>call<wbr>World<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">call<wbr>World<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L252">interpreter.ts:252</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="exprseqstepper" class="tsd-anchor"></a>
+					<h3>expr<wbr>Seq<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">expr<wbr>Seq<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L274">interpreter.ts:274</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -275,10 +378,56 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L55">interpreter.ts:55</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L57">interpreter.ts:57</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-returns-title">Returns <a href="../interfaces/vms.interpreter.html" class="tsd-signature-type">Interpreter</a></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="ifselector" class="tsd-anchor"></a>
+					<h3>if<wbr>Selector</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">if<wbr>Selector<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L141">interpreter.ts:141</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="ifstepper" class="tsd-anchor"></a>
+					<h3>if<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">if<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L280">interpreter.ts:280</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
 						</li>
 					</ul>
 				</section>
@@ -292,7 +441,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L97">interpreter.ts:97</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L122">interpreter.ts:122</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -315,7 +464,7 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L138">interpreter.ts:138</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L248">interpreter.ts:248</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -338,7 +487,122 @@
 						<li class="tsd-description">
 							<aside class="tsd-sources">
 								<ul>
-									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/b7e0dbd/typescriptSrc/interpreter.ts#L122">interpreter.ts:122</a></li>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L233">interpreter.ts:233</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="vardeclselector" class="tsd-anchor"></a>
+					<h3>var<wbr>Decl<wbr>Selector</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">var<wbr>Decl<wbr>Selector<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L215">interpreter.ts:215</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="vardeclstepper" class="tsd-anchor"></a>
+					<h3>var<wbr>Decl<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">var<wbr>Decl<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L317">interpreter.ts:317</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="variablestepper" class="tsd-anchor"></a>
+					<h3>variable<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">variable<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L309">interpreter.ts:309</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="whileselector" class="tsd-anchor"></a>
+					<h3>while<wbr>Selector</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">while<wbr>Selector<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L173">interpreter.ts:173</a></li>
+								</ul>
+							</aside>
+							<h4 class="tsd-parameters-title">Parameters</h4>
+							<ul class="tsd-parameters">
+								<li>
+									<h5>vms: <a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a></h5>
+								</li>
+							</ul>
+							<h4 class="tsd-returns-title">Returns <span class="tsd-signature-type">void</span></h4>
+						</li>
+					</ul>
+				</section>
+				<section class="tsd-panel tsd-member tsd-kind-function tsd-parent-kind-module">
+					<a name="whilestepper" class="tsd-anchor"></a>
+					<h3>while<wbr>Stepper</h3>
+					<ul class="tsd-signatures tsd-kind-function tsd-parent-kind-module">
+						<li class="tsd-signature tsd-kind-icon">while<wbr>Stepper<span class="tsd-signature-symbol">(</span>vms<span class="tsd-signature-symbol">: </span><a href="../classes/vms.vms-1.html" class="tsd-signature-type">VMS</a><span class="tsd-signature-symbol">)</span><span class="tsd-signature-symbol">: </span><span class="tsd-signature-type">void</span></li>
+					</ul>
+					<ul class="tsd-descriptions">
+						<li class="tsd-description">
+							<aside class="tsd-sources">
+								<ul>
+									<li>Defined in <a href="https://github.com/theodore-norvell/PLAAY/blob/a47e19f/typescriptSrc/interpreter.ts#L289">interpreter.ts:289</a></li>
 								</ul>
 							</aside>
 							<h4 class="tsd-parameters-title">Parameters</h4>
@@ -364,6 +628,9 @@
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="assert.html">assert</a>
+					</li>
+					<li class=" tsd-kind-module">
+						<a href="backtracking.html">backtracking</a>
 					</li>
 					<li class=" tsd-kind-module">
 						<a href="collections.html">collections</a>
@@ -414,9 +681,6 @@
 						<a href="vms.html">vms</a>
 					</li>
 					<li class=" tsd-kind-module">
-						<a href="workspace.html">workspace</a>
-					</li>
-					<li class=" tsd-kind-module">
 						<a href="world.html">world</a>
 					</li>
 				</ul>
@@ -460,7 +724,25 @@
 						<a href="interpreter.html#alwaysselector" class="tsd-kind-icon">always<wbr>Selector</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#assignselector" class="tsd-kind-icon">assign<wbr>Selector</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#assignstepper" class="tsd-kind-icon">assign<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#callworldstepper" class="tsd-kind-icon">call<wbr>World<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#exprseqstepper" class="tsd-kind-icon">expr<wbr>Seq<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="interpreter.html#getinterpreter" class="tsd-kind-icon">get<wbr>Interpreter</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#ifselector" class="tsd-kind-icon">if<wbr>Selector</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#ifstepper" class="tsd-kind-icon">if<wbr>Stepper</a>
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="interpreter.html#lefttorightselector" class="tsd-kind-icon">left<wbr>ToRight<wbr>Selector</a>
@@ -470,6 +752,21 @@
 					</li>
 					<li class=" tsd-kind-function tsd-parent-kind-module">
 						<a href="interpreter.html#stringliteralstepper" class="tsd-kind-icon">string<wbr>Literal<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#vardeclselector" class="tsd-kind-icon">var<wbr>Decl<wbr>Selector</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#vardeclstepper" class="tsd-kind-icon">var<wbr>Decl<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#variablestepper" class="tsd-kind-icon">variable<wbr>Stepper</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#whileselector" class="tsd-kind-icon">while<wbr>Selector</a>
+					</li>
+					<li class=" tsd-kind-function tsd-parent-kind-module">
+						<a href="interpreter.html#whilestepper" class="tsd-kind-icon">while<wbr>Stepper</a>
 					</li>
 				</ul>
 			</nav>

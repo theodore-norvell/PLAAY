@@ -1,4 +1,8 @@
 
+/// <reference path="assert.ts" />
+
+import assert = require( './assert' );
+
 module backtracking
 {
     export class TVar<T>
@@ -15,7 +19,7 @@ module backtracking
             }
             return this.currentValue;
         }
-        public set(val : T)
+        public set(val : T) : void
         {
             if(this.alive === false && this.manager.getState() !== States.UNDOING)
             {
@@ -33,7 +37,7 @@ module backtracking
             this.currentValue = val;
         }
 
-        public kill()
+        public kill() : void 
         {
             if(this.alive === false)
             {
@@ -43,7 +47,7 @@ module backtracking
             this.alive = false;
         }
 
-        public revive(val : T)
+        public revive(val : T) : void 
         {
             if(this.alive === true)
             {
@@ -54,12 +58,12 @@ module backtracking
             this.currentValue = val;
         }
 
-        public isAlive()
+        public isAlive() : boolean
         {
             return this.alive;
         }
 
-        public setAlive(alive : boolean)
+        public setAlive(alive : boolean) : void 
         {
             this.alive = alive;
         }
@@ -67,71 +71,70 @@ module backtracking
 
     export class TArray<T>
     {
-        private array : Array<TVar<T>>;
-        private sizeVar : TVar<number>;
-        private manager : TransactionManager
+        // TODO. Reimplement this with a TVar<Array<TVar<T>>> or a TVar<Array<T>> .
+        private array : TVar<Array<TVar<T>>> ;
+        private manager : TransactionManager ;
 
         public constructor(manager : TransactionManager)
         {
             this.manager = manager;
-            this.array = new Array<TVar<T>>();
-            this.sizeVar = new TVar<number>(0, manager);
+            const emptyArray = new Array<TVar<T>>() ;
+            this.array = new TVar<Array<TVar<T>>>(emptyArray, manager);
         }
 
         public size() : number
         {
-            return this.sizeVar.get();
+            return this.array.get().length ;
         }
 
         public get(index : number) : T
         {
-            if(!(0 <= index && index < this.sizeVar.get()))
+            if(!(0 <= index && index < this.size()))
             {
                 throw new Error("Index of TArray out of range");
             }
-            return this.array[index].get();
+            return this.array.get()[index].get();
         }
 
         public set(index : number, val : T) : void
         {
-            if(!(0 <= index && index < this.sizeVar.get()))
+            if(!(0 <= index && index < this.size()))
             {
                 throw new Error("Index of TArray out of range");
             }
-            this.array[index].set(val);
+            this.array.get()[index].set(val);
         }
 
         public push(val : T) : void
         {
-            if(this.size() == this.array.length)
-            {
-                this.array.push(new TVar<T>(val, this.manager));
-            }
-            else
-            {
-                this.array[this.size()].revive(val);
-            }
-            this.sizeVar.set(this.sizeVar.get()+1);
+            const oldArray = this.array.get() ;
+            const len = oldArray.length ;
+            const newArray = new Array<TVar<T>>( len+1 ) ;
+            for( let i = 0 ; i < len; ++i ) newArray[i] = oldArray[i] ;
+            newArray[len] = new TVar(val, this.manager ) ;
+            this.array.set( newArray ) ;
         }
 
         public pop() : T
         {
-            let size = this.size();
-            if(!(1 <= size))
-            {
-                throw new Error("Tried to pop empty array");
-            }
-            let returnVal : T = this.array[size-1].get();
-            this.array[size-1].kill();
-            this.sizeVar.set(size-1);
-            return returnVal;
+            const oldArray = this.array.get() ;
+            const len = oldArray.length ;
+            const newArray = oldArray.slice(0, len-1) ;
+            this.array.set( newArray ) ;
+            return oldArray[len-1].get() ;
         }
 
-        public unshift(val : T) : void
-        {
-            let newVal : TVar<T> = new TVar<T>(val, this.manager);
-            this.array.unshift(newVal);
-            this.sizeVar.set(this.sizeVar.get()+1);
+        public cutItem( i : number ) : void { 
+            if(!(0 <= i && i < this.size()))
+            {
+                throw new Error("Index of TArray out of range");
+            }
+            const oldArray = this.array.get() ;
+            const len = oldArray.length ;
+            const newArrayA = oldArray.slice(0, i) ;
+            const newArrayB = oldArray.slice(i+1, len) ;
+            const newArray = newArrayA.concat( newArrayB ) ;
+            this.array.set( newArray ) ;
         }
     }
 
@@ -139,7 +142,6 @@ module backtracking
     {
         private map : Map<K, TVar<T>>;
         private manager : TransactionManager;
-
         public constructor(manager : TransactionManager)
         {
             this.map = new Map<K, TVar<T>>();
