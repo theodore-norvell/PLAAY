@@ -381,7 +381,7 @@ module interpreter {
             } // end for
             vms.getEval().pushOntoVarStack( stackFrame ) ;
             // Now map this node to say it's been previsited.
-            vms.putExtraInformation( 0 ) ;
+            vms.putExtraInformation( stackFrame ) ;
             vms.setReady( false ) ; }
         else {
             // Postvisit.

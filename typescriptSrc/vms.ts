@@ -368,15 +368,16 @@ module vms{
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
-        public hasExtraInformation(  ) : boolean {
-            if( this.pending.get() === null ) return false ;
-            const p = this.pending.get() as List<number> ;
+        public hasExtraInformation( path ? : List<number> ) : boolean {
+            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            if( p === null ) return false ;
             return this.extraInformationMap.isMapped( p ) ; 
         }
 
-        public getExtraInformation( ) : {} {
-            assert.checkPrecondition( this.pending.get() !== null ) ;
-            const p = this.pending.get() as List<number> ;
+        public getExtraInformation( path ? : List<number> ) : {} {
+            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            if( p === null ) return assert.failedPrecondition() ;
+            assert.checkPrecondition( this.extraInformationMap.isMapped( p ) ) ;
             return this.extraInformationMap.get( p ) ; 
         }
 
