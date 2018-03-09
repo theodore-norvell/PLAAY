@@ -54,7 +54,7 @@ const lambda0 : pnode.PNode = labels.mkLambda( param, t, body0);
 //                             exprSeq(var[b]) )  <--- This time it's b
 
 const body1 : pnode.PNode = labels.mkExprSeq([b]) ;
-const lambda1 : pnode.PNode = labels.mkLambda( param, t, body0) ;
+const lambda1 : pnode.PNode = labels.mkLambda( param, t, body1) ;
 
 describe( 'Lambda', function() : void {
     // Here we evaluate a Lamdba expression to get a closure value
