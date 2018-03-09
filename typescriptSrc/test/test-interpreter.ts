@@ -29,6 +29,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
+import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld, mkCall } from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {AssignLabel, ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
@@ -114,6 +115,192 @@ describe( 'NullLiteralLabel', function() : void {
         assert.check( val instanceof NullV ) ;
     } );
 } ) ;
+
+describe ('LambdaLabel', function() : void {
+    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+    const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a ClosureV', function(): void {
+        assert.check(!vm.isReady());
+        vm.advance();
+        assert.check(vm.isReady());
+        vm.advance();
+        assert.check(vm.isDone());
+        assert.check(vm.isMapped(emptyList));
+        const val = vm.getVal(emptyList);
+        assert.check(val instanceof ClosureV);
+        assert.check((val as ClosureV).getLambdaNode().label() instanceof labels.LambdaLabel);
+    });
+});
+
+describe ('LambdaLabel w/ duplicate parameter names', function() : void {
+  const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+  const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
+  const vm = makeStdVMS(root);
+
+  it('should fail with duplicate parameter names', function(): void {
+      assert.check(!vm.isReady());
+      vm.advance();
+      assert.check(vm.isReady());
+      try {
+        vm.advance();
+      }
+      catch (e) {
+          if (e.message !== "Lambda contains duplicate parameter names.") {
+              throw new Error(e.message);
+          }
+      }
+  });
+});
+
+describe ('CallWorldLabel - closure (no arguments)', function(): void {
+    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const root = mkExprSeq([lambdaDecl, callWorld]);
+    const vm = makeStdVMS(root);
+    
+    it('should evaluate to a StringV equaling 42', function() : void {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+        vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
+      }
+      assert.check(vm.isMapped(emptyList));
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "42");
+    });
+});
+
+describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
+    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("*", mkVar("x"), mkVar("y"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
+    const root = mkExprSeq([lambdaDecl, callWorld]);
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a StringV equaling 15', function() : void {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+        vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+      }
+      }
+      assert.check(vm.isMapped(emptyList));
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "15");
+    });
+});
+
+describe ('CallWorldLabel - closure (w/ context)', function(): void {
+  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+  const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkNumberLiteral("5"))]);
+  const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
+  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+  const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
+  const vm = makeStdVMS(root);
+
+  it('should evaluate to a StringV equaling 8', function() : void {
+    let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+      vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+    }
+          else {
+            firstEvalDone = true;
+          }
+        }
+      }
+      assert.check(vm.isMapped(emptyList));
+    const val = vm.getVal(emptyList);
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "8");
+  });
+});
+
+describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void {
+  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+  const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+  const lambdaBody = mkExprSeq([mkCallWorld("-", mkVar("x"), mkVar("y"))]);
+  const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+  const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("2")]);
+  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
+  const vm = makeStdVMS(root);
+
+  it('should evaluate to a StringV equaling 1', function() : void {
+    let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+      vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
+    }
+      assert.check(vm.isMapped(emptyList));
+    const val = vm.getVal(emptyList);
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "1");
+  });
+});
+
+describe ('Call Label', function(): void {
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a StringV equaling 136', function() : void {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+        vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
+      }
+      assert.check(vm.isMapped(emptyList));
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "136");
+    });
+});
 
 describe( 'CallWorldLabel - addition', function() : void {
   const rootlabel = new labels.CallWorldLabel("+", false);

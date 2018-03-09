@@ -222,6 +222,11 @@ module vms{
             }
         }
 
+        public pushEvaluation(root: PNode, varStack: VarStack) {
+          const evaluation = new Evaluation(root, varStack, this);
+          this.evalStack.push(evaluation);
+        }
+
         private setResult(value : Value ) : void {
             if( this.evalStack.notEmpty() ) {
                 this.evalStack.top().finishStep( value ) ; }
