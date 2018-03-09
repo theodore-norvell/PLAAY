@@ -1,9 +1,11 @@
+/// <reference path="jquery.d.ts" />
+
 /// <reference path="collections.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="sharedMkHtml.ts" />
-/// <reference path="jquery.d.ts" />
+
 
 import collections = require( './collections' );
 import editor = require( './editor' );

@@ -4,10 +4,11 @@ digraph Depends {
    node[fontsize=8, shape=rectangle];
 
 
+   animator -> animatorHelpers ;
+   animator -> backtracking ;
    animator -> editor ;
    animator -> evaluationManager ;
    animator -> seymour ;
-   animator -> sharedMkHtml ;
    animator -> valueTypes ;
    animator -> vms ;
    animator -> world ;
@@ -18,14 +19,15 @@ digraph Depends {
    editor -> sharedMkHtml ;
    editor -> treeManager ;
 
-   evaluationManager -> vms ;
+   edits -> pnode ;
+
+   evaluationManager -> backtracking ;
    evaluationManager -> interpreter ;
    evaluationManager -> pnode ;
-   evaluationManager -> workspace ;
    evaluationManager -> vms ;
 
-   interpreter -> pnode ;
    interpreter -> labels ;
+   interpreter -> pnode ;
    interpreter -> valueTypes ;
    interpreter -> vms ;
    interpreter -> world ;
@@ -41,6 +43,8 @@ digraph Depends {
    pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
+   seymour -> pnode ;
+
    sharedMkHtml -> labels ;
    sharedMkHtml -> pnode ;
    sharedMkHtml -> pnodeEdits ;
@@ -55,14 +59,15 @@ digraph Depends {
    userRelated -> pnode ;
    userRelated -> sharedMkHtml ;
    
+   valueTypes -> backtracking ;
    valueTypes -> labels ;
    valueTypes -> pnode ;
    valueTypes -> vms ;
 
+   vms -> backtracking
    vms -> pnode ;
 
-   workspace -> world ;
-
+   world -> backtracking ;
    world -> pnode ;
    world -> seymour ;
    world -> valueTypes ;

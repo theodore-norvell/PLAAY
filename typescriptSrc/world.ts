@@ -10,31 +10,32 @@
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
-import { NullV } from './valueTypes';
-import { TransactionManager } from './backtracking';
 
 /** This module contains code for the standard library.
  * 
  */
 module world {
-    import EvalStack = vms.EvalStack;
     import list = collections.list;
     import List = collections.List;
+    import TransactionManager = backtracking.TransactionManager ;
+    import PNode = pnode.PNode;
     import ObjectV = valueTypes.ObjectV;
     import Field  = valueTypes.Field;
     import Value = vms.Value;
-    import BuiltInV = valueTypes.BuiltInV;
-    import Type = vms.Type;
-    import VMS = vms.VMS;
-    import Evaluation = vms.Evaluation;
+    import BuiltInV = valueTypes.BuiltInV ;
+    import NullV = valueTypes.NullV ;
     import StringV = valueTypes.StringV;
     import DoneV = valueTypes.DoneV;
-    import PNode = pnode.PNode;
+    import Type = vms.Type;
+    import VMS = vms.VMS;
+    import EvalStack = vms.EvalStack;
+    import Evaluation = vms.Evaluation;
 
     
     const done : DoneV = new DoneV() ;

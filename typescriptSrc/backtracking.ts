@@ -1,4 +1,8 @@
 
+/// <reference path="assert.ts" />
+
+import assert = require( './assert' );
+
 module backtracking
 {
     export class TVar<T>
