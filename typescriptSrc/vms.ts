@@ -3,17 +3,14 @@
  */
 
 /// <reference path="assert.ts" />
+/// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="world.ts" />
-/// <reference path="backtracking.ts" />
 
 import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
-// TODO.  We can not import from valueTypes as it creates a circular reference.
-import {Field, ObjectV} from "./valueTypes";
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -227,6 +224,11 @@ module vms{
             }
         }
 
+        public pushEvaluation(root: PNode, varStack: VarStack) {
+          const evaluation = new Evaluation(root, varStack, this);
+          this.evalStack.push(evaluation);
+        }
+
         private setResult(value : Value ) : void {
             if( this.evalStack.notEmpty() ) {
                 this.evalStack.top().finishStep( value ) ; }
@@ -371,15 +373,16 @@ module vms{
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
-        public hasExtraInformation(  ) : boolean {
-            if( this.pending.get() === null ) return false ;
-            const p = this.pending.get() as List<number> ;
+        public hasExtraInformation( path ? : List<number> ) : boolean {
+            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            if( p === null ) return false ;
             return this.extraInformationMap.isMapped( p ) ; 
         }
 
-        public getExtraInformation( ) : {} {
-            assert.checkPrecondition( this.pending.get() !== null ) ;
-            const p = this.pending.get() as List<number> ;
+        public getExtraInformation( path ? : List<number> ) : {} {
+            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            if( p === null ) return assert.failedPrecondition() ;
+            assert.checkPrecondition( this.extraInformationMap.isMapped( p ) ) ;
             return this.extraInformationMap.get( p ) ; 
         }
 

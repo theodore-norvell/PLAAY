@@ -1,25 +1,26 @@
 /// <reference path="jquery.d.ts" />
 
+/// <reference path="animatorHelpers.ts" />
 /// <reference path="assert.ts" />
+/// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
-/// <reference path="sharedMkHtml.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 
 import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
+import * as svg from "svg.js";
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
-import { TransactionManager } from './backtracking';
-import * as svg from "svg.js";
 
 /** The animator is the execution pane of the application.
  * 
@@ -40,6 +41,7 @@ module animator
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
     import MapEntry = vms.MapEntry ;
+    import TransactionManager = backtracking.TransactionManager ;
     import VMS = vms.VMS;
     import VarStack = vms.VarStack;
     import Value = vms.Value ;

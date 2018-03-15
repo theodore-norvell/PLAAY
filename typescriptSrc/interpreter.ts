@@ -1,8 +1,8 @@
 /// <reference path="assert.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="vms.ts" />
 /// <reference path="valueTypes.ts" />
+/// <reference path="vms.ts" />
 /// <reference path="world.ts" />
 
 
@@ -12,7 +12,6 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
-import {Type, Value, VarStack} from './vms';
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -32,7 +31,8 @@ module interpreter {
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
     import DoneV = valueTypes.DoneV ;
-    import Field = valueTypes.Field ;
+    import Field = valueTypes.Field;
+    import NonEmptyVarStack = vms.NonEmptyVarStack;
 
     class PlaayInterpreter implements vms.Interpreter {
 
@@ -87,14 +87,15 @@ module interpreter {
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
 
+    // Functions and calls
+    theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
+    theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
+
     theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
     theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
 
-    // Functions and calls
-    theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
-
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
-    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[labels.CallLabel.kindConst] = callStepper;
 
     // Control Labels
     theStepperRegistry[labels.ExprSeqLabel.kindConst] = exprSeqStepper ;
@@ -269,6 +270,25 @@ module interpreter {
         vms.finishStep( NullV.theNullValue ) ;
     }
 
+    function lambdaStepper(vms: VMS) {
+        const node = vms.getPendingNode();
+        const paramlist = node.child(0);
+        //Check for duplicate parameter names
+        let paramNames: String[] = [];
+        for (let i = 0; i < paramlist.count(); i++) {
+          let name = paramlist.child(i).child(0).label().getVal();
+          if (paramNames.includes(name)) {
+            vms.reportError("Lambda contains duplicate parameter names.");
+            return;
+          }
+          else {
+            paramNames.push(name);
+          }
+        }
+        const closure = new ClosureV(node, vms.getStack());
+        vms.finishStep(closure);
+    }
+
     function callWorldStepper( vms : VMS ) : void {
       const node = vms.getPendingNode();
       const value = node.label().getVal();
@@ -282,6 +302,15 @@ module interpreter {
           }          
           stepper(vms, args);
         } 
+        else if (val instanceof ClosureV) {
+          const lambda = val.getLambdaNode();
+          let args: Value[] = [];
+          const paramlist = lambda.child(0);
+          for (let i = 0; i < node.count(); i++) {
+            args.push(vms.getChildVal(i));
+          }
+          processAndPushArgs(args, paramlist, lambda.child(2), vms);
+        } 
         else {
           vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
         } 
@@ -289,6 +318,41 @@ module interpreter {
       else {
         vms.reportError("No variable named " + value + "is in scope.");
       } 
+    }
+
+    function callStepper(vms: VMS) : void {
+      const node = vms.getPendingNode();
+      if (node.child(0).label() instanceof labels.LambdaLabel) {
+        const lambda = node.child(0);
+        let args: Value[] = [];
+        const paramlist = lambda.child(0);
+        for (let i = 1; i < node.count(); i++) {
+          args.push(vms.getChildVal(i));
+        }
+        processAndPushArgs(args, paramlist, lambda.child(2), vms);  
+      }
+      else {
+        vms.reportError("First child should be a lambda function.");
+        return;
+      } 
+    }
+
+    function processAndPushArgs(args: Value[], paramlist: PNode, root: PNode, vms: VMS) {
+      if(args.length != paramlist.children(0, paramlist.count()).length) {
+        vms.reportError("Number of arguments for lambda does not match parameter list.");
+        return;
+      }
+      const manager = vms.getTransactionManager();
+      const stackFrame = new ObjectV(manager);
+      for (let i = 0; i < args.length; i++) {
+        const varName = paramlist.child(i).child(0).label().getVal();
+        const val = args[i];
+        //TODO: check that the types of val and vardecl are the same
+        const field = new Field(varName, val, Type.ANY, true, true, manager);
+        field.setIsDeclared();
+        stackFrame.addField(field);
+      }
+      vms.pushEvaluation(root, new NonEmptyVarStack(stackFrame, vms.getStack()));
     }
 
     function exprSeqStepper(vms : VMS) : void {
@@ -317,7 +381,7 @@ module interpreter {
             } // end for
             vms.getEval().pushOntoVarStack( stackFrame ) ;
             // Now map this node to say it's been previsited.
-            vms.putExtraInformation( 0 ) ;
+            vms.putExtraInformation( stackFrame ) ;
             vms.setReady( false ) ; }
         else {
             // Postvisit.
