@@ -95,7 +95,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should insert a single if-then-else node at ((),0,0)', () => {
         const p0 = collections.list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( t0, p0, 0, 0 ) ;
-        const edit0 = pnodeEdits.insertChildrenEdit( [ ite0 ], [] ) ;
+        const edit0 = pnodeEdits.insertChildrenEdit( [ ite0 ] ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "Add an if expression as a new child to the root at position 0" ) ;
@@ -116,7 +116,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should replace a node at at ((0),0,1)', () => {
         const sel1 = new pnodeEdits.Selection( t1, collections.list(0), 0, 1 ) ;
         //console.log( sel1.toString() ) ;
-        const edit1 = pnodeEdits.insertChildrenEdit( [ c ], [] ) ;
+        const edit1 = pnodeEdits.insertChildrenEdit( [ c ] ) ;
         //console.log( edit1.toString() ) ;
         const editResult1 = edit1.applyEdit( sel1 ) ;
         //console.log( "Replace the guard with c" ) ;
@@ -133,23 +133,6 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
                 assert.check( s.focus() === 1 ) ;
             },
             () => assert.check( false ) ) ; } ) ;
-
-    it( 'should backfill a copy of zeros nodes', () => {
-
-        // Select the guard
-        const p1 = list<number>() ;
-        const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
-        // Insert 0 nodes
-        const edit = pnodeEdits.insertChildrenEdit( [ ], [ [labels.mkExprPH()] ] ) ;
-        const editResult = edit.applyEdit( sel1 ) ;
-        //console.log( "editResult0 is " + editResult.toString() ) ;
-        editResult.choose(
-            s => {
-                assert.checkEqual( "Selection( _root:if( expPH() seq( string[a]() string[b]()) seq( string[c]()))"
-                                 + " _path:() _anchor: 0 _focus: 1)",
-                                   s.toString() ) ;
-            },
-            () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 } ) ;
 
 describe( 'pnodeEdits.replaceWithOneOf', () => {

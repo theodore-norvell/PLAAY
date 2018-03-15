@@ -38,7 +38,7 @@ module treeManager {
 
             const placeholder = labels.mkExprPH();
             const sel = new Selection(this.root, collections.list(0), 0, 1);
-            const edit = pnodeEdits.insertChildrenEdit([placeholder], []);
+            const edit = pnodeEdits.insertChildrenEdit([placeholder]);
             return edit.applyEdit(sel);
 
         }
@@ -102,12 +102,10 @@ module treeManager {
             }
         }
 
-        private readonly expressionBackfillList = [ [ labels.mkNoExpNd()], [labels.mkExprPH()] ] ;
-
         private makeVarNode(selection:Selection, text : string = "") : Option<Selection> {
 
             const varnode = labels.mkVar(text) ;
-            const edit = pnodeEdits.insertChildrenEdit( [varnode], [] ) ;
+            const edit = pnodeEdits.insertChildrenEdit( [varnode] ) ;
             return edit.applyEdit(selection) ;
         }
 
@@ -119,7 +117,7 @@ module treeManager {
 
             const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [cond, seq]);
             const template = new Selection( whilenode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
         }
 
@@ -135,7 +133,7 @@ module treeManager {
             // console.log( "makeIfNode: Making template") ;
             const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             // console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
@@ -147,7 +145,7 @@ module treeManager {
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
 
             const template = new Selection( lambdanode, list(2), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
         }
 
@@ -161,7 +159,7 @@ module treeManager {
             const assignnode = opt.first() ;
 
             const template = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
 
         }
@@ -175,7 +173,7 @@ module treeManager {
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
             const template = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
 
         }
@@ -190,14 +188,14 @@ module treeManager {
             {
                 worldcallnode = labels.mkCallWorld( name, left, right);
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-                const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+                const edit = replaceOrEngulfTemplateEdit( template  ) ;
                 return edit.applyEdit(selection);
             }
             else
             {
                 worldcallnode = labels.mkClosedCallWorld(name, left, right);
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-                const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+                const edit = replaceOrEngulfTemplateEdit( template  ) ;
                 const result =  edit.applyEdit(selection);
                 // console.log( "<< result of world call is " + result.toString() ) ;
                 return result ;
@@ -210,21 +208,21 @@ module treeManager {
             const callnode = labels.mkCall(func) ;
 
             const template = new Selection( callnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template, this.expressionBackfillList  ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
         }
 
         private makeNoTypeNode(selection:Selection) : Option<Selection> {
 
             const typenode = labels.mkNoTypeNd() ;
-            const edit = pnodeEdits.insertChildrenEdit([typenode], []);
+            const edit = pnodeEdits.insertChildrenEdit([typenode]);
             return edit.applyEdit(selection);
         }
 
         private makeStringLiteralNode(selection:Selection, text : string = "hello") : Option<Selection> {
 
             const literalnode = labels.mkStringLiteral(text) ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode], []);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -232,19 +230,19 @@ module treeManager {
 
             const literalnode = labels.mkNumberLiteral(text) ;
 
-            const edit = pnodeEdits.insertChildrenEdit([literalnode], []);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode], []);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode], []);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -254,7 +252,7 @@ module treeManager {
 
             const literalnode = opt.first() ;
 
-            const edit = pnodeEdits.insertChildrenEdit([literalnode], []);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -327,8 +325,8 @@ module treeManager {
         private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkExprPH()]] );
 
         public delete(selection:Selection) : Option<Selection> {
-            const nodes = selection.selectedNodes() ;
-            if(nodes.length == 1 && nodes[0].label instanceof labels.NoExprLabel ) {
+            const nodes : Array<PNode> = selection.selectedNodes() ;
+            if(nodes.length == 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
                 return this.otherDeleteEdit.applyEdit( selection ) ; }
             else {
                 return this.deleteEdit.applyEdit(selection); }
