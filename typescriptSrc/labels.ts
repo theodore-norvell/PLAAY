@@ -554,10 +554,8 @@ module labels {
         
         public static readonly kindConst : string = "ObjectLiteralLabel" ;
 
-        public isValid(  children : Array<PNode> ) : boolean {
-            if( children.length !== 1 ) return false ;
-            if( ! children[0].isExprSeqNode() ) return false ;
-            return true ;
+        public isValid(children:Array<PNode>) : boolean {
+            return children.every( (c:PNode) => c.isExprNode() ) ;
         }
 
         public toString():string {
@@ -570,7 +568,11 @@ module labels {
         }
 
         // Singleton
-        public static theObjectLiteralLabel = new ObjectLiteralLabel();
+        public static readonly theObjectLiteralLabel = new ObjectLiteralLabel();
+        
+        public hasVerticalLayout() : boolean {return true;}
+        
+        public hasDropZonesAt(start : number): boolean { return true; }
 
         public toJSON() : object {
             return { kind: ObjectLiteralLabel.kindConst, } ;

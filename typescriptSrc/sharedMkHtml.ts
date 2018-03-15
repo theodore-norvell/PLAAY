@@ -226,18 +226,23 @@ module sharedMkHtml
             break ;
             case labels.ObjectLiteralLabel.kindConst :
             {
-                assert.check( children.length === 1 ) ;
-
                 const guardBox : JQuery = $( document.createElement("div") ) ;
                 guardBox.addClass( "objectGuardBox") ;
                 guardBox.addClass( "H") ;
                 guardBox.addClass( "workplace") ;
 
                 const seqBox : JQuery = $( document.createElement("div") ) ;
-                seqBox.addClass( "doBox") ;
-                seqBox.addClass( "H") ;
+                seqBox.addClass( "seqBox" ) ;
+                seqBox.addClass( "V" ) ;
                 seqBox.addClass( "workplace") ;
-                seqBox.append( children[0] ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    seqBox.append(dz);
+                    if (i === children.length) break;
+                    seqBox.append(children[i]);
+                }
 
                 result  = $(document.createElement("div")) ;
                 result.addClass( "objectBox" ) ;
@@ -257,13 +262,18 @@ module sharedMkHtml
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
-                const opDiv : JQuery = $( document.createElement("div") ) ;
-                opDiv.addClass( "op" );
-                opDiv.text( "." ) ;
+                const leftBracket : JQuery = $( document.createElement("div") ) ;
+                leftBracket.addClass( "op" );
+                leftBracket.text( "[" ) ;
+
+                const rightBracket : JQuery = $( document.createElement("div") ) ;
+                rightBracket.addClass( "op" );
+                rightBracket.text( "]" ) ;
 
                 result.append(children[0]);
-                result.append(opDiv);
+                result.append(leftBracket);
                 result.append(children[1]);
+                result.append(rightBracket);
 
             }
             break ;

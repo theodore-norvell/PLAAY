@@ -584,7 +584,7 @@ div.callWorld {
     min-height: 1em ;
 }
 
-div.objectGuardBox:before { content: "Object" ;
+div.objectGuardBox:before { content: "$" ;
     display: inline ;
     vertical-align: top ;
     color: rgb(135,206,250) ;

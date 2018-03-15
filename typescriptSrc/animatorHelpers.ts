@@ -239,7 +239,6 @@ module animatorHelpers
             case labels.ObjectLiteralLabel.kindConst :
             {
                 const childArray = element.children();
-                assert.check( childArray.length === 1 ) ;
 
                 element.dmove(10, 10) ;
                 const padding : number = 15;
@@ -249,9 +248,9 @@ module animatorHelpers
                 // guardBox.addClass( "objectGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
-                const textElement = guardBox.text("Object").dmove(0, -5);
+                const textElement = guardBox.text("$").dmove(0, -5);
                 y += textElement.bbox().height + padding;
-                let len = childArray[0].bbox().width+padding;
+                let len = findWidthOfLargestChild(childArray)+padding;
                 if(textElement.bbox().width + padding > len)
                 {
                     len = textElement.bbox().width + padding;
@@ -260,11 +259,20 @@ module animatorHelpers
                 doGuardBoxStylingAndBorderSVG(textElement, guardBox, LIGHT_BLUE, len, y);
 
                 y += padding;
+                let seqBoxY : number = 0;
                 const seqBox :  svg.G = element.group().dmove(10, y) ;
-                // doBox.addClass( "doBox") ;
-                // doBox.addClass( "H") ;
+                // doBox.addClass( "seqBox") ;
+                // doBox.addClass( "V") ;
                 // doBox.addClass( "workplace") ;
-                seqBox.add( childArray[0] ) ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(0, seqBoxY));
+                    seqBoxY += childArray[i].bbox().height + padding;
+                }
+                if(seqBoxY === 0) //i.e. there are no elements in this node
+                {
+                    seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
+                }
 
                 makeFancyBorderSVG(parent, element, LIGHT_BLUE);
             }
@@ -276,11 +284,11 @@ module animatorHelpers
                 let x : number = 0;
 
                 x += childArray[0].bbox().width + padding;
-                const dotText : svg.Text = element.text(".");
-                dotText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
-                dotText.fill(MAUVE.toString());
-                dotText.dmove(x, -5);
-                x += dotText.bbox().width + padding;
+                const leftBracketText : svg.Text = element.text("[");
+                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.fill(MAUVE.toString());
+                leftBracketText.dmove(x, -5);
+                x += leftBracketText.bbox().width + padding;
 
                 childArray[1].dmove(x, 0);
                 const childBBox : svg.BBox = childArray[1].bbox();
@@ -288,6 +296,12 @@ module animatorHelpers
                 {
                     childArray[1].dx(-childBBox.x);
                 }
+                x += childBBox.width + padding;
+
+                const rightBracketText : svg.Text = element.text("]");
+                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.fill(MAUVE.toString());
+                rightBracketText.dmove(x, -5);
 
                 
                 makeAccessorLabelBorder(element);
