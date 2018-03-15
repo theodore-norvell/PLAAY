@@ -54,12 +54,12 @@ module animator
 	
     export function executingActions() : void 
 	{
-		$("#play").click(evaluate);
-		$("#advance").click(advanceOneStep);
-		$("#evalUndo").click(undoStep);
+        $("#play").click(evaluate);
+        $("#advance").click(advanceOneStep);
+        $("#evalUndo").click(undoStep);
         $("#evalRedo").click(redoStep);
         $("#run").click(stepTillDone);
-		$("#edit").click(switchToEditor);
+        $("#edit").click(switchToEditor);
 	}
 
     function evaluate() : void
