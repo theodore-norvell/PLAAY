@@ -31,12 +31,12 @@ module animatorHelpers
     import Value = vms.Value;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
-    const MAUVE : String = "rgb(190, 133, 197)";
-    const ORANGE : String = "rgb(244, 140, 0)";
-    const LIGHT_BLUE : String = "rgb(135, 206, 250)";
-    const GHOSTWHITE : String = "rgb(248, 248, 255)";
-    const WHITE : String = "rgb(255, 255, 255)";
-    const GRAY : String = "rgb(153, 153, 153)";
+    const MAUVE : string = "rgb(190, 133, 197)";
+    const ORANGE : string = "rgb(244, 140, 0)";
+    const LIGHT_BLUE : string = "rgb(135, 206, 250)";
+    const GHOSTWHITE : string = "rgb(248, 248, 255)";
+    const WHITE : string = "rgb(255, 255, 255)";
+    const GRAY : string = "rgb(153, 153, 153)";
 
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
     {
@@ -242,7 +242,7 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const opText : svg.Text = element.text(":=");
-                opText.fill(ORANGE.toString());
+                opText.fill(ORANGE);
                 opText.dmove(x, -5);
                 x += opText.bbox().width + padding;
 
@@ -341,7 +341,7 @@ module animatorHelpers
                 let x : number = 0;
 
                 const delta : svg.Text = element.text("\u03B4");
-                delta.fill(GHOSTWHITE.toString());
+                delta.fill(GHOSTWHITE);
                 delta.dmove(0, -5); //testing
 
                 x += delta.bbox().width + padding;
@@ -349,14 +349,14 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const colon : svg.Text = element.text(":");
-                colon.fill(GHOSTWHITE.toString()).dmove(x, -5);
+                colon.fill(GHOSTWHITE).dmove(x, -5);
 
                 x += colon.bbox().width + padding;
                 childArray[1].dmove(x, 7);
 
                 x += childArray[1].bbox().width + padding;
                 const becomes : svg.Text = element.text(":=");
-                becomes.fill(GHOSTWHITE.toString()).dmove(x, -5);
+                becomes.fill(GHOSTWHITE).dmove(x, -5);
 
                 x += becomes.bbox().width + padding;
                 childArray[2].dmove(x, 0);
@@ -418,16 +418,16 @@ module animatorHelpers
         assert.unreachable("Found value with unkown type");
     }
 
-    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number, lineY : number) : void
+    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : string, lineLength : number, lineY : number) : void
     {
         if(text !== null)
         {
-            text.fill(colour.toString()); //It would throw an error unless I did this
+            text.fill(colour); //It would throw an error unless I did this
             text.style("font-size: large");
         }
         const bounds = guardBox.bbox();
         const line = guardBox.line(bounds.x - 5, lineY, bounds.x + lineLength + 5, lineY);
-        line.stroke({color: colour.toString(), opacity: 1, width: 4});
+        line.stroke({color: colour, opacity: 1, width: 4});
         line.attr("stroke-dasharray", "10, 10");
     }
     
@@ -436,12 +436,12 @@ module animatorHelpers
         const sepX1 = ifBox.bbox().x;
         const sepX2 = ifBox.bbox().x2;
         const line = ifBox.line(sepX1, y, sepX2, y);
-        line.stroke({color: MAUVE.toString(), opacity: 1, width: 4});
+        line.stroke({color: MAUVE, opacity: 1, width: 4});
     }
 
     function doCallWorldLabelStylingSVG(textElement : svg.Text) : void
     {
-        textElement.fill(MAUVE.toString());
+        textElement.fill(MAUVE);
         textElement.style("font-family:'Times New Roman', Times,serif;font-weight: bold ;font-size: large ;");
     }
 
@@ -454,7 +454,7 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
         return borderGroup;
     }
 
@@ -467,11 +467,11 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
         return borderGroup;
     }
 
-    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String) : svg.G
+    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : string) : svg.G
     {
         const containerGroup = base.group(); //In order to keep it organized nicely
         containerGroup.add(el);
@@ -483,83 +483,83 @@ module animatorHelpers
         const y2 = bounds.y2 + 10;
         const topBorderPathString = "M" + (x + 5) + ',' + (y - 5) + " H" + (x2 - 5) + " A10,10 0 0,1 " + (x2 + 5) + ',' + (y + 5);
         const topBorder = borderGroup.path(topBorderPathString);
-        topBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        topBorder.stroke({color: colour, opacity: 1, width: 4});
         const botBorderPathString = "M" + (x + 5) + ',' + (y2 + 15) + " H" + (x2 - 5) + " A10,10 0 0,0 " + (x2 + 5) + ',' + (y2 + 5);
         const botBorder = borderGroup.path(botBorderPathString);
-        botBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        botBorder.stroke({color: colour, opacity: 1, width: 4});
         const rightBorder = borderGroup.line(x2 + 6, y2 + 5.5, x2 + 6, y + 4.5);
-        rightBorder.stroke({color: colour.toString(), opacity: 1, width: 1.5});
+        rightBorder.stroke({color: colour, opacity: 1, width: 1.5});
         const leftBorderPathString = "M" + (x + 5.5) + ',' + (y - 7) + "A10,10 0 0,0 " + (x - 3) + ',' + (y + 3) + "V" + (y2 + 7)
                                  + "A10,10 0 0,0 " + (x + 5.5) + ',' + (y2 + 17) + 'Z'; //These odd numbers allow me to approximate the CSS representation pretty well.
         const leftBorder = borderGroup.path(leftBorderPathString);
-        leftBorder.stroke({color: colour.toString(), opacity: 1, width: 0});
-        leftBorder.fill(colour.toString());
+        leftBorder.stroke({color: colour, opacity: 1, width: 0});
+        leftBorder.fill(colour);
         return containerGroup;
     }
 
     //I assume textElement is already contained within base.
     function makeVariableLabelSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     function makeExprPlaceholderSVG(base : svg.Container) : void
     {
         const textElement : svg.Text = base.text( "..." );
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeNumberLiteralSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
     
     //I assume textElement is already contained within base.
     function makeStringLiteralSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(WHITE.toString());
+        textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
     function makeNullLiteralSVG(base : svg.Container) : void
     {
         const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
-        textElement.fill(WHITE.toString());
+        textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
     function makeAssignLabelBorder(el : svg.Container) : void
@@ -569,7 +569,7 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
     
     function makeVarDeclBorderSVG(el : svg.Container) : void
@@ -579,7 +579,7 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: GHOSTWHITE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
     function makeNoTypeLabelSVG(el: svg.Container) : void
@@ -587,7 +587,7 @@ module animatorHelpers
         const label = el.rect(20,20);
         label.radius(5);
         label.fill({opacity: 0});
-        label.stroke({color: GRAY.toString(), opacity: 1, width: 1.5});
+        label.stroke({color: GRAY, opacity: 1, width: 1.5});
     }
 
     function makeNoExprLabelSVG(el: svg.Container) : void
@@ -595,59 +595,59 @@ module animatorHelpers
         const label = el.rect(20,20);
         label.radius(5);
         label.fill({opacity: 0});
-        label.stroke({color: GHOSTWHITE.toString(), opacity: 1, width: 1.5});
+        label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeBuiltInSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeObjectSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
     function findWidthOfLargestChild(arr : svg.Element[]) : number
@@ -671,7 +671,7 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: WHITE, opacity: 1, width: 1.5});
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {

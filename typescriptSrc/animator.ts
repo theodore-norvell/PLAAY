@@ -84,6 +84,14 @@ module animator
     function advanceOneStep() : void
     {
         evaluationMgr.next();
+        if(!evaluationMgr.getVMS().canAdvance())
+        {
+            if(evaluationMgr.getVMS().hasError())
+            {
+                alert("Error: " + evaluationMgr.getVMS().getError());
+            }
+            return;
+        }
         $("#stackVal").empty();
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
