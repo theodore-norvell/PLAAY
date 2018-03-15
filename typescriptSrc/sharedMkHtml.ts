@@ -224,6 +224,49 @@ module sharedMkHtml
 
             }
             break ;
+            case labels.ObjectLiteralLabel.kindConst :
+            {
+                assert.check( children.length === 1 ) ;
+
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "objectGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+
+                const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "doBox") ;
+                seqBox.addClass( "H") ;
+                seqBox.addClass( "workplace") ;
+                seqBox.append( children[0] ) ;
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "objectBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( seqBox );
+            }
+            break ;
+            case labels.AccessorLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "accessor" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "op" );
+                opDiv.text( "." ) ;
+
+                result.append(children[0]);
+                result.append(opDiv);
+                result.append(children[1]);
+
+            }
+            break ;
             case labels.LambdaLabel.kindConst :
             {
                 const lambdahead : JQuery = $( document.createElement("div") ) ;
