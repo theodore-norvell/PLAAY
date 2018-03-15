@@ -22,13 +22,15 @@ module createHtmlElements {
 		const contentArea = $("#contentArea");
 		create("div", "", "leftSideArea", contentArea);
 		const leftSideArea = $("#leftSideArea");
-		create("div", "", "buttonArea", leftSideArea);
+		create("div", "evalVisible", "evalButtonArea", leftSideArea);
+		const evalButtonArea = $("#evalButtonArea");
+		create("div", "evalHidden", "buttonArea", leftSideArea);
 		const buttonArea = $("#buttonArea");
 		create("div", "evalHidden", "palette", leftSideArea);
 		const palette = $("#palette");
 
-		createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
-		create("table", null, "stackVal", $("#stackbar"));
+		//createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
+		//create("table", null, "stackVal", $("#stackbar"));
 		createTexted("div", "leftSideButton editButton evalHidden", "play", buttonArea, "Play");
 		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
 		createTexted("div", "leftSideButton editButton evalHidden", "undo", buttonArea, "Undo");
@@ -37,12 +39,13 @@ module createHtmlElements {
 
 		//Executing-related elements. All added functionalities are in executing module.
 
-		createHidden("div", "advance evalVisible", "advance", leftSideArea, "Next");
-		createHidden("div", "multistep evalVisible", "multistep", leftSideArea, "Multi-Step");
-		createHidden("div", "run evalVisible", "run", leftSideArea, "Run");
+		createHidden("div", "leftSideButton evalVisible", "edit", evalButtonArea, "Edit");
+		createHidden("div", "leftSideButton evalVisible", "advance", evalButtonArea, "Next");
+		createHidden("div", "leftSideButton evalVisible", "evalUndo", evalButtonArea, "Undo");
+		createHidden("div", "leftSideButton evalVisible", "evalRedo", evalButtonArea, "Redo");
+		createHidden("div", "leftSideButton evalVisible", "run", evalButtonArea, "Run");
 
 		createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
-		createHidden("div", "edit evalVisible", "edit", leftSideArea, "Edit");
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
 		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");

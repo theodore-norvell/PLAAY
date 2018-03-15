@@ -48,6 +48,7 @@ module animator
     const evaluationMgr = new EvaluationManager();
     // let turtle : boolean = false ;
     let highlighted = false;
+    let transactionMgr : TransactionManager;
 
     const turtleWorld = new seymour.TurtleWorld();
 	
@@ -55,8 +56,9 @@ module animator
 	{
 		$("#play").click(evaluate);
 		$("#advance").click(advanceOneStep);
-		// $("#multistep").click(multiStep);
-		// $("#run").click(stepTillDone);
+		$("#evalUndo").click(undoStep);
+        $("#evalRedo").click(redoStep);
+        $("#run").click(stepTillDone);
 		$("#edit").click(switchToEditor);
 	}
 
@@ -65,10 +67,11 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        const manager = new TransactionManager() ;
+        transactionMgr = new TransactionManager() ;
         // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
-                                  libraries, manager );
+                                  libraries, transactionMgr );
+        transactionMgr.checkpoint();
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
@@ -84,6 +87,7 @@ module animator
     function advanceOneStep() : void
     {
         evaluationMgr.next();
+        transactionMgr.checkpoint();
         if(!evaluationMgr.getVMS().canAdvance())
         {
             if(evaluationMgr.getVMS().hasError())
@@ -92,22 +96,7 @@ module animator
             }
             return;
         }
-        $("#stackVal").empty();
-        $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        const animation : svg.G = animatorArea.group().move(10, 10);
-        let toHighlight : List<number>;
-        if (evaluationMgr.getVMS().isReady() ) 
-        {
-            toHighlight = evaluationMgr.getVMS().getPending();
-        }
-        else
-        {
-            toHighlight = Cons(-1, Nil<number>());
-        }
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
-        const animationBBox : svg.BBox = animation.bbox();
-        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        buildSVG();
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);
         // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
@@ -127,22 +116,55 @@ module animator
         // }
     }
 
-    // function stepTillDone() : void 
-	// {
-    //     evaluationMgr.next();
-    //     const STEPLIMIT = 10000 ;
-    //     for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
-    //     {
-    //         evaluationMgr.next();
-	// 	}
-    //     $("#vms").empty()
-	// 		.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-    //     const root = $("#vms :first-child").get(0);
-    //     const list : List<number>= evaluationMgr.getVMS().getPending();
-    //     const map : ValueMap = evaluationMgr.getVMS().getValMap();
-    //     findInMap(root, map);
-    //     highlight($(root), list);
-    // }
+    function buildSVG() : void
+    {
+        $("#stackVal").empty();
+        $("#vms").empty().append("<div id='svgContainer'></div>");
+        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animation : svg.G = animatorArea.group().move(10, 10);
+        let toHighlight : List<number>;
+        if (evaluationMgr.getVMS().isReady() ) 
+        {
+            toHighlight = evaluationMgr.getVMS().getPending();
+        }
+        else
+        {
+            toHighlight = Cons(-1, Nil<number>());
+        }
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
+        const animationBBox : svg.BBox = animation.bbox();
+        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+    }
+
+    function undoStep() : void
+    {
+        if(!transactionMgr.canUndo())
+        {
+            return;
+        }
+        transactionMgr.undo();
+        buildSVG();
+    }
+
+    function redoStep() : void
+    {
+        if(!transactionMgr.canRedo())
+        {
+            return;
+        }
+        transactionMgr.redo();
+        buildSVG();    }
+
+    function stepTillDone() : void 
+	{
+        const STEPLIMIT = 10000 ;
+        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
+        {
+            evaluationMgr.next();
+            transactionMgr.checkpoint();
+		}
+        buildSVG();
+    }
 
     // function multiStep() : void
 	// {

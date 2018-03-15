@@ -79,7 +79,18 @@ module animatorHelpers
                 // guardbox.addClass( "workplace" ) ;
                 const textElement = guardBox.text("?").dmove(0, -5);
                 guardBox.add( childArray[0].dmove(20, 5) ) ;
-                y += childArray[0].bbox().height + padding;
+                const childBBox : svg.BBox = childArray[0].bbox();
+                if(childBBox.y < 5)
+                {
+                    const childY : number = childBBox.y;
+                    childArray[0].dy(5-childY);
+                    y += 5-childY;
+                }
+                if(childBBox.x < 0)
+                {
+                    childArray[0].dx(-childBBox.x);
+                }
+                y += childBBox.height + padding;
                 let len = findWidthOfLargestChild(childArray);
                 len += padding; //account for extra space due to question mark symbol
 
@@ -108,18 +119,27 @@ module animatorHelpers
             break ;
             case labels.ExprSeqLabel.kindConst :
             {
-                // TODO show only the unevaluated members during evaluation
-
                 const childArray = element.children();
                 // result.addClass( "seqBox" ) ;
                 // result.addClass( "V" ) ;
-                // Add children and drop zones.
                 const padding : number = 15;
                 let y : number = 0;
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
                     childArray[i].dmove(0, y);
-                    y += childArray[i].bbox().height + padding;
+                    const bbox = childArray[i].bbox();
+                    if(bbox.x < 0)
+                    {
+                        childArray[i].dx(-bbox.x);
+                    }
+                    if(bbox.y < y)
+                    {
+                        childArray[i].dy(-bbox.y);
+                    }
+                    if(childArray[i].bbox().height > 0) //i.e. the child has an SVG presence (should only be false for nodes mapped to DoneV currently.)
+                    {
+                        y += childArray[i].bbox().height + padding;
+                    }
                 }
                 if(y === 0) //i.e. there are no elements in this node
                 {
@@ -145,7 +165,13 @@ module animatorHelpers
                 // Add children and dropZones.
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    childArray[i].dmove(x, 0); //testing
+                    childArray[i].dmove(x, 0);
+                    const childBBox : svg.BBox = childArray[i].bbox();
+                    if(childBBox.y < 0)
+                    {
+                        const childY : number = childBBox.y;
+                        childArray[i].dy(-childY);
+                    }
                     x += childArray[i].bbox().width + padding;
                 }
             }
@@ -164,8 +190,19 @@ module animatorHelpers
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
                 const textElement = guardBox.text("\u27F3").dmove(0, -5);
-                guardBox.add( childArray[0].dmove(30, 0) ) ;
-                y += childArray[0].bbox().height + padding;
+                guardBox.add( childArray[0].dmove(30, 5) ) ;
+                const childBBox : svg.BBox = childArray[0].bbox();
+                if(childBBox.y < 5)
+                {
+                    const childY : number = childBBox.y;
+                    childArray[0].dy(5-childY);
+                    y += 5-childY;
+                }
+                if(childBBox.x < 0)
+                {
+                    childArray[0].dx(-childBBox.x);
+                }
+                y += childBBox.height + padding;
                 const len = findWidthOfLargestChild(childArray)+padding;
 
                 doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
@@ -199,6 +236,11 @@ module animatorHelpers
                     opText.dmove(x, -5);
                     x += opText.bbox().width + padding;
                     childArray[1].dmove(x, 0);
+                    const childBBox : svg.BBox = childArray[1].bbox();
+                    if(childBBox.x < x)
+                    {
+                        childArray[1].dx(-childBBox.x);
+                    }
                 }
                 else
                 {
@@ -208,7 +250,12 @@ module animatorHelpers
                     {
                         if( i === childArray.length ) break ;
                         childArray[i].dmove(x, 0);
-                        x += childArray[i].bbox().width + padding;
+                        const bbox = childArray[i].bbox();
+                        if(bbox.x < x)
+                        {
+                            childArray[i].dx(-bbox.x);
+                        }
+                        x += bbox.width + padding;
                     }
                 }
 
@@ -229,6 +276,11 @@ module animatorHelpers
                 for( let i=0 ; true ; ++i) {
                     if( i === childArray.length ) break ;
                     childArray[i].dmove(x, 0);
+                    const bbox = childArray[i].bbox();
+                    if(bbox.x < x)
+                    {
+                        childArray[i].dx(-bbox.x);
+                    }
                     x += childArray[i].bbox().width + padding;
                 }
                 drawHighlightOn = makeCallBorderSVG(parent, element);
@@ -247,7 +299,11 @@ module animatorHelpers
                 x += opText.bbox().width + padding;
 
                 childArray[1].dmove(x, 0);
-                
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
                 makeAssignLabelBorder(element);
             }
             break ;
@@ -360,6 +416,11 @@ module animatorHelpers
 
                 x += becomes.bbox().width + padding;
                 childArray[2].dmove(x, 0);
+                const childBBox : svg.BBox = childArray[2].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[2].dx(-childBBox.x);
+                }
 
                 makeVarDeclBorderSVG(element);
 
@@ -387,8 +448,8 @@ module animatorHelpers
         }
         if(value.isDoneV())
         {
-            const text : svg.Text = element.text( "Done" );
-            makeDoneSVG(element, text);
+            // const text : svg.Text = element.text( "Done" );
+            // makeDoneSVG(element, text);
             return;
         }
         if(value.isStringV())
