@@ -595,7 +595,7 @@ module pnodeEdits {
     
     /** Copy all nodes in the src selection over the selected nodes of the target selection.
      * The selection returned indicates the newly added nodes.
-     * If the src selection is empty, also try replacing with something from the backfill list.
+     * If the src selection is empty, also try replacing the target with something from the backfill list.
     */
     export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
         const srcNodes = srcSelection.selectedNodes() ;

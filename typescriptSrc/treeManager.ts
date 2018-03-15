@@ -333,9 +333,9 @@ module treeManager {
                 return this.deleteEdit.applyEdit(selection); }
         }
 
-        public copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
-            const copyEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
-            return copyEdit.applyEdit( trgSelection ) ;
+        public paste( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+            const pasteEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
+            return pasteEdit.applyEdit( trgSelection ) ;
         }
 
         public swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
@@ -344,12 +344,12 @@ module treeManager {
         }
 
         /** Create a list of up to three possible actions. */
-        public moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
+        public pasteMoveSwapEditList(srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
 
             const selectionList : Array< [string, string, Selection] > = [];
 
-            const pastEdit = pnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
-            const pasteResult = pastEdit.applyEdit( trgSelection ) ;
+            const pasteEdit = pnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
+            const pasteResult = pasteEdit.applyEdit( trgSelection ) ;
             pasteResult.map( newSel => selectionList.push(['Pasted', "Paste", newSel]) ) ;
 
             const moveEdit = pnodeEdits.moveEdit(srcSelection, this.standardBackFillList );

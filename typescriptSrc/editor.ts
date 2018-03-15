@@ -247,7 +247,7 @@ module editor {
                     if (  dragKind === DragEnum.CURRENT_TREE )
                     {
                         console.log("  First case" ) ;
-                        const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
+                        const selectionArray = treeMgr.pasteMoveSwapEditList( draggedSelection, dropTarget );
                         console.log("  Back from moveCopySwapEditList" ) ;
                         // Pick the first action that succeeded, if any
                         if(  selectionArray.length > 0 ) {
@@ -262,7 +262,7 @@ module editor {
                     {
                         console.log("  Second case. (Drag from trash)." ) ;
                         console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
-                        const opt = treeMgr.copy( draggedSelection, dropTarget ) ;
+                        const opt = treeMgr.paste( draggedSelection, dropTarget ) ;
                         console.log("  opt is " + opt ) ;
                         assert.check( opt !== undefined ) ;
                         opt.map(
@@ -401,7 +401,7 @@ module editor {
             else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -416,7 +416,7 @@ module editor {
                 }
                 num -= 48; //convert from ASCII code to the number
                 getFromDeepTrash(num).map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
