@@ -33,6 +33,7 @@ module animator
 {
     import EvaluationManager = evaluationManager.EvaluationManager;
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
+    import buildStack = animatorHelpers.buildStack;
     import List = collections.List;
     import Cons = collections.cons;
     import Nil = collections.nil;
@@ -72,9 +73,13 @@ module animator
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
+        const stack : svg.G = animatorArea.group();
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null);
+        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
-        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        const stackBBox : svg.BBox = stack.bbox();
+        stack.dmove(animationBBox.width + 300, 0);
+        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 100);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -85,6 +90,7 @@ module animator
         $("#stackVal").empty();
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const stack : svg.G = animatorArea.group();
         const animation : svg.G = animatorArea.group().move(10, 10);
         let toHighlight : List<number>;
         if (evaluationMgr.getVMS().isReady() ) 
@@ -96,8 +102,12 @@ module animator
             toHighlight = Cons(-1, Nil<number>());
         }
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
+        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
-        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        const stackBBox : svg.BBox = stack.bbox();
+        stack.dmove(animationBBox.width + 300, 0);
+        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 10);
+       
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);
         // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
