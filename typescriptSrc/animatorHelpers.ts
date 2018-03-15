@@ -236,6 +236,64 @@ module animatorHelpers
                 makeAssignLabelBorder(element);
             }
             break ;
+            case labels.ObjectLiteralLabel.kindConst :
+            {
+                const childArray = element.children();
+                assert.check( childArray.length === 1 ) ;
+
+                element.dmove(10, 10) ;
+                const padding : number = 15;
+                let y = 0;
+
+                const guardBox : svg.G = element.group() ;
+                // guardBox.addClass( "objectGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                const textElement = guardBox.text("Object").dmove(0, -5);
+                y += textElement.bbox().height + padding;
+                let len = childArray[0].bbox().width+padding;
+                if(textElement.bbox().width + padding > len)
+                {
+                    len = textElement.bbox().width + padding;
+                }
+
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, LIGHT_BLUE, len, y);
+
+                y += padding;
+                const seqBox :  svg.G = element.group().dmove(10, y) ;
+                // doBox.addClass( "doBox") ;
+                // doBox.addClass( "H") ;
+                // doBox.addClass( "workplace") ;
+                seqBox.add( childArray[0] ) ;
+
+                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+            }
+            break ;
+            case labels.AccessorLabel.kindConst :
+            {
+                const childArray = element.children();
+                const padding : number = 10;
+                let x : number = 0;
+
+                x += childArray[0].bbox().width + padding;
+                const dotText : svg.Text = element.text(".");
+                dotText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                dotText.fill(MAUVE.toString());
+                dotText.dmove(x, -5);
+                x += dotText.bbox().width + padding;
+
+                childArray[1].dmove(x, 0);
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
+
+                
+                makeAccessorLabelBorder(element);
+
+            }
+            break ;
             case labels.LambdaLabel.kindConst :
             {
 
@@ -509,6 +567,16 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+    }
+
+    function makeAccessorLabelBorder(el : svg.Container) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
     }
     
     function makeVarDeclBorderSVG(el : svg.Container) : void
