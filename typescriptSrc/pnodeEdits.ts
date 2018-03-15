@@ -511,7 +511,7 @@ module pnodeEdits {
     /** Replace all selected nodes with another sequence of nodes. 
      * The resulting selection should comprise the inserted children.
      */
-    export class InsertChildrenEdit extends AbstractEdit<Selection> {
+    class InsertChildrenEdit extends AbstractEdit<Selection> {
         private _newNodes : Array<PNode> ;
 
         constructor( newNodes : Array<PNode> ) {
@@ -521,38 +521,21 @@ module pnodeEdits {
         public applyEdit( selection : Selection ) : Option<Selection> {
 
             // Try to make the replacement.
-            const opt = singleReplace( selection, this._newNodes ) ;
-            if(  this._newNodes.length === 0 ) {
-                // Copy of zero nodes may require backfilling.
-                return opt.recoverBy (
-                    () => singleReplace( selection, [labels.mkExprPH()] )
-                ) ;
-            } else {
-                return opt ;
-            }
+            return singleReplace( selection, this._newNodes ) ;
         }
     }
 
-    export function insertChildrenEdit( newNodes : Array<PNode> ) : Edit<Selection> {
-        return new InsertChildrenEdit( newNodes ) ;
+    export function insertChildrenEdit( newNodes : Array<PNode>, backfillList : Array<Array<PNode>> ) : Edit<Selection> {
+        if(newNodes.length === 0 ) {
+            const choices = [newNodes].concat( backfillList ) ;
+            return replaceWithOneOf( choices ) ; }
+        else {
+            return new InsertChildrenEdit( newNodes ) ; }
     }
 
-    /** Delete all selected nodes, replacing them with either nothing, or with a placeholder.
-     * The resulting selection indicates the position where the nodes
-     * used to be.
-     */
-    export class DeleteEdit extends AbstractEdit<Selection> {
-
-        constructor() {
-            super() ; }
-
-        public applyEdit( selection : Selection ) : Option<Selection> {
-            const opt = singleReplace( selection, [] ) ;
-            // TODO add more choices for replacement, such as noType, noExp, etc.
-            return opt.recoverBy(
-                () => singleReplace( selection, [labels.mkExprPH()] )
-            ) ;
-        }
+    /** Replace with one of a sequence of choices. Picks the first that succeeds. */
+    export function replaceWithOneOf( choices : Array<Array<PNode>>  ) : AbstractEdit<Selection> {
+        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) )
     }
 
     /**  Changes the string value of a node's label.
@@ -992,20 +975,23 @@ module pnodeEdits {
     class EngulfEdit extends AbstractEdit<Selection> {
 
         private  t : Selection ;
-        constructor(template : Selection  ) {
+        private backfillList : Array<Array<PNode>> ;
+
+        constructor(template : Selection, backfillList : Array<Array<PNode>>  ) {
             super() ;
-            this.t = template ; }
+            this.t = template ;
+            this.backfillList = backfillList ;}
         
         public applyEdit( selection : Selection ) : Option<Selection> {
             // console.log( ">> EngulfEdit.applyEdit") ;
             const nodes = selection.selectedNodes() ;
             // First step: Insert the selected nodes into the template.
-            const i0 = insertChildrenEdit( nodes ) ;
+            const i0 = insertChildrenEdit( nodes, this.backfillList ) ;
             // console.log( "   EngulfEdit.applyEdit: Applying first step") ;
             const opt0 = i0.applyEdit( this.t ) ;
             const res = opt0.bind( sel0 => {
                 // Second step: Insert the result into the selection
-                const i1 = insertChildrenEdit( [sel0.root() ] );
+                const i1 = insertChildrenEdit( [sel0.root() ], [] );
                 // Do the second steps
                 // console.log( "   EngulfEdit.applyEdit: Applying second step") ;
                 const opt1 =  i1.applyEdit( selection ) ;
@@ -1026,8 +1012,8 @@ module pnodeEdits {
     }
 
     /** Engulf the selected nodes with a template. */
-    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
-        return new EngulfEdit( template ) ;
+    export function engulfWithTemplateEdit( template : Selection, backfillList : Array<Array<PNode>> ) : Edit<Selection> {
+        return new EngulfEdit( template, backfillList ) ;
     }
 
     /** Either replace the current seletion with a given template or
@@ -1037,16 +1023,16 @@ module pnodeEdits {
      * 
      * @param template 
      */
-    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
+    export function replaceOrEngulfTemplateEdit( template : Selection, backfillList : Array<Array<PNode>> ) : Edit<Selection> {
         const replace = compose( replaceWithTemplateEdit( template ), optionally( tabForwardEdit ) ) ;
-        const engulf = compose( engulfWithTemplateEdit( template ), optionally( tabForwardIfNeededEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( template, backfillList ), optionally( tabForwardIfNeededEdit ) ) ;
         const selectionIsAllPlaceHolder
             = testEdit( (sel:Selection) =>
                            sel.selectedNodes().every( (p : PNode) =>
                                                        p.isPlaceHolder() ) ) ;
-        return  alt( compose( selectionIsAllPlaceHolder, replace ),
-                     engulf,
-                     replace ) ;
+        return  alt( [compose( selectionIsAllPlaceHolder, replace ),
+                      engulf,
+                      replace] ) ;
     }
 
 }

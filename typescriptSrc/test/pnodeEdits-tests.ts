@@ -31,7 +31,7 @@ const seq2 = labels.mkExprSeq( [a,b] ) ;
 const seq3 = labels.mkExprSeq( [a,b,c] ) ;
 
 const ite1 = labels.mkIf( labels.mkCall(a, b), labels.mkExprSeq([b,c]), labels.mkExprSeq([d,e])) ;
-// ite0 is if( a, seq(b), seq(c))
+const varDecl = labels.mkVarDecl( labels.mkVar("a"), labels.mkNoTypeNd(), labels.mkExprPH() ) ;
 
 
 describe( 'pnodeEdits.Selection', () => {
@@ -95,7 +95,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should insert a single if-then-else node at ((),0,0)', () => {
         const p0 = collections.list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( t0, p0, 0, 0 ) ;
-        const edit0 = new pnodeEdits.InsertChildrenEdit( [ ite0 ] ) ;
+        const edit0 = pnodeEdits.insertChildrenEdit( [ ite0 ], [] ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "Add an if expression as a new child to the root at position 0" ) ;
@@ -116,7 +116,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should replace a node at at ((0),0,1)', () => {
         const sel1 = new pnodeEdits.Selection( t1, collections.list(0), 0, 1 ) ;
         //console.log( sel1.toString() ) ;
-        const edit1 = new pnodeEdits.InsertChildrenEdit( [ c ] ) ;
+        const edit1 = pnodeEdits.insertChildrenEdit( [ c ], [] ) ;
         //console.log( edit1.toString() ) ;
         const editResult1 = edit1.applyEdit( sel1 ) ;
         //console.log( "Replace the guard with c" ) ;
@@ -140,7 +140,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
         const p1 = list<number>() ;
         const sel1 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
         // Insert 0 nodes
-        const edit = new pnodeEdits.InsertChildrenEdit( [ ] ) ;
+        const edit = pnodeEdits.insertChildrenEdit( [ ], [ [labels.mkExprPH()] ] ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         //console.log( "editResult0 is " + editResult.toString() ) ;
         editResult.choose(
@@ -152,13 +152,13 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
 } ) ;
 
-describe( 'pnodeEdits.DeleteEdit', () => {
+describe( 'pnodeEdits.replaceWithOneOf', () => {
 
     it( 'should delete a single node', () => {
         // Select the  first child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p1, 0, 1 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -173,7 +173,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         // Select the  second child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -188,7 +188,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         // Select the  first child of the if
         const empty = list<number>( ) ;
         const sel0 = new pnodeEdits.Selection( ite0, empty, 0, 1 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -200,12 +200,28 @@ describe( 'pnodeEdits.DeleteEdit', () => {
             },
             () => assert.check( false ) ) ; } ) ;
 
+    it( 'should back fill with a NoExprNode if possible', () => {
+        // Select the  first child of the if
+        const empty = list<number>( ) ;
+        const sel0 = new pnodeEdits.Selection( varDecl, empty, 2, 3 ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        //console.log( edit0.toString() ) ;
+        const editResult0 = edit0.applyEdit( sel0 ) ;
+        //console.log( "editResult0 is " + editResult0.toString() ) ;
+        editResult0.choose(
+            s => {
+                assert.checkEqual( "Selection( _root:vdecl( variable[a]() noType() noExpr())"
+                                            + " _path:() _anchor: 2 _focus: 3)",
+                                    s.toString() ) ;
+            },
+            () => assert.check( false ) ) ; } ) ;
+
     for( let k = 0 ; k <= 2 ; ++k ) {
         it( 'should delete zeros nodes', () => {
             // make an empty selection
             const p1 = list<number>( 1 ) ;
             const sel0 = new pnodeEdits.Selection( ite0, p1, k, k ) ;
-            const edit0 = new pnodeEdits.DeleteEdit( ) ;
+            const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
             //console.log( edit0.toString() ) ;
             const editResult0 = edit0.applyEdit( sel0 ) ;
             //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -221,7 +237,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         const p1 = list<number>( 1 ) ;
         // Select both children of the second child
         const sel0 = new pnodeEdits.Selection( ite0, p1, 0, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -238,7 +254,7 @@ describe( 'pnodeEdits.DeleteEdit', () => {
         const p1 = list<number>( ) ;
         // Select the first seq under the if node.
         const sel0 = new pnodeEdits.Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = new pnodeEdits.DeleteEdit( ) ;
+        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;

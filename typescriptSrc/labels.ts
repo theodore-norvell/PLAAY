@@ -176,7 +176,7 @@ module labels {
         }
 
         public toString():string {
-            return " variable["+this._val+"]" ;
+            return "variable["+this._val+"]" ;
         }
 
         public open() : Option<Label> {
