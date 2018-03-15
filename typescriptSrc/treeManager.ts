@@ -321,8 +321,9 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private deleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
-        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkExprPH()]] );
+        private standardBackFillList = [[labels.mkNoExpNd()], [labels.mkExprPH()], [labels.mkNoTypeNd()]] ;
+        private deleteEdit = pnodeEdits.replaceWithOneOf( [[] as Array<PNode> ].concat(this.standardBackFillList) );
+        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkExprPH()], [labels.mkNoTypeNd()]] );
 
         public delete(selection:Selection) : Option<Selection> {
             const nodes : Array<PNode> = selection.selectedNodes() ;
@@ -333,7 +334,7 @@ module treeManager {
         }
 
         public copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
+            const copyEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
             return copyEdit.applyEdit( trgSelection ) ;
         }
 
@@ -347,11 +348,11 @@ module treeManager {
 
             const selectionList : Array< [string, string, Selection] > = [];
 
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
-            const copyResult = copyEdit.applyEdit( trgSelection ) ;
-            copyResult.map( newSel => selectionList.push(['Replaced', "Replace", newSel]) ) ;
+            const pastEdit = pnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
+            const pasteResult = pastEdit.applyEdit( trgSelection ) ;
+            pasteResult.map( newSel => selectionList.push(['Pasted', "Paste", newSel]) ) ;
 
-            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
+            const moveEdit = pnodeEdits.moveEdit(srcSelection, this.standardBackFillList );
             const moveResult = moveEdit.applyEdit(trgSelection);
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;

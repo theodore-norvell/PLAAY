@@ -592,28 +592,17 @@ module pnodeEdits {
         }
     }
 
-    /** Copy all nodes in one selection over the selected nodes in another.
+    
+    /** Copy all nodes in the src selection over the selected nodes of the target selection.
      * The selection returned indicates the newly added nodes.
+     * If the src selection is empty, also try replacing with something from the backfill list.
     */
-    export class CopyEdit extends AbstractEdit<Selection> {
-        private _srcNodes : Array<PNode> ;
-
-        constructor(srcSelection:Selection) {
-            super();
-            this._srcNodes = srcSelection.selectedNodes() ;
-        }
-
-        public applyEdit(selection:Selection):Option<Selection> {
-            const opt = singleReplace( selection, this._srcNodes ) ;
-            if(  this._srcNodes.length === 0 ) {
-                // Copy of zero nodes may require backfilling.
-                return opt.recoverBy (
-                    () => singleReplace( selection, [labels.mkExprPH()] )
-                ) ;
-            } else {
-                return opt ;
-            }
-        }
+    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+        const srcNodes = srcSelection.selectedNodes() ;
+        if( srcNodes.length === 0 )
+            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ;
+        else
+            return insertChildrenEdit( srcNodes ) ;
     }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
@@ -623,24 +612,28 @@ module pnodeEdits {
      * The source and target selections must share the same tree. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
      */
-    export class MoveEdit extends AbstractEdit<Selection> {
+    class MoveEdit extends AbstractEdit<Selection> {
         private _srcSelection : Selection ;
+        private replacementNodes : Array<PNode> ;
 
-        constructor( srcSelection:Selection ) {
+        constructor( srcSelection:Selection, replacementNodes : Array<PNode> ) {
             super();
             this._srcSelection = srcSelection ;
+            this.replacementNodes = replacementNodes ;
         }
 
         public applyEdit( trgSelection:Selection ) : Option<Selection> {
             if( this._srcSelection.root() !== trgSelection.root() ) return none<Selection>() ;
             const newNodes = this._srcSelection.selectedNodes();
-            // Try filling in with the empty sequence first. Otherwise try some other defaults.
-            const opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
-            // TODO add more choices for replacement, such as noType, noExp, etc.
-            return opt.recoverBy(
-                () => doubleReplace( this._srcSelection, [labels.mkExprPH()], trgSelection, newNodes, true, false ) 
-            ) ;
+            return doubleReplace( this._srcSelection, this.replacementNodes, trgSelection, newNodes, true, false ) ;
         }
+    }
+
+    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+        // First try filling place where the source was with no nodes
+        const listOfReplacements = [[] as Array<PNode>].concat( backFillList ) ;
+        const moveEdits = listOfReplacements.map( replacements => new MoveEdit(srcSelection, replacements)) ;
+        return alt( moveEdits ) ;
     }
 
     /** Swap.  Swap two selections that share the same root.
