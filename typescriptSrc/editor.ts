@@ -648,6 +648,20 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            // Create Object Literal node: $
+            else if (e.shiftKey && e.which === 52)
+            {
+                createNode("objectliteral", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create accessor node: [
+            else if(!e.shiftKey && e.which === 219)
+            {
+                createNode("accessor", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
             return;
     }
 
