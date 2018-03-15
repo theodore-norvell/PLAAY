@@ -1,8 +1,8 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
-/// <reference path="assert.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );

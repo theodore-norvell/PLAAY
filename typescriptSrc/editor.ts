@@ -377,7 +377,8 @@ module editor {
 
     const keyDownHandler
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            console.log( ">>keydown handler") ;
+            console.log( ">>keydown handler." ) ;
+            console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
             {
@@ -487,28 +488,28 @@ module editor {
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
-            }else if (e.which === 38 && e.shiftKey ) // up arrow
+            }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
             {
                 treeMgr.moveFocusUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 40 && e.shiftKey) // down arrow
+            else if (e.which === 40 && e.shiftKey) // shifted down arrow
             {
                 treeMgr.moveFocusDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 37 && e.shiftKey) // left arrow
+            else if (e.which === 37 && e.shiftKey) // shifted left arrow
             {
                 treeMgr.moveFocusLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
-            else if (e.which === 39 && e.shiftKey) // right arrow
+            else if (e.which === 39 && e.shiftKey) // shifted right arrow
             {
                 treeMgr.moveFocusRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
@@ -528,6 +529,14 @@ module editor {
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
+            }
+            else if (! e.shiftKey && e.which === 13) // enter
+            {
+                const edit = new pnodeEdits.OpenLabelEdit() ;
+                const opt = edit.applyEdit( currentSelection ) ;
+                opt.map( (sel : Selection) => update( sel ) ) ;
+                e.stopPropagation() ;
+                e.preventDefault() ;
             }
             else 
             {
