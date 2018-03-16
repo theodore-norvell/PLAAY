@@ -40,7 +40,6 @@ digraph Depends {
    main -> userRelated ;
 
    pnodeEdits -> edits ;
-   pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
    seymour -> pnode ;
