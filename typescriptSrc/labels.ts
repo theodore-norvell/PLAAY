@@ -719,8 +719,8 @@ module labels {
         public static readonly kindConst : string = "CallLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) =>
-                c.isExprNode() );
+            return children.length > 0
+                && children.every( (c:PNode) => c.isExprNode() );
         }
 
         public toString():string {
@@ -774,8 +774,8 @@ module labels {
     export function mkClosedCallWorld( name : string, ...args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, false), args ) ; }
     
-    export function mkCall( ...args : Array<PNode> ) : PNode {
-        return make( CallLabel.theCallLabel, args ) ; }
+    export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {
+        return make( CallLabel.theCallLabel, [func].concat(args) ) ; }
     
     export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
         return make( new VarDeclLabel(false), [varNode, ttype, initExp ] ) ; }

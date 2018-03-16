@@ -203,7 +203,7 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
           else {
             firstEvalDone = true;
           }
-      }
+        }
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
@@ -299,6 +299,25 @@ describe ('Call Label', function(): void {
       const val = vm.getVal(emptyList);
       assert.check(val instanceof StringV);
       assert.check((val as StringV).getVal() === "136");
+    });
+});
+
+describe ('Call of built-in', function(): void {
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const root = mkCall(mkVar("+"), mkNumberLiteral("234"), mkNumberLiteral("432")) ;
+    const vm = makeStdVMS(root);
+
+    it('should call the add function if looked up as a variable', function() : void {
+      let firstEvalDone: boolean = false;
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( !vm.hasError() );
+      const val = vm.getFinalValue() ;
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "666");
     });
 });
 

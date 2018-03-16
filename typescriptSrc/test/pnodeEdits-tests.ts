@@ -1222,7 +1222,7 @@ describe( 'move without common parent', function() : void {
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
             s => {
-                assert.checkEqual( "Selection( _root:if( call()"
+                assert.checkEqual( "Selection( _root:if( call( expPH())"
                                     + " seq( string[b]() string[a]() string[b]())"
                                     + " seq( string[d]() string[e]()))"
                                     + " _path:( 1 ) _anchor: 1 _focus: 3)",
