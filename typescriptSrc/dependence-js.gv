@@ -35,7 +35,6 @@ digraph Depends {
    main -> userRelated ;
 
    pnodeEdits -> edits ;
-   pnodeEdits -> labels ;
    pnodeEdits -> pnode ;
 
    sharedMkHtml -> pnodeEdits ;

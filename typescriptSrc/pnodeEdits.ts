@@ -7,7 +7,6 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
-import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
