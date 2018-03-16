@@ -62,6 +62,8 @@ module treeManager {
                     return this.makeFalseBooleanLiteralNode(selection);
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);
+                case "objectliteral":
+                    return this.makeObjectLiteralNode(selection);
 
                 //variables & variable manipulation
                 case "var":
@@ -74,6 +76,8 @@ module treeManager {
                     return this.makeCallNode(selection);
                 case "worldcall":
                     return this.makeWorldCallNode(selection);
+                case "accessor":
+                    return this.makeAccessorNode(selection)
 
                 //misc
                 case "lambda":
@@ -119,6 +123,30 @@ module treeManager {
             const template = new Selection( whilenode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
+        }
+
+        //objects
+        private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
+            const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
+            const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+        }
+
+        //Object accessor
+        private makeAccessorNode(selection:Selection) : Option<Selection> {
+
+            const left = labels.mkExprPH();
+            const right = labels.mkExprPH();
+
+            const opt = pnode.tryMake(labels.AccessorLabel.theAccessorLabel, [left, right]);
+
+            const accessorNode = opt.first() ;
+
+            const template = new Selection( accessorNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
         }
 
         // If nodes
