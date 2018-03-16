@@ -290,51 +290,42 @@ module interpreter {
     }
 
     function callWorldStepper( vms : VMS ) : void {
-      const node = vms.getPendingNode();
-      const value = node.label().getVal();
-      if (vms.getStack().hasField(value)) {
-        const val : Value = vms.getStack().getField(value).getValue();
-        if (val instanceof BuiltInV) {
-          const stepper = val.getStepper();
-          const args : Array<Value> = [];
-          for (let i = 0; i < node.count(); i++) {
-            args.push(vms.getChildVal(i));
-          }          
-          stepper(vms, args);
-        } 
-        else if (val instanceof ClosureV) {
-          const lambda = val.getLambdaNode();
-          let args: Value[] = [];
-          const paramlist = lambda.child(0);
-          for (let i = 0; i < node.count(); i++) {
-            args.push(vms.getChildVal(i));
-          }
-          processAndPushArgs(args, paramlist, lambda.child(2), vms);
+        const node = vms.getPendingNode();
+        const fieldName = node.label().getVal();
+        if (vms.getStack().hasField(fieldName)) {
+            const functionValue : Value = vms.getStack().getField(fieldName).getValue();
+            const args : Array<Value> = [];
+            for (let i = 0; i < node.count(); i++) {
+                args.push(vms.getChildVal(i)); }
+            completeCall( vms, functionValue, args ) ;
         } 
         else {
-          vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
+            vms.reportError("No variable named " + fieldName + "is in scope.");
         } 
-      } 
-      else {
-        vms.reportError("No variable named " + value + "is in scope.");
-      } 
     }
 
     function callStepper(vms: VMS) : void {
-      const node = vms.getPendingNode();
-      if (node.child(0).label() instanceof labels.LambdaLabel) {
-        const lambda = node.child(0);
+        const node = vms.getPendingNode();
+        const functionValue = vms.getChildVal(0) ;
         let args: Value[] = [];
-        const paramlist = lambda.child(0);
         for (let i = 1; i < node.count(); i++) {
-          args.push(vms.getChildVal(i));
-        }
-        processAndPushArgs(args, paramlist, lambda.child(2), vms);  
-      }
-      else {
-        vms.reportError("First child should be a lambda function.");
-        return;
-      } 
+            args.push(vms.getChildVal(i)); }
+        completeCall( vms, functionValue, args ) ;
+    }
+
+    function completeCall( vms : VMS, functionValue : Value, args : Array<Value> ) {
+        if (functionValue instanceof BuiltInV) {
+            const stepper = functionValue.getStepper();
+            stepper(vms, args);
+        } 
+        else if (functionValue instanceof ClosureV) {
+            const lambda = functionValue.getLambdaNode();
+            const paramlist = lambda.child(0);
+            processAndPushArgs(args, paramlist, lambda.child(2), vms);
+        } 
+        else {
+            vms.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
+        } 
     }
 
     function processAndPushArgs(args: Value[], paramlist: PNode, root: PNode, vms: VMS) {
