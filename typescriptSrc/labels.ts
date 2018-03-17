@@ -549,6 +549,78 @@ module labels {
     }
     pnode.registry[ WhileLabel.kindConst ] = WhileLabel ;
 
+    /** Object Literal expressions */
+    export class ObjectLiteralLabel extends ExprLabel {
+        
+        public static readonly kindConst : string = "ObjectLiteralLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.every( (c:PNode) => c.isExprNode() ) ;
+        }
+
+        public toString():string {
+            return "object";
+        }
+
+        /*private*/
+        constructor() {
+            super();
+        }
+
+        // Singleton
+        public static readonly theObjectLiteralLabel = new ObjectLiteralLabel();
+        
+        public hasVerticalLayout() : boolean {return true;}
+        
+        public hasDropZonesAt(start : number): boolean { return true; }
+
+        public toJSON() : object {
+            return { kind: ObjectLiteralLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : WhileLabel {
+            return ObjectLiteralLabel.theObjectLiteralLabel ;
+        }
+            
+        public kind() : string { return ObjectLiteralLabel.kindConst ; }
+    }
+    pnode.registry[ ObjectLiteralLabel.kindConst ] = ObjectLiteralLabel ;
+
+    /** Assignments.  */
+    export class AccessorLabel extends ExprLabel {
+
+        public static readonly kindConst : string = "AccessorLabel" ;
+        
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 2) return false ;
+            if( ! children[0].isExprNode()) return false ;
+            if( ! children[1].isExprNode()) return false ;
+            return true;
+        }
+
+        public toString():string {
+            return "accessor";
+        }
+
+        private constructor() {
+            super();
+        }
+
+        // Singleton
+        public static theAccessorLabel = new AccessorLabel();
+
+        public toJSON() : object {
+            return { kind: AccessorLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : AccessorLabel {
+            return AccessorLabel.theAccessorLabel ;
+        }
+            
+        public kind() : string { return AccessorLabel.kindConst ; }
+    }
+    pnode.registry[ AccessorLabel.kindConst ] = AccessorLabel ;
+
     /** An indication that an optional type label is not there. */
     export class NoTypeLabel extends TypeLabel {
         // TODO: Should this really extend TypeLabel?
@@ -719,8 +791,8 @@ module labels {
         public static readonly kindConst : string = "CallLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) =>
-                c.isExprNode() );
+            return children.length > 0
+                && children.every( (c:PNode) => c.isExprNode() );
         }
 
         public toString():string {
@@ -774,8 +846,8 @@ module labels {
     export function mkClosedCallWorld( name : string, ...args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, false), args ) ; }
     
-    export function mkCall( ...args : Array<PNode> ) : PNode {
-        return make( CallLabel.theCallLabel, args ) ; }
+    export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {
+        return make( CallLabel.theCallLabel, [func].concat(args) ) ; }
     
     export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
         return make( new VarDeclLabel(false), [varNode, ttype, initExp ] ) ; }
