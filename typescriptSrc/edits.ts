@@ -100,10 +100,11 @@ module edits {
     *  Given `var z = alt( v, w, x, y)` z tries each edit in order until one is successfull
     *  or all have failed.
     */
-    export function alt<A>( first : Edit<A>, ...rest : Edit<A>[] ) : Edit<A> {
+    export function alt<A>( edits : Edit<A>[] ) : Edit<A> {
+        if( edits.length == 0 ) return testEdit( (a:A) => false ) ;
         const combine = (acc : Edit<A>, current : Edit<A> ) =>
                         new AlternateEdit<A>( acc, current) ;
-        return rest.reduce( combine, first) ; }
+        return edits.reduce( combine ) ; }
         
     class IdentityEdit<A> extends AbstractEdit<A> {
         
@@ -125,7 +126,7 @@ module edits {
 
     /** An edit that optionally applies another edit. */
     export function optionally<A>( edit : Edit<A> ) : Edit<A> {
-        return alt( edit, id<A>() ) ;
+        return alt( [edit, id<A>()] ) ;
     }
 
     class TestEdit<A> extends AbstractEdit<A> {

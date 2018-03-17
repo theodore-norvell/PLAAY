@@ -38,7 +38,7 @@ module treeManager {
 
             const placeholder = labels.mkExprPH();
             const sel = new Selection(this.root, collections.list(0), 0, 1);
-            const edit = new pnodeEdits.InsertChildrenEdit([placeholder]);
+            const edit = pnodeEdits.insertChildrenEdit([placeholder]);
             return edit.applyEdit(sel);
 
         }
@@ -62,6 +62,8 @@ module treeManager {
                     return this.makeFalseBooleanLiteralNode(selection);
                 case "nullliteral":
                     return this.makeNullLiteralNode(selection);
+                case "objectliteral":
+                    return this.makeObjectLiteralNode(selection);
 
                 //variables & variable manipulation
                 case "var":
@@ -74,6 +76,8 @@ module treeManager {
                     return this.makeCallNode(selection);
                 case "worldcall":
                     return this.makeWorldCallNode(selection);
+                case "accessor":
+                    return this.makeAccessorNode(selection)
 
                 //misc
                 case "lambda":
@@ -105,7 +109,7 @@ module treeManager {
         private makeVarNode(selection:Selection, text : string = "") : Option<Selection> {
 
             const varnode = labels.mkVar(text) ;
-            const edit = new pnodeEdits.InsertChildrenEdit( [varnode] ) ;
+            const edit = pnodeEdits.insertChildrenEdit( [varnode] ) ;
             return edit.applyEdit(selection) ;
         }
 
@@ -121,6 +125,30 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        //objects
+        private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
+            const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
+            const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+        }
+
+        //Object accessor
+        private makeAccessorNode(selection:Selection) : Option<Selection> {
+
+            const left = labels.mkExprPH();
+            const right = labels.mkExprPH();
+
+            const opt = pnode.tryMake(labels.AccessorLabel.theAccessorLabel, [left, right]);
+
+            const accessorNode = opt.first() ;
+
+            const template = new Selection( accessorNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
         // If nodes
         private makeIfNode(selection:Selection) : Option<Selection> {
 
@@ -133,7 +161,7 @@ module treeManager {
             // console.log( "makeIfNode: Making template") ;
             const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             // console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
@@ -145,7 +173,7 @@ module treeManager {
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
 
             const template = new Selection( lambdanode, list(2), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
         }
 
@@ -159,7 +187,7 @@ module treeManager {
             const assignnode = opt.first() ;
 
             const template = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
 
         }
@@ -173,7 +201,7 @@ module treeManager {
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
             const template = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
 
         }
@@ -188,14 +216,14 @@ module treeManager {
             {
                 worldcallnode = labels.mkCallWorld( name, left, right);
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-                const edit = replaceOrEngulfTemplateEdit( template ) ;
+                const edit = replaceOrEngulfTemplateEdit( template  ) ;
                 return edit.applyEdit(selection);
             }
             else
             {
                 worldcallnode = labels.mkClosedCallWorld(name, left, right);
                 const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-                const edit = replaceOrEngulfTemplateEdit( template ) ;
+                const edit = replaceOrEngulfTemplateEdit( template  ) ;
                 const result =  edit.applyEdit(selection);
                 // console.log( "<< result of world call is " + result.toString() ) ;
                 return result ;
@@ -208,21 +236,21 @@ module treeManager {
             const callnode = labels.mkCall(func) ;
 
             const template = new Selection( callnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const edit = replaceOrEngulfTemplateEdit( template  ) ;
             return edit.applyEdit(selection);
         }
 
         private makeNoTypeNode(selection:Selection) : Option<Selection> {
 
             const typenode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([typenode]);
+            const edit = pnodeEdits.insertChildrenEdit([typenode]);
             return edit.applyEdit(selection);
         }
 
         private makeStringLiteralNode(selection:Selection, text : string = "hello") : Option<Selection> {
 
             const literalnode = labels.mkStringLiteral(text) ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -230,19 +258,19 @@ module treeManager {
 
             const literalnode = labels.mkNumberLiteral(text) ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkNoTypeNd() ;
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -252,7 +280,7 @@ module treeManager {
 
             const literalnode = opt.first() ;
 
-            const edit = new pnodeEdits.InsertChildrenEdit([literalnode]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -321,14 +349,21 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
+        private standardBackFillList = [[labels.mkNoExpNd()], [labels.mkExprPH()], [labels.mkNoTypeNd()]] ;
+        private deleteEdit = pnodeEdits.replaceWithOneOf( [[] as Array<PNode> ].concat(this.standardBackFillList) );
+        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkExprPH()], [labels.mkNoTypeNd()]] );
+
         public delete(selection:Selection) : Option<Selection> {
-            const edit = new pnodeEdits.DeleteEdit();
-            return edit.applyEdit(selection);
+            const nodes : Array<PNode> = selection.selectedNodes() ;
+            if(nodes.length == 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
+                return this.otherDeleteEdit.applyEdit( selection ) ; }
+            else {
+                return this.deleteEdit.applyEdit(selection); }
         }
 
-        public copy( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
-            return copyEdit.applyEdit( trgSelection ) ;
+        public paste( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+            const pasteEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
+            return pasteEdit.applyEdit( trgSelection ) ;
         }
 
         public swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
@@ -337,15 +372,15 @@ module treeManager {
         }
 
         /** Create a list of up to three possible actions. */
-        public moveCopySwapEditList (srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
+        public pasteMoveSwapEditList(srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
 
             const selectionList : Array< [string, string, Selection] > = [];
 
-            const copyEdit = new pnodeEdits.CopyEdit(srcSelection);
-            const copyResult = copyEdit.applyEdit( trgSelection ) ;
-            copyResult.map( newSel => selectionList.push(['Replaced', "Replace", newSel]) ) ;
+            const pasteEdit = pnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
+            const pasteResult = pasteEdit.applyEdit( trgSelection ) ;
+            pasteResult.map( newSel => selectionList.push(['Pasted', "Paste", newSel]) ) ;
 
-            const moveEdit = new pnodeEdits.MoveEdit(srcSelection);
+            const moveEdit = pnodeEdits.moveEdit(srcSelection, this.standardBackFillList );
             const moveResult = moveEdit.applyEdit(trgSelection);
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;

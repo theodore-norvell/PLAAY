@@ -47,13 +47,16 @@ module labels {
         public abstract toJSON() : object ;
 
         /** Is this label a label for an expression node? */
-        public abstract isExprNode() : boolean ;
+        public isExprNode() : boolean { return false }
+
+        /** Is this label a label for a variable declaration node? */
+        public isVarDeclNode() : boolean  { return false }
 
         /** Is this label a label for an expression sequence node? */
-        public abstract isExprSeqNode() : boolean ;
+        public isExprSeqNode() : boolean  { return false }
 
         /** Is this label a label for a type node node? */
-        public abstract isTypeNode() : boolean ;
+        public isTypeNode() : boolean  { return false }
 
         /** Return true if the node is a placeholder. Override this method in subclasses that are placeholders. */
         public isPlaceHolder() : boolean { return false; }
@@ -78,12 +81,6 @@ module labels {
         }
 
         public isExprNode() : boolean { return true ; }
-
-        public isExprSeqNode()  : boolean { return false ; }
-
-        public isTypeNode() : boolean { return false ; }
-
-        public abstract toJSON() : object ;
     }
 
     /** Abstract base class for all type labels.  */
@@ -96,13 +93,7 @@ module labels {
             super() ;
         }
 
-        public isExprNode() : boolean { return false ; }
-
-        public isExprSeqNode() : boolean  { return false ; }
-
         public isTypeNode() : boolean  { return true ; }
-
-        public abstract toJSON() : object ;
     }
 
     abstract class ExprLabelWithString extends ExprLabel {
@@ -132,7 +123,8 @@ module labels {
         public static readonly kindConst : string = "ExprSeqLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) => c.isExprNode() ) ;
+            return children.every( (c:PNode) => 
+                        c.isExprNode() || c.isVarDeclNode() ) ;
         }
 
         public toString():string {
@@ -144,11 +136,7 @@ module labels {
             super() ;
         }
 
-        public isExprNode() : boolean { return false ; }
-
         public isExprSeqNode() : boolean { return true ; }
-
-        public isTypeNode() : boolean { return false ; }
 
         public hasDropZonesAt(start : number): boolean { return true; }
 
@@ -176,7 +164,7 @@ module labels {
         }
 
         public toString():string {
-            return " variable["+this._val+"]" ;
+            return "variable["+this._val+"]" ;
         }
 
         public open() : Option<Label> {
@@ -204,7 +192,7 @@ module labels {
     pnode.registry[VariableLabel.kindConst] = VariableLabel ;
 
     /** Variable declaration nodes. */
-    export class VarDeclLabel extends ExprLabel {
+    export class VarDeclLabel extends AbstractLabel {
         public static readonly kindConst : string = "VarDeclLabel" ;
 
         protected _isConst : boolean ;
@@ -226,6 +214,9 @@ module labels {
             super() ;
             this._isConst = isConst ;
         }
+
+        /** Is this label a label for a variable declaration node? */
+        public isVarDeclNode() : boolean  { return true ; }
 
         public toJSON() : object {
             return { kind: VarDeclLabel.kindConst, isConst: this._isConst } ;
@@ -375,14 +366,6 @@ module labels {
             super();
         }
 
-        public isExprNode() : boolean { return false ; }
-
-        public isExprSeqNode() : boolean { return false ; }
-
-        public isTypeNode() : boolean { return false ; }
-
-        public isPlaceHolder() : boolean { return true; }
-
         // Singleton
         public static theNoExprLabel = new NoExprLabel();
 
@@ -441,7 +424,7 @@ module labels {
         public static readonly kindConst : string = "ParameterListLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) : boolean => c.label() instanceof VarDeclLabel );
+            return children.every( (c:PNode) : boolean => c.isVarDeclNode() );
         }
 
         public toString():string {
@@ -455,12 +438,6 @@ module labels {
 
         // Singleton
         public static theParameterListLabel = new ParameterListLabel();
-
-        public isExprNode() : boolean { return false ; }
-
-        public isExprSeqNode() : boolean { return false ; }
-
-        public isTypeNode() : boolean { return false ; }
 
         public hasDropZonesAt(start : number): boolean { return true; }
 
@@ -548,6 +525,79 @@ module labels {
         public kind() : string { return WhileLabel.kindConst ; }
     }
     pnode.registry[ WhileLabel.kindConst ] = WhileLabel ;
+
+    /** Object Literal expressions */
+    export class ObjectLiteralLabel extends ExprLabel {
+        
+        public static readonly kindConst : string = "ObjectLiteralLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.every( (c:PNode) => 
+                    c.isExprNode() || c.isVarDeclNode() ) ;
+        }
+
+        public toString():string {
+            return "object";
+        }
+
+        /*private*/
+        constructor() {
+            super();
+        }
+
+        // Singleton
+        public static readonly theObjectLiteralLabel = new ObjectLiteralLabel();
+        
+        public hasVerticalLayout() : boolean {return true;}
+        
+        public hasDropZonesAt(start : number): boolean { return true; }
+
+        public toJSON() : object {
+            return { kind: ObjectLiteralLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : WhileLabel {
+            return ObjectLiteralLabel.theObjectLiteralLabel ;
+        }
+            
+        public kind() : string { return ObjectLiteralLabel.kindConst ; }
+    }
+    pnode.registry[ ObjectLiteralLabel.kindConst ] = ObjectLiteralLabel ;
+
+    /** Assignments.  */
+    export class AccessorLabel extends ExprLabel {
+
+        public static readonly kindConst : string = "AccessorLabel" ;
+        
+        public isValid( children : Array<PNode> ) : boolean {
+            if( children.length !== 2) return false ;
+            if( ! children[0].isExprNode()) return false ;
+            if( ! children[1].isExprNode()) return false ;
+            return true;
+        }
+
+        public toString():string {
+            return "accessor";
+        }
+
+        private constructor() {
+            super();
+        }
+
+        // Singleton
+        public static theAccessorLabel = new AccessorLabel();
+
+        public toJSON() : object {
+            return { kind: AccessorLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : AccessorLabel {
+            return AccessorLabel.theAccessorLabel ;
+        }
+            
+        public kind() : string { return AccessorLabel.kindConst ; }
+    }
+    pnode.registry[ AccessorLabel.kindConst ] = AccessorLabel ;
 
     /** An indication that an optional type label is not there. */
     export class NoTypeLabel extends TypeLabel {
@@ -719,8 +769,8 @@ module labels {
         public static readonly kindConst : string = "CallLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) =>
-                c.isExprNode() );
+            return children.length > 0
+                && children.every( (c:PNode) => c.isExprNode() );
         }
 
         public toString():string {
@@ -774,11 +824,14 @@ module labels {
     export function mkClosedCallWorld( name : string, ...args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, false), args ) ; }
     
-    export function mkCall( ...args : Array<PNode> ) : PNode {
-        return make( CallLabel.theCallLabel, args ) ; }
+    export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {
+        return make( CallLabel.theCallLabel, [func].concat(args) ) ; }
     
     export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
         return make( new VarDeclLabel(false), [varNode, ttype, initExp ] ) ; }
+    
+    export function mkConstDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
+        return make( new VarDeclLabel(true), [varNode, ttype, initExp ] ) ; }
 
     export function mkParameterList( exprs : Array<PNode> ) : PNode {
         return make( ParameterListLabel.theParameterListLabel, exprs ) ; }
