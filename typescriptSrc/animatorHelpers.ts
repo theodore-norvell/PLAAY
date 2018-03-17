@@ -37,27 +37,42 @@ module animatorHelpers
     const GHOSTWHITE : string = "rgb(248, 248, 255)";
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
+    const RED : string = "rgb(200, 0, 0)";
 
-    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
+                                     valueMap : ValueMap | null, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes from being drawn.
+        if((valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath)))
+            && !currentPath.equals(errorPath)) //prevent children of mapped nodes or errors from being drawn.
         {
             for(let i = 0; i < node.count(); i++)
             {
-                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap);
+                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap, error, errorPath);
             }
         }
         const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        buildSVG(node, children, el, highlightMe, currentPath, valueMap);
+        const isError : boolean = currentPath.equals(errorPath);
+        buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
     }
 
     //I assume element is a child of parent
-    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>, valueMap : ValueMap | null) : void
+    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
+                      valueMap : ValueMap | null, isError : boolean, error : string) : void
     {
         if(valueMap !== null && valueMap.isMapped(myPath))
         {
             buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
+            return;
+        }
+        if(isError)
+        {
+            if(error === "")
+            {
+                error = "Unknown error";
+            }
+            const text : svg.Text = element.text( "Error: " + error );
+            makeErrorSVG(element, text);
             return;
         }
         let drawHighlightOn : svg.G = element;
@@ -679,6 +694,19 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeErrorSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(WHITE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: RED, opacity: 1, width: 1.5});
     }
 
     function makeNullLiteralSVG(base : svg.Container) : void

@@ -101,12 +101,12 @@ module vms{
         }
 
         public getRoot() : PNode {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getRoot() ;
         }
 
         public isReady() : boolean {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().isReady() ;
         }
 
@@ -116,12 +116,12 @@ module vms{
         }
 
         public getPending() : List<number> {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getPending() ;
         }
 
         public getPendingNode() : PNode {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getPendingNode() ;
         }
 
@@ -136,36 +136,36 @@ module vms{
         }
 
         public getValMap() : ValueMap {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getValMap() ;
         }
 
         public isMapped( path : List<number> ) : boolean {
-            return this.canAdvance() && this.evalStack.top().isMapped( path ) ;
+            return this.evalStack.notEmpty() && this.evalStack.top().isMapped( path ) ;
         }
         
         public getVal( path : List<number> ) : Value {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getVal( path ) ;
         }
 
         public isChildMapped( childNum : number ) : boolean {
-            return this.canAdvance()
+            return this.evalStack.notEmpty()
                 && this.evalStack.top().isChildMapped( childNum ) ;
         }
 
         public getChildVal( childNum : number ) : Value {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getChildVal( childNum ) ;
         }
 
         public hasExtraInformation(  ) : boolean {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().hasExtraInformation( ) ;
         }
 
         public getExtraInformation( ) : {} {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getExtraInformation( ) ;
         }
 
@@ -180,7 +180,7 @@ module vms{
         }
 
         public getStack() : VarStack {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getStack() ;
         }
 
