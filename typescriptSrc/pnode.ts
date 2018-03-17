@@ -64,6 +64,9 @@ module pnode {
         /** Is this label a label for an expression node? */
         isExprNode : () => boolean ;
 
+        /** Is this label a label for an variable declaration node? */
+        isVarDeclNode : () => boolean ;
+
         /** Is this label a label for an expression sequence node? */
         isExprSeqNode : () => boolean ;
 
@@ -211,6 +214,8 @@ module pnode {
         }
 
         public isExprNode():boolean { return this._label.isExprNode() ; }
+
+        public isVarDeclNode():boolean { return this._label.isVarDeclNode() ; }
 
         public isExprSeqNode():boolean  { return this._label.isExprSeqNode() ; }
 
