@@ -80,8 +80,14 @@ module animator
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
-        stack.dmove(animationBBox.width + 300, 0);
-        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 100);
+        let stackOffset : number = 400;
+        //keep stack spacing consistent unless animation too large
+        if (stackOffset < animationBBox.width){
+            stackOffset = animationBBox.width + 100;
+        }
+        stack.dmove(stackOffset, 0);
+        
+        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 50);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -107,8 +113,13 @@ module animator
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
-        stack.dmove(animationBBox.width + 300, 0);
-        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 10);
+        let stackOffset : number = 400;
+        //keep stack spacing consistent unless animation too large
+        if (stackOffset < animationBBox.width){
+            stackOffset = animationBBox.width + 100;
+        }
+        stack.dmove(stackOffset, 0);
+        animatorArea.size(animationBBox.width + stackBBox.width + 500, animationBBox.height + stackBBox.height + 50);
        
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);

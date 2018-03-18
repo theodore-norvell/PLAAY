@@ -55,50 +55,72 @@ module animatorHelpers
     }
 
     export function buildStack(stk : vms.EvalStack, el : svg.Container){
-        const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
+        //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
         let y = 0;
         let padding : number = 15;
         
         if (stk.notEmpty()){
             for(let i = 0; i < stk.getSize(); i++){
                 let vars : vms.VarStack = stk.get(i).getStack();
-                //let valMap : vms.ValueMap = stk.get(i).getValMap();
-                //const root : PNode = stk.get(i).getPendingNode();
-                //traverseAndBuild(root, stkGroup, Nil<number>(),  Cons(-1, Nil<number>()), valMap);
-                while (!vars.isEmpty()){
+                let varstackSize : number = vars.getAllFrames().length;
+                
+                for (let k = 0; k < varstackSize - 1; k++){
+                    let evalGroup : svg.G = el.group();
                     let v = vars as vms.NonEmptyVarStack;
                     const obj : ObjectI = v.getTop();
                     const numFields : number = obj.numFields();
                     for (let j = 0; j < numFields; j++){
-                        if (j == 0){
+                        if (j == 0 && k != 0){
                             y = y + padding;
                         }
                         const field : vms.FieldI = obj.getFieldByNumber(j);
-                        const subGroup : svg.G = stkGroup.group();
-                        const text : svg.Text = subGroup.text(field.getName() + " := " + field.getValue().toString());
-                        //const name : svg.Text = subGroup.text(field.getName());
-                        //const val : svg.Text = subGroup.text(field.getValue().toString());
-                        //makeStackVar(subGroup, name, val);
-                        makeStringLiteralSVG(subGroup, text);
-                        //buildSVG(root, guardbox, stkGroup, false, Nil<number>(), valMap);
-                        if (j == numFields - 1){
-                            const X1 = subGroup.bbox().x;
-                            const X2 = subGroup.bbox().x2;
-                            const y1 = subGroup.bbox().height;
-                            subGroup.size(subGroup.width(), subGroup.height() + 2*padding);
-                            const line = subGroup.line(X1, y1 + padding, X2, y1 + padding);
-                            line.stroke({color: MAUVE.toString(), opacity: 1, width: 2});
-                            
-                        }
-                        y = y + subGroup.bbox().height;
-                        subGroup.dmove(10, y);
-                        stkGroup.size(findWidthOfLargestChild(stkGroup.children()) + 50, stkGroup.bbox().height);
-                        el.size(findWidthOfLargestChild(el.children()) + 50, el.bbox().height);
+                        const subGroup : svg.G = evalGroup.group();
+                        const name : svg.Text = subGroup.text(field.getName());
+                        const value : svg.Text = subGroup.text(field.getValue().toString());
+                        makeVarStackElement(subGroup, name, value);      
+                                      
+                        y += subGroup.bbox().height + 5;
+                        subGroup.dmove(10, y + 5);
                     }
                     vars = v.getNext();
+                    if (evalGroup.children().length != 0){
+                        makeStackFrameElement(el, evalGroup);
+                    }
                 }
             }
         }
+    }
+
+    function makeVarStackElement(base : svg.Container, name : svg.Text, value : svg.Text) : void
+    {
+        let x : number = 0;
+        let padding : number = 20;
+
+        name.fill(GHOSTWHITE.toString());
+        value.fill(ORANGE.toString());
+        let valueBox : svg.G = base.group();
+        valueBox.add(value);
+        x += name.bbox().width + padding;
+        if (x < 35){
+            x = 35;
+        }
+        valueBox.dmove(x, 0);
+        const bounds : svg.BBox = value.bbox();
+        const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(1);
+        outline.fill({opacity: 0});
+        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
+    }
+
+    function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(2);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
 
     //I assume element is a child of parent
@@ -721,6 +743,17 @@ module animatorHelpers
             {
                 result = width;
             }
+        }
+        return result;
+    }
+
+    function findCombinedHeight(arr : svg.Element[]) : number
+    {
+        let result : number = 0;
+        for(let i = 0; i < arr.length; i++)
+        {
+            result = result + arr[i].bbox().height;
+            
         }
         return result;
     }
