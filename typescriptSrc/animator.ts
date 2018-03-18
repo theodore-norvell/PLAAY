@@ -49,16 +49,18 @@ module animator
     const evaluationMgr = new EvaluationManager();
     // let turtle : boolean = false ;
     let highlighted = false;
+    let transactionMgr : TransactionManager;
 
     const turtleWorld = new seymour.TurtleWorld();
 	
     export function executingActions() : void 
 	{
-		$("#play").click(evaluate);
-		$("#advance").click(advanceOneStep);
-		// $("#multistep").click(multiStep);
-		// $("#run").click(stepTillDone);
-		$("#edit").click(switchToEditor);
+        $("#play").click(evaluate);
+        $("#advance").click(advanceOneStep);
+        $("#evalUndo").click(undoStep);
+        $("#evalRedo").click(redoStep);
+        $("#run").click(stepTillDone);
+        $("#edit").click(switchToEditor);
 	}
 
     function evaluate() : void
@@ -66,10 +68,11 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        const manager = new TransactionManager() ;
+        transactionMgr = new TransactionManager() ;
         // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
-                                  libraries, manager );
+                                  libraries, transactionMgr );
+        transactionMgr.checkpoint();
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
@@ -87,7 +90,7 @@ module animator
         }
         stack.dmove(stackOffset, 0);
         
-        animatorArea.size(animationBBox.width + stackBBox.width + 300, animationBBox.height + stackBBox.height + 50);
+        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -95,32 +98,16 @@ module animator
     function advanceOneStep() : void
     {
         evaluationMgr.next();
-        $("#stackVal").empty();
-        $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        const stack : svg.G = animatorArea.group();
-        const animation : svg.G = animatorArea.group().move(10, 10);
-        let toHighlight : List<number>;
-        if (evaluationMgr.getVMS().isReady() ) 
+        transactionMgr.checkpoint();
+        if(!evaluationMgr.getVMS().canAdvance())
         {
-            toHighlight = evaluationMgr.getVMS().getPending();
+            if(evaluationMgr.getVMS().hasError())
+            {
+                alert("Error: " + evaluationMgr.getVMS().getError());
+            }
+            return;
         }
-        else
-        {
-            toHighlight = Cons(-1, Nil<number>());
-        }
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
-        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
-        const animationBBox : svg.BBox = animation.bbox();
-        const stackBBox : svg.BBox = stack.bbox();
-        let stackOffset : number = 400;
-        //keep stack spacing consistent unless animation too large
-        if (stackOffset < animationBBox.width){
-            stackOffset = animationBBox.width + 100;
-        }
-        stack.dmove(stackOffset, 0);
-        animatorArea.size(animationBBox.width + stackBBox.width + 500, animationBBox.height + stackBBox.height + 50);
-       
+        buildSVG();
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);
         // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
@@ -139,23 +126,72 @@ module animator
         //     highlighted = false;
         // }
     }
+    
 
-    // function stepTillDone() : void 
-	// {
-    //     evaluationMgr.next();
-    //     const STEPLIMIT = 10000 ;
-    //     for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
-    //     {
-    //         evaluationMgr.next();
-	// 	}
-    //     $("#vms").empty()
-	// 		.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-    //     const root = $("#vms :first-child").get(0);
-    //     const list : List<number>= evaluationMgr.getVMS().getPending();
-    //     const map : ValueMap = evaluationMgr.getVMS().getValMap();
-    //     findInMap(root, map);
-    //     highlight($(root), list);
-    // }
+    function buildSVG() : void
+    {
+        $("#stackVal").empty();
+        $("#vms").empty().append("<div id='svgContainer'></div>");
+        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animation : svg.G = animatorArea.group().move(10, 10);
+        const stack : svg.G = animatorArea.group();
+
+        let toHighlight : List<number>;
+        if (evaluationMgr.getVMS().isReady() ) 
+        {
+            toHighlight = evaluationMgr.getVMS().getPending();
+        }
+        else
+        {
+            toHighlight = Cons(-1, Nil<number>());
+        }
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
+        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
+        const animationBBox : svg.BBox = animation.bbox();
+        const stackBBox : svg.BBox = stack.bbox();
+        let stackOffset : number = 400;
+        let heightOffset : number = 100;
+        //keep stack spacing consistent unless animation too large
+        if (stackOffset < animationBBox.width){
+            stackOffset = animationBBox.width + 100;
+        }
+        if (heightOffset < (stackBBox.height - animationBBox.height)){
+            heightOffset = stackBBox.height - animationBBox.height + 100;
+        }
+
+        stack.dmove(stackOffset, 0);
+        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + heightOffset);
+    }
+
+    function undoStep() : void
+    {
+        if(!transactionMgr.canUndo())
+        {
+            return;
+        }
+        transactionMgr.undo();
+        buildSVG();
+    }
+
+    function redoStep() : void
+    {
+        if(!transactionMgr.canRedo())
+        {
+            return;
+        }
+        transactionMgr.redo();
+        buildSVG();    }
+
+    function stepTillDone() : void 
+	{
+        const STEPLIMIT = 10000 ;
+        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
+        {
+            evaluationMgr.next();
+            transactionMgr.checkpoint();
+		}
+        buildSVG();
+    }
 
     // function multiStep() : void
 	// {

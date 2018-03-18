@@ -203,7 +203,7 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
           else {
             firstEvalDone = true;
           }
-      }
+        }
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
@@ -271,35 +271,6 @@ describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void 
     assert.check(val instanceof StringV);
     assert.check((val as StringV).getVal() === "1");
   });
-});
-
-describe ('Call Label', function(): void {
-    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
-    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
-    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
-    const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
-    const vm = makeStdVMS(root);
-
-    it('should evaluate to a StringV equaling 136', function() : void {
-      let firstEvalDone: boolean = false;
-      let evalDone: boolean = false;
-      while (!evalDone) {
-        vm.advance();
-        if (vm.isDone()) {
-          if (firstEvalDone) {
-            evalDone = true;
-          }
-          else {
-            firstEvalDone = true;
-          }
-        }
-      }
-      assert.check(vm.isMapped(emptyList));
-      const val = vm.getVal(emptyList);
-      assert.check(val instanceof StringV);
-      assert.check((val as StringV).getVal() === "136");
-    });
 });
 
 describe( 'CallWorldLabel - addition', function() : void {
@@ -921,6 +892,81 @@ describe( 'CallWorldLabel - logical or', function() : void {
       assert.check( (val as StringV).getVal() === "false");
   } );
 } ) ;
+
+
+describe ('Call Label with closure', function(): void {
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+    const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
+    const vm = makeStdVMS(root);
+
+    it('should evaluate to a StringV equaling 136', function() : void {
+      let firstEvalDone: boolean = false;
+      let evalDone: boolean = false;
+      while (!evalDone) {
+        vm.advance();
+        if (vm.isDone()) {
+          if (firstEvalDone) {
+            evalDone = true;
+          }
+          else {
+            firstEvalDone = true;
+          }
+        }
+      }
+      assert.check(vm.isMapped(emptyList));
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "136");
+    });
+});
+
+describe ('Call of built-in', function(): void {
+    const root = mkCall(mkVar("+"), mkNumberLiteral("234"), mkNumberLiteral("432")) ;
+    const vm = makeStdVMS(root);
+
+    it('should call the add function if looked up as a variable', function() : void {
+        while( vm.canAdvance() ) {
+            vm.advance(); }
+        assert.check( !vm.hasError() );
+        const val = vm.getFinalValue() ;
+        assert.check(val instanceof StringV);
+        assert.check((val as StringV).getVal() === "666");
+    });
+});
+
+describe ('Call node', function(): void {
+
+    it('should report an error if the first argument is a string', function() : void {
+
+        const root = mkCall(labels.mkStringLiteral("f"), mkNumberLiteral("234"), mkNumberLiteral("432")) ;
+        const vm = makeStdVMS(root);
+        while( vm.canAdvance() ) {
+            vm.advance(); }
+        assert.check( vm.hasError() );
+        const message = vm.getError() ;
+        assert.checkEqual( message,
+            "Attempt to call a value that is neither a closure nor a built-in function." );
+    });
+
+    it('should report an error if the number of arguments does not match the number of parameters', function() : void {
+        const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+        const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+        const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+        const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
+        const root = mkCall(lambda, mkNumberLiteral("234"), mkNumberLiteral("432")) ;
+        const vm = makeStdVMS(root);
+        while( vm.canAdvance() ) {
+            vm.advance(); }
+        assert.check( vm.hasError() );
+        const message = vm.getError() ;
+        assert.checkEqual( message,
+            "Number of arguments for lambda does not match parameter list." );
+    });
+});
+
 
 describe( 'ExprSeqLabel', function () : void {
     it( 'should evaluate to a StringV equaling 3', function () : void {
