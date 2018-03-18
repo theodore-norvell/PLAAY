@@ -22,13 +22,25 @@ module createHtmlElements {
 
 		create("div", "", "upperArea", body);
 		const upperArea = $("#upperArea");
-		createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
+		createUpperAreaHTML( upperArea ) 
 
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
 
 		createEditorHTML( contentArea ) ;
 		createAnimatorHTML( contentArea ) ;
+	}
+
+	function createUpperAreaHTML( upperArea : JQuery ) : void {
+		createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
+		//User-related elements. All added functionalities of the elements are in userRelated module.
+		create("div", "userBar", "userBar", upperArea);
+		const userBar = $("#userBar");
+		createTexted("div", "", "login", userBar, "Login/Register");
+		createTexted("div", "", "logout", userBar, "Logout").hide();
+		createTexted("div", "", "userSettings", userBar, "User Settings").hide();
+		createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
+		createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
 	}
 
 	function createEditorHTML( contentArea : JQuery ) : void {
@@ -152,11 +164,11 @@ module createHtmlElements {
 		return obj;
 	}
 
-	export function hide( element: JQuery ): JQuery {
+	function hide( element: JQuery ): JQuery {
 		return element.css("visibility", "hidden");
 	}
 
-	export function show( element: JQuery ): JQuery {
+	function show( element: JQuery ): JQuery {
 		return element.css("visibility", "visible");
 	}
 
