@@ -60,7 +60,7 @@ module animatorHelpers
         let padding : number = 15;
         
         if (stk.notEmpty()){
-            for(let i = 0; i < stk.getSize(); i++){
+            for(let i = 0; i < stk.getSize() && i < 10; i++){
                 let vars : vms.VarStack = stk.get(i).getStack();
                 let varstackSize : number = vars.getAllFrames().length;
                 
@@ -75,7 +75,7 @@ module animatorHelpers
                         }
                         const field : vms.FieldI = obj.getFieldByNumber(j);
                         const subGroup : svg.G = evalGroup.group();
-                        const name : svg.Text = subGroup.text(field.getName());
+                        const name : svg.Text = subGroup.text("  " + field.getName());
                         const value : svg.Text = subGroup.text(field.getValue().toString());
                         makeVarStackElement(subGroup, name, value);      
                                       
