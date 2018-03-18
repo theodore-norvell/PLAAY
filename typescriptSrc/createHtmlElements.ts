@@ -17,7 +17,7 @@ module createHtmlElements {
 		//          upperArea
 		//              bannerArea
 		//          contentArea
-		
+
 		const body = $("body");
 
 		create("div", "", "upperArea", body);
@@ -29,12 +29,6 @@ module createHtmlElements {
 
 		createEditorHTML( contentArea ) ;
 		createAnimatorHTML( contentArea ) ;
-
-		//create("datalist", null, "oplist", contentArea);
-		// const optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
-		// for (let i = 0; i < optionList.length; i++) {
-		// 	createValued("option", $("#oplist"), optionList[i]);
-		// }
 	}
 
 	function createEditorHTML( contentArea : JQuery ) : void {
