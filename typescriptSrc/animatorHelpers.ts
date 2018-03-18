@@ -43,8 +43,7 @@ module animatorHelpers
                                      valueMap : ValueMap | null, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if((valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath)))
-            && !currentPath.equals(errorPath)) //prevent children of mapped nodes or errors from being drawn.
+        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes or errors from being drawn.
         {
             for(let i = 0; i < node.count(); i++)
             {
@@ -65,16 +64,7 @@ module animatorHelpers
             buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
             return;
         }
-        if(isError)
-        {
-            if(error === "")
-            {
-                error = "Unknown error";
-            }
-            const text : svg.Text = element.text( "Error: " + error );
-            makeErrorSVG(element, text);
-            return;
-        }
+
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
@@ -518,11 +508,23 @@ module animatorHelpers
             default:
             {
                 assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
-            }
+            } 
         }
         if(shouldHighlight)
         {
             highlightThis(drawHighlightOn);
+        }
+        if(isError)
+        {
+            if(error === "")
+            {
+                error = "Unknown error";
+            }
+            const elementBBox : svg.BBox = element.bbox();
+            const text : svg.Text = element.text( "Error: " + error );
+            text.dy(elementBBox.height + 15);
+            makeErrorSVG(element, text);
+            return;
         }
     }
 
