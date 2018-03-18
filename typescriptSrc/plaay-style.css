@@ -134,15 +134,31 @@ html, body
     background-color: #cccccc;
 }
 
-#leftSideArea
+.leftSideArea
 {
     position:absolute;
     top:0;
     left:0;
     height: 98%;
-    width: 6em;
+    width: 10em;
     margin: .4%;
     background-color: #262626;
+
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: column ;
+    flex-direction: column ;
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    -webkit-align-items: flex-start;
+    align-items: flex-start ;
 }
 
 #container
@@ -151,42 +167,28 @@ html, body
     top:0;
     bottom:0;
     right:0;
-    left: 6.8em;
+    left: 10.8em;
     height:98%;
     margin: .4%;
     overflow: scroll;
     background-color:#262626;
 }
 
-#palette
+.palette
 {
-    position:absolute;
-    height:19em;
-    width:5.4em;
-    left:0;
-    margin: .5em .3em .5em .3em;
+
+    flex: 10 1 auto ;
+    width:7em;
+    margin: 1em 1em 1em 1em ;
     background-color:#a3a3a3;
+    overflow: auto;
 }
 
-#buttonArea
+.buttonArea
 {
-    position:absolute;
-    max-height: 13em;
-    width:5.4em;
-    bottom:0;
-    left:0;
-    margin: 5em 5% 5% 5%;
-    background-color:#a3a3a3;
-}
-
-#evalbuttonArea
-{
-    position:absolute;
-    max-height: 13em;
-    width:5.4em;
-    bottom:0;
-    left:0;
-    margin: 5em 5% 5% 5%;
+    flex: 1 1 auto ;
+    width:7em;
+    margin: 1em 1em 1em 1em ;
     background-color:#a3a3a3;
 }
 
@@ -289,13 +291,13 @@ div.vms
     position: absolute;
     top:0;
     bottom:0;
-    left:0;
+    left:10.8em;
     right:0;
     height:auto;
     margin-top:4px;
     margin-bottom:4px;
     margin-right:4px;
-    margin-left:159px;
+    margin-left:4px;
     background-color:black;
     overflow: scroll;
 }

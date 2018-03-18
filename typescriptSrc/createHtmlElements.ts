@@ -12,6 +12,12 @@ module createHtmlElements {
 
 	export function createHtmls() : void {
 
+		//  Overall structure
+		//      body
+		//          upperArea
+		//              bannerArea
+		//          contentArea
+		
 		const body = $("body");
 
 		create("div", "", "upperArea", body);
@@ -20,32 +26,44 @@ module createHtmlElements {
 
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
-		create("div", "", "leftSideArea", contentArea);
-		const leftSideArea = $("#leftSideArea");
-		create("div", "evalVisible", "evalButtonArea", leftSideArea);
-		const evalButtonArea = $("#evalButtonArea");
-		create("div", "evalHidden", "buttonArea", leftSideArea);
-		const buttonArea = $("#buttonArea");
-		create("div", "evalHidden", "palette", leftSideArea);
+
+		createEditorHTML( contentArea ) ;
+		createAnimatorHTML( contentArea ) ;
+
+		//create("datalist", null, "oplist", contentArea);
+		// const optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
+		// for (let i = 0; i < optionList.length; i++) {
+		// 	createValued("option", $("#oplist"), optionList[i]);
+		// }
+	}
+
+	function createEditorHTML( contentArea : JQuery ) : void {
+				// Editor structure
+		//    contentArea
+		//        editor
+		//            editorLeftSideArea
+		//                pallette
+		//                    pallette items
+		//                buttonArea
+		//                    buttons for editing
+		//            container
+		const editorDiv = create("div", "", "editor", contentArea ) ;
+		create("div", "leftSideArea", "editorLeftSideArea", editorDiv);
+		const editorLeftSideArea = $("#editorLeftSideArea");
+		create("div", "palette", "palette", editorLeftSideArea);
 		const palette = $("#palette");
+		create("div", "buttonArea", "editorButtonArea", editorLeftSideArea);
+		const buttonArea = $("#editorButtonArea");
 
-		//createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
+		//createTexted("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "leftSideButton editButton evalHidden", "play", buttonArea, "Play");
+		createTexted("div", "leftSideButton editButton", "play", buttonArea, "Play");
 		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
-		createTexted("div", "leftSideButton editButton evalHidden", "undo", buttonArea, "Undo");
-		createTexted("div", "leftSideButton editButton evalHidden", "redo", buttonArea, "Redo");
-		createTexted("div", "leftSideButton editButton evalHidden", "trash", buttonArea, "Trash");
+		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo");
+		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo");
+		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash");
 
-		//Executing-related elements. All added functionalities are in executing module.
-
-		createHidden("div", "leftSideButton evalVisible", "edit", evalButtonArea, "Edit");
-		createHidden("div", "leftSideButton evalVisible", "advance", evalButtonArea, "Next");
-		createHidden("div", "leftSideButton evalVisible", "evalUndo", evalButtonArea, "Undo");
-		createHidden("div", "leftSideButton evalVisible", "evalRedo", evalButtonArea, "Redo");
-		createHidden("div", "leftSideButton evalVisible", "run", evalButtonArea, "Run");
-
-		createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
+		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
 		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
@@ -60,23 +78,50 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
 
-		//User-related elements. All added functionalities of the elements are in userRelated module.
-		create("div", "userBar", "userBar", upperArea);
-		const userBar = $("#userBar");
-		createTexted("div", "", "login", userBar, "Login/Register");
-		createTexted("div", "", "logout", userBar, "Logout").hide();
-		createTexted("div", "", "userSettings", userBar, "User Settings").hide();
-		createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
-		createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
-		create("datalist", null, "oplist", contentArea);
+		// The container for the tree.
+		create("div", "container", "container", editorDiv);
+	}
 
-		create("div", "container evalHidden", "container", contentArea);
-		createHidden("div", "vms evalVisible", "vms", contentArea, null);
+	function createAnimatorHTML( contentArea : JQuery ) : void {
 
-		const optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
-		for (let i = 0; i < optionList.length; i++) {
-			createValued("option", $("#oplist"), optionList[i]);
-		}
+		//Executing-related elements. All added functionalities are in executing module.
+		//  contentArea
+		//     animator
+		//          animatorLeftSideArea
+		//              evalButtonArea
+		//                  buttons
+		//          vms
+		//          outputcanvas
+		const animatorDiv = create("div", "", "animator", contentArea ) ;
+		create("div", "leftSideArea", "animatorLeftSideArea", animatorDiv);
+		const animatorLeftSideArea = $("#animatorLeftSideArea");
+		create("div", "buttonArea", "evalButtonArea", animatorLeftSideArea);
+		const evalButtonArea = $("#evalButtonArea");
+		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit");
+		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next");
+		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
+		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
+		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
+
+		create("div", "vms", "vms", animatorDiv) ;
+
+		hideAnimator() ;
+	}
+
+	export function hideAnimator() : void {
+		hide( $("#animator") ) ;
+	}
+
+	export function showAnimator()  : void{
+		show( $("#animator") ) ;
+	}
+
+	export function hideEditor() : void {
+		hide( $("#editor") ) ;
+	}
+
+	export function showEditor()  : void{
+		show( $("#editor") ) ;
 	}
 
 	function create( elementType: string,
@@ -113,12 +158,12 @@ module createHtmlElements {
 		return obj;
 	}
 
-	function createHidden( elementType: string,
-	                       className: string|null,
-	                       idName: string|null,
-	                       parentElement: JQuery|null,
-	                       textContent: string|null): JQuery {
-		return createTexted(elementType, className, idName, parentElement, textContent).css("visibility", "hidden");
+	export function hide( element: JQuery ): JQuery {
+		return element.css("visibility", "hidden");
+	}
+
+	export function show( element: JQuery ): JQuery {
+		return element.css("visibility", "visible");
 	}
 
 }
