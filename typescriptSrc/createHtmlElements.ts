@@ -53,7 +53,7 @@ module createHtmlElements {
 		//                buttonArea
 		//                    buttons for editing
 		//            container
-		const editorDiv = create("div", "", "editor", contentArea ) ;
+		const editorDiv = create("div", "editor", "editor", contentArea ) ;
 		create("div", "leftSideArea", "editorLeftSideArea", editorDiv);
 		const editorLeftSideArea = $("#editorLeftSideArea");
 		create("div", "palette", "palette", editorLeftSideArea);
@@ -98,7 +98,7 @@ module createHtmlElements {
 		//                  buttons
 		//          vms
 		//          outputcanvas
-		const animatorDiv = create("div", "", "animator", contentArea ) ;
+		const animatorDiv = create("div", "animator", "animator", contentArea ) ;
 		create("div", "leftSideArea", "animatorLeftSideArea", animatorDiv);
 		const animatorLeftSideArea = $("#animatorLeftSideArea");
 		create("div", "buttonArea", "evalButtonArea", animatorLeftSideArea);
@@ -165,7 +165,7 @@ module createHtmlElements {
 	}
 
 	function hide( element: JQuery ): JQuery {
-		return element.css("visibility", "hidden");
+		return element.css("visibility", "none");
 	}
 
 	function show( element: JQuery ): JQuery {
