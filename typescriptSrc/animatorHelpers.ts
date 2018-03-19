@@ -348,6 +348,47 @@ module animatorHelpers
                 makeFancyBorderSVG(parent, element, LIGHT_BLUE);
             }
             break ;
+            case labels.ArrayLiteralLabel.kindConst :
+            {
+                const childArray = element.children();
+
+                element.dmove(10, 10) ;
+                const padding : number = 15;
+                let y = 0;
+
+                const guardBox : svg.G = element.group() ;
+                // guardBox.addClass( "arrayGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                const textElement = guardBox.text("array").dmove(0, -5);
+                y += textElement.bbox().height + padding;
+                let len = findWidthOfLargestChild(childArray)+padding;
+                if(textElement.bbox().width + padding > len)
+                {
+                    len = textElement.bbox().width + padding;
+                }
+
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, LIGHT_BLUE, len, y);
+
+                y += padding;
+                let seqBoxY : number = 0;
+                const seqBox :  svg.G = element.group().dmove(10, y) ;
+                // doBox.addClass( "seqBox") ;
+                // doBox.addClass( "V") ;
+                // doBox.addClass( "workplace") ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(0, seqBoxY));
+                    seqBoxY += childArray[i].bbox().height + padding;
+                }
+                if(seqBoxY === 0) //i.e. there are no elements in this node
+                {
+                    seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
+                }
+
+                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+            }
+            break ;
             case labels.AccessorLabel.kindConst :
             {
                 const childArray = element.children();

@@ -556,13 +556,51 @@ module labels {
             return { kind: ObjectLiteralLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : object ) : WhileLabel {
+        public static fromJSON( json : object ) : ObjectLiteralLabel {
             return ObjectLiteralLabel.theObjectLiteralLabel ;
         }
             
         public kind() : string { return ObjectLiteralLabel.kindConst ; }
     }
     pnode.registry[ ObjectLiteralLabel.kindConst ] = ObjectLiteralLabel ;
+
+      /** Array Literal expressions */
+    export class ArrayLiteralLabel extends ExprLabel {
+    
+    public static readonly kindConst : string = "ArrayLiteralLabel" ;
+
+    public isValid(children:Array<PNode>) : boolean {
+        return children.every( (c:PNode) => 
+                c.isExprNode() ) ;
+    }
+
+    public toString():string {
+        return "array";
+    }
+
+    /*private*/
+    constructor() {
+        super();
+    }
+
+    // Singleton
+    public static readonly theArrayLiteralLabel = new ArrayLiteralLabel();
+    
+    public hasVerticalLayout() : boolean {return true;}
+    
+    public hasDropZonesAt(start : number): boolean { return true; }
+
+    public toJSON() : object {
+        return { kind: ArrayLiteralLabel.kindConst, } ;
+    }
+
+    public static fromJSON( json : object ) : ArrayLiteralLabel {
+        return ArrayLiteralLabel.theArrayLiteralLabel ;
+    }
+        
+    public kind() : string { return ArrayLiteralLabel.kindConst ; }
+    }
+    pnode.registry[ ArrayLiteralLabel.kindConst ] = ArrayLiteralLabel ;
 
     /** Assignments.  */
     export class AccessorLabel extends ExprLabel {
