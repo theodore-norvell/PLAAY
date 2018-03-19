@@ -54,7 +54,7 @@ const lambda0 : pnode.PNode = labels.mkLambda( param, t, body0);
 //                             exprSeq(var[b]) )  <--- This time it's b
 
 const body1 : pnode.PNode = labels.mkExprSeq([b]) ;
-const lambda1 : pnode.PNode = labels.mkLambda( param, t, body0) ;
+const lambda1 : pnode.PNode = labels.mkLambda( param, t, body1) ;
 
 describe( 'Lambda', function() : void {
     // Here we evaluate a Lamdba expression to get a closure value
@@ -97,10 +97,10 @@ describe( 'Call', function() : void {
         wlds.push(wld);
         const vm = new VMS( call, wlds, interp, manager ) ;
         let timeOut = 1000 ;
-        for( ; timeOut > 0 && ! vm.isDone() ; timeOut -= 1 ) {
+        for( ; timeOut > 0 && vm.canAdvance() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const val : vms.Value  = vm.getValMap().get( collections.nil<number>() ) ;
+        const val : vms.Value = vm.getFinalValue() ;
         assert.check( val instanceof valueTypes.StringV ) ;
         const stringVal =  val as valueTypes.StringV ;
         assert.check( stringVal.getVal() === expectedResult ) ;

@@ -1,25 +1,26 @@
 /// <reference path="jquery.d.ts" />
 
+/// <reference path="animatorHelpers.ts" />
 /// <reference path="assert.ts" />
+/// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
-/// <reference path="sharedMkHtml.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="valueTypes.ts" />
 /// <reference path="vms.ts" />
 
+import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
-import animatorHelpers = require('./animatorHelpers');
+import * as svg from "svg.js";
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import world = require('./world') ;
-import { TransactionManager } from './backtracking';
-import * as svg from "svg.js";
 
 /** The animator is the execution pane of the application.
  * 
@@ -34,26 +35,31 @@ module animator
     import EvaluationManager = evaluationManager.EvaluationManager;
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
     import List = collections.List;
+    import Cons = collections.cons;
+    import Nil = collections.nil;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
     import MapEntry = vms.MapEntry ;
+    import TransactionManager = backtracking.TransactionManager ;
     import VMS = vms.VMS;
     import VarStack = vms.VarStack;
     import Value = vms.Value ;
 
     const evaluationMgr = new EvaluationManager();
-    let turtle : boolean = false ;
+    // let turtle : boolean = false ;
     let highlighted = false;
+    let transactionMgr : TransactionManager;
 
     const turtleWorld = new seymour.TurtleWorld();
 	
     export function executingActions() : void 
 	{
-		$("#play").click(evaluate);
-		// $("#advance").click(advanceOneStep);
-		// $("#multistep").click(multiStep);
-		// $("#run").click(stepTillDone);
-		$("#edit").click(switchToEditor);
+        $("#play").click(evaluate);
+        $("#advance").click(advanceOneStep);
+        $("#evalUndo").click(undoStep);
+        $("#evalRedo").click(redoStep);
+        $("#run").click(stepTillDone);
+        $("#edit").click(switchToEditor);
 	}
 
     function evaluate() : void
@@ -61,66 +67,104 @@ module animator
         $(".evalHidden").css("visibility", "hidden");
         $(".evalVisible").css("visibility", "visible");
         const libraries : valueTypes.ObjectV[] = [] ;
-        const manager = new TransactionManager() ;
-        if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
+        transactionMgr = new TransactionManager() ;
+        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
-                                  libraries, manager );
+                                  libraries, transactionMgr );
+        transactionMgr.checkpoint();
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
-        const animation : svg.G = animatorArea.group().move(10, 0);
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation);
+        const animation : svg.G = animatorArea.group().move(10, 10);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null);
         const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
 
-    // function advanceOneStep() : void
-    // {
-    //     evaluationMgr.next();
-    //     $("#stackVal").empty();
-    //     $("#vms").empty()
-	// 		.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-    //     const root = $("#vms :first-child").get(0);
-    //     if (!highlighted && evaluationMgr.getVMS().isReady() ) 
-    //     {
-    //         const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
-    //         const list = evaluationMgr.getVMS().getPending();
-    //         findInMap(root, evaluationMgr.getVMS().getValMap());
-    //         highlight($(root), list);
-    //         visualizeStack(evaluationMgr.getVMS().getStack());
-    //         highlighted = true;
-    //     } 
-    //     else 
-    //     {
-    //         findInMap(root, evaluationMgr.getVMS().getValMap());
-    //         visualizeStack(evaluationMgr.getVMS().getStack());
-    //         highlighted = false;
-    //     }
-    //     if(turtle) 
-    //     {
-    //         redraw(evaluationMgr.getVMS());
-    //     }
-    // }
+    function advanceOneStep() : void
+    {
+        evaluationMgr.next();
+        transactionMgr.checkpoint();
+        if(!evaluationMgr.getVMS().canAdvance())
+        {
+            if(evaluationMgr.getVMS().hasError())
+            {
+                alert("Error: " + evaluationMgr.getVMS().getError());
+            }
+            return;
+        }
+        buildSVG();
+        //visualizeStack(evaluationMgr.getVMS().getStack());
+        // const root = $("#vms :first-child").get(0);
+        // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
+        // {
+        //     const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
+        //     const list = evaluationMgr.getVMS().getPending();
+        //     findInMap(root, evaluationMgr.getVMS().getValMap());
+        //     highlight($(root), list);
+        //     visualizeStack(evaluationMgr.getVMS().getStack());
+        //     highlighted = true;
+        // } 
+        // else 
+        // {
+        //     findInMap(root, evaluationMgr.getVMS().getValMap());
+        //     visualizeStack(evaluationMgr.getVMS().getStack());
+        //     highlighted = false;
+        // }
+    }
 
-    // function stepTillDone() : void 
-	// {
-    //     evaluationMgr.next();
-    //     const STEPLIMIT = 10000 ;
-    //     for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
-    //     {
-    //         evaluationMgr.next();
-	// 	}
-    //     $("#vms").empty()
-	// 		.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-    //     const root = $("#vms :first-child").get(0);
-    //     const list : List<number>= evaluationMgr.getVMS().getPending();
-    //     const map : ValueMap = evaluationMgr.getVMS().getValMap();
-    //     findInMap(root, map);
-    //     highlight($(root), list);
-    // }
+    function buildSVG() : void
+    {
+        $("#stackVal").empty();
+        $("#vms").empty().append("<div id='svgContainer'></div>");
+        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animation : svg.G = animatorArea.group().move(10, 10);
+        let toHighlight : List<number>;
+        if (evaluationMgr.getVMS().isReady() ) 
+        {
+            toHighlight = evaluationMgr.getVMS().getPending();
+        }
+        else
+        {
+            toHighlight = Cons(-1, Nil<number>());
+        }
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
+        const animationBBox : svg.BBox = animation.bbox();
+        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+    }
+
+    function undoStep() : void
+    {
+        if(!transactionMgr.canUndo())
+        {
+            return;
+        }
+        transactionMgr.undo();
+        buildSVG();
+    }
+
+    function redoStep() : void
+    {
+        if(!transactionMgr.canRedo())
+        {
+            return;
+        }
+        transactionMgr.redo();
+        buildSVG();    }
+
+    function stepTillDone() : void 
+	{
+        const STEPLIMIT = 10000 ;
+        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
+        {
+            evaluationMgr.next();
+            transactionMgr.checkpoint();
+		}
+        buildSVG();
+    }
 
     // function multiStep() : void
 	// {

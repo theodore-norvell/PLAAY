@@ -179,6 +179,17 @@ html, body
     background-color:#a3a3a3;
 }
 
+#evalbuttonArea
+{
+    position:absolute;
+    max-height: 13em;
+    width:5.4em;
+    bottom:0;
+    left:0;
+    margin: 5em 5% 5% 5%;
+    background-color:#a3a3a3;
+}
+
 .leftSideButton
 {
     height: 30;
@@ -202,34 +213,11 @@ html, body
 #redo { background-color: mediumorchid;}
 #trash { background-color: darkred;}
 
-
-
-div.advance
-{
-    width:40px;
-    bottom:4px; left: 0px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
-
-div.multistep
-{
-    width:40px;
-    bottom:4px; left: 50px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
-
-div.run
-{
-    width:40px;
-    bottom:4px; left: 100px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
+#edit { background-color:green; }
+#advance { background-color: royalblue; }
+#evalUndo { background-color: orangered;}
+#evalRedo { background-color: mediumorchid;}
+#run { background-color: royalblue; }
 
 div.quitworld
 {
@@ -240,14 +228,7 @@ div.quitworld
     bottom:100px; left: 100px;
 }
 
-div.edit
-{
-    width:90px;
-    height:calc(5%);
-    background-color:green;
-    position:fixed;
-    bottom:50px; left: 0px;
-}
+
 
 div.stack
 {
@@ -574,6 +555,43 @@ div.call {
 }
 
 div.callWorld {
+    border:thin solid rgb(190, 133, 197) ; /* Mauve */
+    border-radius: 5px ;
+    color:rgb(190, 133, 197) ; /* Mauve */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
+}
+
+div.objectGuardBox:before { content: "$" ;
+    display: inline ;
+    vertical-align: top ;
+    color: rgb(135,206,250) ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.objectGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed rgb(135,206,250) ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.objectBox {
+    border-top: medium solid rgb(135,206,250) ;
+    border-bottom: medium solid rgb(135,206,250) ;
+    border-left: 10px solid rgb(135,206,250) ;
+    border-right: thin solid rgb(135,206,250) ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.accessor {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */

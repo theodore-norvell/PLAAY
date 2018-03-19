@@ -10,6 +10,7 @@ import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
+import vms = require('./vms');
 import * as svg from "svg.js";
 
 /** The animatorHelpers module looks after the conversion of trees to SVG.*/
@@ -17,6 +18,8 @@ module animatorHelpers
 {
     import list = collections.list;
     import List = collections.List;
+    import Cons = collections.cons;
+    import Nil = collections.nil;
     import Option = collections.Option;
     import some = collections.some;
     import none = collections.none;
@@ -24,28 +27,40 @@ module animatorHelpers
     const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
+    import ValueMap = vms.ValueMap;
+    import Value = vms.Value;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
-    const MAUVE : String = "rgb(190, 133, 197)";
-    const ORANGE : String = "rgb(244, 140, 0)";
-    const LIGHT_BLUE : String = "rgb(135, 206, 250)";
-    const GHOSTWHITE : String = "rgb(248, 248, 255)";
-    const WHITE : String = "rgb(255, 255, 255)";
-    const GRAY : String = "rgb(153, 153, 153)";
+    const MAUVE : string = "rgb(190, 133, 197)";
+    const ORANGE : string = "rgb(244, 140, 0)";
+    const LIGHT_BLUE : string = "rgb(135, 206, 250)";
+    const GHOSTWHITE : string = "rgb(248, 248, 255)";
+    const WHITE : string = "rgb(255, 255, 255)";
+    const GRAY : string = "rgb(153, 153, 153)";
 
-    export function traverseAndBuild(node:PNode, el : svg.Container) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
     {
         const children : svg.G = el.group();
-        for(let i = 0; i < node.count(); i++)
+        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes from being drawn.
         {
-            traverseAndBuild(node.child(i), children);
+            for(let i = 0; i < node.count(); i++)
+            {
+                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap);
+            }
         }
-        buildSVG(node, children, el);
+        const highlightMe : boolean = currentPath.equals(pathToHighlight);
+        buildSVG(node, children, el, highlightMe, currentPath, valueMap);
     }
 
     //I assume element is a child of parent
-    function buildSVG(node:PNode, element : svg.G, parent : svg.Container) : void
+    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>, valueMap : ValueMap | null) : void
     {
+        if(valueMap !== null && valueMap.isMapped(myPath))
+        {
+            buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
+            return;
+        }
+        let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
@@ -64,7 +79,18 @@ module animatorHelpers
                 // guardbox.addClass( "workplace" ) ;
                 const textElement = guardBox.text("?").dmove(0, -5);
                 guardBox.add( childArray[0].dmove(20, 5) ) ;
-                y += childArray[0].bbox().height + padding;
+                const childBBox : svg.BBox = childArray[0].bbox();
+                if(childBBox.y < 5)
+                {
+                    const childY : number = childBBox.y;
+                    childArray[0].dy(5-childY);
+                    y += 5-childY;
+                }
+                if(childBBox.x < 0)
+                {
+                    childArray[0].dx(-childBBox.x);
+                }
+                y += childBBox.height + padding;
                 let len = findWidthOfLargestChild(childArray);
                 len += padding; //account for extra space due to question mark symbol
 
@@ -84,7 +110,7 @@ module animatorHelpers
                 // elsebox.addClass( "workplace" ) ;
                 elseBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(parent, element, MAUVE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
                 makeThenBoxSeparatorSVG(element, y - padding);
                 // result.addClass( "ifBox" ) ;
                 // result.addClass( "V" ) ;
@@ -93,18 +119,27 @@ module animatorHelpers
             break ;
             case labels.ExprSeqLabel.kindConst :
             {
-                // TODO show only the unevaluated members during evaluation
-
                 const childArray = element.children();
                 // result.addClass( "seqBox" ) ;
                 // result.addClass( "V" ) ;
-                // Add children and drop zones.
                 const padding : number = 15;
                 let y : number = 0;
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
                     childArray[i].dmove(0, y);
-                    y += childArray[i].bbox().height + padding;
+                    const bbox = childArray[i].bbox();
+                    if(bbox.x < 0)
+                    {
+                        childArray[i].dx(-bbox.x);
+                    }
+                    if(bbox.y < y)
+                    {
+                        childArray[i].dy(-bbox.y);
+                    }
+                    if(childArray[i].bbox().height > 0) //i.e. the child has an SVG presence (should only be false for nodes mapped to DoneV currently.)
+                    {
+                        y += childArray[i].bbox().height + padding;
+                    }
                 }
                 if(y === 0) //i.e. there are no elements in this node
                 {
@@ -130,7 +165,13 @@ module animatorHelpers
                 // Add children and dropZones.
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    childArray[i].dmove(x, 0); //testing
+                    childArray[i].dmove(x, 0);
+                    const childBBox : svg.BBox = childArray[i].bbox();
+                    if(childBBox.y < 0)
+                    {
+                        const childY : number = childBBox.y;
+                        childArray[i].dy(-childY);
+                    }
                     x += childArray[i].bbox().width + padding;
                 }
             }
@@ -149,8 +190,19 @@ module animatorHelpers
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
                 const textElement = guardBox.text("\u27F3").dmove(0, -5);
-                guardBox.add( childArray[0].dmove(30, 0) ) ;
-                y += childArray[0].bbox().height + padding;
+                guardBox.add( childArray[0].dmove(30, 5) ) ;
+                const childBBox : svg.BBox = childArray[0].bbox();
+                if(childBBox.y < 5)
+                {
+                    const childY : number = childBBox.y;
+                    childArray[0].dy(5-childY);
+                    y += 5-childY;
+                }
+                if(childBBox.x < 0)
+                {
+                    childArray[0].dx(-childBBox.x);
+                }
+                y += childBBox.height + padding;
                 const len = findWidthOfLargestChild(childArray)+padding;
 
                 doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
@@ -162,7 +214,7 @@ module animatorHelpers
                 // doBox.addClass( "workplace") ;
                 doBox.add( childArray[1] ) ;
 
-                makeFancyBorderSVG(parent, element, MAUVE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
                 // result.addClass( "whileBox" ) ;
                 // result.addClass( "V" ) ;
                 // result.addClass( "workplace" ) ;
@@ -184,6 +236,11 @@ module animatorHelpers
                     opText.dmove(x, -5);
                     x += opText.bbox().width + padding;
                     childArray[1].dmove(x, 0);
+                    const childBBox : svg.BBox = childArray[1].bbox();
+                    if(childBBox.x < x)
+                    {
+                        childArray[1].dx(-childBBox.x);
+                    }
                 }
                 else
                 {
@@ -193,12 +250,17 @@ module animatorHelpers
                     {
                         if( i === childArray.length ) break ;
                         childArray[i].dmove(x, 0);
-                        x += childArray[i].bbox().width + padding;
+                        const bbox = childArray[i].bbox();
+                        if(bbox.x < x)
+                        {
+                            childArray[i].dx(-bbox.x);
+                        }
+                        x += bbox.width + padding;
                     }
                 }
 
                 doCallWorldLabelStylingSVG(opText);
-                makeCallWorldBorderSVG(parent, element);
+                drawHighlightOn = makeCallWorldBorderSVG(parent, element);
                 
             }
             break ;
@@ -214,9 +276,14 @@ module animatorHelpers
                 for( let i=0 ; true ; ++i) {
                     if( i === childArray.length ) break ;
                     childArray[i].dmove(x, 0);
+                    const bbox = childArray[i].bbox();
+                    if(bbox.x < x)
+                    {
+                        childArray[i].dx(-bbox.x);
+                    }
                     x += childArray[i].bbox().width + padding;
                 }
-                makeCallBorderSVG(parent, element);
+                drawHighlightOn = makeCallBorderSVG(parent, element);
             }
             break ;
             case labels.AssignLabel.kindConst :
@@ -227,13 +294,89 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const opText : svg.Text = element.text(":=");
-                opText.fill(ORANGE.toString());
+                opText.fill(ORANGE);
                 opText.dmove(x, -5);
                 x += opText.bbox().width + padding;
 
                 childArray[1].dmove(x, 0);
-                
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
                 makeAssignLabelBorder(element);
+            }
+            break ;
+            case labels.ObjectLiteralLabel.kindConst :
+            {
+                const childArray = element.children();
+
+                element.dmove(10, 10) ;
+                const padding : number = 15;
+                let y = 0;
+
+                const guardBox : svg.G = element.group() ;
+                // guardBox.addClass( "objectGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                const textElement = guardBox.text("$").dmove(0, -5);
+                y += textElement.bbox().height + padding;
+                let len = findWidthOfLargestChild(childArray)+padding;
+                if(textElement.bbox().width + padding > len)
+                {
+                    len = textElement.bbox().width + padding;
+                }
+
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, LIGHT_BLUE, len, y);
+
+                y += padding;
+                let seqBoxY : number = 0;
+                const seqBox :  svg.G = element.group().dmove(10, y) ;
+                // doBox.addClass( "seqBox") ;
+                // doBox.addClass( "V") ;
+                // doBox.addClass( "workplace") ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(0, seqBoxY));
+                    seqBoxY += childArray[i].bbox().height + padding;
+                }
+                if(seqBoxY === 0) //i.e. there are no elements in this node
+                {
+                    seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
+                }
+
+                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+            }
+            break ;
+            case labels.AccessorLabel.kindConst :
+            {
+                const childArray = element.children();
+                const padding : number = 10;
+                let x : number = 0;
+
+                x += childArray[0].bbox().width + padding;
+                const leftBracketText : svg.Text = element.text("[");
+                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.fill(MAUVE.toString());
+                leftBracketText.dmove(x, -5);
+                x += leftBracketText.bbox().width + padding;
+
+                childArray[1].dmove(x, 0);
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
+                x += childBBox.width + padding;
+
+                const rightBracketText : svg.Text = element.text("]");
+                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.fill(MAUVE.toString());
+                rightBracketText.dmove(x, -5);
+
+                
+                makeAccessorLabelBorder(element);
+
             }
             break ;
             case labels.LambdaLabel.kindConst :
@@ -266,7 +409,7 @@ module animatorHelpers
                 // doBox.addClass( "H") ;
                 doBox.add( childArray[2] ) ;
 
-                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, LIGHT_BLUE);
 
                 // result.addClass( "lambdaBox" ) ;
                 // result.addClass( "V" ) ;
@@ -274,9 +417,7 @@ module animatorHelpers
             break ;
             case labels.NullLiteralLabel.kindConst :
             {
-                const text : svg.Text = element.text( "\u23da" ) ;  // The Ground symbol. I hope.
-                text.dy(10); //The ground character is very large. This makes it look a bit better.
-                makeNullLiteralSVG(element, text);
+                makeNullLiteralSVG(element);
                 // result.addClass( "nullLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
@@ -328,7 +469,7 @@ module animatorHelpers
                 let x : number = 0;
 
                 const delta : svg.Text = element.text("\u03B4");
-                delta.fill(GHOSTWHITE.toString());
+                delta.fill(GHOSTWHITE);
                 delta.dmove(0, -5); //testing
 
                 x += delta.bbox().width + padding;
@@ -336,17 +477,22 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const colon : svg.Text = element.text(":");
-                colon.fill(GHOSTWHITE.toString()).dmove(x, -5);
+                colon.fill(GHOSTWHITE).dmove(x, -5);
 
                 x += colon.bbox().width + padding;
                 childArray[1].dmove(x, 7);
 
                 x += childArray[1].bbox().width + padding;
                 const becomes : svg.Text = element.text(":=");
-                becomes.fill(GHOSTWHITE.toString()).dmove(x, -5);
+                becomes.fill(GHOSTWHITE).dmove(x, -5);
 
                 x += becomes.bbox().width + padding;
                 childArray[2].dmove(x, 0);
+                const childBBox : svg.BBox = childArray[2].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[2].dx(-childBBox.x);
+                }
 
                 makeVarDeclBorderSVG(element);
 
@@ -359,18 +505,62 @@ module animatorHelpers
                 assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
             }
         }
+        if(shouldHighlight)
+        {
+            highlightThis(drawHighlightOn);
+        }
     }
 
-    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : String, lineLength : number, lineY : number) : void
+    function buildSVGForMappedNode(node : PNode, element : svg.G, parent : svg.Container, value : Value) : void
+    {
+        if(value.isNullV())
+        {
+            makeNullLiteralSVG(element);
+            return;
+        }
+        if(value.isDoneV())
+        {
+            // const text : svg.Text = element.text( "Done" );
+            // makeDoneSVG(element, text);
+            return;
+        }
+        if(value.isStringV())
+        {
+            const text : svg.Text = element.text( value.toString() );
+            makeStringLiteralSVG(element, text);
+            return;
+        }
+        if(value.isClosureV())
+        {
+            const text : svg.Text = element.text("Closure");
+            makeClosureSVG(element, text);
+            return;
+        }
+        if(value.isBuiltInV())
+        {
+            const text : svg.Text = element.text("Built-in");
+            makeBuiltInSVG(element, text);
+            return;
+        }
+        if(value.isObjectV())
+        {
+            const text : svg.Text = element.text("Object");
+            makeObjectSVG(element, text);
+            return;
+        }
+        assert.unreachable("Found value with unkown type");
+    }
+
+    function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : string, lineLength : number, lineY : number) : void
     {
         if(text !== null)
         {
-            text.fill(colour.toString()); //It would throw an error unless I did this
+            text.fill(colour); //It would throw an error unless I did this
             text.style("font-size: large");
         }
         const bounds = guardBox.bbox();
         const line = guardBox.line(bounds.x - 5, lineY, bounds.x + lineLength + 5, lineY);
-        line.stroke({color: colour.toString(), opacity: 1, width: 4});
+        line.stroke({color: colour, opacity: 1, width: 4});
         line.attr("stroke-dasharray", "10, 10");
     }
     
@@ -379,16 +569,16 @@ module animatorHelpers
         const sepX1 = ifBox.bbox().x;
         const sepX2 = ifBox.bbox().x2;
         const line = ifBox.line(sepX1, y, sepX2, y);
-        line.stroke({color: MAUVE.toString(), opacity: 1, width: 4});
+        line.stroke({color: MAUVE, opacity: 1, width: 4});
     }
 
     function doCallWorldLabelStylingSVG(textElement : svg.Text) : void
     {
-        textElement.fill(MAUVE.toString());
+        textElement.fill(MAUVE);
         textElement.style("font-family:'Times New Roman', Times,serif;font-weight: bold ;font-size: large ;");
     }
 
-    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : void
+    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : svg.G
     {
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);
@@ -397,10 +587,11 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+        return borderGroup;
     }
 
-    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : void
+    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : svg.G
     {
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);
@@ -409,10 +600,11 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+        return borderGroup;
     }
 
-    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : String) : void
+    function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : string) : svg.G
     {
         const containerGroup = base.group(); //In order to keep it organized nicely
         containerGroup.add(el);
@@ -424,81 +616,83 @@ module animatorHelpers
         const y2 = bounds.y2 + 10;
         const topBorderPathString = "M" + (x + 5) + ',' + (y - 5) + " H" + (x2 - 5) + " A10,10 0 0,1 " + (x2 + 5) + ',' + (y + 5);
         const topBorder = borderGroup.path(topBorderPathString);
-        topBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        topBorder.stroke({color: colour, opacity: 1, width: 4});
         const botBorderPathString = "M" + (x + 5) + ',' + (y2 + 15) + " H" + (x2 - 5) + " A10,10 0 0,0 " + (x2 + 5) + ',' + (y2 + 5);
         const botBorder = borderGroup.path(botBorderPathString);
-        botBorder.stroke({color: colour.toString(), opacity: 1, width: 4});
+        botBorder.stroke({color: colour, opacity: 1, width: 4});
         const rightBorder = borderGroup.line(x2 + 6, y2 + 5.5, x2 + 6, y + 4.5);
-        rightBorder.stroke({color: colour.toString(), opacity: 1, width: 1.5});
+        rightBorder.stroke({color: colour, opacity: 1, width: 1.5});
         const leftBorderPathString = "M" + (x + 5.5) + ',' + (y - 7) + "A10,10 0 0,0 " + (x - 3) + ',' + (y + 3) + "V" + (y2 + 7)
                                  + "A10,10 0 0,0 " + (x + 5.5) + ',' + (y2 + 17) + 'Z'; //These odd numbers allow me to approximate the CSS representation pretty well.
         const leftBorder = borderGroup.path(leftBorderPathString);
-        leftBorder.stroke({color: colour.toString(), opacity: 1, width: 0});
-        leftBorder.fill(colour.toString());
+        leftBorder.stroke({color: colour, opacity: 1, width: 0});
+        leftBorder.fill(colour);
+        return containerGroup;
     }
 
     //I assume textElement is already contained within base.
     function makeVariableLabelSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     function makeExprPlaceholderSVG(base : svg.Container) : void
     {
         const textElement : svg.Text = base.text( "..." );
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.
     function makeNumberLiteralSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE.toString());
+        textElement.fill(ORANGE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
     
     //I assume textElement is already contained within base.
     function makeStringLiteralSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(WHITE.toString());
+        textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
-    //I assume textElement is already contained within base.
-    function makeNullLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeNullLiteralSVG(base : svg.Container) : void
     {
-        textElement.fill(WHITE.toString());
+        const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
+        textElement.dy(10); //The ground character is very large. This makes it look a bit better.
+        textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
     function makeAssignLabelBorder(el : svg.Container) : void
@@ -508,7 +702,17 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
+    }
+
+    function makeAccessorLabelBorder(el : svg.Container) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
     }
     
     function makeVarDeclBorderSVG(el : svg.Container) : void
@@ -518,7 +722,7 @@ module animatorHelpers
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: GHOSTWHITE.toString(), opacity: 1, width: 1.5});
+        outline.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
     function makeNoTypeLabelSVG(el: svg.Container) : void
@@ -526,7 +730,7 @@ module animatorHelpers
         const label = el.rect(20,20);
         label.radius(5);
         label.fill({opacity: 0});
-        label.stroke({color: GRAY.toString(), opacity: 1, width: 1.5});
+        label.stroke({color: GRAY, opacity: 1, width: 1.5});
     }
 
     function makeNoExprLabelSVG(el: svg.Container) : void
@@ -534,7 +738,59 @@ module animatorHelpers
         const label = el.rect(20,20);
         label.radius(5);
         label.fill({opacity: 0});
-        label.stroke({color: GHOSTWHITE.toString(), opacity: 1, width: 1.5});
+        label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeBuiltInSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeObjectSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+    }
+
+    //I assume textElement is already contained within base.
+    function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(ORANGE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
     function findWidthOfLargestChild(arr : svg.Element[]) : number
@@ -549,6 +805,16 @@ module animatorHelpers
             }
         }
         return result;
+    }
+
+    function highlightThis(el : svg.Container) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: WHITE, opacity: 1, width: 1.5});
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {

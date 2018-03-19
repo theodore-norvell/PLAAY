@@ -247,7 +247,7 @@ module editor {
                     if (  dragKind === DragEnum.CURRENT_TREE )
                     {
                         console.log("  First case" ) ;
-                        const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
+                        const selectionArray = treeMgr.pasteMoveSwapEditList( draggedSelection, dropTarget );
                         console.log("  Back from moveCopySwapEditList" ) ;
                         // Pick the first action that succeeded, if any
                         if(  selectionArray.length > 0 ) {
@@ -262,7 +262,7 @@ module editor {
                     {
                         console.log("  Second case. (Drag from trash)." ) ;
                         console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
-                        const opt = treeMgr.copy( draggedSelection, dropTarget ) ;
+                        const opt = treeMgr.paste( draggedSelection, dropTarget ) ;
                         console.log("  opt is " + opt ) ;
                         assert.check( opt !== undefined ) ;
                         opt.map(
@@ -377,7 +377,8 @@ module editor {
 
     const keyDownHandler
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            console.log( ">>keydown handler") ;
+            console.log( ">>keydown handler." ) ;
+            console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
             {
@@ -400,7 +401,7 @@ module editor {
             else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -415,7 +416,7 @@ module editor {
                 }
                 num -= 48; //convert from ASCII code to the number
                 getFromDeepTrash(num).map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -487,28 +488,28 @@ module editor {
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
-            }else if (e.which === 38 && e.shiftKey ) // up arrow
+            }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
             {
                 treeMgr.moveFocusUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 40 && e.shiftKey) // down arrow
+            else if (e.which === 40 && e.shiftKey) // shifted down arrow
             {
                 treeMgr.moveFocusDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 37 && e.shiftKey) // left arrow
+            else if (e.which === 37 && e.shiftKey) // shifted left arrow
             {
                 treeMgr.moveFocusLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
-            else if (e.which === 39 && e.shiftKey) // right arrow
+            else if (e.which === 39 && e.shiftKey) // shifted right arrow
             {
                 treeMgr.moveFocusRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
@@ -528,6 +529,14 @@ module editor {
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
+            }
+            else if (! e.shiftKey && e.which === 13) // enter
+            {
+                const edit = new pnodeEdits.OpenLabelEdit() ;
+                const opt = edit.applyEdit( currentSelection ) ;
+                opt.map( (sel : Selection) => update( sel ) ) ;
+                e.stopPropagation() ;
+                e.preventDefault() ;
             }
             else 
             {
@@ -636,6 +645,20 @@ module editor {
                 {
                     createNode("worldcall", currentSelection, "/");
                 }
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            // Create Object Literal node: $
+            else if (e.shiftKey && e.which === 52)
+            {
+                createNode("objectliteral", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create accessor node: [
+            else if(!e.shiftKey && e.which === 219)
+            {
+                createNode("accessor", currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
