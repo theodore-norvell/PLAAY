@@ -1002,7 +1002,6 @@ describe('AccessorLabel', function(): void {
     });
 });
 
-
 describe( 'ExprSeqLabel', function () : void {
     it( 'should evaluate to a StringV equaling 3', function () : void {
         const rootLabel = new labels.ExprSeqLabel();
