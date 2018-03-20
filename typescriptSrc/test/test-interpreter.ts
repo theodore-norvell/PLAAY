@@ -968,7 +968,7 @@ describe ('Call node', function(): void {
 });
 
 describe('ObjectLiteralLabel', function(): void {
-    it( 'should evaluate to an ObjectV with 2 fields', function () : void {
+    it('should evaluate to an ObjectV with 2 fields', function () : void {
       const rootLabel = new labels.ObjectLiteralLabel();
       const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
       const field2 = labels.mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
@@ -984,7 +984,23 @@ describe('ObjectLiteralLabel', function(): void {
       assert.check(((val as ObjectV).getField("x").getValue() as StringV).getVal() === "3")
       assert.check(((val as ObjectV).getField("y").getValue() as StringV).getVal() === "5") 
   });
-}); 
+});
+
+describe('AccessorLabel', function(): void {
+    it ('should evaluate to a StringV equaling 5', function(): void {
+        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const object = new PNode(new labels.ObjectLiteralLabel, [field]);
+        const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("x")]);
+        const vm = makeStdVMS(root);
+        while (vm.canAdvance()) {
+          vm.advance();
+        }
+        assert.check(!vm.hasError());
+        const val = vm.getFinalValue();
+        assert.check(val instanceof StringV);
+        assert.check((val as StringV).getVal() === "5");
+    });
+});
 
 
 describe( 'ExprSeqLabel', function () : void {

@@ -120,6 +120,9 @@ module interpreter {
     theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
     theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
 
+    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
+    theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -421,6 +424,26 @@ module interpreter {
           const value = (vms.getStack() as NonEmptyVarStack).getTop();
           vms.finishStep( value );
           vms.getEval().popFromVarStack() ; }
+  }
+
+  function accessorStepper(vms: VMS) {
+    const node = vms.getPendingNode();
+    const object = vms.getChildVal(0);
+    const field = vms.getChildVal(1);
+    if (object instanceof ObjectV) {
+      if (field instanceof StringV) {
+        const val = object.getField(field.getVal()).getValue();
+        vms.finishStep(val);
+      } 
+      else {
+        vms.reportError("Fields of an object must be identified by a string value.");
+        return;
+      }
+    }
+    else {
+      vms.reportError("Attempted to access field of non-object value.");
+      return;
+    }
   }
 
     function ifStepper(vms : VMS) : void {
