@@ -117,6 +117,9 @@ module interpreter {
     theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
     theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
 
+    theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
+    theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -384,6 +387,41 @@ module interpreter {
             vms.finishStep( value );
             vms.getEval().popFromVarStack() ; }
     }
+
+    function objectStepper(vms : VMS) : void {
+      // We must step the node twice. Once on a previsit and once on a postvisit.
+      if( ! vms.hasExtraInformation() ) {
+          // Previsit. Build and push stack frame
+          const manager = vms.getTransactionManager() ;
+          const stackFrame = new ObjectV( manager ) ;
+          const node = vms.getPendingNode() ;
+          const sz = node.count() ;
+          const names = new Array<string>() ;
+          for( let i=0; i < sz ; ++i ) {
+              const childNode = node.child(i) ;
+              if( childNode.label() instanceof labels.VarDeclLabel ) {
+                  const name : string = childNode.child(0).label().getVal() ;
+                  const initialValue = null ;
+                  const type : Type = Type.NOTYPE ;
+                  const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+                  if( names.some( (v : string) => v===name ) ) {
+                      vms.reportError( "Variable " +name+ " is declared twice." ) ;
+                      return ;
+                  } else {
+                      stackFrame.addField( field ) ;
+                      names.push( name ) ; }
+              }
+          } // end for
+          vms.getEval().pushOntoVarStack( stackFrame ) ;
+          // Now map this node to say it's been previsited.
+          vms.putExtraInformation( stackFrame ) ;
+          vms.setReady( false ) ; }
+      else {
+          // Postvisit.
+          const value = (vms.getStack() as NonEmptyVarStack).getTop();
+          vms.finishStep( value );
+          vms.getEval().popFromVarStack() ; }
+  }
 
     function ifStepper(vms : VMS) : void {
         assert.checkPrecondition(vms.isChildMapped(0), "Condition is not ready.");
