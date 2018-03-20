@@ -160,7 +160,7 @@ module animator
         }
 
         stack.dmove(stackOffset, 0);
-        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + heightOffset);
+        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + heightOffset);
     }
 
     function undoStep() : void
