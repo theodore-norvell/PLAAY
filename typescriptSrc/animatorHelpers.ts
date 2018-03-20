@@ -60,14 +60,13 @@ module animatorHelpers
         let padding : number = 15;
         
         if (stk.notEmpty()){
-            for(let i = 0; i < stk.getSize() && i < 10; i++){
-                let vars : vms.VarStack = stk.get(i).getStack();
+                let vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
                 let varstackSize : number = vars.getAllFrames().length;
+                let frameArray : ObjectI[] = vars.getAllFrames();
                 
-                for (let k = 0; k < varstackSize - 1; k++){
+                for (let k = 0; k < varstackSize - 1 && k < 10; k++){
                     let evalGroup : svg.G = el.group();
-                    let v = vars as vms.NonEmptyVarStack;
-                    const obj : ObjectI = v.getTop();
+                    const obj : ObjectI = frameArray[k];
                     const numFields : number = obj.numFields();
                     for (let j = 0; j < numFields; j++){
                         if (j == 0 && k != 0){
@@ -82,12 +81,10 @@ module animatorHelpers
                         y += subGroup.bbox().height + 5;
                         subGroup.dmove(10, y + 5);
                     }
-                    vars = v.getNext();
                     if (evalGroup.children().length != 0){
                         makeStackFrameElement(el, evalGroup);
                     }
                 }
-            }
         }
     }
 
