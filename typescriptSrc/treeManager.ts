@@ -64,6 +64,8 @@ module treeManager {
                     return this.makeNullLiteralNode(selection);
                 case "objectliteral":
                     return this.makeObjectLiteralNode(selection);
+                case "arrayliteral":
+                    return this.makeArrayLiteralNode(selection);
 
                 //variables & variable manipulation
                 case "var":
@@ -129,6 +131,14 @@ module treeManager {
         private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
             const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
             const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+        }
+
+        //arrays
+        private makeArrayLiteralNode(selection:Selection) : Option<Selection> {
+            const arraynode = pnode.make(labels.ArrayLiteralLabel.theArrayLiteralLabel, []);
+            const template = new Selection( arraynode, list<number>(), 0, 0 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
         }
