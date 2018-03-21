@@ -79,7 +79,7 @@ module animator
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null);
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null, "", Cons<number>(-1, Nil<number>()));
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
@@ -99,12 +99,8 @@ module animator
     {
         evaluationMgr.next();
         transactionMgr.checkpoint();
-        if(!evaluationMgr.getVMS().canAdvance())
+        if(!evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError())
         {
-            if(evaluationMgr.getVMS().hasError())
-            {
-                alert("Error: " + evaluationMgr.getVMS().getError());
-            }
             return;
         }
         buildSVG();
@@ -137,6 +133,8 @@ module animator
         const stack : svg.G = animatorArea.group();
 
         let toHighlight : List<number>;
+        let error : string = "";
+        let errorPath : List<number> = Cons(-1, Nil<number>());
         if (evaluationMgr.getVMS().isReady() ) 
         {
             toHighlight = evaluationMgr.getVMS().getPending();
@@ -145,7 +143,13 @@ module animator
         {
             toHighlight = Cons(-1, Nil<number>());
         }
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
+        
+        if(evaluationMgr.getVMS().hasError())
+        {
+            errorPath = evaluationMgr.getVMS().getPending();
+            error = evaluationMgr.getVMS().getError();
+        }
+        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap(), error, errorPath);
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
