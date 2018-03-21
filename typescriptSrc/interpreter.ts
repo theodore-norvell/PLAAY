@@ -232,8 +232,6 @@ module interpreter {
     }
 
     function assignSelector(vms : VMS) : void {
-        const node = vms.getPendingNode();
-        const varNode = node.child(0);
         if (!vms.isChildMapped(1)) {
             vms.pushPending(1);
             vms.getInterpreter().select(vms);
