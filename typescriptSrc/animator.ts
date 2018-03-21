@@ -131,6 +131,7 @@ module animator
         {
             toHighlight = Cons(-1, Nil<number>());
         }
+        animatorHelpers.clearDrawnObjectsArray();
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap());
         const animationBBox : svg.BBox = animation.bbox();
         animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);

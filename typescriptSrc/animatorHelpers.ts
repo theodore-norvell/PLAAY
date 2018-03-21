@@ -10,6 +10,7 @@ import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
+import valueTypes = require('./valueTypes');
 import vms = require('./vms');
 import * as svg from "svg.js";
 
@@ -29,6 +30,7 @@ module animatorHelpers
     import PNode = pnode.PNode;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
+    import ObjectV = valueTypes.ObjectV;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : string = "rgb(190, 133, 197)";
@@ -37,6 +39,13 @@ module animatorHelpers
     const GHOSTWHITE : string = "rgb(248, 248, 255)";
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
+
+    let drawnObjects : Array<ObjectV> = new Array<ObjectV>();
+
+    export function clearDrawnObjectsArray() : void
+    {
+        drawnObjects = new Array<ObjectV>();
+    }
 
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
     {
@@ -57,7 +66,7 @@ module animatorHelpers
     {
         if(valueMap !== null && valueMap.isMapped(myPath))
         {
-            buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
+            buildSVGForMappedNode(element, parent, valueMap.get(myPath));
             return;
         }
         let drawHighlightOn : svg.G = element;
@@ -338,14 +347,17 @@ module animatorHelpers
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
                     seqBox.add(childArray[i].dmove(0, seqBoxY));
-                    seqBoxY += childArray[i].bbox().height + padding;
+                    if(childArray[i].bbox().height > 0)
+                    {
+                        seqBoxY += childArray[i].bbox().height + padding;
+                    }
                 }
                 if(seqBoxY === 0) //i.e. there are no elements in this node
                 {
                     seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
                 }
 
-                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, LIGHT_BLUE);
             }
             break ;
             case labels.AccessorLabel.kindConst :
@@ -511,7 +523,7 @@ module animatorHelpers
         }
     }
 
-    function buildSVGForMappedNode(node : PNode, element : svg.G, parent : svg.Container, value : Value) : void
+    function buildSVGForMappedNode(element : svg.G, parent : svg.Container, value : Value) : void
     {
         if(value.isNullV())
         {
@@ -544,11 +556,29 @@ module animatorHelpers
         }
         if(value.isObjectV())
         {
-            const text : svg.Text = element.text("Object");
-            makeObjectSVG(element, text);
-            return;
+            if(drawnObjects.includes(value as ObjectV))
+            {
+                const text : svg.Text = element.text("Object");
+                makeObjectSVG(element, text);
+                return;
+            }
+            else
+            {
+                //This is temporary. I want to get drawing objects working at all before doing anything fancy.
+                //For now, I'll draw them in place, and if I need to draw it more than once I'll just use text the second time on.
+                //My idea is to do this in three passes: first, I draw everything that isn't an object, and whenever an object does come up I'll add it to the list of
+                //objects to draw, make a small transparent rectange, and add the rectangle to a map which is keyed on ObjectV's with values of arrays of SVG.G's.
+                //Then, I'll use the list of objects to draw to draw every object in a separate group from the main code,
+                //similarly to how the stack visualization works. Additional objects found here will be added to the list, and
+                //handled like in the first pass. I'll also store the object's SVG.G in another map, keyed on ObjectVs.
+                //Finally, I'll use the maps from earlier as well as the objects to draw list to draw arrows where needed.
+                //I'll use the objects in the list as keys for the two maps, and use the BBoxes of the SVG.G's to find the points i need to draw arrows between.
+                drawnObjects.push(value as ObjectV);
+                drawObject(value as ObjectV, element);
+                return;
+            }
         }
-        assert.unreachable("Found value with unkown type");
+        assert.unreachable("Found value with unknown type");
     }
 
     function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : string, lineLength : number, lineY : number) : void
@@ -741,6 +771,16 @@ module animatorHelpers
         label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
+    function makeObjectBorderSVG(base : svg.Container, el : svg.Element) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(2);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+}
+
     //I assume textElement is already contained within base.
     function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
     {
@@ -815,6 +855,47 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: WHITE, opacity: 1, width: 1.5});
+    }
+
+    function drawObject(object : ObjectV, element : svg.Container) : void
+    {
+        let y = 0;
+        const padding : number = 15;
+        const result : svg.G = element.group();
+        const numFields : number = object.numFields();
+        for (let j = 0; j < numFields; j++){
+            const field : vms.FieldI = object.getFieldByNumber(j);
+            const subGroup : svg.G = result.group();
+            const name : svg.Text = subGroup.text("  " + field.getName());
+            const value : svg.G = subGroup.group();
+            buildSVGForMappedNode(value, subGroup, field.getValue());
+            makeObjectFieldSVG(subGroup, name, value);
+                          
+            subGroup.dmove(10, y + 5);
+            y += subGroup.bbox().height + 5;
+        }
+        makeObjectBorderSVG(element, result);
+    }
+
+    function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
+    {
+        let x : number = 0;
+        const padding : number = 20;
+
+        name.fill(GHOSTWHITE.toString());
+        const valueBox : svg.G = base.group();
+        valueBox.add(value);
+        x += name.bbox().width + padding;
+        if (x < 35){
+            x = 35;
+        }
+        valueBox.dmove(x, 0);
+        // const bounds : svg.BBox = value.bbox();
+        // const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
+        // outline.center(bounds.cx, bounds.cy);
+        // outline.radius(1);
+        // outline.fill({opacity: 0});
+        // outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
