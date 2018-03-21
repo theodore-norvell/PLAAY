@@ -1,10 +1,80 @@
-extends layout
+html
+    head
+        script(src="plaay.js")
+        script(src="https://code.jquery.com/jquery-1.10.2.min.js")
+        script(src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js")
+        link(rel="stylesheet" href="plaay-style.css")
+    body(id="body" class="plaay" onload="main.onLoad()")
+        #upperArea
+            #bannerArea
+                | PLAAY = The Programming Language for Adults and Youngsters
+            div(class="userBar" id="userBar")
+                unless user
+                    div(class="barButtons" id="login")
+                        | Login/Register
+                else
+                    .barButtons
+                        | Welcome, #{user.email}!
+                    div(class="barButtons" id="logout")
+                        | Logout
+                    div(class="barButtons" id="userSettings")
+                        | User Settings
+                    div(class="barButtons" id="loadProgram")
+                        | Load Program
+                div(class="barButtons" id="saveProgram")
+                    | Save Program
 
-block append scripts
-  script(src="js/lib/plaay.js")
-  script(src="https://code.jquery.com/jquery-1.10.2.min.js")
-  script(src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js")
-  link(rel="stylesheet", href="plaay-style.css")
+        #contentArea
+            #leftSideArea
+                div(class="evalVisible" id="evalButtonArea")
+                    div(class="leftSideButton evalVisible" id="edit" style="visibility: hidden")
+                        | Edit
+                    div(class="leftSideButton evalVisible" id="advance" style="visibility: hidden")
+                        | Next
+                    div(class="leftSideButton evalVisible" id="evalUndo" style="visibility: hidden")
+                        | Undo
+                    div(class="leftSideButton evalVisible" id="evalRedo" style="visibility: hidden")
+                        | Redo
+                    div(class="leftSideButton evalVisible" id="run" style="visibility: hidden")
+                        | Run
+                div(class="evalHidden" id="buttonArea")
+                    div(class="leftSideButton editButton evalHidden" id="play")
+                        | Play
+                    div(class="leftSideButton editButton" id="turtle")
+                        | Turtle World
+                    div(class="leftSideButton editButton evalHidden" id="undo")
+                        | Undo
+                    div(class="leftSideButton editButton evalHidden" id="redo")
+                        | Redo
+                    div(class="leftSideButton editButton evalHidden" id="trash")
+                        | Trash
+                div(class="evalHidden" id="palette")
+                    div(class="leftSideButton paletteItem" id="if")
+                        | ?
+                    div(class="leftSideButton paletteItem" id="while")
+                        | ⟳
+                    div(class="leftSideButton paletteItem" id="vardecl")
+                        | δ
+                    div(class="leftSideButton paletteItem" id="assign")
+                        | :=
+                    div(class="leftSideButton paletteItem" id="var")
+                        | x
+                    div(class="leftSideButton paletteItem" id="worldcall")
+                        | +
+                    div(class="leftSideButton paletteItem" id="call")
+                        | call
+                    div(class="leftSideButton paletteItem" id="stringliteral")
+                        | ""
+                    div(class="leftSideButton paletteItem" id="nullliteral")
+                        | ⏚
+                    div(class="leftSideButton paletteItem" id="lambda")
+                        | λ
+                    div(class="leftSideButton paletteItem" id="objectliteral")
+                        | $
+                    div(class="leftSideButton paletteItem" id="accessor")
+                        | [ ]
+                div(class="quitworld" id= "quitworld" style="visibility: hidden")
+            datalist(id="oplist")
+            div(class="container evalHidden" id="container")
+            div(class="vms evalVisible" id="vms" style="visibility: hidden")
 
-block content
-  include html/plaay.html

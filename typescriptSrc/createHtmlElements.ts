@@ -14,64 +14,68 @@ module createHtmlElements {
 
 		const body = $("body");
 
-		create("div", "", "upperArea", body);
+		// create("div", "", "upperArea", body);
 		const upperArea = $("#upperArea");
-		createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
+		// createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
 
-		create("div", "", "contentArea", body);
+		// create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
-		create("div", "", "leftSideArea", contentArea);
+		// create("div", "", "leftSideArea", contentArea);
 		const leftSideArea = $("#leftSideArea");
-		create("div", "evalVisible", "evalButtonArea", leftSideArea);
+		// create("div", "evalVisible", "evalButtonArea", leftSideArea);
 		const evalButtonArea = $("#evalButtonArea");
-		create("div", "evalHidden", "buttonArea", leftSideArea);
+		// create("div", "evalHidden", "buttonArea", leftSideArea);
 		const buttonArea = $("#buttonArea");
-		create("div", "evalHidden", "palette", leftSideArea);
+		// create("div", "evalHidden", "palette", leftSideArea);
 		const palette = $("#palette");
 
 		//createHidden("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "leftSideButton editButton evalHidden", "play", buttonArea, "Play");
-		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
-		createTexted("div", "leftSideButton editButton evalHidden", "undo", buttonArea, "Undo");
-		createTexted("div", "leftSideButton editButton evalHidden", "redo", buttonArea, "Redo");
-		createTexted("div", "leftSideButton editButton evalHidden", "trash", buttonArea, "Trash");
+		// createTexted("div", "leftSideButton editButton evalHidden", "play", buttonArea, "Play");
+		// createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
+		// createTexted("div", "leftSideButton editButton evalHidden", "undo", buttonArea, "Undo");
+		// createTexted("div", "leftSideButton editButton evalHidden", "redo", buttonArea, "Redo");
+		// createTexted("div", "leftSideButton editButton evalHidden", "trash", buttonArea, "Trash");
 
 		//Executing-related elements. All added functionalities are in executing module.
 
-		createHidden("div", "leftSideButton evalVisible", "edit", evalButtonArea, "Edit");
-		createHidden("div", "leftSideButton evalVisible", "advance", evalButtonArea, "Next");
-		createHidden("div", "leftSideButton evalVisible", "evalUndo", evalButtonArea, "Undo");
-		createHidden("div", "leftSideButton evalVisible", "evalRedo", evalButtonArea, "Redo");
-		createHidden("div", "leftSideButton evalVisible", "run", evalButtonArea, "Run");
+		// createHidden("div", "leftSideButton evalVisible", "edit", evalButtonArea, "Edit");
+		// createHidden("div", "leftSideButton evalVisible", "advance", evalButtonArea, "Next");
+		// createHidden("div", "leftSideButton evalVisible", "evalUndo", evalButtonArea, "Undo");
+		// createHidden("div", "leftSideButton evalVisible", "evalRedo", evalButtonArea, "Redo");
+		// createHidden("div", "leftSideButton evalVisible", "run", evalButtonArea, "Run");
 
-		createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
+		// createHidden("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
-		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
-		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
-		createTexted("div", "leftSideButton paletteItem", "vardecl", palette, "\u03B4");
-		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
-		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
-		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+");
-		createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
-		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
-		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
-		createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
-		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
-		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
+		// createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
+		// createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
+		// createTexted("div", "leftSideButton paletteItem", "vardecl", palette, "\u03B4");
+		// createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
+		// createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
+		// createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+");
+		// createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
+		// createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
+		// createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
+		// createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
+		// createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
+		// createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
 
 		//User-related elements. All added functionalities of the elements are in userRelated module.
-		create("div", "userBar", "userBar", upperArea);
-		const userBar = $("#userBar");
-		createTexted("div", "", "login", userBar, "Login/Register");
-		createTexted("div", "", "logout", userBar, "Logout").hide();
-		createTexted("div", "", "userSettings", userBar, "User Settings").hide();
-		createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
-		createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
-		create("datalist", null, "oplist", contentArea);
+		// create("div", "userBar", "userBar", upperArea);
+		// const userBar = $("#userBar");
+		// createTexted("div", "", "login", userBar, "Login/Register");
+		// createTexted("div", "", "logout", userBar, "Logout").hide();
+		// $("#logout").hide();
+		// createTexted("div", "", "userSettings", userBar, "User Settings").hide();
+		// $("#userSettings").hide();
+		// createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
+		// $("#saveProgram").hide();
+		// createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
+		// $("#loadProgram").hide();
+		// create("datalist", null, "oplist", contentArea);
 
-		create("div", "container evalHidden", "container", contentArea);
-		createHidden("div", "vms evalVisible", "vms", contentArea, null);
+		// create("div", "container evalHidden", "container", contentArea);
+		// createHidden("div", "vms evalVisible", "vms", contentArea, null);
 
 		const optionList = ["+", "-", "*", "/", ">", "<", "==", ">=", "<=", "&", "|"];
 		for (let i = 0; i < optionList.length; i++) {

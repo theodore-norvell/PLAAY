@@ -32,15 +32,21 @@ export let postLogin = (req: Request, res: Response, next: NextFunction) => {
     }
 
     passport.authenticate("local", (err: Error, user: UserModel, info: IVerifyOptions) => {
-        if (err) { return next(err); }
+        if (err) {
+            return next(err);
+        }
         if (!user) {
+            console.log(info.message);
             req.flash("errors", info.message);
             return res.redirect("/login");
         }
         req.logIn(user, (err) => {
-            if (err) { return next(err); }
+            if (err) {
+                console.log("error over here :)");
+                return next(err);
+            }
             req.flash("success", { msg: "Success! You are logged in." });
-            res.redirect(req.session.returnTo || "/");
+            res.redirect("/");
         });
     })(req, res, next);
 };

@@ -24,6 +24,8 @@ import * as userController from "./controllers/user";
 import * as apiController from "./controllers/api";
 import * as contactController from "./controllers/contact";
 import * as plaayController from "./controllers/plaay";
+import * as saveController from "./controllers/save";
+import * as loadController from "./controllers/load";
 
 
 // API keys and Passport config
@@ -85,7 +87,8 @@ app.use(
 /**
  Primary app routes.
  */
-app.get("/", homeController.index);
+// app.get("/", homeController.index);
+app.get("/", plaayController.newProgram);
 app.get("/login", userController.getLogin);
 app.post("/login", userController.postLogin);
 app.get("/logout", userController.logout);
@@ -103,6 +106,8 @@ app.post("/account/password", passportConfig.isAuthenticated, userController.pos
 app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
 app.get("/account/unlink/:provider", passportConfig.isAuthenticated, userController.getOauthUnlink);
 app.get("/plaay", plaayController.newProgram);
+app.post("/save", saveController.save);
+app.post("/load", loadController.load);
 
 /**
  * API examples routes.

@@ -116,11 +116,17 @@ html, body
 {
     position:absolute;
     right:0;
-    width: 10em;
+    width: auto;
     padding: 0 .5em 0 .5em;
     text-align: right;
     float: right;
     background-color: #cccccc;
+    display: inline-block;
+}
+
+.barButtons
+{
+    float: left;
 }
 
 #contentArea

@@ -11,7 +11,7 @@ import collections = require( './collections' );
 import editor = require( './editor' );
 import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
-import sharedMkHtml = require('./sharedMkHtml');
+import main = require('./main');
 
 /** userRelated  provides the UI for communicating with the server. */
 module userRelated 
@@ -35,19 +35,26 @@ module userRelated
         $('#dimScreen').append("<div id='registrationBox'>" +
             "<div id='loginSection'>" +
             "Login <br>" +
-            "<form name='loginUser' onSubmit='return loginUser()' method='post'>" +
-            "Username: <input type='text' name='username' required><br>" +
-            "Password: <input type='password' name='password' required><br>" +
+            "<form name='loginUser' id='loginUser' method='post' action='/login'>" +
+            "Email: <input type='text' name='email' class='login-textbox' id='loginUsername' required><br>" +
+            "Password: <input type='password' name='password' class='login-textbox' required><br>" +
             "<input type='submit' value='Login'>" +
             "</form></div>" +
             "<div id='registrationSection'>" +
             "Register <br>" +
-            "<form name='registerNewUser' onSubmit='return registerNewUser()' method='post'>" +
-            "Username: <input type='text' name='username' required><br>" +
-            "Password: <input type='password' name='password' required><br>" +
-            "Confirm Password: <input type='password' name='passwordConfirm' required><br>" +
+            "<form name='registerNewUser' id='registerNewUser' method='post' action='/signup'>" +
+            "Email: <input type='text' name='email' class='login-textbox' required><br>" +
+            "Password: <input type='password' name='password' class='login-textbox' required><br>" +
+            "Confirm Password: <input type='password' name='confirmPassword' class='login-textbox' required><br>" +
             "<input type='submit' value='Register'></form></div>" +
             "<div class='closewindow'>Close Window</div></div>");
+        $('.login-textbox').each(function (index, elem) {
+            $(elem).keydown(function (e) {
+                e.stopPropagation();
+            });
+        });
+        // $('#loginUser').submit(loginUser);
+        // $('#registerNewUser').submit(registerNewUser);
         $('.closewindow').click(function () : void {
             $("#dimScreen").remove();
         });
@@ -73,22 +80,21 @@ module userRelated
 
     function logoutAction () : void
     {
-        $("#login").show();
-        $("#userSettings").hide();
-        $("#saveProgram").hide();
-        $("#loadProgram").hide();
-        $("#userSettings :input").remove();
-        $("#logout").hide();
+        window.location.href = '/logout';
     }
 
     function saveProgramAction () : void
     {
         $('body').append("<div id='dimScreen'></div>");
         $('#dimScreen').append("<div id='getProgramList'>" +
-            "<form name='saveProgramTree' onSubmit='return savePrograms()' method='post'>" +
-            "Program Name: <input type='text' name='programname'><br>" +
+            "<form name='saveProgramTree' id='saveProgramForm' method='post'>" +
+            "Program Name: <input type='text' name='programname' id='saveProgramName'><br>" +
             "<input type='submit' value='Submit Program'>" +
             "</form><div class='closewindow'>Close Window</div></div>");
+        $('#saveProgramName').keydown(function (e) {
+            e.stopPropagation();
+        });
+        $('#saveProgramForm').submit(savePrograms);
         $('.closewindow').click(function () : void {
             $("#dimScreen").remove();
         });
@@ -98,11 +104,12 @@ module userRelated
     function loadProgramAction() : void
     {
         $('body').append("<div id='dimScreen'></div>");
-        $('#dimScreen').append("<div id='getProgramList'><div class='closewindow'>Close Window</div></div>");
+        $('#dimScreen').append("<div id='getProgramList'><button id='loadButton'>Load Program</button><div class='closewindow'>Close Window</div></div>");
+        $('#loadButton').click(loadProgram);
         $('.closewindow').click(function ()  : void {
             $("#dimScreen").remove();
         });
-        getPrograms();
+        // getPrograms();
     }
 
     function loginUser() : boolean
@@ -113,35 +120,37 @@ module userRelated
         const  psw = $('form[name="loginUser"] :input[name="password"]').val();
         console.log($('form[name="loginUser"] #usrname').val());
         const  response = $.post(
-            "/Login",
-            {username:usr,password:psw},
+            "/login",
+            {email:usr,password:psw},
             function() : void {
-                const  respText = $.parseJSON(response.responseText);
-                if (respText.result === "SUCCESS")
-                {
-                    const  user = respText.username;
-                    $("#dimScreen").remove();
-                    $("#login").hide();
-                    //$("#userSettings").show();
-                    $('<input>').attr({
-                        type: 'hidden',
-                        id: 'currentUser',
-                        value: user
-                    }).appendTo('#userSettings');
-                    $("#saveProgram").show();
-                    $("#loadProgram").show();
-                    $("#logout").show();
-                    $("#userSettings").val(user);
-                    //alert(respText.username);
-                }
-                else if (respText.result === "WRONGCREDENTIALS")
-                {
-                    alert("Wrong username/password, please try again.");
-                }
-                else if (respText.result === "ERROR")
-                {
-                    alert("An error has occurred, please try again later.");
-                }
+                $('body').replaceWith(response.responseText);
+                location.reload();
+                // const  respText = $.parseJSON(response.responseText);
+                // if (respText.result === "SUCCESS")
+                // {
+                //     const  user = respText.username;
+                //     $("#dimScreen").remove();
+                //     $("#login").hide();
+                //     //$("#userSettings").show();
+                //     $('<input>').attr({
+                //         type: 'hidden',
+                //         id: 'currentUser',
+                //         value: user
+                //     }).appendTo('#userSettings');
+                //     $("#saveProgram").show();
+                //     $("#loadProgram").show();
+                //     $("#logout").show();
+                //     $("#userSettings").val(user);
+                //     //alert(respText.username);
+                // }
+                // else if (respText.result === "WRONGCREDENTIALS")
+                // {
+                //     alert("Wrong username/password, please try again.");
+                // }
+                // else if (respText.result === "ERROR")
+                // {
+                //     alert("An error has occurred, please try again later.");
+                // }
 
             });
         return false;
@@ -160,7 +169,7 @@ module userRelated
         else
         {
             const  response = $.post(
-                "/Register",{username:usr,password:psw},
+                "/signup",{email:usr,password:psw,confirmPassword:pswCon},
                 function() : void {
                     const  respText = $.parseJSON(response.responseText);
                     if (respText.result === "SUCCESS")
@@ -289,12 +298,12 @@ module userRelated
                 });
     }
 
-    function loadProgram(name:string) : void
+    function loadProgram() : void
     {
         const  currentUser = $('#userSettings :input').val();
-        const  programName = name;
+        const  programName = "test";
         const  response = $.post(
-           "/LoadProgram",
+           "/load",
            { username: currentUser, programname: programName },
            function() : void { // TODO Move this callback function to the editor.
                $("#dimScreen").remove();
@@ -308,7 +317,7 @@ module userRelated
         const  programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
         const  currentSel = serialize( editor.getCurrentSelection() );
         const  response = $.post(
-            "/SavePrograms",
+            "/save",
             {username:currentUser,programname:programName,program:currentSel},
             function() : void {
                 console.log(response.responseText);
