@@ -232,6 +232,8 @@ module interpreter {
     }
 
     function assignSelector(vms : VMS) : void {
+        const node = vms.getPendingNode();
+        const varNode = node.child(0);
         if (!vms.isChildMapped(1)) {
             vms.pushPending(1);
             vms.getInterpreter().select(vms);
@@ -239,7 +241,6 @@ module interpreter {
         else {
             vms.setReady(true);
         }
-
     }
 
     function varDeclSelector(vms : VMS) : void {
@@ -458,24 +459,50 @@ module interpreter {
     function assignStepper(vms : VMS) : void {
         const assignNode : PNode = vms.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
-        if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
+        //Handle the case when we are assigning to a field of an object
+        if (variableNode.label().kind() === labels.AccessorLabel.kindConst) {
+            const objName : string = variableNode.child(0).label().getVal();
+            const fieldName : string = variableNode.child(1).label().getVal();
+            const varStack : VarStack = vms.getStack();
+            if (!varStack.hasField(objName)) {
+              vms.reportError("No object named " + objName + " is in scope.");
+              return;
+            }
+            const obj : Value = varStack.getField(objName).getValue();
+            if (!(obj instanceof ObjectV)) {
+              vms.reportError(obj + " is not an object value.");
+              return;
+            }
+            if (!obj.hasField(fieldName)) {
+              vms.reportError("Object has no field named " + fieldName);
+              return;
+            }
+            const field = obj.getField(fieldName);
+            const val : Value = vms.getChildVal(1);
+            field.setValue(val);
+            vms.finishStep(DoneV.theDoneValue);
+        }
+        //Handle the case when assigning to a variable
+        else {
+          if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
             vms.reportError("Attempting to assign to something that isn't a variable.");
             return ; }
-        const variableName : string = variableNode.label().getVal();
-        const value : Value = vms.getChildVal(1);
-        const variableStack : VarStack = vms.getStack();
-        if( ! variableStack.hasField(variableName) ) {
-            vms.reportError( "No variable named " + variableName + " is in scope." ) ;
-            return ;
-        }
-        const field = variableStack.getField(variableName) ;
-        if( ! field.getIsDeclared() ) {
-            vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
-            return ;
-        }
-        // TODO Check that the value is assignable to the field.
-        field.setValue( value ) ;
-        vms.finishStep( DoneV.theDoneValue ) ;
+          const variableName : string = variableNode.label().getVal();
+          const value : Value = vms.getChildVal(1);
+          const variableStack : VarStack = vms.getStack();
+          if( ! variableStack.hasField(variableName) ) {
+              vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+              return ;
+          }
+          const field = variableStack.getField(variableName) ;
+          if( ! field.getIsDeclared() ) {
+              vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+              return ;
+          }
+          // TODO Check that the value is assignable to the field.
+          field.setValue( value ) ;
+          vms.finishStep( DoneV.theDoneValue ) ;
+      }
     }
 
     function variableStepper(vms : VMS) : void {
