@@ -66,7 +66,8 @@ module animatorHelpers
         buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
     }
 
-    export function buildStack(stk : vms.EvalStack, el : svg.Container){
+    export function buildStack(stk : vms.EvalStack, el : svg.Container) : void
+    {
         //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
         let y = 0;
         let padding : number = 15;
@@ -77,49 +78,52 @@ module animatorHelpers
                 let frameArray : ObjectI[] = vars.getAllFrames();
                 
                 for (let k = 0; k < varstackSize - 1 && k < 10; k++){
-                    let evalGroup : svg.G = el.group();
                     const obj : ObjectI = frameArray[k];
-                    const numFields : number = obj.numFields();
-                    for (let j = 0; j < numFields; j++){
-                        if (j == 0 && k != 0){
-                            y = y + padding;
-                        }
-                        const field : vms.FieldI = obj.getFieldByNumber(j);
-                        const subGroup : svg.G = evalGroup.group();
-                        const name : svg.Text = subGroup.text("  " + field.getName());
-                        const value : svg.Text = subGroup.text(field.getValue().toString());
-                        makeVarStackElement(subGroup, name, value);      
-                                      
-                        y += subGroup.bbox().height + 5;
-                        subGroup.dmove(10, y + 5);
+                    if(k !== 0)
+                    {
+                        y += padding;
                     }
-                    if (evalGroup.children().length != 0){
-                        makeStackFrameElement(el, evalGroup);
-                    }
+                    y = drawObject(obj, el, y);
                 }
         }
     }
 
-    function makeVarStackElement(base : svg.Container, name : svg.Text, value : svg.Text) : void
+    function drawObject(object : ObjectI, element : svg.Container, y : number) : number
+    {
+        const padding : number = 15;
+        const result : svg.G = element.group();
+        const numFields : number = object.numFields();
+        for (let j = 0; j < numFields; j++){
+            const field : vms.FieldI = object.getFieldByNumber(j);
+            const subGroup : svg.G = result.group();
+            const name : svg.Text = subGroup.text("  " + field.getName());
+            const value : svg.G = subGroup.group();
+            buildSVGForMappedNode(value, subGroup, field.getValue());
+            makeObjectFieldSVG(subGroup, name, value);
+                          
+            subGroup.dmove(10, y + 5);
+            y += subGroup.bbox().height + 5;
+        }
+        if(result.children().length !== 0)
+        {
+            makeObjectBorderSVG(element, result);
+        }
+        return y;
+    }
+
+    function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
     {
         let x : number = 0;
-        let padding : number = 20;
+        const padding : number = 20;
 
         name.fill(GHOSTWHITE.toString());
-        value.fill(ORANGE.toString());
-        let valueBox : svg.G = base.group();
+        const valueBox : svg.G = base.group();
         valueBox.add(value);
         x += name.bbox().width + padding;
         if (x < 35){
             x = 35;
         }
         valueBox.dmove(x, 0);
-        const bounds : svg.BBox = value.bbox();
-        const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(1);
-        outline.fill({opacity: 0});
-        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
     }
 
     function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
@@ -641,6 +645,15 @@ module animatorHelpers
         }
         if(value.isObjectV())
         {
+            //This is temporary. I want to get drawing objects working at all before doing anything fancy.
+            //For now, I'll draw them in place, and if I need to draw it more than once I'll just use text the second time on.
+            //My idea is to do this in three passes: first, I draw everything that isn't an object, and whenever an object does come up I'll add it to the list of
+            //objects to draw, make a small transparent rectange, and add the rectangle to a map which is keyed on ObjectV's with values of arrays of SVG.G's.
+            //Then, I'll use the list of objects to draw to draw every object in a separate group from the main code,
+            //similarly to how the stack visualization works. Additional objects found here will be added to the list, and
+            //handled like in the first pass. I'll also store the object's SVG.G in another map, keyed on ObjectVs.
+            //Finally, I'll use the maps from earlier as well as the objects to draw list to draw arrows where needed.
+            //I'll use the objects in the list as keys for the two maps, and use the BBoxes of the SVG.G's to find the points i need to draw arrows between.
             if(drawnObjects.includes(value as ObjectV))
             {
                 const text : svg.Text = element.text("Object");
@@ -649,17 +662,8 @@ module animatorHelpers
             }
             else
             {
-                //This is temporary. I want to get drawing objects working at all before doing anything fancy.
-                //For now, I'll draw them in place, and if I need to draw it more than once I'll just use text the second time on.
-                //My idea is to do this in three passes: first, I draw everything that isn't an object, and whenever an object does come up I'll add it to the list of
-                //objects to draw, make a small transparent rectange, and add the rectangle to a map which is keyed on ObjectV's with values of arrays of SVG.G's.
-                //Then, I'll use the list of objects to draw to draw every object in a separate group from the main code,
-                //similarly to how the stack visualization works. Additional objects found here will be added to the list, and
-                //handled like in the first pass. I'll also store the object's SVG.G in another map, keyed on ObjectVs.
-                //Finally, I'll use the maps from earlier as well as the objects to draw list to draw arrows where needed.
-                //I'll use the objects in the list as keys for the two maps, and use the BBoxes of the SVG.G's to find the points i need to draw arrows between.
                 drawnObjects.push(value as ObjectV);
-                drawObject(value as ObjectV, element);
+                drawObject(value as ObjectV, element, 0);
                 return;
             }
         }
@@ -964,47 +968,6 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: WHITE, opacity: 1, width: 1.5});
-    }
-
-    function drawObject(object : ObjectV, element : svg.Container) : void
-    {
-        let y = 0;
-        const padding : number = 15;
-        const result : svg.G = element.group();
-        const numFields : number = object.numFields();
-        for (let j = 0; j < numFields; j++){
-            const field : vms.FieldI = object.getFieldByNumber(j);
-            const subGroup : svg.G = result.group();
-            const name : svg.Text = subGroup.text("  " + field.getName());
-            const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field.getValue());
-            makeObjectFieldSVG(subGroup, name, value);
-                          
-            subGroup.dmove(10, y + 5);
-            y += subGroup.bbox().height + 5;
-        }
-        makeObjectBorderSVG(element, result);
-    }
-
-    function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
-    {
-        let x : number = 0;
-        const padding : number = 20;
-
-        name.fill(GHOSTWHITE.toString());
-        const valueBox : svg.G = base.group();
-        valueBox.add(value);
-        x += name.bbox().width + padding;
-        if (x < 35){
-            x = 35;
-        }
-        valueBox.dmove(x, 0);
-        // const bounds : svg.BBox = value.bbox();
-        // const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
-        // outline.center(bounds.cx, bounds.cy);
-        // outline.radius(1);
-        // outline.fill({opacity: 0});
-        // outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
     }
 
 //     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
