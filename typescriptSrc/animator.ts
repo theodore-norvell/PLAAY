@@ -34,6 +34,7 @@ module animator
 {
     import EvaluationManager = evaluationManager.EvaluationManager;
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
+    import buildStack = animatorHelpers.buildStack;
     import List = collections.List;
     import Cons = collections.cons;
     import Nil = collections.nil;
@@ -77,9 +78,19 @@ module animator
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
+        const stack : svg.G = animatorArea.group();
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null, "", Cons<number>(-1, Nil<number>()));
+        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
-        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        const stackBBox : svg.BBox = stack.bbox();
+        let stackOffset : number = 400;
+        //keep stack spacing consistent unless animation too large
+        if (stackOffset < animationBBox.width){
+            stackOffset = animationBBox.width + 100;
+        }
+        stack.dmove(stackOffset, 0);
+        
+        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
         $(".dropZone").hide();
         $(".dropZoneSmall").hide();
     }
@@ -111,6 +122,7 @@ module animator
         //     highlighted = false;
         // }
     }
+    
 
     function buildSVG() : void
     {
@@ -118,6 +130,8 @@ module animator
         $("#vms").empty().append("<div id='svgContainer'></div>");
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
+        const stack : svg.G = animatorArea.group();
+
         let toHighlight : List<number>;
         let error : string = "";
         let errorPath : List<number> = Cons(-1, Nil<number>());
@@ -129,14 +143,28 @@ module animator
         {
             toHighlight = Cons(-1, Nil<number>());
         }
+        
         if(evaluationMgr.getVMS().hasError())
         {
             errorPath = evaluationMgr.getVMS().getPending();
             error = evaluationMgr.getVMS().getError();
         }
         traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap(), error, errorPath);
+        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
-        animatorArea.size(animationBBox.width + 100, animationBBox.height + 100);
+        const stackBBox : svg.BBox = stack.bbox();
+        let stackOffset : number = 400;
+        let heightOffset : number = 100;
+        //keep stack spacing consistent unless animation too large
+        if (stackOffset < animationBBox.width){
+            stackOffset = animationBBox.width + 100;
+        }
+        if (heightOffset < (stackBBox.height - animationBBox.height)){
+            heightOffset = stackBBox.height - animationBBox.height + 100;
+        }
+
+        stack.dmove(stackOffset, 0);
+        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + heightOffset);
     }
 
     function undoStep() : void
