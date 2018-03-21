@@ -381,9 +381,9 @@ module interpreter {
           vms.getEval().popFromVarStack() ; }
     }
 
-  function previsitNode(vms: VMS) {
-    // Previsit. Build and push stack frame
-    const manager = vms.getTransactionManager() ;
+    function previsitNode(vms: VMS) {
+      // Previsit. Build and push stack frame
+      const manager = vms.getTransactionManager() ;
       const stackFrame = new ObjectV( manager ) ;
       const node = vms.getPendingNode() ;
       const sz = node.count() ;
@@ -407,27 +407,27 @@ module interpreter {
       // Now map this node to say it's been previsited.
       vms.putExtraInformation( stackFrame ) ;
       vms.setReady( false ) ;
-  }
+    }
 
-  function accessorStepper(vms: VMS) {
-    const node = vms.getPendingNode();
-    const object = vms.getChildVal(0);
-    const field = vms.getChildVal(1);
-    if (object instanceof ObjectV) {
-      if (field instanceof StringV) {
-        const val = object.getField(field.getVal()).getValue();
-        vms.finishStep(val);
-      } 
+    function accessorStepper(vms: VMS) {
+      const node = vms.getPendingNode();
+      const object = vms.getChildVal(0);
+      const field = vms.getChildVal(1);
+      if (object instanceof ObjectV) {
+        if (field instanceof StringV) {
+          const val = object.getField(field.getVal()).getValue();
+          vms.finishStep(val);
+        } 
+        else {
+          vms.reportError("Fields of an object must be identified by a string value.");
+          return;
+        }
+      }
       else {
-        vms.reportError("Fields of an object must be identified by a string value.");
+        vms.reportError("Attempted to access field of non-object value.");
         return;
       }
     }
-    else {
-      vms.reportError("Attempted to access field of non-object value.");
-      return;
-    }
-  }
 
     function ifStepper(vms : VMS) : void {
         assert.checkPrecondition(vms.isChildMapped(0), "Condition is not ready.");
