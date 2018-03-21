@@ -189,6 +189,11 @@ module vms{
             return this.evalStack.top() ;
         }
 
+        public getEvalStack() : EvalStack {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack;
+        }
+
         public finishStep( value : Value ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().finishStep( value ) ;
@@ -638,6 +643,14 @@ module vms{
 
         public notEmpty() : boolean{
             return this.stk.size() !== 0 ;
+        }
+
+        public get(idx : number) : Evaluation{
+            return this.stk.get(idx);
+        }
+
+        public getSize() : number{
+            return this.stk.size();
         }
     }
 
