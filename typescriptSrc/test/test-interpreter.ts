@@ -1002,6 +1002,24 @@ describe('AccessorLabel', function(): void {
     });
 });
 
+describe('ArrayLiteralLabel', function(): void {
+  it('should evaluate to an ObjectV with 2 fields', function(): void {
+      const el1 = mkNumberLiteral("12345");
+      const el2 = mkNumberLiteral("67890");
+      const root = new PNode(new labels.ArrayLiteralLabel(), [el1, el2]);
+      const vm = makeStdVMS(root);
+      while (vm.canAdvance()) {
+        vm.advance();
+      }
+      assert.check(!vm.hasError());
+      const val = vm.getFinalValue();
+      assert.check(val instanceof ObjectV);
+      assert.check((val as ObjectV).numFields() === 2);
+      assert.check(((val as ObjectV).getField("0").getValue() as StringV).getVal() === "12345");
+      assert.check(((val as ObjectV).getField("1").getValue() as StringV).getVal() === "67890");
+  });
+});
+
 describe( 'ExprSeqLabel', function () : void {
     it( 'should evaluate to a StringV equaling 3', function () : void {
         const rootLabel = new labels.ExprSeqLabel();

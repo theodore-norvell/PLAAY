@@ -117,12 +117,15 @@ module interpreter {
     theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
     theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
 
-    // Objects
+    // Objects and Arrays
     theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
     theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
 
     theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
     theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
+
+    theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = exprSeqSelector;
+    theStepperRegistry[labels.ArrayLiteralLabel.kindConst] = arrayStepper;
 
 
     // Selectors.  Selectors take the state from not ready to ready.
@@ -380,6 +383,40 @@ module interpreter {
           vms.finishStep( value );
           vms.getEval().popFromVarStack() ; }
     }
+
+    function arrayStepper(vms: VMS) {
+      // We must step the node twice. Once on a previsit and once on a postvisit.
+      if( ! vms.hasExtraInformation() ) {          
+        // Previsit. Build and push stack frame
+        const manager = vms.getTransactionManager() ;
+        const stackFrame = new ObjectV( manager ) ;
+        const node = vms.getPendingNode() ;
+        const sz = node.count() ;
+        for( let i=0; i < sz ; ++i ) {
+            const childNode = node.child(i) ;
+            const name : string = i+"";
+            const type : Type = Type.NOTYPE ;
+            const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+            stackFrame.addField( field ) ;
+        } // end for
+        vms.getEval().pushOntoVarStack( stackFrame ) ;
+        // Now map this node to say it's been previsited.
+        vms.putExtraInformation( stackFrame ) ;
+        vms.setReady( false ) ;
+      }
+      else {
+          // Postvisit.
+          const node = vms.getPendingNode();
+          const value = (vms.getStack() as NonEmptyVarStack).getTop();
+          for (let i = 0; i < node.count(); ++i) {
+            const childVal = vms.getChildVal(i);
+            let field = value.getField(i+"");
+            field.setValue(childVal);
+          }
+          vms.finishStep( value );
+          vms.getEval().popFromVarStack() ; 
+    }
+  }
 
   function previsitNode(vms: VMS) {
     // Previsit. Build and push stack frame
