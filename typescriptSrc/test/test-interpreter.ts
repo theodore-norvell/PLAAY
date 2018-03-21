@@ -1000,6 +1000,18 @@ describe('AccessorLabel', function(): void {
         assert.check(val instanceof StringV);
         assert.check((val as StringV).getVal() === "5");
     });
+
+    it('should report an error that the object does not have a field named y', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel, [field]);
+      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("y")]);
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "No field named y" );
+    });
 });
 
 describe( 'ExprSeqLabel', function () : void {

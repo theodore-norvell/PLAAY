@@ -415,8 +415,15 @@ module interpreter {
       const field = vms.getChildVal(1);
       if (object instanceof ObjectV) {
         if (field instanceof StringV) {
-          const val = object.getField(field.getVal()).getValue();
-          vms.finishStep(val);
+          const fieldName = field.getVal();
+          if (object.hasField(fieldName)) {
+            const val = object.getField(fieldName).getValue();
+            vms.finishStep(val);
+          }
+          else {
+            vms.reportError("No field named " + fieldName);
+            return;
+          }
         } 
         else {
           vms.reportError("Fields of an object must be identified by a string value.");
