@@ -12,6 +12,7 @@ import editor = require( './editor' );
 import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
 import main = require('./main');
+import {id} from "./edits";
 
 /** userRelated  provides the UI for communicating with the server. */
 module userRelated 
@@ -89,6 +90,7 @@ module userRelated
         $('#dimScreen').append("<div id='getProgramList'>" +
             "<form name='saveProgramTree' id='saveProgramForm' method='post'>" +
             "Program Name: <input type='text' name='programname' id='saveProgramName'><br>" +
+            "Private? <input type='checkbox' name='private' id='isPrivate'><br>" +
             "<input type='submit' value='Submit Program'>" +
             "</form><div class='closewindow'>Close Window</div></div>");
         $('#saveProgramName').keydown(function (e) {
@@ -109,7 +111,7 @@ module userRelated
         $('.closewindow').click(function ()  : void {
             $("#dimScreen").remove();
         });
-        // getPrograms();
+        getPrograms();
     }
 
     function loginUser() : boolean
@@ -259,25 +261,25 @@ module userRelated
 
     function getPrograms() : boolean
     {
-        const  currentUser = $('#userSettings :input').val();
         const  response = $.post(
-                "/ProgramList",
-                {username:currentUser},
+                "/listPrograms",
                 function() : void {
-                    buildPage(response.responseText);
+                    buildPage(JSON.parse(response.responseText));
         });
         return false;
     }
 
-    function buildPage(json : string) : void
+    function buildPage(result) : void
     {
-        const  result = $.parseJSON(json).programList;
-        result.forEach(function(entry : string) : void {
-            $('#getProgramList').append("<div>" + entry +
-                "<button type=\"button\" onclick=\"loadProgram(\'" + entry + "\')\">Select program</button>" +
-                "<button type=\"button\" onclick=\"deleteProgram(\'" + entry + "\')\">Delete Program</button>" +
-                "</div>");
+        $('#getProgramList').append("<table id='programTable'><tr><th>Name</th><th>Version</th><th></th></tr>")
+        result.forEach(function(entry) : void {
+            $('#programTable').append("<tr><td>" + entry.name + "</td><td>" + entry.version
+                + "</td><td><button id='" + entry.identifier +  "'>Load</button></td></tr>");
+            $('#' + entry.identifier).click(function () {
+                loadProgram(entry.identifier);
+            })
         });
+        $('#programTable').append("</table>");
     }
 
     function deleteProgram(name : string) : void
@@ -298,13 +300,11 @@ module userRelated
                 });
     }
 
-    function loadProgram() : void
+    function loadProgram(identifier : string) : void
     {
-        const  currentUser = $('#userSettings :input').val();
-        const  programName = "test";
         const  response = $.post(
            "/load",
-           { username: currentUser, programname: programName },
+           { identifier: identifier },
            function() : void { // TODO Move this callback function to the editor.
                $("#dimScreen").remove();
                editor.update( unserialize(response.responseText) );
@@ -313,12 +313,12 @@ module userRelated
 
     function savePrograms() : boolean
     {
-        const  currentUser = $('#userSettings :input').val();
-        const  programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
-        const  currentSel = serialize( editor.getCurrentSelection() );
-        const  response = $.post(
+        const programName = $('form[name="saveProgramTree"] :input[name="programname"]').val();
+        const isPrivate  = $("#isPrivate").is(":checked");
+        const currentSel = serialize( editor.getCurrentSelection() );
+        const response = $.post(
             "/save",
-            {username:currentUser,programname:programName,program:currentSel},
+            {name:programName, program:currentSel, private: isPrivate},
             function() : void {
                 console.log(response.responseText);
                 $('#dimScreen').remove();

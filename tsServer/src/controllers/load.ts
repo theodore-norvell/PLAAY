@@ -3,14 +3,34 @@ import {default as Program, ProgramModel} from "../models/Program";
 
 //POST /load : load a program's data and put 'er in the editor
 export let load = (req: Request, res: Response, next: NextFunction) => {
-    Program.findOne({identifier: "test"}, "name content", (err, program : ProgramModel) => {
+    Program.findOne({identifier: req.body.identifier}, (err, program : ProgramModel) => {
         if (err) {
             return next(err);
         }
-        const content = program.content;
-        if (typeof req.user !== undefined) {
-            console.log(req.user);
+        if (program.private) {
+            if (typeof req.user !== undefined) {
+                if (program.user === req.user.email) {
+                    res.end(program.content);
+                }
+                else {
+                    req.flash("errors", {msg: "No such program exists."});
+                }
+            }
         }
-        res.end(content);
+        else {
+            res.end(program.content);
+        }
+    })
+};
+
+//POST /listPrograms : get the list of all programs belonging to a specific user
+export let listPrograms = (req: Request, res: Response, next: NextFunction) => {
+    console.log(req.user.email);
+    Program.find({"user": req.user.email}, (err, programs) => {
+        if (err) {
+            return next(err);
+        }
+        res.write(JSON.stringify(programs));
+        res.end();
     })
 };

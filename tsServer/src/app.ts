@@ -108,6 +108,7 @@ app.get("/account/unlink/:provider", passportConfig.isAuthenticated, userControl
 app.get("/plaay", plaayController.newProgram);
 app.post("/save", saveController.save);
 app.post("/load", loadController.load);
+app.post("/listPrograms", loadController.listPrograms);
 
 /**
  * API examples routes.
