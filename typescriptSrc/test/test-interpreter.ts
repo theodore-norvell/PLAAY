@@ -1026,7 +1026,7 @@ describe('ArrayLiteralLabel', function(): void {
       assert.check(!vm.hasError());
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
-      assert.check((val as ObjectV).numFields() === 2);
+      assert.check((val as ObjectV).numFields() === 4);
       assert.check(((val as ObjectV).getField("0").getValue() as StringV).getVal() === "12345");
       assert.check(((val as ObjectV).getField("1").getValue() as StringV).getVal() === "67890");
   });
