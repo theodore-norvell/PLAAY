@@ -3,6 +3,7 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="assert.ts" />
+/// <reference path="vms.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
@@ -29,6 +30,7 @@ module animatorHelpers
     import PNode = pnode.PNode;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
+    import ObjectI = vms.ObjectI;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : string = "rgb(190, 133, 197)";
@@ -37,29 +39,100 @@ module animatorHelpers
     const GHOSTWHITE : string = "rgb(248, 248, 255)";
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
+    const RED : string = "rgb(200, 0, 0)";
 
-    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>, valueMap : ValueMap | null) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
+                                     valueMap : ValueMap | null, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes from being drawn.
+        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes or errors from being drawn.
         {
             for(let i = 0; i < node.count(); i++)
             {
-                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap);
+                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap, error, errorPath);
             }
         }
         const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        buildSVG(node, children, el, highlightMe, currentPath, valueMap);
+        const isError : boolean = currentPath.equals(errorPath);
+        buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
+    }
+
+    export function buildStack(stk : vms.EvalStack, el : svg.Container){
+        //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
+        let y = 0;
+        let padding : number = 15;
+        
+        if (stk.notEmpty()){
+                let vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
+                let varstackSize : number = vars.getAllFrames().length;
+                let frameArray : ObjectI[] = vars.getAllFrames();
+                
+                for (let k = 0; k < varstackSize - 1 && k < 10; k++){
+                    let evalGroup : svg.G = el.group();
+                    const obj : ObjectI = frameArray[k];
+                    const numFields : number = obj.numFields();
+                    for (let j = 0; j < numFields; j++){
+                        if (j == 0 && k != 0){
+                            y = y + padding;
+                        }
+                        const field : vms.FieldI = obj.getFieldByNumber(j);
+                        const subGroup : svg.G = evalGroup.group();
+                        const name : svg.Text = subGroup.text("  " + field.getName());
+                        const value : svg.Text = subGroup.text(field.getValue().toString());
+                        makeVarStackElement(subGroup, name, value);      
+                                      
+                        y += subGroup.bbox().height + 5;
+                        subGroup.dmove(10, y + 5);
+                    }
+                    if (evalGroup.children().length != 0){
+                        makeStackFrameElement(el, evalGroup);
+                    }
+                }
+        }
+    }
+
+    function makeVarStackElement(base : svg.Container, name : svg.Text, value : svg.Text) : void
+    {
+        let x : number = 0;
+        let padding : number = 20;
+
+        name.fill(GHOSTWHITE.toString());
+        value.fill(ORANGE.toString());
+        let valueBox : svg.G = base.group();
+        valueBox.add(value);
+        x += name.bbox().width + padding;
+        if (x < 35){
+            x = 35;
+        }
+        valueBox.dmove(x, 0);
+        const bounds : svg.BBox = value.bbox();
+        const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(1);
+        outline.fill({opacity: 0});
+        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
+    }
+
+    function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(2);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
 
     //I assume element is a child of parent
-    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>, valueMap : ValueMap | null) : void
+    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
+                      valueMap : ValueMap | null, isError : boolean, error : string) : void
     {
         if(valueMap !== null && valueMap.isMapped(myPath))
         {
             buildSVGForMappedNode(node, element, parent, valueMap.get(myPath));
             return;
         }
+
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
@@ -348,6 +421,47 @@ module animatorHelpers
                 makeFancyBorderSVG(parent, element, LIGHT_BLUE);
             }
             break ;
+            case labels.ArrayLiteralLabel.kindConst :
+            {
+                const childArray = element.children();
+
+                element.dmove(10, 10) ;
+                const padding : number = 15;
+                let y = 0;
+
+                const guardBox : svg.G = element.group() ;
+                // guardBox.addClass( "arrayGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                const textElement = guardBox.text("array").dmove(0, -5);
+                y += textElement.bbox().height + padding;
+                let len = findWidthOfLargestChild(childArray)+padding;
+                if(textElement.bbox().width + padding > len)
+                {
+                    len = textElement.bbox().width + padding;
+                }
+
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, LIGHT_BLUE, len, y);
+
+                y += padding;
+                let seqBoxY : number = 0;
+                const seqBox :  svg.G = element.group().dmove(10, y) ;
+                // doBox.addClass( "seqBox") ;
+                // doBox.addClass( "V") ;
+                // doBox.addClass( "workplace") ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(0, seqBoxY));
+                    seqBoxY += childArray[i].bbox().height + padding;
+                }
+                if(seqBoxY === 0) //i.e. there are no elements in this node
+                {
+                    seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
+                }
+
+                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+            }
+            break ;
             case labels.AccessorLabel.kindConst :
             {
                 const childArray = element.children();
@@ -503,11 +617,23 @@ module animatorHelpers
             default:
             {
                 assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
-            }
+            } 
         }
         if(shouldHighlight)
         {
             highlightThis(drawHighlightOn);
+        }
+        if(isError)
+        {
+            if(error === "")
+            {
+                error = "Unknown error";
+            }
+            const elementBBox : svg.BBox = element.bbox();
+            const text : svg.Text = element.text( "Error: " + error );
+            text.dy(elementBBox.height + 15);
+            makeErrorSVG(element, text);
+            return;
         }
     }
 
@@ -681,6 +807,19 @@ module animatorHelpers
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
+    //I assume textElement is already contained within base.
+    function makeErrorSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.fill(WHITE);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: RED, opacity: 1, width: 1.5});
+    }
+
     function makeNullLiteralSVG(base : svg.Container) : void
     {
         const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
@@ -803,6 +942,17 @@ module animatorHelpers
             {
                 result = width;
             }
+        }
+        return result;
+    }
+
+    function findCombinedHeight(arr : svg.Element[]) : number
+    {
+        let result : number = 0;
+        for(let i = 0; i < arr.length; i++)
+        {
+            result = result + arr[i].bbox().height;
+            
         }
         return result;
     }

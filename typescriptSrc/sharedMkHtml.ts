@@ -254,6 +254,36 @@ module sharedMkHtml
                 result.append( seqBox );
             }
             break ;
+            case labels.ArrayLiteralLabel.kindConst :
+            {
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "arrayGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+
+                const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "seqBox" ) ;
+                seqBox.addClass( "V" ) ;
+                seqBox.addClass( "workplace") ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    seqBox.append(dz);
+                    if (i === children.length) break;
+                    seqBox.append(children[i]);
+                }
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "arrayBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( seqBox );
+            }
+            break ;
             case labels.AccessorLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
