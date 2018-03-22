@@ -43,11 +43,15 @@ module animatorHelpers
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
 
-    let drawnObjects : Array<ObjectV> = new Array<ObjectV>();
+    let objectsToDraw : Array<ObjectV> = new Array<ObjectV>();
+    let arrowStartPoints : Map<ObjectV, Array<svg.Rect>> = new Map<ObjectV, Array<svg.Rect>>();
+    let drawnObjectsMap : Map<ObjectI, svg.Rect> = new Map<ObjectI, svg.Rect>();
 
-    export function clearDrawnObjectsArray() : void
+    export function clearObjectDrawingInfo() : void
     {
-        drawnObjects = new Array<ObjectV>();
+        objectsToDraw = new Array<ObjectV>();
+        arrowStartPoints = new Map<ObjectV, Array<svg.Rect>>();
+        drawnObjectsMap = new Map<ObjectI, svg.Rect>();
     }
 
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
@@ -83,12 +87,12 @@ module animatorHelpers
                     {
                         y += padding;
                     }
-                    y = drawObject(obj, el, y);
+                    y += drawObject(obj, el, y).bbox().height;
                 }
         }
     }
 
-    function drawObject(object : ObjectI, element : svg.Container, y : number) : number
+    function drawObject(object : ObjectI, element : svg.Container, y : number, drawNestedObjects : boolean = true) : svg.Rect
     {
         const padding : number = 15;
         const result : svg.G = element.group();
@@ -98,17 +102,22 @@ module animatorHelpers
             const subGroup : svg.G = result.group();
             const name : svg.Text = subGroup.text("  " + field.getName());
             const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field.getValue());
+            buildSVGForMappedNode(value, subGroup, field.getValue(), drawNestedObjects);
             makeObjectFieldSVG(subGroup, name, value);
                           
             subGroup.dmove(10, y + 5);
             y += subGroup.bbox().height + 5;
         }
+        let border;
         if(result.children().length !== 0)
         {
-            makeObjectBorderSVG(element, result);
+            border = makeObjectBorderSVG(element, result);
         }
-        return y;
+        else
+        {
+            border = element.rect(0,0);
+        }
+        return border;
     }
 
     function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
@@ -612,7 +621,7 @@ module animatorHelpers
         }
     }
 
-    function buildSVGForMappedNode(element : svg.G, parent : svg.Container, value : Value) : void
+    function buildSVGForMappedNode(element : svg.G, parent : svg.Container, value : Value, drawNestedObjects : boolean = true) : void
     {
         if(value.isNullV())
         {
@@ -645,29 +654,86 @@ module animatorHelpers
         }
         if(value.isObjectV())
         {
-            //This is temporary. I want to get drawing objects working at all before doing anything fancy.
-            //For now, I'll draw them in place, and if I need to draw it more than once I'll just use text the second time on.
-            //My idea is to do this in three passes: first, I draw everything that isn't an object, and whenever an object does come up I'll add it to the list of
-            //objects to draw, make a small transparent rectange, and add the rectangle to a map which is keyed on ObjectV's with values of arrays of SVG.G's.
-            //Then, I'll use the list of objects to draw to draw every object in a separate group from the main code,
-            //similarly to how the stack visualization works. Additional objects found here will be added to the list, and
-            //handled like in the first pass. I'll also store the object's SVG.G in another map, keyed on ObjectVs.
-            //Finally, I'll use the maps from earlier as well as the objects to draw list to draw arrows where needed.
-            //I'll use the objects in the list as keys for the two maps, and use the BBoxes of the SVG.G's to find the points i need to draw arrows between.
-            if(drawnObjects.includes(value as ObjectV))
+            if(!drawNestedObjects && !objectsToDraw.includes(value as ObjectV))
             {
                 const text : svg.Text = element.text("Object");
                 makeObjectSVG(element, text);
                 return;
             }
-            else
+            if(!objectsToDraw.includes(value as ObjectV))
             {
-                drawnObjects.push(value as ObjectV);
-                drawObject(value as ObjectV, element, 0);
-                return;
+                objectsToDraw.push(value as ObjectV);
             }
+            const arrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
+            if(!arrowStartPoints.has(value as ObjectV))
+            {
+                arrowStartPoints.set(value as ObjectV, new Array<svg.Rect>());
+            }
+            const myArray : Array<svg.Rect> = arrowStartPoints.get(value as ObjectV) as Array<svg.Rect>;
+            myArray.push(arrowStartPoint);
+            return;
         }
         assert.unreachable("Found value with unknown type");
+    }
+
+    export function buildObjectArea(element : svg.G) : void
+    {
+        let y = 0;
+        const padding : number = 15;
+        
+        if (objectsToDraw.length !== 0)
+        {
+            //As the object area is drawn, more objects may be discovered to draw. If we have a very large tree, this could be an issue as it would take up
+            //a lot of space. As more objects are found that need to be drawn, the objectsToDraw array will grow. By storing the original length, we can
+            //know when we've stopped drawing objects that were found outside of the object area. If we use this knowledge to stop drawing more objects
+            //once we've hit objects that were not found outside of the object area, we can effectively limit the object search to a depth of 2 objects from the
+            //main code or stack.
+            const originalLength = objectsToDraw.length;
+            for (let k = 0; k < objectsToDraw.length; k++){
+                const obj : ObjectI = objectsToDraw[k];
+                if(k !== 0)
+                {
+                    y += padding;
+                }
+                const drawNestedObjects : boolean = (k < originalLength);
+                const objectGroup : svg.Rect = drawObject(obj, element, y, drawNestedObjects);
+                drawnObjectsMap.set(obj, objectGroup);
+                y += objectGroup.bbox().height;
+            }
+        }
+        return;
+    }
+
+    // I assume at this point that all objects which need to be drawn have been drawn.
+    export function drawArrows(element : svg.G, parent : svg.Container) : void
+    {
+        for(const obj of objectsToDraw)
+        {
+            if(drawnObjectsMap.has(obj as ObjectI) && arrowStartPoints.has(obj))
+            {
+                const objectGroup : svg.Rect = drawnObjectsMap.get(obj as ObjectI) as svg.Rect;
+                const arrowStarts : Array<svg.Rect> = arrowStartPoints.get(obj) as Array<svg.Rect>;
+                //This awful looking assignment gets the coordinates of the object's SVG representation relative to the parent document.
+                const objectGroupRBox : svg.Box = objectGroup.rbox().transform(parent.screenCTM().inverse());
+                for(const start of arrowStarts)
+                {
+                    const startRBox : svg.Box = start.rbox().transform(parent.screenCTM().inverse());
+                    const arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x - 25) + "," + objectGroupRBox.y + " H" + (objectGroupRBox.x - 5);
+                    const arrow : svg.Path = element.path(arrowPathString);
+                    arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
+                    arrow.fill({opacity : 0});
+                    arrow.marker("end", 10, 7, function(add){
+                        add.polygon("0,0 10,3.5 0,7");
+                        add.fill(WHITE);
+                    });
+                }
+            }
+            else
+            {
+                assert.check(false, "Failed to draw object.");
+            }
+        }
+        return;
     }
 
     function doGuardBoxStylingAndBorderSVG(text: svg.Text | null, guardBox : svg.G, colour : string, lineLength : number, lineY : number) : void
@@ -873,7 +939,7 @@ module animatorHelpers
         label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
-    function makeObjectBorderSVG(base : svg.Container, el : svg.Element) : void
+    function makeObjectBorderSVG(base : svg.Container, el : svg.Element) : svg.Rect
     {
         const bounds : svg.BBox = el.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
@@ -881,6 +947,7 @@ module animatorHelpers
         outline.radius(2);
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+        return outline;
 }
 
     //I assume textElement is already contained within base.
@@ -969,120 +1036,6 @@ module animatorHelpers
         outline.fill({opacity: 0});
         outline.stroke({color: WHITE, opacity: 1, width: 1.5});
     }
-
-//     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
-//         assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
-//         localHighlightSelection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
-//     }
-
-//     function  localHighlightSelection( pn : PNode, thePath : List<number>, start : number, end : number, jq : JQuery ) : void {
-//         if( thePath.isEmpty() ) {
-//             if( start === end ) {
-//                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
-//                 assert.check( zones !== null ) ;
-//                 const dz : JQuery|null = start < zones.length ? zones[start] : null ;
-//                 if( dz!== null ) dz.addClass( "selected" ) ;
-//             } else {
-//                 const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
-//                 assert.check( children !== null ) ;
-//                 for( let i = start ; i < end ; ++i ) {
-//                     children[i].addClass( "selected" ) ;
-//                 }
-//             }
-//         } else {
-//             const i = thePath.first() ;
-//             const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
-//             assert.check( children !== null ) ;
-//             assert.check( i < children.length ) ;
-//             localHighlightSelection( pn.child(i), thePath.rest(), start, end, children[i] ) ;
-//         }
-//     }
-
-//     function makeDropZone( childNumber : number, large : boolean ) : JQuery {
-//         const dropZone : JQuery = $( document.createElement("div") ) ;
-//         dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
-//         dropZone.addClass( "H" ) ;
-//         dropZone.addClass( "droppable" ) ;
-//         // Make it selectable by a click
-//         dropZone.addClass( "selectable" ) ;
-//         dropZone.attr("data-isDropZone", "yes");
-//         dropZone.attr("data-childNumber", childNumber.toString());
-//         return dropZone ;
-//     }
-
-//     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-//             let text = node.label().getVal() ;
-//             text = text.replace( /&/g, "&amp;" ) ;
-//             text = text.replace( /"/g, "&quot;") ;
-
-//             const element : JQuery = $(document.createElement("input"));
-//             for( let i=0 ; i < classes.length ; ++i ) {
-//                 element.addClass( classes[i] ) ; }
-//             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
-//             element.attr("type", "text");
-//             element.attr("value", text) ;
-//             element.focus().val(element.val()); //Set the caret to the end of the text.
-//             return element ;
-//     }
-
-//     export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
-//     {
-//         let anchor;
-//         let focus;
-//         //console.log( ">> getPathToNode" ) ;
-//         let jq : JQuery= $(self);
-//         let childNumber : number = Number(jq.attr("data-childNumber"));
-//         // Climb the tree until we reach a node with a data-childNumber attribute.
-//         while( jq.length > 0 && isNaN( childNumber ) ) {
-//             //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
-//             //console.log( "Length is " + jq.length ) ;
-//             //console.log( "childNumber is " + childNumber ) ;
-//             jq = jq.parent() ;
-//             childNumber = Number(jq.attr("data-childNumber"));
-//         }
-//         if( jq.length === 0 ) {
-//             return none<Selection>() ;
-//         }
-//         if( childNumber === -1 ) {
-//             return none<Selection>() ;
-//         }
-//         // childNumber is a number.  Is this a dropzone or not?
-//         const isDropZone = jq.attr("data-isDropZone" ) ;
-//         if( isDropZone === "yes" ) {
-//             //console.log( "   it's a dropzone with number " +  childNumber) ;
-//             anchor = focus = childNumber ;
-//         } else {
-//             //console.log( "   it's a node with number " +  childNumber) ;
-//             anchor = childNumber ;
-//             focus = anchor+1 ;
-//         }
-//         // Go up one level
-//         jq = jq.parent() ;
-//         childNumber = Number(jq.attr("data-childNumber"));
-
-
-//         // Climb the tree until we reach a node with a data-childNumber attribute of -1.
-//         const array : Array<number> = [];
-//         while (jq.length > 0 && childNumber !== -1 ) {
-//             if (!isNaN(childNumber))
-//             {
-//                 array.push( childNumber );
-//                 //console.log( "   pushing " +  childNumber) ;
-//             }
-//             // Go up one level
-//             jq = jq.parent() ;
-//             childNumber = Number(jq.attr("data-childNumber"));
-//         }
-//         assert.check( jq.length !== 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
-//         // Now make a path out of the array.
-//         let thePath = list<number>();
-//         for( let i = 0 ; i < array.length ; i++ ) {
-//             thePath = collections.cons( array[i], thePath ) ; }
-        
-//         // If making the selection fails, then the root passed in was not the root
-//         // used to make the HTML.
-//         return some( new pnodeEdits.Selection(root, thePath, anchor, focus) ) ;
-//     }
 }
 
 export = animatorHelpers;
