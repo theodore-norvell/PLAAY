@@ -3,6 +3,7 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="assert.ts" />
+/// <reference path="vms.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
@@ -29,6 +30,7 @@ module animatorHelpers
     import PNode = pnode.PNode;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
+    import ObjectI = vms.ObjectI;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : string = "rgb(190, 133, 197)";
@@ -53,6 +55,72 @@ module animatorHelpers
         const highlightMe : boolean = currentPath.equals(pathToHighlight);
         const isError : boolean = currentPath.equals(errorPath);
         buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
+    }
+
+    export function buildStack(stk : vms.EvalStack, el : svg.Container){
+        //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
+        let y = 0;
+        let padding : number = 15;
+        
+        if (stk.notEmpty()){
+                let vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
+                let varstackSize : number = vars.getAllFrames().length;
+                let frameArray : ObjectI[] = vars.getAllFrames();
+                
+                for (let k = 0; k < varstackSize - 1 && k < 10; k++){
+                    let evalGroup : svg.G = el.group();
+                    const obj : ObjectI = frameArray[k];
+                    const numFields : number = obj.numFields();
+                    for (let j = 0; j < numFields; j++){
+                        if (j == 0 && k != 0){
+                            y = y + padding;
+                        }
+                        const field : vms.FieldI = obj.getFieldByNumber(j);
+                        const subGroup : svg.G = evalGroup.group();
+                        const name : svg.Text = subGroup.text("  " + field.getName());
+                        const value : svg.Text = subGroup.text(field.getValue().toString());
+                        makeVarStackElement(subGroup, name, value);      
+                                      
+                        y += subGroup.bbox().height + 5;
+                        subGroup.dmove(10, y + 5);
+                    }
+                    if (evalGroup.children().length != 0){
+                        makeStackFrameElement(el, evalGroup);
+                    }
+                }
+        }
+    }
+
+    function makeVarStackElement(base : svg.Container, name : svg.Text, value : svg.Text) : void
+    {
+        let x : number = 0;
+        let padding : number = 20;
+
+        name.fill(GHOSTWHITE.toString());
+        value.fill(ORANGE.toString());
+        let valueBox : svg.G = base.group();
+        valueBox.add(value);
+        x += name.bbox().width + padding;
+        if (x < 35){
+            x = 35;
+        }
+        valueBox.dmove(x, 0);
+        const bounds : svg.BBox = value.bbox();
+        const outline : svg.Rect = valueBox.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(1);
+        outline.fill({opacity: 0});
+        outline.stroke({color: WHITE.toString(), opacity: 1, width: 1});
+    }
+
+    function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(2);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
 
     //I assume element is a child of parent
@@ -874,6 +942,17 @@ module animatorHelpers
             {
                 result = width;
             }
+        }
+        return result;
+    }
+
+    function findCombinedHeight(arr : svg.Element[]) : number
+    {
+        let result : number = 0;
+        for(let i = 0; i < arr.length; i++)
+        {
+            result = result + arr[i].bbox().height;
+            
         }
         return result;
     }
