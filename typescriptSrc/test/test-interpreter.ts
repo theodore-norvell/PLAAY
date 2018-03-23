@@ -1655,7 +1655,29 @@ describe('AssignLabel', function () : void {
           vm.advance() ;
   
       assert.check( vm.hasError() ) ;
-      assert.checkEqual( vm.getError(), "No object named NoObj is in scope." ) ;
+      assert.checkEqual( vm.getError(), "No variable named NoObj is in scope." ) ;
+    });
+
+    it('should assign to a field of an object within another object', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("123"));
+      const innerObj = new PNode(new labels.ObjectLiteralLabel(), [field]);
+      const outerObj = new PNode(new labels.ObjectLiteralLabel(), [mkVarDecl(mkVar("io"), mkNoTypeNd(), innerObj)]);
+      const objDecl = mkVarDecl(mkVar("o"), mkNoTypeNd(), outerObj);
+      const accessor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("o"), labels.mkStringLiteral("io")]);
+      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [accessor1, labels.mkStringLiteral("x")]);
+      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accessor2, mkNumberLiteral("666")]);
+      const accessor3 = new PNode(labels.AccessorLabel.theAccessorLabel, [accessor1, labels.mkStringLiteral("x")]);
+      const root = mkExprSeq([objDecl, assign, accessor3]);
+      const vm = makeStdVMS(root);
+      //run the test until the top evaluation is done or there is an error
+      while( vm.canAdvance() && ! vm.isDone() )
+          vm.advance() ;
+      assert.check(vm.isDone(), "VMS is not done.");
+      assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
+      const value : Value = vm.getVal(emptyList);
+      assert.check(value instanceof StringV, "The value is not a StringV.");
+      const result : string = (<StringV> value).getVal();
+      assert.check(result === "666", "It did not return 10 as expected. It returned " + result);
     });
 });
 
