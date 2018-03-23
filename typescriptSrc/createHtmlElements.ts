@@ -82,6 +82,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
 		createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
 		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
+		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
 
 		// The container for the tree.

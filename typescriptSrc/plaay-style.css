@@ -613,6 +613,32 @@ div.objectBox {
     padding-left: 0px ;
 }
 
+div.arrayGuardBox:before { content: "array" ;
+    display: inline ;
+    vertical-align: top ;
+    color: rgb(135,206,250) ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.arrayGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed rgb(135,206,250) ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.arrayBox {
+    border-top: medium solid rgb(135,206,250) ;
+    border-bottom: medium solid rgb(135,206,250) ;
+    border-left: 10px solid rgb(135,206,250) ;
+    border-right: thin solid rgb(135,206,250) ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
 div.accessor {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
