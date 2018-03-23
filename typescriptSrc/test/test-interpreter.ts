@@ -1677,7 +1677,7 @@ describe('AssignLabel', function () : void {
       const value : Value = vm.getVal(emptyList);
       assert.check(value instanceof StringV, "The value is not a StringV.");
       const result : string = (<StringV> value).getVal();
-      assert.check(result === "666", "It did not return 10 as expected. It returned " + result);
+      assert.check(result === "666", "It did not return 666 as expected. It returned " + result);
     });
 });
 
