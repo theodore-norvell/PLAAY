@@ -759,7 +759,20 @@ module animatorHelpers
                 for(const start of arrowStarts)
                 {
                     const startRBox : svg.Box = start.rbox().transform(parent.screenCTM().inverse());
-                    const arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x - 25) + "," + objectGroupRBox.y + " H" + (objectGroupRBox.x - 5);
+                    let arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x - 25) + "," + (objectGroupRBox.y + 5) + " H" + (objectGroupRBox.x - 6);
+                    //The arrow points to the top left corner of the box by default.
+                    if(startRBox.cx >= objectGroupRBox.cx && startRBox.cy <= objectGroupRBox.y2) //The arrow needs to point to the top right corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x2 + 25) + "," + (objectGroupRBox.y + 5) + " H" + (objectGroupRBox.x2 + 6);
+                    }
+                    else if(startRBox.cx <= objectGroupRBox.cx && startRBox.cy >= objectGroupRBox.y2) //The arrow needs to point to the bottom left corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x - 25) + "," + (objectGroupRBox.y2 - 5) + " H" + (objectGroupRBox.x - 6);
+                    }
+                    else if(startRBox.cx >= objectGroupRBox.cx && startRBox.cy >= objectGroupRBox.y2) //The arrow needs to point to the bottom right corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x2 + 25) + "," + (objectGroupRBox.y2 - 5) + " H" + (objectGroupRBox.x2 + 6);
+                    }
                     const arrow : svg.Path = element.path(arrowPathString);
                     arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
                     arrow.fill({opacity : 0});
