@@ -37,11 +37,58 @@ module evaluationManager {
         }
 
         public next() : void {
-            if( this._vms.canAdvance() ) this._vms.advance();
+            const stopper = new NextStopper() ;
+            this.run( 100, stopper ) ;
+        }
+        
+        public stepTillFinished() : void {
+            const stopper = new TillFinishedStopper() ;
+            this.run( 10000, stopper ) ;
+        }
+
+        private run( limit : number, stopper : Stopper ) : void {
+            while ( this._vms.canAdvance() && limit > 0 && !stopper.shouldStop(this._vms) ) {
+                this._vms.advance();
+                stopper.step( this._vms ) ;
+                limit -= 1 ;
+            }
+            this._vms.getTransactionManager().checkpoint() ;
         }
 
         public getVMS() : VMS {
             return this._vms ;
+        }
+
+    }
+
+    interface Stopper {
+        // Precondition: vm.canAdvance() 
+        shouldStop : (vm : VMS) => boolean ;
+        step : (vm : VMS) => void  ;
+    }
+
+    // Advance at least once.
+    // After that stop when the top evaluation is done or is ready to step.
+    class NextStopper implements Stopper {
+        private count : number = 0 ;
+
+        public shouldStop( vm : VMS ) : boolean {
+            return this.count > 0
+                && (vm.isDone() || vm.isReady()) ;
+        }
+        public step( vm : VMS ) : void {
+            this.count += 1 ;
+        }
+
+    }
+
+    // Advance until the vm can no longer advance.
+    class TillFinishedStopper implements Stopper {
+
+        public shouldStop( vm : VMS ) : boolean {
+            return false ;
+        }
+        public step( vm : VMS ) : void {
         }
 
     }

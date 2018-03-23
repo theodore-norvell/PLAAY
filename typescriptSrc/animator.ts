@@ -98,29 +98,11 @@ module animator
     function advanceOneStep() : void
     {
         evaluationMgr.next();
-        transactionMgr.checkpoint();
-        if(!evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError())
+        if( !evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError() )
         {
             return;
         }
         buildSVG();
-        //visualizeStack(evaluationMgr.getVMS().getStack());
-        // const root = $("#vms :first-child").get(0);
-        // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
-        // {
-        //     const vms : HTMLElement = document.getElementById("vms") as HTMLElement ;
-        //     const list = evaluationMgr.getVMS().getPending();
-        //     findInMap(root, evaluationMgr.getVMS().getValMap());
-        //     highlight($(root), list);
-        //     visualizeStack(evaluationMgr.getVMS().getStack());
-        //     highlighted = true;
-        // } 
-        // else 
-        // {
-        //     findInMap(root, evaluationMgr.getVMS().getValMap());
-        //     visualizeStack(evaluationMgr.getVMS().getStack());
-        //     highlighted = false;
-        // }
     }
     
 
@@ -188,12 +170,11 @@ module animator
 
     function stepTillDone() : void 
 	{
-        const STEPLIMIT = 10000 ;
-        for( let k = STEPLIMIT ; k >= 0 && !evaluationMgr.getVMS().isDone() ; --k) 
+        evaluationMgr.stepTillFinished();
+        if( !evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError() )
         {
-            evaluationMgr.next();
-            transactionMgr.checkpoint();
-		}
+            return;
+        }
         buildSVG();
     }
 
