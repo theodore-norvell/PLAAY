@@ -967,6 +967,52 @@ describe ('Call node', function(): void {
     });
 });
 
+describe('ObjectLiteralLabel', function(): void {
+    it('should evaluate to an ObjectV with 2 fields', function () : void {
+      const rootLabel = new labels.ObjectLiteralLabel();
+      const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+      const field2 = labels.mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const root = new PNode(rootLabel, [field1, field2]);
+      const vm = makeStdVMS( root )  ;
+      while (vm.canAdvance()) {
+        vm.advance();
+      }
+      assert.check(!vm.hasError());
+      const val = vm.getFinalValue();
+      assert.check(val instanceof ObjectV);
+      assert.check((val as ObjectV).numFields() === 2);
+      assert.check(((val as ObjectV).getField("x").getValue() as StringV).getVal() === "3")
+      assert.check(((val as ObjectV).getField("y").getValue() as StringV).getVal() === "5") 
+  });
+});
+
+describe('AccessorLabel', function(): void {
+    it ('should evaluate to a StringV equaling 5', function(): void {
+        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
+        const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("x")]);
+        const vm = makeStdVMS(root);
+        while (vm.canAdvance()) {
+          vm.advance();
+        }
+        assert.check(!vm.hasError());
+        const val = vm.getFinalValue();
+        assert.check(val instanceof StringV);
+        assert.check((val as StringV).getVal() === "5");
+    });
+
+    it('should report an error that the object does not have a field named y', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel, [field]);
+      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("y")]);
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "No field named y" );
+    });
+});
 
 describe( 'ExprSeqLabel', function () : void {
     it( 'should evaluate to a StringV equaling 3', function () : void {
@@ -1550,6 +1596,66 @@ describe('AssignLabel', function () : void {
         
         assert.check( vm.hasError() ) ;
         assert.checkEqual( vm.getError(),"Attempting to assign to something that isn't a variable." ) ;
+    });
+
+    it('should assign to the field of an object', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
+      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const val = mkNumberLiteral("10");
+      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
+      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const vm = makeStdVMS(root);
+
+      //run the test until the top evaluation is done or there is an error
+      while( vm.canAdvance() && ! vm.isDone() )
+          vm.advance() ;
+      assert.check(vm.isDone(), "VMS is not done.");
+      assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
+      const value : Value = vm.getVal(emptyList);
+      assert.check(value instanceof StringV, "The value is not a StringV.");
+      const result : string = (<StringV> value).getVal();
+      assert.check(result === "10", "It did not return 10 as expected. It returned " + result); 
+    });
+
+    it('should fail to assign to field if object does contain that field', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
+      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("y")]);
+      const val = mkNumberLiteral("10");
+      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
+      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const vm = makeStdVMS(root);
+
+      //run the test until the top evaluation is done or there is an error
+      while( vm.canAdvance() && ! vm.isDone() )
+          vm.advance() ;
+  
+      assert.check( vm.hasError() ) ;
+      assert.checkEqual( vm.getError(), "Object has no field named y" ) ;
+    });
+
+    it('should fail to assign if object is not in scope', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
+      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("NoObj"), labels.mkStringLiteral("x")]);
+      const val = mkNumberLiteral("10");
+      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
+      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const vm = makeStdVMS(root);
+
+      //run the test until the top evaluation is done or there is an error
+      while( vm.canAdvance() && ! vm.isDone() )
+          vm.advance() ;
+  
+      assert.check( vm.hasError() ) ;
+      assert.checkEqual( vm.getError(), "No object named NoObj is in scope." ) ;
     });
 });
 

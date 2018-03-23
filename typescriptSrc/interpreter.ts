@@ -117,6 +117,13 @@ module interpreter {
     theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
     theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
 
+    // Objects
+    theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
+    theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
+
+    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
+    theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
+
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -232,7 +239,6 @@ module interpreter {
         else {
             vms.setReady(true);
         }
-
     }
 
     function varDeclSelector(vms : VMS) : void {
@@ -349,31 +355,8 @@ module interpreter {
     function exprSeqStepper(vms : VMS) : void {
         // We must step the node twice. Once on a previsit and once on a postvisit.
         if( ! vms.hasExtraInformation() ) {
-            // Previsit. Build and push stack frame
-            const manager = vms.getTransactionManager() ;
-            const stackFrame = new ObjectV( manager ) ;
-            const node = vms.getPendingNode() ;
-            const sz = node.count() ;
-            const names = new Array<string>() ;
-            for( let i=0; i < sz ; ++i ) {
-                const childNode = node.child(i) ;
-                if( childNode.label() instanceof labels.VarDeclLabel ) {
-                    const name : string = childNode.child(0).label().getVal() ;
-                    const initialValue = null ;
-                    const type : Type = Type.NOTYPE ;
-                    const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
-                    if( names.some( (v : string) => v===name ) ) {
-                        vms.reportError( "Variable " +name+ " is declared twice." ) ;
-                        return ;
-                    } else {
-                        stackFrame.addField( field ) ;
-                        names.push( name ) ; }
-                }
-            } // end for
-            vms.getEval().pushOntoVarStack( stackFrame ) ;
-            // Now map this node to say it's been previsited.
-            vms.putExtraInformation( stackFrame ) ;
-            vms.setReady( false ) ; }
+          previsitNode(vms);
+        }
         else {
             // Postvisit.
             // Set it to the value of the last child node if there is one and pop the stack frame.
@@ -383,6 +366,73 @@ module interpreter {
                                    : vms.getChildVal( numberOfChildren - 1) ) ;
             vms.finishStep( value );
             vms.getEval().popFromVarStack() ; }
+    }
+
+    function objectStepper(vms : VMS) : void {
+      // We must step the node twice. Once on a previsit and once on a postvisit.
+      if( ! vms.hasExtraInformation() ) {          
+          previsitNode(vms);
+      }
+      else {
+          // Postvisit.
+          const value = (vms.getStack() as NonEmptyVarStack).getTop();
+          vms.finishStep( value );
+          vms.getEval().popFromVarStack() ; }
+    }
+
+    function previsitNode(vms: VMS) {
+      // Previsit. Build and push stack frame
+      const manager = vms.getTransactionManager() ;
+      const stackFrame = new ObjectV( manager ) ;
+      const node = vms.getPendingNode() ;
+      const sz = node.count() ;
+      const names = new Array<string>() ;
+      for( let i=0; i < sz ; ++i ) {
+          const childNode = node.child(i) ;
+          if( childNode.label() instanceof labels.VarDeclLabel ) {
+              const name : string = childNode.child(0).label().getVal() ;
+              const initialValue = null ;
+              const type : Type = Type.NOTYPE ;
+              const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+              if( names.some( (v : string) => v===name ) ) {
+                  vms.reportError( "Variable " +name+ " is declared twice." ) ;
+                  return ;
+              } else {
+                  stackFrame.addField( field ) ;
+                  names.push( name ) ; }
+          }
+      } // end for
+      vms.getEval().pushOntoVarStack( stackFrame ) ;
+      // Now map this node to say it's been previsited.
+      vms.putExtraInformation( stackFrame ) ;
+      vms.setReady( false ) ;
+    }
+
+    function accessorStepper(vms: VMS) {
+      const node = vms.getPendingNode();
+      const object = vms.getChildVal(0);
+      const field = vms.getChildVal(1);
+      if (object instanceof ObjectV) {
+        if (field instanceof StringV) {
+          const fieldName = field.getVal();
+          if (object.hasField(fieldName)) {
+            const val = object.getField(fieldName).getValue();
+            vms.finishStep(val);
+          }
+          else {
+            vms.reportError("No field named " + fieldName);
+            return;
+          }
+        } 
+        else {
+          vms.reportError("Fields of an object must be identified by a string value.");
+          return;
+        }
+      }
+      else {
+        vms.reportError("Attempted to access field of non-object value.");
+        return;
+      }
     }
 
     function ifStepper(vms : VMS) : void {
@@ -407,24 +457,50 @@ module interpreter {
     function assignStepper(vms : VMS) : void {
         const assignNode : PNode = vms.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
-        if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
+        //Handle the case when we are assigning to a field of an object
+        if (variableNode.label().kind() === labels.AccessorLabel.kindConst) {
+            const objName : string = variableNode.child(0).label().getVal();
+            const fieldName : string = variableNode.child(1).label().getVal();
+            const varStack : VarStack = vms.getStack();
+            if (!varStack.hasField(objName)) {
+              vms.reportError("No object named " + objName + " is in scope.");
+              return;
+            }
+            const obj : Value = varStack.getField(objName).getValue();
+            if (!(obj instanceof ObjectV)) {
+              vms.reportError(obj + " is not an object value.");
+              return;
+            }
+            if (!obj.hasField(fieldName)) {
+              vms.reportError("Object has no field named " + fieldName);
+              return;
+            }
+            const field = obj.getField(fieldName);
+            const val : Value = vms.getChildVal(1);
+            field.setValue(val);
+            vms.finishStep(DoneV.theDoneValue);
+        }
+        //Handle the case when assigning to a variable
+        else {
+          if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
             vms.reportError("Attempting to assign to something that isn't a variable.");
             return ; }
-        const variableName : string = variableNode.label().getVal();
-        const value : Value = vms.getChildVal(1);
-        const variableStack : VarStack = vms.getStack();
-        if( ! variableStack.hasField(variableName) ) {
-            vms.reportError( "No variable named " + variableName + " is in scope." ) ;
-            return ;
-        }
-        const field = variableStack.getField(variableName) ;
-        if( ! field.getIsDeclared() ) {
-            vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
-            return ;
-        }
-        // TODO Check that the value is assignable to the field.
-        field.setValue( value ) ;
-        vms.finishStep( DoneV.theDoneValue ) ;
+          const variableName : string = variableNode.label().getVal();
+          const value : Value = vms.getChildVal(1);
+          const variableStack : VarStack = vms.getStack();
+          if( ! variableStack.hasField(variableName) ) {
+              vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+              return ;
+          }
+          const field = variableStack.getField(variableName) ;
+          if( ! field.getIsDeclared() ) {
+              vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+              return ;
+          }
+          // TODO Check that the value is assignable to the field.
+          field.setValue( value ) ;
+          vms.finishStep( DoneV.theDoneValue ) ;
+      }
     }
 
     function variableStepper(vms : VMS) : void {
