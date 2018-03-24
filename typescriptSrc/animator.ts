@@ -93,8 +93,6 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
-        $(".dropZone").hide();
-        $(".dropZoneSmall").hide();
     }
 
     function advanceOneStep() : void
