@@ -616,10 +616,10 @@ module animatorHelpers
         const y2 = bounds.y2 + 10;
         const topBorderPathString = "M" + (x + 5) + ',' + (y - 5) + " H" + (x2 - 5) + " A10,10 0 0,1 " + (x2 + 5) + ',' + (y + 5);
         const topBorder = borderGroup.path(topBorderPathString);
-        topBorder.stroke({color: colour, opacity: 1, width: 4});
+        topBorder.stroke({color: colour, opacity: 1, width: 4}).fill({opacity:0});
         const botBorderPathString = "M" + (x + 5) + ',' + (y2 + 15) + " H" + (x2 - 5) + " A10,10 0 0,0 " + (x2 + 5) + ',' + (y2 + 5);
         const botBorder = borderGroup.path(botBorderPathString);
-        botBorder.stroke({color: colour, opacity: 1, width: 4});
+        botBorder.stroke({color: colour, opacity: 1, width: 4}).fill({opacity:0});
         const rightBorder = borderGroup.line(x2 + 6, y2 + 5.5, x2 + 6, y + 4.5);
         rightBorder.stroke({color: colour, opacity: 1, width: 1.5});
         const leftBorderPathString = "M" + (x + 5.5) + ',' + (y - 7) + "A10,10 0 0,0 " + (x - 3) + ',' + (y + 3) + "V" + (y2 + 7)
