@@ -100,10 +100,6 @@ module animator
     function advanceOneStep() : void
     {
         evaluationMgr.next();
-        if( !evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError() )
-        {
-            return;
-        }
         buildSVG();
     }
     
@@ -197,10 +193,6 @@ module animator
     function stepTillDone() : void 
 	{
         evaluationMgr.stepTillFinished();
-        if( !evaluationMgr.getVMS().canAdvance() && !evaluationMgr.getVMS().hasError() )
-        {
-            return;
-        }
         buildSVG();
     }
 

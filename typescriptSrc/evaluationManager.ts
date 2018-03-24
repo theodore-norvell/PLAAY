@@ -47,6 +47,7 @@ module evaluationManager {
         }
 
         private run( limit : number, stopper : Stopper ) : void {
+            stopper.init( this._vms ) ;
             while ( this._vms.canAdvance() && limit > 0 && !stopper.shouldStop(this._vms) ) {
                 this._vms.advance();
                 stopper.step( this._vms ) ;
@@ -61,15 +62,16 @@ module evaluationManager {
 
     }
 
-    interface Stopper {
+    abstract class Stopper {
+        public init( vm : VMS ) : void {} 
         // Precondition: vm.canAdvance() 
-        shouldStop : (vm : VMS) => boolean ;
-        step : (vm : VMS) => void  ;
+        public abstract shouldStop(vm : VMS) : boolean ;
+        public step(vm : VMS) : void {} 
     }
 
     // Advance at least once.
     // After that stop when the top evaluation is done or is ready to step.
-    class NextStopper implements Stopper {
+    class NextStopper extends Stopper {
         private count : number = 0 ;
 
         public shouldStop( vm : VMS ) : boolean {
@@ -83,14 +85,11 @@ module evaluationManager {
     }
 
     // Advance until the vm can no longer advance.
-    class TillFinishedStopper implements Stopper {
+    class TillFinishedStopper extends  Stopper {
 
         public shouldStop( vm : VMS ) : boolean {
             return false ;
         }
-        public step( vm : VMS ) : void {
-        }
-
     }
 }
 
