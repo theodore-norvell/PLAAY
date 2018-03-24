@@ -36,6 +36,18 @@ module evaluationManager {
             this._vms = new VMS(root, worlds, interp, manager );
         }
 
+        public undo() : void {
+            if( this._vms.getTransactionManager().canUndo() ) {
+                this._vms.getTransactionManager().undo() ;
+            }
+        }
+
+        public redo() : void {
+            if( this._vms.getTransactionManager().canRedo() ) {
+                this._vms.getTransactionManager().redo() ;
+            }
+        }
+
         public next() : void {
             const stopper = new NextStopper() ;
             this.run( 100, stopper ) ;

@@ -40,8 +40,8 @@ module animator
     import buildObjectArea = animatorHelpers.buildObjectArea;
     import drawArrows = animatorHelpers.drawArrows;
     import List = collections.List;
-    import Cons = collections.cons;
-    import Nil = collections.nil;
+    import cons = collections.cons;
+    import nil = collections.nil;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
     import MapEntry = vms.MapEntry ;
@@ -50,12 +50,9 @@ module animator
     import VarStack = vms.VarStack;
     import Value = vms.Value ;
 
-    const evaluationMgr = new EvaluationManager();
-    // let turtle : boolean = false ;
-    let highlighted = false;
-    let transactionMgr : TransactionManager;
-
-    const turtleWorld = new seymour.TurtleWorld();
+    const animatorWidth = 1000 ;
+    const animatorHeight = 1000 ;
+    const evaluationMgr = new EvaluationManager() ;
 	
     export function executingActions() : void 
 	{
@@ -72,7 +69,7 @@ module animator
         createHTMLElements.hideEditor() ;
         createHTMLElements.showAnimator() ;
         const libraries : valueTypes.ObjectV[] = [] ;
-        transactionMgr = new TransactionManager() ;
+        const transactionMgr = new TransactionManager() ;
         // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
@@ -80,10 +77,16 @@ module animator
         // $("#vms").empty()
         // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
         $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, animatorHeight);
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), Cons<number>(-1, Nil<number>()), null, "", Cons<number>(-1, Nil<number>()));
+        traverseAndBuild( evaluationMgr.getVMS().getRoot(),
+                          animation,
+                          nil(),
+                          cons(-1, nil()),
+                          null,
+                          "",
+                          cons(-1, nil()));
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
@@ -95,8 +98,6 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
-        $(".dropZone").hide();
-        $(".dropZoneSmall").hide();
     }
 
     function advanceOneStep() : void
@@ -104,7 +105,29 @@ module animator
         evaluationMgr.next();
         buildSVG();
     }
-    
+
+    function undoStep() : void
+    {
+        evaluationMgr.undo();
+        buildSVG();
+    }
+
+    function redoStep() : void
+    {
+        evaluationMgr.redo();
+        buildSVG();    }
+
+    function stepTillDone() : void 
+	{
+        evaluationMgr.stepTillFinished();
+        buildSVG();
+    }
+
+    function switchToEditor() : void
+    {
+        createHTMLElements.hideAnimator() ;
+        createHTMLElements.showEditor() ;
+    }
 
     function buildSVG() : void
     {
@@ -118,14 +141,14 @@ module animator
 
         let toHighlight : List<number>;
         let error : string = "";
-        let errorPath : List<number> = Cons(-1, Nil<number>());
+        let errorPath : List<number> = cons(-1, nil());
         if (evaluationMgr.getVMS().isReady() ) 
         {
             toHighlight = evaluationMgr.getVMS().getPending();
         }
         else
         {
-            toHighlight = Cons(-1, Nil<number>());
+            toHighlight = cons(-1, nil());
         }
         
         if(evaluationMgr.getVMS().hasError())
@@ -134,7 +157,13 @@ module animator
             error = evaluationMgr.getVMS().getError();
         }
         animatorHelpers.clearObjectDrawingInfo();
-        traverseAndBuild(evaluationMgr.getVMS().getRoot(), animation, Nil<number>(), toHighlight, evaluationMgr.getVMS().getValMap(), error, errorPath);
+        traverseAndBuild( evaluationMgr.getVMS().getRoot(),
+                          animation,
+                          nil(),
+                          toHighlight,
+                          evaluationMgr.getVMS().getValMap(),
+                          error,
+                          errorPath);
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         buildObjectArea(objectArea);
         const animationBBox : svg.BBox = animation.bbox();
@@ -172,143 +201,6 @@ module animator
         }
         animatorArea.size(animationBBox.width + objectAreaBBox.width + objectAreaOffset + stackBBox.width + stackOffset, neededHeight + 100);
     }
-
-    function undoStep() : void
-    {
-        if(!transactionMgr.canUndo())
-        {
-            return;
-        }
-        transactionMgr.undo();
-        buildSVG();
-    }
-
-    function redoStep() : void
-    {
-        if(!transactionMgr.canRedo())
-        {
-            return;
-        }
-        transactionMgr.redo();
-        buildSVG();    }
-
-    function stepTillDone() : void 
-	{
-        evaluationMgr.stepTillFinished();
-        buildSVG();
-    }
-
-    // function multiStep() : void
-	// {
-    //     $('#advance').trigger('click');
-    //     $('#advance').trigger('click');
-    //     $('#advance').trigger('click');
-    // }
-
-    function switchToEditor() : void
-    {
-        createHTMLElements.hideAnimator() ;
-        createHTMLElements.showEditor() ;
-    }
-
-    // function redraw(vms:VMS) : void {
-    //     turtleWorld.redraw() ;
-    // }
-
-    // function highlight(parent : JQuery, pending : List<number> ) : void
-    // {
-    //     if(pending.isEmpty())
-    //     {
-    //         const self = $(parent);
-    //         if(self.index() === 0) 
-    //         {
-	// 			$("<div class='selected V'></div>").prependTo(self.parent());
-	// 		}
-    //         else 
-    //         {
-	// 			$("<div class='selected V'></div>").insertBefore(self);
-	// 		}
-    //         self.detach().appendTo($(".selected"));
-    //     }
-    //     else
-    //     {
-    //         const child = $(parent);
-    //         if ( child.children('div[data-childNumber="' + pending.first() + '"]').length > 0 )
-    //         {
-    //             const index = child.find('div[data-childNumber="' + pending.first() + '"]').index();
-    //             const check = pending.first();
-    //             if(index !== check) {
-	// 				highlight(parent.children[index], pending.rest());
-	// 			}
-    //             else 
-    //             {
-	// 				highlight(parent.children[check], pending.rest());
-	// 			}
-    //         }
-    //         else
-    //         {
-    //             highlight(parent.children[pending.first()], pending);
-    //         }
-    //     }
-    // }
-
-    // function findInMap(root : HTMLElement, valueMap : ValueMap) : void
-    // {
-    //     for( const e of valueMap.getEntries() ) {
-    //         setHTMLValue(root, e.getPath(), e.getValue());
-    //     }
-    // }
-
-    // function visualizeStack( varStack : VarStack ) : void
-    // {
-    //     for( const frame of varStack.getAllFrames() ) {
-    //         for( let i = frame.numFields()-1 ; i >= 0 ; --i ) {
-    //             const field = frame.getFieldByNumber(i) ;
-    //             const name = field.getName() ;
-    //             // We need a better way to visualize values than just strings!
-    //             const valString = field.getValue().toString() ;
-    //             const row = $("<tr>").appendTo( $("#stackVal") ) ;
-    //             $("<td>").text( name ).appendTo( row ) ;
-    //             $("<td>").text( valString ).appendTo( row ) ;
-    //         }
-    //     }
-    // }
-
-    // function setHTMLValue(root :  HTMLElement, path:List<number>, value : Value ) : void 
-    // {
-    //     if(path.isEmpty())
-    //     {
-    //         const self = $(root);
-    //         // TODO. toString may not be the best function to call here,
-    //         // since it could return any old crap that is not compatible with
-    //         // HTML.
-    //         self.replaceWith("<div class='inmap'>"+ value.toString() +"</div>");
-    //     }
-    //     else
-    //     {
-    //         const child = $(root);
-    //         if ( child.children('div[data-childNumber="' + path.first() + '"]').length > 0 )
-    //         {
-    //             const index = child.find('div[data-childNumber="' + path.first() + '"]').index();
-    //             const check = path.first();
-    //             if(index !== check) {
-    //                 setHTMLValue( root.children[index] as HTMLElement,
-    //                               path.rest(),
-    //                               value);
-	// 			} else {
-    //                 setHTMLValue( root.children[check] as HTMLElement,
-    //                               path.rest(),
-    //                               value);
-	// 			}
-    //         }
-    //         else
-    //         {
-    //             setHTMLValue( root.children[path.first()] as HTMLElement,
-    //                           path,
-    //                           value);
-    //         }
-    //     }
-    // }
 }
 
 export = animator;
