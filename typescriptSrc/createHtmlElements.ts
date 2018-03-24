@@ -29,6 +29,8 @@ module createHtmlElements {
 
 		createEditorHTML( contentArea ) ;
 		createAnimatorHTML( contentArea ) ;
+
+		createOutputArea( body ) ;
 	}
 
 	function createUpperAreaHTML( upperArea : JQuery ) : void {
@@ -64,10 +66,10 @@ module createHtmlElements {
 		//createTexted("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
 		createTexted("div", "leftSideButton editButton", "play", buttonArea, "Play");
-		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
 		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo");
 		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo");
 		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash");
+		createTexted("div", "leftSideButton", "showOutput", buttonArea, "Show");
 
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
@@ -106,13 +108,22 @@ module createHtmlElements {
 		const evalButtonArea = $("#evalButtonArea");
 		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit");
 		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next");
+		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
 		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
 		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
-		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
+		createTexted("div", "leftSideButton", "evalShowOutput", evalButtonArea, "Show");
 
 		create("div", "vms", "vms", animatorDiv) ;
 
 		hideAnimator() ;
+	}
+
+	function createOutputArea( body : JQuery ) : void {
+		// body
+		//     outputArea
+		//          outputAreaCanvas
+		const outputArea = create( "div", "outputArea", "outputArea", body ) ;
+		create( "canvas", "outputAreaCanvas", "outputAreaCanvas", outputArea ) ;
 	}
 
 	export function hideAnimator() : void {
@@ -129,6 +140,14 @@ module createHtmlElements {
 
 	export function showEditor()  : void{
 		show( $("#editor") ) ;
+	}
+
+	export function hideOutput() : void {
+		hide( $("#outputArea") ) ;
+	}
+
+	export function showOutput()  : void{
+		show( $("#outputArea") ) ;
 	}
 
 	function create( elementType: string,

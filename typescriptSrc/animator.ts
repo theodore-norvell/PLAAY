@@ -53,7 +53,7 @@ module animator
     let highlighted = false;
     let transactionMgr : TransactionManager;
 
-    const turtleWorld = new seymour.TurtleWorld();
+    //const turtleWorld = new seymour.TurtleWorld();
 	
     export function executingActions() : void 
 	{

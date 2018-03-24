@@ -5,7 +5,8 @@ import seymour = require( './seymour' ) ;
 function turtleTest() : void  {
     console.log("running") ;
     const body = document.getElementById('body') as HTMLElement ;
-    const turtleWorld = new seymour.TurtleWorld() ;
+    const canvas = document.createElement( "canvas" ) ;
+    const turtleWorld = new seymour.TurtleWorld( canvas ) ;
     const canv = turtleWorld.getCanvas();
     canv.setAttribute('width','200') ;
     canv.setAttribute('height','200') ;

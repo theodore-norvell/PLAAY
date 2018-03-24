@@ -1,8 +1,8 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 
-import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import collections = require( './collections' ) ;
 
 /** The seymour module provide the TurtleWorld class which represents the state
  * of a turtle world.
@@ -22,9 +22,9 @@ module seymour {
     }
     export class TurtleWorld {
         // Defining the world to view mapping
-        private zoom : number = 1 ;
-        private worldWidth : number = 100 ;
-        private worldHeight : number = 100 ;
+        private readonly zoom : number = 1 ;
+        private readonly worldWidth : number = 100 ;
+        private readonly worldHeight : number = 100 ;
         
         // The turtle
         private posn : Point = new Point(0,0) ;
@@ -37,7 +37,11 @@ module seymour {
         private segments = new Array<Segment>() ;
         
         // The canvas
-        private canv : HTMLCanvasElement = document.createElement('canvas');
+        private readonly canv : HTMLCanvasElement ;
+
+        constructor( canv : HTMLCanvasElement ) {
+            this.canv = canv ;
+        }
         
         public getCanvas() : HTMLCanvasElement { return this.canv ; }
         
