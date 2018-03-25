@@ -404,20 +404,16 @@ module interpreter {
         const array = new ObjectV( manager ) ;
         const node = vms.getPendingNode() ;
         const sz = node.count() ;
-        for( let i=0; i < sz ; ++i ) {
+        for(let i = 0; i < sz ; ++i) {
             const val = vms.getChildVal(i);
             const name : string = i+"";
             const type : Type = Type.NOTYPE ;
             const field = new Field( name, val, type, false, false, manager ) ;
-            array.addField( field ) ;
+            array.addField(field) ;
         }
-        const isArrayField = new Field("isArray", new StringV("true"), Type.NOTYPE, false, false, manager);
-        array.addField(isArrayField);
-        const lengthField = new Field("length", new StringV(sz+""), Type.NOTYPE, false, false, manager);
-        array.addField(lengthField);
         vms.getEval().pushOntoVarStack(array) ;
         vms.finishStep(array);
-        vms.getEval().popFromVarStack() ; 
+        vms.getEval().popFromVarStack(); 
     }
 
     function previsitNode(vms: VMS) {
