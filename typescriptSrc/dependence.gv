@@ -6,6 +6,7 @@ digraph Depends {
 
    animator -> animatorHelpers ;
    animator -> backtracking ;
+   animator -> createHtmlElements ;
    animator -> editor ;
    animator -> evaluationManager ;
    animator -> seymour ;
@@ -13,6 +14,7 @@ digraph Depends {
    animator -> vms ;
    animator -> world ;
 
+   editor -> createHtmlElements ;
    editor -> labels ;
    editor -> pnode ;
    editor -> pnodeEdits ;

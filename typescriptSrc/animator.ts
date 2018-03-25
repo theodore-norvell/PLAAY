@@ -62,13 +62,13 @@ module animator
         $("#evalRedo").click(redoStep);
         $("#run").click(stepTillDone);
         $("#edit").click(switchToEditor);
+        $("#evalToggleOutput").click( createHTMLElements.toggleOutput ) ;
 	}
 
     function evaluate() : void
     {
         createHTMLElements.hideEditor() ;
         createHTMLElements.showAnimator() ;
-        createHTMLElements.showOutput() ;
         const libraries : valueTypes.ObjectV[] = [] ;
         transactionMgr = new TransactionManager() ;
         const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;

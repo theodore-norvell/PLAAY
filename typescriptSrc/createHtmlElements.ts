@@ -22,7 +22,7 @@ module createHtmlElements {
 
 		create("div", "", "upperArea", body);
 		const upperArea = $("#upperArea");
-		createUpperAreaHTML( upperArea ) 
+		createUpperAreaHTML( upperArea )  ;
 
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
@@ -69,7 +69,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo");
 		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo");
 		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash");
-		createTexted("div", "leftSideButton", "showOutput", buttonArea, "Show");
+		createTexted("div", "leftSideButton", "toggleOutput", buttonArea, "Output");
 
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
@@ -111,7 +111,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
 		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
 		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
-		createTexted("div", "leftSideButton", "evalShowOutput", evalButtonArea, "Show");
+		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output");
 
 		create("div", "vms", "vms", animatorDiv) ;
 
@@ -124,6 +124,7 @@ module createHtmlElements {
 		//          outputAreaCanvas
 		const outputArea = create( "div", "outputArea", "outputArea", body ) ;
 		create( "canvas", "outputAreaCanvas", "outputAreaCanvas", outputArea ) ;
+		hideOutput() ;
 	}
 
 	export function hideAnimator() : void {
@@ -148,6 +149,10 @@ module createHtmlElements {
 
 	export function showOutput()  : void{
 		show( $("#outputArea") ) ;
+	}
+
+	export function toggleOutput() : void {
+		toggle( $("#outputArea") ) ;
 	}
 
 	function create( elementType: string,
@@ -190,6 +195,14 @@ module createHtmlElements {
 
 	function show( element: JQuery ): JQuery {
 		return element.css("visibility", "visible");
+	}
+
+	function toggle( element: JQuery ): JQuery {
+		const val : String = element.css("visibility") ;
+		if( val === "visible" ) {
+			return element.css("visibility", "hidden"); }
+		else {
+			return element.css("visibility", "visible"); }
 	}
 
 }

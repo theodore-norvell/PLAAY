@@ -47,19 +47,19 @@ module labels {
         public abstract toJSON() : object ;
 
         /** Is this label a label for an expression node? */
-        public isExprNode() : boolean { return false }
+        public isExprNode() : boolean { return false  ;}
 
         /** Is this label a label for a variable declaration node? */
-        public isVarDeclNode() : boolean  { return false }
+        public isVarDeclNode() : boolean  { return false ; }
 
         /** Is this label a label for an expression sequence node? */
-        public isExprSeqNode() : boolean  { return false }
+        public isExprSeqNode() : boolean  { return false ; }
 
         /** Is this label a label for a type node node? */
-        public isTypeNode() : boolean  { return false }
+        public isTypeNode() : boolean  { return false ; }
 
         /** Return true if the node is a placeholder. Override this method in subclasses that are placeholders. */
-        public isPlaceHolder() : boolean { return false; }
+        public isPlaceHolder() : boolean { return false ; }
 
         /** Return true if node has a dropzone at number. */
         public hasDropZonesAt(start : number): boolean { return false; }
@@ -856,10 +856,10 @@ module labels {
     export function mkExprSeq( exprs : Array<PNode> ) : PNode {
         return make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
-    export function mkCallWorld( name : string, ...args : Array<PNode> ) : PNode {
+    export function mkCallWorld( name : string, args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, true), args ) ; }
 
-    export function mkClosedCallWorld( name : string, ...args : Array<PNode> ) : PNode {
+    export function mkClosedCallWorld( name : string, args : Array<PNode> ) : PNode {
         return make( new CallWorldLabel( name, false), args ) ; }
     
     export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {

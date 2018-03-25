@@ -111,7 +111,7 @@ module world {
               const val = new StringV(result+"");
               vm.finishStep(val);
           }
-        }
+        } ;
     }
 
     function comparatorStepperFactory(callback: (vals: Array<number>) => boolean): (vms: VMS, args: Array<Value>) => void {
@@ -130,7 +130,7 @@ module world {
             const val = new StringV( result+"" );
             vm.finishStep( val ) ;
         }
-      }
+      } ;
     }
 
     function logicalStepperFactory( callback: (leftOperand: boolean, rightOperand: boolean) => boolean)
@@ -151,7 +151,7 @@ module world {
             const val = new StringV(result+"") ;
             vm.finishStep(val);
         }
-      }
+      } ;
     }
 
     export class World extends ObjectV {
@@ -160,19 +160,19 @@ module world {
             super(manager);
             //console.log("World's fields array is length: " + this.fields.length);
 
-            const addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; }
+            const addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; } ;
             const addstep = arithmeticStepperFactory(addCallback);
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", plus, Type.METHOD, true, true, manager);
             this.addField(addf);
 
-            const subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; }
+            const subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; } ;
             const substep = arithmeticStepperFactory(subCallback);
             const sub = new BuiltInV(substep);
             const subf = new Field("-", sub, Type.NUMBER, true, true, manager);
             this.addField(subf);
 
-            const multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } 
+            const multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } ;
             const multstep = arithmeticStepperFactory(multCallback);
             const mult = new BuiltInV(multstep);
             const multf = new Field("*", mult, Type.NUMBER, true, true, manager);
@@ -181,7 +181,7 @@ module world {
             const divCallback = (dividend: number, divisor: number) : number => {
               assert.check(divisor !== 0, "Division by zero is not allowed");
               return dividend/divisor;
-            }
+            } ;
             const divstep = arithmeticStepperFactory(divCallback);
             const div = new BuiltInV(divstep);
             const divf = new Field("/", div, Type.NUMBER, true, true, manager);
@@ -193,7 +193,7 @@ module world {
                 if (!(vals[i] > vals[i+1])) result = false;
               }
               return result;
-            }
+            } ;
             const greaterthanstep = comparatorStepperFactory(greaterthanCallback);
             const greaterthan = new BuiltInV(greaterthanstep);
             const greaterf = new Field(">", greaterthan, Type.BOOL, true, true, manager);
@@ -205,7 +205,7 @@ module world {
                 if (!(vals[i] >= vals[i+1])) result = false;
               }
               return result;
-            }
+            } ;
             const greaterthanequalstep = comparatorStepperFactory(greaterthanequalCallback);
             const greaterthanequal = new BuiltInV(greaterthanequalstep);
             const greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true, true, manager);
@@ -217,7 +217,7 @@ module world {
                 if (!(vals[i] < vals[i+1])) result = false;
               }
               return result;
-            }
+            } ;
             const lessthanstep = comparatorStepperFactory(lessthanCallback);
             const lessthan = new BuiltInV(lessthanstep);
             const lessf = new Field("<", lessthan, Type.BOOL, true, true, manager);
@@ -229,7 +229,7 @@ module world {
                 if (!(vals[i] <= vals[i+1])) result = false;
               }
               return result;
-            }
+            } ;
             const lessthanequalstep = comparatorStepperFactory(lessthanequalCallback);
             const lessequalthan = new BuiltInV(lessthanequalstep);
             const lessequalf = new Field("<=", lessequalthan, Type.BOOL, true, true, manager);
@@ -247,13 +247,13 @@ module world {
             const equalf = new Field("=", equal, Type.BOOL, true, true, manager);
             this.addField(equalf);
 
-            const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; }
+            const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
             const andstep = logicalStepperFactory(andCallback);
             const and = new BuiltInV(andstep);
             const andf = new Field("and", and, Type.BOOL, true, true, manager);
             this.addField(andf);
 
-            const orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; }
+            const orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; } ;
             const orstep = logicalStepperFactory(orCallback);
             const or = new BuiltInV(orstep);
             const orf = new Field("or", or, Type.BOOL, true, true, manager);

@@ -76,13 +76,17 @@ module seymour {
             const newx =this.posn.get().x() + n * Math.cos(theta) ;
             const newy =this.posn.get().y() + n * Math.sin(theta) ;
             const newPosn = new Point(newx, newy) ;
-            if( this.penIsDown ) { this.segments.push(
+            if( this.penIsDown.get() ) { this.segments.push(
                     new Segment( this.posn.get(), newPosn ) ) ; }
             this.posn.set( newPosn ) ;
         }
         
         public clear() : void { 
             this.segments.clear() ;
+            this.posn.set( new Point(0,0) ) ;
+            this.orientation.set( 0.0 ) ;
+            this.penIsDown.set( false ) ;
+            this.visible.set( true ) ;
         }
         
         public right( d : number ) :void { 
@@ -102,11 +106,11 @@ module seymour {
         public setPenDown( newValue : boolean ) : void {
             this.penIsDown.set( newValue ) ; }
          
-        public penDown(  ) : void {
+        public penDown() : void {
             this.penIsDown.set( true ) ; }
          
-        public penUp(  ) : void {
-            this.penIsDown.set( true ) ; }
+        public penUp() : void {
+            this.penIsDown.set( false ) ; }
          
         public hide() : void {
             this.visible.set( false ) ; }
@@ -121,6 +125,7 @@ module seymour {
              const w = this.canv.width ;
              const h = this.canv.height ;
              ctx.clearRect(0, 0, w, h);
+             ctx.strokeStyle = "#000" ;
              for( let i = 0 ; i < this.segments.size() ; ++i ) {
                  const segment = this.segments.get(i) ;
                  const p0v = this.world2View( segment.p0(), w, h ) ;
@@ -130,7 +135,8 @@ module seymour {
                  ctx.lineTo( p1v.x(), p1v.y() ) ;
                  ctx.stroke() ;
              }
-             if( this.visible ) {
+             if( this.visible.get() ) {
+                 ctx.strokeStyle = "#0F0" ;
                  // Draw a little triangle
                  const theta = this.orientation.get() / 180.0 * Math.PI ;
                  const x = this.posn.get().x() ;
