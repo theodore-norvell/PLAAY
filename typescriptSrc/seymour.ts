@@ -1,83 +1,118 @@
+/// <reference path="assert.ts" />
+/// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
 
 import assert = require( './assert' ) ;
+import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 
 /** The seymour module provide the TurtleWorld class which represents the state
  * of a turtle world.
  */
 module seymour {
+    import TArray = backtracking.TArray ;
+    import TVar = backtracking.TVar ;
+    import TransactionManager = backtracking.TransactionManager ;
+
+
     class Point {
-        private _x : number = 0 ;
-        private _y : number = 0 ;
-        constructor( x : number, y : number) { this._x = x ; this._y = y ; }
+        private readonly _x : number ;
+        private readonly _y : number ;
+
+        constructor( x : number, y : number) {
+            this._x = x ;
+            this._y = y ; }
         
         public x() : number { return this._x ; }
         public y() : number { return this._y ; }
     }
-    interface Segment {
-        p0 : Point ;
-        p1 : Point ;
+
+    class Segment {
+        private readonly _p0 : Point ;
+        private readonly _p1 : Point ;
+
+        constructor( p0 : Point, p1 : Point) {
+            this._p0 = p0 ;
+            this._p1 = p1 ; }
+        
+        public p0() : Point { return this._p0 ; }
+        public p1() : Point { return this._p1 ; }
     }
+
     export class TurtleWorld {
         // Defining the world to view mapping
+        // For now, these are immutable
         private readonly zoom : number = 1 ;
         private readonly worldWidth : number = 100 ;
         private readonly worldHeight : number = 100 ;
         
-        // The turtle
-        private posn : Point = new Point(0,0) ;
-        // Invariant: The orientation is in [0,360)
-        private orientation : number = 0.0 ;
-        private visible = true ;
-        private penIsDown = false ;
-        
+        // The turtle's position.
+        private readonly posn : TVar<Point> ;
+        // The turtle's orientation.
+        //  Invariant: The orientation is in [0,360)
+        private readonly orientation : TVar<number> ;
+        // Is the turtle itself visible
+        private readonly visible : TVar<boolean> ;
+        // Is the pen down
+        private readonly penIsDown : TVar<boolean> ;
         // The segments 
-        private segments = new Array<Segment>() ;
-        
+        private readonly segments : TArray<Segment> ;
         // The canvas
         private readonly canv : HTMLCanvasElement ;
 
-        constructor( canv : HTMLCanvasElement ) {
+        constructor( canv : HTMLCanvasElement, tMan : TransactionManager ) {
             this.canv = canv ;
+            this.posn = new TVar<Point>(new Point(0,0), tMan) ;
+            this.orientation = new TVar<number>( 0.0, tMan ) ;
+            this.visible = new TVar<boolean>( true, tMan ) ;
+            this.penIsDown = new TVar<boolean>( false, tMan ) ;
+            this.segments = new TArray<Segment>( tMan ) ;
         }
         
         public getCanvas() : HTMLCanvasElement { return this.canv ; }
         
         public forward( n : number ) : void  {
-            const theta = this.orientation / 180.0 * Math.PI ;
-            const newx =this.posn.x() + n * Math.cos(theta) ;
-            const newy =this.posn.y() + n * Math.sin(theta) ;
+            const theta = this.orientation.get() / 180.0 * Math.PI ;
+            const newx =this.posn.get().x() + n * Math.cos(theta) ;
+            const newy =this.posn.get().y() + n * Math.sin(theta) ;
             const newPosn = new Point(newx, newy) ;
-            if( this.penIsDown ) { this.segments.push( {p0 : this.posn, p1:newPosn}) ; }
-            this.posn = newPosn ;
-            this.redraw() ;
+            if( this.penIsDown ) { this.segments.push(
+                    new Segment( this.posn.get(), newPosn ) ) ; }
+            this.posn.set( newPosn ) ;
         }
         
         public clear() : void { 
-            this.segments = new Array<Segment>() ;
+            this.segments.clear() ;
         }
         
         public right( d : number ) :void { 
-            let r = (this.orientation + d) % 360 ;
+            let r = (this.orientation.get() + d) % 360 ;
             while( r < 0 ) r += 360 ; // Once should be enough. Note that if r == -0 to start then it equals +360 at end!
             while( r >= 360 ) r -= 360 ; // Once should be enough.
-            this.orientation = r ;
-            this.redraw() ;
+            this.orientation.set( r ) ;
          }
         
         public left( d : number ) :void { 
             this.right( - d ) ;
          }
          
-        public getPenIsDown() : boolean { return this.penIsDown ; }
+        public getPenIsDown() : boolean {
+            return this.penIsDown.get() ; }
          
-        public setPenDown( newValue : boolean ) : void { this.penIsDown = newValue ; }
+        public setPenDown( newValue : boolean ) : void {
+            this.penIsDown.set( newValue ) ; }
          
-        public hide() : void { this.visible = false ; this.redraw() ; }
+        public penDown(  ) : void {
+            this.penIsDown.set( true ) ; }
          
-        public show() : void  { this.visible = true ; this.redraw() ;  }
+        public penUp(  ) : void {
+            this.penIsDown.set( true ) ; }
+         
+        public hide() : void {
+            this.visible.set( false ) ; }
+         
+        public show() : void  {
+            this.visible.set( true ) ;  }
          
         public redraw() : void {
              const ctxOrNot = this.canv.getContext("2d") ;
@@ -86,9 +121,10 @@ module seymour {
              const w = this.canv.width ;
              const h = this.canv.height ;
              ctx.clearRect(0, 0, w, h);
-             for( let i = 0 ; i < this.segments.length ; ++i ) {
-                 const p0v = this.world2View( this.segments[i].p0, w, h ) ;
-                 const p1v = this.world2View( this.segments[i].p1, w, h ) ;
+             for( let i = 0 ; i < this.segments.size() ; ++i ) {
+                 const segment = this.segments.get(i) ;
+                 const p0v = this.world2View( segment.p0(), w, h ) ;
+                 const p1v = this.world2View( segment.p1(), w, h ) ;
                  ctx.beginPath() ;
                  ctx.moveTo( p0v.x(), p0v.y() ) ;
                  ctx.lineTo( p1v.x(), p1v.y() ) ;
@@ -96,9 +132,9 @@ module seymour {
              }
              if( this.visible ) {
                  // Draw a little triangle
-                 const theta = this.orientation / 180.0 * Math.PI ;
-                 const x = this.posn.x() ;
-                 const y = this.posn.y() ;
+                 const theta = this.orientation.get() / 180.0 * Math.PI ;
+                 const x = this.posn.get().x() ;
+                 const y = this.posn.get().y() ;
                  const p0x = x + 4 *  Math.cos(theta) ;
                  const p0y = y + 4 *  Math.sin(theta) ;
                  const p1x = x + 5 * Math.cos(theta+2.5) ;

@@ -49,11 +49,10 @@ module animator
     import Value = vms.Value ;
 
     const evaluationMgr = new EvaluationManager();
-    // let turtle : boolean = false ;
-    let highlighted = false;
+    const highlighted = false;
     let transactionMgr : TransactionManager;
 
-    //const turtleWorld = new seymour.TurtleWorld();
+    let turtleWorld : seymour.TurtleWorld ;
 	
     export function executingActions() : void 
 	{
@@ -69,9 +68,12 @@ module animator
     {
         createHTMLElements.hideEditor() ;
         createHTMLElements.showAnimator() ;
+        createHTMLElements.showOutput() ;
         const libraries : valueTypes.ObjectV[] = [] ;
         transactionMgr = new TransactionManager() ;
-        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
+        const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
+        turtleWorld = new seymour.TurtleWorld(canv, transactionMgr ) ;
+        libraries.push( new world.TurtleWorldObject(turtleWorld, transactionMgr) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
         transactionMgr.checkpoint();
@@ -93,6 +95,7 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
+        turtleWorld.redraw() ;
     }
 
     function advanceOneStep() : void
@@ -104,6 +107,7 @@ module animator
             return;
         }
         buildSVG();
+        turtleWorld.redraw() ;
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);
         // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
@@ -175,6 +179,7 @@ module animator
         }
         transactionMgr.undo();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function redoStep() : void
@@ -184,7 +189,8 @@ module animator
             return;
         }
         transactionMgr.redo();
-        buildSVG();    }
+        buildSVG();
+        turtleWorld.redraw() ;    }
 
     function stepTillDone() : void 
 	{
@@ -195,6 +201,7 @@ module animator
             transactionMgr.checkpoint();
 		}
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     // function multiStep() : void
