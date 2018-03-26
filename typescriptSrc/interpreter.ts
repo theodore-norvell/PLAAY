@@ -408,12 +408,10 @@ module interpreter {
             const val = vms.getChildVal(i);
             const name : string = i+"";
             const type : Type = Type.NOTYPE ;
-            const field = new Field( name, val, type, false, false, manager ) ;
+            const field = new Field(name, val, type, false, true, manager);
             array.addField(field) ;
         }
-        vms.getEval().pushOntoVarStack(array) ;
         vms.finishStep(array);
-        vms.getEval().popFromVarStack(); 
     }
 
     function previsitNode(vms: VMS) {
