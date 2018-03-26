@@ -248,7 +248,7 @@ module world {
             this.addField(orf);
 
             function lenStep(vms: VMS, args: Array<Value>) : void  {
-              if (!(args.length === 1)) {
+              if (args.length !== 1) {
                 vms.reportError("len expects 1 argument, of type object.");
                 return;
               }
@@ -294,7 +294,7 @@ module world {
             }
             const obj = args[0];
             if (!(obj instanceof ObjectV)) {
-              vms.reportError("push argument should be an object value.");
+              vms.reportError("pop argument should be an object value.");
               return;
             }
             const len = obj.numFields();
