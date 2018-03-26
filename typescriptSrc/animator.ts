@@ -121,35 +121,42 @@ module animator
     {
         evaluationMgr.undo();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function redoStep() : void
     {
         evaluationMgr.redo();
-        buildSVG();    }
+        buildSVG();
+        turtleWorld.redraw() ;
+    }
 
     function stepTillDone() : void 
 	{
         evaluationMgr.stepTillFinished();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function stepOver() : void
     {
         evaluationMgr.stepOver();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function stepInto() : void 
     {
         evaluationMgr.stepInto();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function stepToReturn() : void
     {
         evaluationMgr.stepToReturn();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function switchToEditor() : void
