@@ -12,6 +12,7 @@ import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
+import collections = require( './collections' ) ;
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -232,9 +233,24 @@ module interpreter {
     }
 
     function assignSelector(vms : VMS) : void {
+        const varNode : PNode = vms.getPendingNode().child(0);
         if (!vms.isChildMapped(1)) {
             vms.pushPending(1);
             vms.getInterpreter().select(vms);
+        }
+        // when assigning to field of an object
+        else if (varNode.label().kind() === labels.AccessorLabel.kindConst) {
+            // check if children of accessor have been evaluated
+            const path = vms.getPending();
+            const pathToObject = path.cat(collections.list<number>(0,0));
+            const pathToField = path.cat(collections.list<number>(0,1));
+            if (!vms.isMapped(pathToObject) || !vms.isMapped(pathToField)) {
+              vms.pushPending(0);
+              vms.getInterpreter().select(vms);
+            } 
+            else {
+              vms.setReady(true);
+            }         
         }
         else {
             vms.setReady(true);
@@ -459,25 +475,25 @@ module interpreter {
         const variableNode : PNode = assignNode.child(0);
         //Handle the case when we are assigning to a field of an object
         if (variableNode.label().kind() === labels.AccessorLabel.kindConst) {
-            const objName : string = variableNode.child(0).label().getVal();
-            const fieldName : string = variableNode.child(1).label().getVal();
-            const varStack : VarStack = vms.getStack();
-            if (!varStack.hasField(objName)) {
-              vms.reportError("No object named " + objName + " is in scope.");
+            const path = vms.getPending();
+            const pathToObject = path.cat(collections.list<number>(0,0));
+            const pathToField = path.cat(collections.list<number>(0,1));
+            const object = vms.getVal(pathToObject);
+            if (!(object instanceof ObjectV)) {
+              vms.reportError(object + " is not an object value.");
               return;
             }
-            const obj : Value = varStack.getField(objName).getValue();
-            if (!(obj instanceof ObjectV)) {
-              vms.reportError(obj + " is not an object value.");
+            const field = vms.getVal(pathToField);
+            if (!(field instanceof StringV)) {
+              vms.reportError("Fields of object must be identified with a string value.");
               return;
             }
-            if (!obj.hasField(fieldName)) {
-              vms.reportError("Object has no field named " + fieldName);
+            if (!object.hasField(field.getVal())) {
+              vms.reportError("Object has no field named " + field.getVal());
               return;
             }
-            const field = obj.getField(fieldName);
             const val : Value = vms.getChildVal(1);
-            field.setValue(val);
+            object.getField(field.getVal()).setValue(val);
             vms.finishStep(DoneV.theDoneValue);
         }
         //Handle the case when assigning to a variable
