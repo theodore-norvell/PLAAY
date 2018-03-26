@@ -60,6 +60,9 @@ module animator
         $("#advance").click(advanceOneStep);
         $("#evalUndo").click(undoStep);
         $("#evalRedo").click(redoStep);
+        $("#evalStepOver").click(stepOver);
+        $("#evalStepInto").click(stepInto);
+        $("#evalStepToReturn").click(stepToReturn);
         $("#run").click(stepTillDone);
         $("#edit").click(switchToEditor);
 	}
@@ -120,6 +123,24 @@ module animator
     function stepTillDone() : void 
 	{
         evaluationMgr.stepTillFinished();
+        buildSVG();
+    }
+
+    function stepOver() : void
+    {
+        evaluationMgr.stepOver();
+        buildSVG();
+    }
+
+    function stepInto() : void 
+    {
+        evaluationMgr.stepInto();
+        buildSVG();
+    }
+
+    function stepToReturn() : void
+    {
+        evaluationMgr.stepToReturn();
         buildSVG();
     }
 

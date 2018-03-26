@@ -245,6 +245,9 @@ html, body
 #advance { background-color: royalblue; }
 #evalUndo { background-color: orangered;}
 #evalRedo { background-color: mediumorchid;}
+#evalStepOver { background-color: royalblue;}
+#evalStepInto { background-color: orangered}
+#evalStepToReturn { background-color: mediumorchid;}
 #run { background-color: royalblue; }
 
 div.quitworld
