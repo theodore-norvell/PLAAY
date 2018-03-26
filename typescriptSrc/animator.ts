@@ -4,6 +4,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="createHTMLElements.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="seymour.ts" />
@@ -14,6 +15,7 @@ import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
+import createHTMLElements = require('./createHTMLElements');
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
@@ -49,11 +51,10 @@ module animator
     import Value = vms.Value ;
 
     const evaluationMgr = new EvaluationManager();
-    // let turtle : boolean = false ;
-    let highlighted = false;
+    const highlighted = false;
     let transactionMgr : TransactionManager;
 
-    const turtleWorld = new seymour.TurtleWorld();
+    let turtleWorld : seymour.TurtleWorld ;
 	
     export function executingActions() : void 
 	{
@@ -63,15 +64,18 @@ module animator
         $("#evalRedo").click(redoStep);
         $("#run").click(stepTillDone);
         $("#edit").click(switchToEditor);
+        $("#evalToggleOutput").click( createHTMLElements.toggleOutput ) ;
 	}
 
     function evaluate() : void
     {
-        $(".evalHidden").css("visibility", "hidden");
-        $(".evalVisible").css("visibility", "visible");
+        createHTMLElements.hideEditor() ;
+        createHTMLElements.showAnimator() ;
         const libraries : valueTypes.ObjectV[] = [] ;
         transactionMgr = new TransactionManager() ;
-        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
+        const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
+        turtleWorld = new seymour.TurtleWorld(canv, transactionMgr ) ;
+        libraries.push( new world.TurtleWorldObject(turtleWorld, transactionMgr) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
         transactionMgr.checkpoint();
@@ -93,8 +97,7 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
-        $(".dropZone").hide();
-        $(".dropZoneSmall").hide();
+        turtleWorld.redraw() ;
     }
 
     function advanceOneStep() : void
@@ -106,6 +109,7 @@ module animator
             return;
         }
         buildSVG();
+        turtleWorld.redraw() ;
         //visualizeStack(evaluationMgr.getVMS().getStack());
         // const root = $("#vms :first-child").get(0);
         // if (!highlighted && evaluationMgr.getVMS().isReady() ) 
@@ -201,6 +205,7 @@ module animator
         }
         transactionMgr.undo();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function redoStep() : void
@@ -210,7 +215,8 @@ module animator
             return;
         }
         transactionMgr.redo();
-        buildSVG();    }
+        buildSVG();
+        turtleWorld.redraw() ;    }
 
     function stepTillDone() : void 
 	{
@@ -221,6 +227,7 @@ module animator
             transactionMgr.checkpoint();
 		}
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     // function multiStep() : void
@@ -232,10 +239,8 @@ module animator
 
     function switchToEditor() : void
     {
-        $(".evalHidden").css("visibility", "visible");
-        $(".evalVisible").css("visibility", "hidden");
-        $(".dropZone").show();
-        $(".dropZoneSmall").show();
+        createHTMLElements.hideAnimator() ;
+        createHTMLElements.showEditor() ;
     }
 
     // function redraw(vms:VMS) : void {

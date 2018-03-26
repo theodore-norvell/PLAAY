@@ -71,9 +71,8 @@ module backtracking
 
     export class TArray<T>
     {
-        // TODO. Reimplement this with a TVar<Array<TVar<T>>> or a TVar<Array<T>> .
-        private array : TVar<Array<TVar<T>>> ;
-        private manager : TransactionManager ;
+        private readonly array : TVar<Array<TVar<T>>> ;
+        private readonly manager : TransactionManager ;
 
         public constructor(manager : TransactionManager)
         {
@@ -122,6 +121,11 @@ module backtracking
             const newArray = oldArray.slice(0, len-1) ;
             this.array.set( newArray ) ;
             return oldArray[len-1].get() ;
+        }
+
+        public clear() : void
+        {
+            this.array.set( [] ) ;
         }
 
         public cutItem( i : number ) : void { 
