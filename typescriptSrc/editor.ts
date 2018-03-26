@@ -551,8 +551,9 @@ module editor {
     function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
             console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
-            // Create var decl node: Cntl-Shift-V or Cmd-Shift-V
-            if ((e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
+            // Create var decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
+            if ( (!e.shiftKey && e.which===59)
+              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
             {
                 createNode("vardecl", currentSelection );
                 e.stopPropagation(); 
@@ -635,19 +636,27 @@ module editor {
             else if (
                    (e.shiftKey && (e.which === 61         // Shift 61  +
                                    || e.which === 187     // Shift 187 +
-                                   || e.which === 56))    // Shift 56  *
+                                   || e.which === 56      // Shift 56  *
+                                   || e.which === 188     // Shift 188 <
+                                   || e.which ===190      // Shift 190 >
+                                   || e.which === 53))    // Shift 53  %
                    || (!e.shiftKey && (e.which === 191    // No shift 191 /
                                       || e.which === 173  // No shift 173  -
                                       || e.which === 189  // No shift 189  -
                                       || e.which === 107  // No shift 107  +
                                       || e.which === 106  // No shift 106 *
                                       || e.which === 111  // No shift 111 /
+                                      || e.which === 61 // No shift 61 =
                                       || e.which === 109 ) ) ) // No shift 109 -
             {
                 const charCode : number = e.which;
-                if(charCode === 61 || charCode === 107 || charCode === 187)
+                if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
                 {
                     createNode("worldcall", currentSelection, "+");
+                }
+                else if(charCode === 61)
+                {
+                    createNode("worldcall", currentSelection, "=");
                 }
                 else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
@@ -656,6 +665,15 @@ module editor {
                 else if(charCode === 56 || charCode === 106)
                 {
                     createNode("worldcall", currentSelection, "*");
+                }
+                else if( charCode === 188 ) {
+                    createNode("worldcall", currentSelection, "<");
+                }
+                else if( charCode === 190 ) {
+                    createNode("worldcall", currentSelection, ">");
+                }
+                else if( charCode === 53 ) {
+                    createNode("worldcall", currentSelection, "%");
                 }
                 else //only the codes for /  can possibly remain.
                 {
