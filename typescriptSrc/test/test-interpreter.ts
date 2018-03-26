@@ -184,7 +184,7 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
     const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("*", mkVar("x"), mkVar("y"))]);
+    const lambdaBody = mkExprSeq([mkCallWorld("*", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
@@ -214,7 +214,7 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
   const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-  const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkNumberLiteral("5"))]);
+  const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
   const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
   const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
   const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
@@ -245,7 +245,7 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
 describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void {
   const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
   const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-  const lambdaBody = mkExprSeq([mkCallWorld("-", mkVar("x"), mkVar("y"))]);
+  const lambdaBody = mkExprSeq([mkCallWorld("-", [mkVar("x"), mkVar("y")])]);
   const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
   const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
   const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("2")]);
@@ -897,7 +897,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 describe ('Call Label with closure', function(): void {
     const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
     const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
     const vm = makeStdVMS(root);
@@ -954,7 +954,7 @@ describe ('Call node', function(): void {
     it('should report an error if the number of arguments does not match the number of parameters', function() : void {
         const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
         const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-        const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+        const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
         const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
         const root = mkCall(lambda, mkNumberLiteral("234"), mkNumberLiteral("432")) ;
         const vm = makeStdVMS(root);
