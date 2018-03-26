@@ -114,7 +114,6 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Step Over");
 		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Step Into")
 		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Step To Return");
-		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
 		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output");
 
 		create("div", "vms", "vms", animatorDiv) ;
