@@ -77,7 +77,7 @@ module treeManager {
                 case "call":
                     return this.makeCallNode(selection);
                 case "worldcall":
-                    return this.makeWorldCallNode(selection);
+                    return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
                     return this.makeAccessorNode(selection)
 
@@ -101,7 +101,7 @@ module treeManager {
                 case "var":
                     return this.makeVarNode(selection, text);
                 case "worldcall":
-                    return this.makeWorldCallNode(selection, text);
+                    return this.makeWorldCallNode(selection, text, 2);
 
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
@@ -216,27 +216,32 @@ module treeManager {
 
         }
 
-        private makeWorldCallNode(selection:Selection, name : string = "") : Option<Selection> {
+        private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {
             // TODO: Allow a variable number of place holders.
             // console.log( ">> Calling makeWorldCallNode") ;
-            const left = labels.mkExprPH();
-            const right = labels.mkExprPH();
-            let worldcallnode : PNode|null = null;
+            const args = new Array<PNode>() ;
+            const ph = labels.mkExprPH();
+            for( let i = 0 ; i < argCount ; ++i ) {
+                args.push(ph) ;
+            }
+            let worldcallnode : PNode ;
             if(name === "")
             {
-                worldcallnode = labels.mkCallWorld( name, left, right);
-                const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
+                worldcallnode = labels.mkCallWorld( name, args);
+                const template = argCount === 0
+                    ? new Selection( worldcallnode, list<number>(), 0, 0 )
+                    : new Selection( worldcallnode, list<number>(), 0, 1 ) ;
                 const edit = replaceOrEngulfTemplateEdit( template  ) ;
                 return edit.applyEdit(selection);
             }
             else
             {
-                worldcallnode = labels.mkClosedCallWorld(name, left, right);
-                const template = new Selection( worldcallnode, list<number>(), 0, 1 ) ;
+                worldcallnode = labels.mkClosedCallWorld(name, args);
+                const template = argCount===0
+                    ? new Selection( worldcallnode, list<number>(), 0, 0 )
+                    : new Selection( worldcallnode, list<number>(), 0, 1 );
                 const edit = replaceOrEngulfTemplateEdit( template  ) ;
-                const result =  edit.applyEdit(selection);
-                // console.log( "<< result of world call is " + result.toString() ) ;
-                return result ;
+                return edit.applyEdit(selection) ;
             }
         }
 

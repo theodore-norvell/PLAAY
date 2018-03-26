@@ -123,6 +123,26 @@ html, body
     background-color: #cccccc;
 }
 
+#outputArea
+{
+    position:absolute;
+    bottom:0;
+    right:0;
+    height: 506px;
+    width: 506px;
+    border: 3px solid white;
+    z-index: +1 ;
+}
+
+#outputAreaCanvas
+{
+    position:static;
+    height: 500px;
+    width: 500px;
+    background-color: silver;
+}
+
+
 #contentArea
 {
     position:absolute;
@@ -202,7 +222,6 @@ html, body
 
 .palette
 {
-
     flex: 10 1 auto ;
     width: auto;
     margin: 1em 1em 1em 1em ;
@@ -223,6 +242,8 @@ html, body
     height: 30px;
     width: 75px;
     margin: 2px 5px ;
+    color: white ;
+    background-color: black ;
 }
 
 .paletteItem 
@@ -234,32 +255,6 @@ html, body
     box-shadow: 0px 0px 3px;
     color: rgb(190, 133, 197);
 }
-
-#play { background-color: green ;}
-#turtle { background-color: orange; }
-#undo { background-color: orangered;}
-#redo { background-color: mediumorchid;}
-#trash { background-color: darkred;}
-
-#edit { background-color:green; }
-#advance { background-color: royalblue; }
-#evalUndo { background-color: orangered;}
-#evalRedo { background-color: mediumorchid;}
-#evalStepOver { background-color: royalblue;}
-#evalStepInto { background-color: orangered}
-#evalStepToReturn { background-color: mediumorchid;}
-#run { background-color: royalblue; }
-
-div.quitworld
-{
-    width: 50px;
-    height: calc(5%);
-    background-color: darkgreen;
-    position:fixed;
-    bottom:100px; left: 100px;
-}
-
-
 
 div.stack
 {
@@ -538,22 +533,6 @@ div.vardecl{
     font-weight: normal ;
     font-size: medium ;
     color: ghostwhite ; /* Orange */
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
-div.turtleFunc:before {
-    content:url('turtle1.png');
-    display: inline ;
-    vertical-align: top ;
-}
-
-div.turtleFunc{
-    border: thin solid green ;
-    border-radius: 5px ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: ghostwhite ;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }

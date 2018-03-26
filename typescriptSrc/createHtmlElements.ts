@@ -22,13 +22,15 @@ module createHtmlElements {
 
 		create("div", "", "upperArea", body);
 		const upperArea = $("#upperArea");
-		createUpperAreaHTML( upperArea ) 
+		createUpperAreaHTML( upperArea )  ;
 
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
 
 		createEditorHTML( contentArea ) ;
 		createAnimatorHTML( contentArea ) ;
+
+		createOutputArea( body ) ;
 	}
 
 	function createUpperAreaHTML( upperArea : JQuery ) : void {
@@ -64,10 +66,10 @@ module createHtmlElements {
 		//createTexted("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
 		createTexted("div", "leftSideButton editButton", "play", buttonArea, "Play");
-		createTexted("div", "leftSideButton editButton", "turtle", buttonArea, "Turtle World");
 		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo");
 		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo");
 		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash");
+		createTexted("div", "leftSideButton", "toggleOutput", buttonArea, "Output");
 
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
@@ -106,23 +108,39 @@ module createHtmlElements {
 		const evalButtonArea = $("#evalButtonArea");
 		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit");
 		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next");
+		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
 		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
 		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
 		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Step Over");
 		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Step Into")
 		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Step To Return");
 		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
+		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output");
 
 		create("div", "vms", "vms", animatorDiv) ;
 
 		hideAnimator() ;
 	}
 
+	function createOutputArea( body : JQuery ) : void {
+		// body
+		//     outputArea
+		//          outputAreaCanvas
+		const outputArea = create( "div", "outputArea", "outputArea", body ) ;
+		create( "canvas", "outputAreaCanvas", "outputAreaCanvas", outputArea ) ;
+		const canvas = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
+		const clientWidth = canvas.clientWidth ;
+		const clientHeight = canvas.clientHeight ;
+		canvas.width = clientWidth ;
+		canvas.height = clientHeight ;
+		hideOutput() ;
+	}
+
 	export function hideAnimator() : void {
 		hide( $("#animator") ) ;
 	}
 
-	export function showAnimator()  : void{
+	export function showAnimator()  : void {
 		show( $("#animator") ) ;
 	}
 
@@ -132,6 +150,18 @@ module createHtmlElements {
 
 	export function showEditor()  : void{
 		show( $("#editor") ) ;
+	}
+
+	export function hideOutput() : void {
+		hide( $("#outputArea") ) ;
+	}
+
+	export function showOutput()  : void{
+		show( $("#outputArea") ) ;
+	}
+
+	export function toggleOutput() : void {
+		toggle( $("#outputArea") ) ;
 	}
 
 	function create( elementType: string,
@@ -174,6 +204,14 @@ module createHtmlElements {
 
 	function show( element: JQuery ): JQuery {
 		return element.css("visibility", "visible");
+	}
+
+	function toggle( element: JQuery ): JQuery {
+		const val : String = element.css("visibility") ;
+		if( val === "visible" ) {
+			return element.css("visibility", "hidden"); }
+		else {
+			return element.css("visibility", "visible"); }
 	}
 
 }

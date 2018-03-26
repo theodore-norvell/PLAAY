@@ -53,6 +53,9 @@ module animator
     const animatorWidth = 1000 ;
     const animatorHeight = 1000 ;
     const evaluationMgr = new EvaluationManager() ;
+    const highlighted = false;
+
+    let turtleWorld : seymour.TurtleWorld ;
 	
     export function executingActions() : void 
 	{
@@ -65,6 +68,7 @@ module animator
         $("#evalStepToReturn").click(stepToReturn);
         $("#run").click(stepTillDone);
         $("#edit").click(switchToEditor);
+        $("#evalToggleOutput").click( createHTMLElements.toggleOutput ) ;
 	}
 
     function evaluate() : void
@@ -73,7 +77,9 @@ module animator
         createHTMLElements.showAnimator() ;
         const libraries : valueTypes.ObjectV[] = [] ;
         const transactionMgr = new TransactionManager() ;
-        // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
+        const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
+        turtleWorld = new seymour.TurtleWorld(canv, transactionMgr ) ;
+        libraries.push( new world.TurtleWorldObject(turtleWorld, transactionMgr) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
         transactionMgr.checkpoint();
@@ -101,12 +107,14 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
+        turtleWorld.redraw() ;
     }
 
     function advanceOneStep() : void
     {
         evaluationMgr.next();
         buildSVG();
+        turtleWorld.redraw() ;
     }
 
     function undoStep() : void

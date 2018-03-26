@@ -162,6 +162,11 @@ module valueTypes {
             return assert.failedPrecondition( "ObjectV.getField called with bad argument.") ;
         }
 
+        public popField() {
+          assert.checkPrecondition(this.fields.size() > 0);
+          this.fields.pop();
+        }
+
         public isClosureV() : boolean {
             return false;
         }
