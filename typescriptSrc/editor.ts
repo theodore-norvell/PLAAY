@@ -4,7 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -14,7 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');

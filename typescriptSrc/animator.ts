@@ -4,7 +4,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="seymour.ts" />
@@ -15,7 +15,7 @@ import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
