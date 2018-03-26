@@ -23,9 +23,12 @@ module userRelated
 
     export function userRelatedActions () : void
     {
+        sessionStorage.removeItem("programId");
         $('#login').click(loginAction);
-        $('#userSettings').click(userSettingsAction);
+        // $('#userSettings').click(userSettingsAction);
         $('#logout').click(logoutAction);
+        $('#clearProgram').click(clearProgramAction);
+        $('#updateProgram').click(updateProgramAction);
         $('#saveProgram').click(saveProgramAction);
         $('#loadProgram').click(loadProgramAction);
     }
@@ -82,6 +85,25 @@ module userRelated
     function logoutAction () : void
     {
         window.location.href = '/logout';
+    }
+
+    function clearProgramAction () : void
+    {
+        window.location.href = '/';
+    }
+
+    function updateProgramAction () : void
+    {
+        if (sessionStorage.length > 0) {
+            $.post('/update',
+                {
+                    identifier: sessionStorage.getItem("programId"),
+                    program: serialize(editor.getCurrentSelection())
+                });
+        }
+        else {
+            saveProgramAction();
+        }
     }
 
     function saveProgramAction () : void
@@ -275,7 +297,7 @@ module userRelated
         result.forEach(function(entry) : void {
             $('#programTable').append("<tr><td>" + entry.name + "</td><td>" + entry.version
                 + "</td><td><button id='" + entry.identifier +  "'>Load</button></td></tr>");
-            $('#' + entry.identifier).click(function () {
+            $('#' + entry.identifier.replace(/\//g, "\\/").replace(/\+/g, "\\+")).click(function () {
                 loadProgram(entry.identifier);
             })
         });
@@ -300,7 +322,7 @@ module userRelated
                 });
     }
 
-    function loadProgram(identifier : string) : void
+    export function loadProgram(identifier : string) : void
     {
         const  response = $.post(
            "/load",
@@ -308,6 +330,7 @@ module userRelated
            function() : void { // TODO Move this callback function to the editor.
                $("#dimScreen").remove();
                editor.update( unserialize(response.responseText) );
+               sessionStorage.setItem("programId", identifier);
            });
     }
 
@@ -320,8 +343,9 @@ module userRelated
             "/save",
             {name:programName, program:currentSel, private: isPrivate},
             function() : void {
-                console.log(response.responseText);
-                $('#dimScreen').remove();
+                let programId = response.responseText;
+                sessionStorage.setItem("programId", programId)
+                $('#dimScreen').append("Sharable link for this program: <a href='/p/" + programId + "/'>Link</a>")
             });
         return false;
     }

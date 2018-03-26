@@ -1,10 +1,11 @@
+- var onLoad= programId ? 'main.onLoad("' + programId +'")' : "main.onLoad()";
 html
     head
-        script(src="plaay.js")
+        script(src="/plaay.js")
         script(src="https://code.jquery.com/jquery-1.10.2.min.js")
         script(src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js")
-        link(rel="stylesheet" href="plaay-style.css")
-    body(id="body" class="plaay" onload="main.onLoad()")
+        link(rel="stylesheet" href="/plaay-style.css")
+    body(id="body" class="plaay" onload=onLoad)
         #upperArea
             #bannerArea
                 | PLAAY = The Programming Language for Adults and Youngsters
@@ -13,16 +14,17 @@ html
                     div(class="barButtons" id="login")
                         | Login/Register
                 else
-                    .barButtons
-                        | Welcome, #{user.email}!
                     div(class="barButtons" id="logout")
                         | Logout
-                    div(class="barButtons" id="userSettings")
-                        | User Settings
                     div(class="barButtons" id="loadProgram")
                         | Load Program
+                    div(class="barButtons" id="clearProgram")
+                        | Clear
+                    div(class="barButtons" id="updateProgram")
+                        | Save
+
                 div(class="barButtons" id="saveProgram")
-                    | Save Program
+                    | Save As
 
         #contentArea
             #leftSideArea

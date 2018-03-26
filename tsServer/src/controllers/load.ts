@@ -8,8 +8,8 @@ export let load = (req: Request, res: Response, next: NextFunction) => {
             return next(err);
         }
         if (program.private) {
-            if (typeof req.user !== undefined) {
-                if (program.user === req.user.email) {
+            if (typeof req.user !== undefined && req.user !== undefined){
+                if (typeof req.user.email !== undefined && program.user === req.user.email) {
                     res.end(program.content);
                 }
                 else {

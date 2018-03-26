@@ -109,6 +109,8 @@ app.get("/plaay", plaayController.newProgram);
 app.post("/save", saveController.save);
 app.post("/load", loadController.load);
 app.post("/listPrograms", loadController.listPrograms);
+app.get("/p/:programId", plaayController.loadProgram);
+app.post("/update", saveController.update);
 
 /**
  * API examples routes.
