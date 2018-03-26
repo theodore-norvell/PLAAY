@@ -124,6 +124,11 @@ module createHtmlElements {
 		//          outputAreaCanvas
 		const outputArea = create( "div", "outputArea", "outputArea", body ) ;
 		create( "canvas", "outputAreaCanvas", "outputAreaCanvas", outputArea ) ;
+		const canvas = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
+		const clientWidth = canvas.clientWidth ;
+		const clientHeight = canvas.clientHeight ;
+		canvas.width = clientWidth ;
+		canvas.height = clientHeight ;
 		hideOutput() ;
 	}
 
@@ -131,7 +136,7 @@ module createHtmlElements {
 		hide( $("#animator") ) ;
 	}
 
-	export function showAnimator()  : void{
+	export function showAnimator()  : void {
 		show( $("#animator") ) ;
 	}
 

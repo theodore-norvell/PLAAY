@@ -299,28 +299,28 @@ module world {
             const pushf = new Field("push", push, Type.NOTYPE, true, true, manager);
             this.addField(pushf);
 
-          function popStep(vms: VMS, args: Array<Value>) {
-            if (args.length !== 1) {
-              vms.reportError("pop expects 1 arguments of type object.");
-              return;
+            function popStep(vms: VMS, args: Array<Value>) {
+                if (args.length !== 1) {
+                vms.reportError("pop expects 1 arguments of type object.");
+                return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                vms.reportError("pop argument should be an object value.");
+                return;
+                }
+                const len = obj.numFields();
+                if (!obj.hasField((len-1)+"")) {
+                vms.reportError("Cannot perform pop on " + obj.toString());
+                return;
+                }
+                obj.popField();
+                vms.finishStep(DoneV.theDoneValue);
             }
-            const obj = args[0];
-            if (!(obj instanceof ObjectV)) {
-              vms.reportError("pop argument should be an object value.");
-              return;
-            }
-            const len = obj.numFields();
-            if (!obj.hasField((len-1)+"")) {
-              vms.reportError("Cannot perform pop on " + obj.toString());
-              return;
-            }
-            obj.popField();
-            vms.finishStep(DoneV.theDoneValue);
-          }
 
-          const pop = new BuiltInV(popStep);
-          const popf = new Field("pop", pop, Type.NOTYPE, false, false, manager);
-          this.addField(popf);
+            const pop = new BuiltInV(popStep);
+            const popf = new Field("pop", pop, Type.NOTYPE, false, false, manager);
+            this.addField(popf);
         }
     }
 
@@ -331,7 +331,6 @@ module world {
 
         constructor(  tw : seymour.TurtleWorld, tMan : TransactionManager ){
             super(tMan) ;
-
 
             const forwardStepper = (vm : VMS, args : Array<Value> ) : void => {
                     if( checkNumberOfArgs( 1, 1, args, vm ) 
@@ -409,6 +408,30 @@ module world {
             const clearValue = new BuiltInV( clearStepper ) ;
             const clearField = new Field("clear", clearValue, Type.METHOD, true, true, tMan) ;
             this.addField( clearField ) ;
+
+            const setBackgroundStepper = (vm : VMS, args : Array<Value> ) : void => {
+                if( checkNumberOfArgs( 3, 3, args, vm ) 
+                    && checkArgsAreNumbers(0, 3, args, vm ) ) {
+                    const r : number = convertToNumber( args[0] ) ;
+                    const g : number = convertToNumber( args[1] ) ;
+                    const b : number = convertToNumber( args[2] ) ;
+                    tw.setBackground( r,g,b ) ;
+                    vm.finishStep( done ) ; } } ;
+            const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
+            const setBackgroundField = new Field("setBackground", setBackgroundValue, Type.METHOD, true, true, tMan) ;
+            this.addField( setBackgroundField ) ;
+
+            const setTurtleColorStepper = (vm : VMS, args : Array<Value> ) : void => {
+                if( checkNumberOfArgs( 3, 3, args, vm ) 
+                    && checkArgsAreNumbers(0, 3, args, vm ) ) {
+                    const r : number = convertToNumber( args[0] ) ;
+                    const g : number = convertToNumber( args[1] ) ;
+                    const b : number = convertToNumber( args[2] ) ;
+                    tw.setTurtleColor( r,g,b ) ;
+                    vm.finishStep( done ) ; } } ;
+            const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;
+            const setTurtleField = new Field("setTurtleColor", setTurtleColorValue, Type.METHOD, true, true, tMan) ;
+            this.addField( setTurtleField ) ;
         }
     }
 }
