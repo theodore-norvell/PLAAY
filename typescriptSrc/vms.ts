@@ -326,7 +326,7 @@ module vms{
             if( p.size() === 0 ) {
                 this.pending.set( null ) ;
             } else {
-                this.pending.set( collections.butLast( p ) ) ; }
+                this.pending.set( collections.nil<number>() ) ; }
         }
 
         public scrub( path : List<number> ) : void {
