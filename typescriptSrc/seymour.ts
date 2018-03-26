@@ -30,21 +30,38 @@ module seymour {
     class Segment {
         private readonly _p0 : Point ;
         private readonly _p1 : Point ;
+        private readonly _color : [number, number, number] ;
 
-        constructor( p0 : Point, p1 : Point) {
+        constructor( p0 : Point, p1 : Point, color : [number, number, number]) {
             this._p0 = p0 ;
-            this._p1 = p1 ; }
+            this._p1 = p1 ;
+            this._color = color ; }
         
         public p0() : Point { return this._p0 ; }
         public p1() : Point { return this._p1 ; }
+        public color() : [number, number, number] { return this._color ; }
+    }
+
+    function filter( c : number ) : number {
+        c = Math.floor(c) ;
+        if( c > 255 ) c = 255 ;
+        else if( c < 0 ) c = 0 ;
+        return c ;
+    }
+
+    function colorToString( colour : [number, number, number] ) : string {
+        const r = filter( colour[0] );
+        const g = filter( colour[1] );
+        const b = filter( colour[2] );
+        return "rgb(" +r+ "," +g+ "," +b+ ")" ;
     }
 
     export class TurtleWorld {
         // Defining the world to view mapping
         // For now, these are immutable
         private readonly zoom : number = 1 ;
-        private readonly worldWidth : number = 100 ;
-        private readonly worldHeight : number = 100 ;
+        private readonly worldWidth : number = 500 ;
+        private readonly worldHeight : number = 500 ;
         
         // The turtle's position.
         private readonly posn : TVar<Point> ;
@@ -57,6 +74,10 @@ module seymour {
         private readonly penIsDown : TVar<boolean> ;
         // The segments 
         private readonly segments : TArray<Segment> ;
+        // The colour of the background. Each number should be 0 <= x < 255.
+        private readonly backgroundColor : TVar<[number,number,number]> ;
+        // The colour fo the turtle. Each number should be 0 <= x < 255.
+        private readonly turtleColor : TVar<[number,number,number]> ;
         // The canvas
         private readonly canv : HTMLCanvasElement ;
 
@@ -67,6 +88,8 @@ module seymour {
             this.visible = new TVar<boolean>( true, tMan ) ;
             this.penIsDown = new TVar<boolean>( false, tMan ) ;
             this.segments = new TArray<Segment>( tMan ) ;
+            this.backgroundColor = new TVar<[number,number,number]>( [255,255,255], tMan ) ;
+            this.turtleColor = new TVar<[number,number,number]>( [0, 127, 0], tMan ) ;
         }
         
         public getCanvas() : HTMLCanvasElement { return this.canv ; }
@@ -77,7 +100,7 @@ module seymour {
             const newy =this.posn.get().y() + n * Math.sin(theta) ;
             const newPosn = new Point(newx, newy) ;
             if( this.penIsDown.get() ) { this.segments.push(
-                    new Segment( this.posn.get(), newPosn ) ) ; }
+                    new Segment( this.posn.get(), newPosn, this.turtleColor.get() ) ) ; }
             this.posn.set( newPosn ) ;
         }
         
@@ -118,14 +141,22 @@ module seymour {
         public show() : void  {
             this.visible.set( true ) ;  }
          
+        public setBackground( r : number, g : number, b : number ) : void  {
+            this.backgroundColor.set( [r,g,b] ) ;  }
+         
+        public setTurtleColor( r : number, g : number, b : number ) : void  {
+            this.turtleColor.set( [r,g,b] ) ;  }
+         
         public redraw() : void {
              const ctxOrNot = this.canv.getContext("2d") ;
              assert.check( ctxOrNot !== null ) ;
              const ctx = ctxOrNot as CanvasRenderingContext2D ;
+             ctx.lineWidth = 1.0 ;
              const w = this.canv.width ;
              const h = this.canv.height ;
              ctx.clearRect(0, 0, w, h);
-             ctx.strokeStyle = "#000" ;
+             ctx.fillStyle = colorToString( this.backgroundColor.get() ) ;
+             ctx.fillRect(0, 0, w, h ) ;
              for( let i = 0 ; i < this.segments.size() ; ++i ) {
                  const segment = this.segments.get(i) ;
                  const p0v = this.world2View( segment.p0(), w, h ) ;
@@ -133,20 +164,21 @@ module seymour {
                  ctx.beginPath() ;
                  ctx.moveTo( p0v.x(), p0v.y() ) ;
                  ctx.lineTo( p1v.x(), p1v.y() ) ;
+                 ctx.strokeStyle = colorToString( segment.color() ) ;
                  ctx.stroke() ;
              }
              if( this.visible.get() ) {
-                 ctx.strokeStyle = "#0F0" ;
+                 ctx.strokeStyle = colorToString( this.turtleColor.get() ) ; 
                  // Draw a little triangle
                  const theta = this.orientation.get() / 180.0 * Math.PI ;
                  const x = this.posn.get().x() ;
                  const y = this.posn.get().y() ;
-                 const p0x = x + 4 *  Math.cos(theta) ;
-                 const p0y = y + 4 *  Math.sin(theta) ;
-                 const p1x = x + 5 * Math.cos(theta+2.5) ;
-                 const p1y = y + 5 * Math.sin(theta+2.5) ;
-                 const p2x = x + 5 * Math.cos(theta-2.5) ;
-                 const p2y = y + 5 * Math.sin(theta-2.5) ;
+                 const p0x = x + 20 *  Math.cos(theta) ;
+                 const p0y = y + 20 *  Math.sin(theta) ;
+                 const p1x = x + 25 * Math.cos(theta+2.5) ;
+                 const p1y = y + 25 * Math.sin(theta+2.5) ;
+                 const p2x = x + 25 * Math.cos(theta-2.5) ;
+                 const p2y = y + 25 * Math.sin(theta-2.5) ;
                  const p0v = this.world2View( new Point(p0x,p0y), w, h ) ;
                  const p1v = this.world2View( new Point(p1x,p1y), w, h ) ;
                  const p2v = this.world2View( new Point(p2x,p2y), w, h ) ;
@@ -160,6 +192,7 @@ module seymour {
                  //const newx = this.posn.x() * hscale + this.canv.width/2 -12.5;
                  //const newy = this.posn.y() * vscale + this.canv.height/2 - 12.5;
                  //ctx.drawImage(base_image, newx, newy);
+                 ctx.fillStyle = colorToString( this.turtleColor.get() ) ;
                  ctx.beginPath() ;
                  ctx.moveTo(p0v.x(),p0v.y()) ;
                  ctx.lineTo(p1v.x(),p1v.y()) ;
