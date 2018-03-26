@@ -369,6 +369,9 @@ module labels {
         // Singleton
         public static theNoExprLabel = new NoExprLabel();
 
+        // Behaves like a place holder as far as editing is concerned.
+        public isPlaceHolder() : boolean { return true; }
+
         public toJSON() : object {
             return { kind: NoExprLabel.kindConst } ;
         }
