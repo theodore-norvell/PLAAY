@@ -4,6 +4,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="createHTMLElements.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="seymour.ts" />
@@ -14,6 +15,7 @@ import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
+import createHTMLElements = require('./createHTMLElements');
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
@@ -67,8 +69,8 @@ module animator
 
     function evaluate() : void
     {
-        $(".evalHidden").css("visibility", "hidden");
-        $(".evalVisible").css("visibility", "visible");
+        createHTMLElements.hideEditor() ;
+        createHTMLElements.showAnimator() ;
         const libraries : valueTypes.ObjectV[] = [] ;
         transactionMgr = new TransactionManager() ;
         // if( turtle ) libraries.push( new world.TurtleWorldObject(turtleWorld, manager) ) ;
@@ -93,8 +95,6 @@ module animator
         stack.dmove(stackOffset, 0);
         
         animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
-        $(".dropZone").hide();
-        $(".dropZoneSmall").hide();
     }
 
     function advanceOneStep() : void
@@ -232,10 +232,8 @@ module animator
 
     function switchToEditor() : void
     {
-        $(".evalHidden").css("visibility", "visible");
-        $(".evalVisible").css("visibility", "hidden");
-        $(".dropZone").show();
-        $(".dropZoneSmall").show();
+        createHTMLElements.hideAnimator() ;
+        createHTMLElements.showEditor() ;
     }
 
     // function redraw(vms:VMS) : void {
