@@ -246,6 +246,69 @@ module world {
             var or = new BuiltInV(orstep);
             var orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
+
+            function lenStep(vms: VMS, args: Array<Value>) : void  {
+              if (args.length !== 1) {
+                vms.reportError("len expects 1 argument, of type object.");
+                return;
+              }
+              const obj = args[0];
+              if (!(obj instanceof ObjectV)) {
+                vms.reportError("len only works with object values.");
+                return;
+              }
+              const len = obj.numFields();
+              const val = new StringV(len+"");
+              vms.finishStep(val);
+            }
+
+            const len = new BuiltInV(lenStep);
+            const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
+            this.addField(lenf);
+
+            function pushStep(vms: VMS, args: Array<Value>) {
+              if (args.length !== 2) {
+                vms.reportError("push expects 2 arguments, an object and a value to be pushed.");
+                return;
+              }
+              const obj = args[0];
+              if (!(obj instanceof ObjectV)) {
+                vms.reportError("First argument should be an object value.");
+                return;
+              }
+              const val = args[1];
+              console.log(obj.numFields()+"");
+              const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
+              obj.addField(field);
+              vms.finishStep(DoneV.theDoneValue);
+            }
+
+            const push = new BuiltInV(pushStep);
+            const pushf = new Field("push", push, Type.NOTYPE, true, true, manager);
+            this.addField(pushf);
+
+          function popStep(vms: VMS, args: Array<Value>) {
+            if (args.length !== 1) {
+              vms.reportError("pop expects 1 arguments of type object.");
+              return;
+            }
+            const obj = args[0];
+            if (!(obj instanceof ObjectV)) {
+              vms.reportError("pop argument should be an object value.");
+              return;
+            }
+            const len = obj.numFields();
+            if (!obj.hasField((len-1)+"")) {
+              vms.reportError("Cannot perform pop on " + obj.toString());
+              return;
+            }
+            obj.popField();
+            vms.finishStep(DoneV.theDoneValue);
+          }
+
+          const pop = new BuiltInV(popStep);
+          const popf = new Field("pop", pop, Type.NOTYPE, false, false, manager);
+          this.addField(popf);
         }
     }
 
