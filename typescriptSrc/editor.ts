@@ -4,6 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="createHTMLElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -13,6 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
+import createHTMLElements = require('./createHTMLElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
@@ -50,6 +52,7 @@ module editor {
         $("#undo").click( undo );
         $("#redo").click( redo ) ;
         $("#trash").click( toggleTrash ) ;
+        $("#toggleOutput").click( createHTMLElements.toggleOutput ) ;
 
         makeTrashDroppable( $("#trash") ) ;
         $( ".paletteItem" ).draggable( {
@@ -448,7 +451,7 @@ module editor {
                 e.preventDefault(); 
             }
             // Redo: Cntl-Y or Cmd-Y (or Ctrl-Shift-Z or Cmd-Shift-Z)
-            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which == 90))) 
+            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which === 90))) 
             {
                 keyboardRedo();
                 e.stopPropagation(); 
@@ -623,6 +626,11 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            else if( !e.shiftKey && e.which === 192 ) {  // Backquote
+                createNode("worldcall", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
             //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
             // TODO:  What for shifts (and lack of shifts) here.
             else if (
@@ -740,30 +748,30 @@ module editor {
 
     // Scroll container to make a selected element fully visible
     function scrollIntoView() : void {
-        let container : JQuery | null = $("#container ");
-        let selection : JQuery | null = $(".selected");
-        if (selection.get(0) == undefined) { return; } //Return if no selected nodes
+        const container : JQuery | null = $("#container ");
+        const selection : JQuery | null = $(".selected");
+        if (selection.get(0) === undefined) { return; } //Return if no selected nodes
 
-        let selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
-        let selectionTop : number | null = selection.position().top; // Relative to visible container top
-        let selectionBot : number | null = (selectionHeight + selectionTop); 
-        let visibleHeight : number | null = container.outerHeight(); // Height of visible container   
-        let visibleTop : number | null = container.scrollTop(); // Top of visible container
-        let scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
-        let scrollSpeed : number = 50;
+        const selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
+        const selectionTop : number | null = selection.position().top; // Relative to visible container top
+        const selectionBot : number | null = (selectionHeight + selectionTop); 
+        const visibleHeight : number | null = container.outerHeight(); // Height of visible container   
+        const visibleTop : number | null = container.scrollTop(); // Top of visible container
+        const scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
+        const scrollSpeed : number = 50;
 
         // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
         if ( selectionBot > (visibleHeight-scrollBarWidth) && selectionHeight < visibleHeight) {
-            container.animate({
-                scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)
-            }, scrollSpeed);
+            container.animate(
+                { scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)},
+                scrollSpeed );
 
         // If the top edge of an element is not visible or element is too large, scroll to the top edge
         // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
         } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
-            container.animate({
-                scrollTop: (selectionTop + visibleTop - 10)
-            }, scrollSpeed);
+            container.animate(
+                { scrollTop: (selectionTop + visibleTop - 10)},
+                scrollSpeed );
         }
     }
                                                            
@@ -775,7 +783,7 @@ module editor {
         while (undostack.length !== 0 && !finished)  {
             redostack.push(sel);
             sel = undostack.pop() as Selection ;
-            finished = hasOpenNodes(sel)
+            finished = hasOpenNodes(sel) ;
         }
         currentSelection = sel;
         generateHTMLSoon();
@@ -789,7 +797,7 @@ module editor {
         while (redostack.length !== 0 && !finished)  {
             undostack.push(sel);
             sel = redostack.pop() as Selection;
-            finished = hasOpenNodes(sel)
+            finished = hasOpenNodes(sel) ;
         }
         currentSelection = sel;
         generateHTMLSoon();
@@ -798,7 +806,7 @@ module editor {
 
     function hasOpenNodes(sel: Selection) : boolean
     {
-            if(Math.abs(sel.anchor() - sel.focus()) == 1)
+            if(Math.abs(sel.anchor() - sel.focus()) === 1)
             {
                 if(sel.selectedNodes()[0].label().isOpen())
                 { //Keep going if the selected node is open.

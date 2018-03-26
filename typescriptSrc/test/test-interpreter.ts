@@ -184,7 +184,7 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
     const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("*", mkVar("x"), mkVar("y"))]);
+    const lambdaBody = mkExprSeq([mkCallWorld("*", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
@@ -214,7 +214,7 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
   const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-  const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkNumberLiteral("5"))]);
+  const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
   const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
   const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
   const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
@@ -245,7 +245,7 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
 describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void {
   const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
   const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-  const lambdaBody = mkExprSeq([mkCallWorld("-", mkVar("x"), mkVar("y"))]);
+  const lambdaBody = mkExprSeq([mkCallWorld("-", [mkVar("x"), mkVar("y")])]);
   const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
   const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
   const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("2")]);
@@ -897,7 +897,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 describe ('Call Label with closure', function(): void {
     const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
     const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
     const vm = makeStdVMS(root);
@@ -954,7 +954,7 @@ describe ('Call node', function(): void {
     it('should report an error if the number of arguments does not match the number of parameters', function() : void {
         const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
         const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-        const lambdaBody = mkExprSeq([mkCallWorld("+", mkVar("x"), mkVar("y"))]);
+        const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
         const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
         const root = mkCall(lambda, mkNumberLiteral("234"), mkNumberLiteral("432")) ;
         const vm = makeStdVMS(root);
@@ -1012,6 +1012,76 @@ describe('AccessorLabel', function(): void {
       const message = vm.getError() ;
       assert.checkEqual( message, "No field named y" );
     });
+});
+
+describe('ArrayLiteralLabel', function(): void {
+  it('should evaluate to an ObjectV with 2 fields', function(): void {
+      const el1 = mkNumberLiteral("12345");
+      const el2 = mkNumberLiteral("67890");
+      const root = new PNode(new labels.ArrayLiteralLabel(), [el1, el2]);
+      const vm = makeStdVMS(root);
+      while (vm.canAdvance()) {
+        vm.advance();
+      }
+      assert.check(!vm.hasError());
+      const val = vm.getFinalValue();
+      assert.check(val instanceof ObjectV);
+      assert.check((val as ObjectV).numFields() === 2);
+      assert.check(((val as ObjectV).getField("0").getValue() as StringV).getVal() === "12345");
+      assert.check(((val as ObjectV).getField("1").getValue() as StringV).getVal() === "67890");
+  });
+});
+
+describe('len built in', function(): void {
+  it('should return a len of 2', function(): void {
+    const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23"), mkNumberLiteral("123127645")]);
+    const lenCall = new PNode(new labels.CallWorldLabel("len", false), [array]);
+    const root = mkExprSeq([array, lenCall]);
+    const vm = makeStdVMS(root);
+    while (vm.canAdvance()) {
+      vm.advance();
+    }
+    assert.check(!vm.hasError());
+    const val = vm.getFinalValue();
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "2");
+  });
+});
+
+describe('push built in', function(): void {
+  it('should return a StringV equaling 1000', function(): void {
+    const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23")]);
+    const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
+    const pushCall = new PNode(new labels.CallWorldLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
+    const accessor = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("a"), labels.mkStringLiteral("1")]);
+    const root = mkExprSeq([arrayDecl, pushCall, accessor]);
+    const vm = makeStdVMS(root);
+    while (vm.canAdvance()) {
+      vm.advance();
+    }
+    assert.check(!vm.hasError());
+    const val = vm.getFinalValue();
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "1000");
+  });
+});
+
+describe('pop built in', function(): void {
+  it('should return a len of 2', function(): void {
+    const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("1"), mkNumberLiteral("2"), mkNumberLiteral("3")]);
+    const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
+    const popCall = new PNode(new labels.CallWorldLabel("pop", false), [mkVar("a")]);
+    const lenCall = new PNode(new labels.CallWorldLabel("len", false), [mkVar("a")]);
+    const root = mkExprSeq([arrayDecl, popCall, lenCall]);
+    const vm = makeStdVMS(root);
+    while (vm.canAdvance()) {
+      vm.advance();
+    }
+    assert.check(!vm.hasError());
+    const val = vm.getFinalValue();
+    assert.check(val instanceof StringV);
+    assert.check((val as StringV).getVal() === "2");
+  });
 });
 
 describe( 'ExprSeqLabel', function () : void {
