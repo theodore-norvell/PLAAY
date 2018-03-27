@@ -1,4 +1,5 @@
 /// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="valueTypes.ts" />
@@ -7,12 +8,12 @@
 
 
 import assert = require('./assert') ;
+import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
-import collections = require( './collections' ) ;
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -128,6 +129,9 @@ module interpreter {
     theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelector;
     theStepperRegistry[labels.ArrayLiteralLabel.kindConst] = arrayStepper;
 
+    // Placeholders
+    theSelectorRegistry[labels.ExprPHLabel.kindConst] = alwaysSelector ;
+    theStepperRegistry[labels.ExprPHLabel.kindConst] = placeHolderStepper ;
 
     // Selectors.  Selectors take the state from not ready to ready.
 
@@ -571,6 +575,10 @@ module interpreter {
         // TODO Check that the value is assignable to the field.
         field.setValue( value ) ;
         vms.finishStep( DoneV.theDoneValue ) ;
+    }
+
+    function placeHolderStepper(vms : VMS) : void {
+        vms.reportError( "Missing code." ) ;
     }
 }
 

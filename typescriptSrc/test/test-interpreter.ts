@@ -1919,6 +1919,19 @@ describe('WhileLabel', function () : void {
 
 });
 
+describe('ExprPHLable', function () : void {
+    it('should cause an error', function () : void {
+        const phNode : PNode = labels.mkExprPH( ) ;
+        const vm = makeStdVMS( phNode )  ;
+
+        vm.advance();
+        vm.advance();
+
+        assert.check( vm.hasError() ) ;
+        assert.check( vm.getError() === "Missing code." ) ;
+    });
+});
+
 function selectAndStep( vm : VMS ) {
     assert.checkPrecondition(!vm.isReady() ) ;
     // Select
