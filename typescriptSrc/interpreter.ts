@@ -118,12 +118,15 @@ module interpreter {
     theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
     theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
 
-    // Objects
+    // Objects and Arrays
     theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
     theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
 
     theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
     theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
+
+    theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelector;
+    theStepperRegistry[labels.ArrayLiteralLabel.kindConst] = arrayStepper;
 
 
     // Selectors.  Selectors take the state from not ready to ready.
@@ -394,6 +397,21 @@ module interpreter {
           const value = (vms.getStack() as NonEmptyVarStack).getTop();
           vms.finishStep( value );
           vms.getEval().popFromVarStack() ; }
+    }
+
+    function arrayStepper(vms: VMS) {
+        const manager = vms.getTransactionManager() ;
+        const array = new ObjectV( manager ) ;
+        const node = vms.getPendingNode() ;
+        const sz = node.count() ;
+        for(let i = 0; i < sz ; ++i) {
+            const val = vms.getChildVal(i);
+            const name : string = i+"";
+            const type : Type = Type.NOTYPE ;
+            const field = new Field(name, val, type, false, true, manager);
+            array.addField(field) ;
+        }
+        vms.finishStep(array);
     }
 
     function previsitNode(vms: VMS) {
