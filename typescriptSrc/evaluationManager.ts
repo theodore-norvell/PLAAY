@@ -143,7 +143,17 @@ module evaluationManager {
         public init(vm : VMS) : void{
             this.currentEval = vm.getEval();
             this.pending = vm.getPending();
-           // this.pendingNode = vm.getPendingNode().;
+            let pathSize : number = this.pending.size();
+        
+            let path = this.pending;
+            for (let i = 0; i < pathSize; i++){
+                let temp : List<number> = path;
+                path = collections.butLast(path);
+                if (this.currentEval.getRoot().get(path).isExprSeqNode()){
+                    this.pending = temp;
+                    break;
+                }
+            }
         }
 
         public shouldStop( vm : VMS ) : boolean {
@@ -166,7 +176,17 @@ module evaluationManager {
         public init(vm : VMS) : void{
             this.currentEval = vm.getEval();
             this.pending = vm.getPending();
-           // this.pendingNode = vm.getPendingNode().;
+            let pathSize : number = this.pending.size();
+        
+            let path = this.pending;
+            for (let i = 0; i < pathSize; i++){
+                let temp : List<number> = path;
+                path = collections.butLast(path);
+                if (this.currentEval.getRoot().get(path).isExprSeqNode()){
+                    this.pending = temp;
+                    break;
+                }
+            }
         }
 
         public shouldStop( vm : VMS ) : boolean {
