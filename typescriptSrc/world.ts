@@ -238,7 +238,9 @@ module world {
             function equalstep(vm : VMS, args : Array<Value>) : void {
               let bool = true;
               for(let i = 0; i < args.length-1; i++) { 
-                if (!(args[i] === args[i+1])) bool = false;
+                if ((args[i] as StringV).getVal() !== (args[i+1] as StringV).getVal()) {
+                  bool = false;
+                }
               }
               const val = new StringV( bool+"" ) ;
               vm.finishStep( val ) ;  
