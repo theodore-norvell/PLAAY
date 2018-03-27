@@ -60,6 +60,18 @@ module world {
         return true ;
     }
 
+    function argsAreStrings( args : Array<Value>) : boolean {
+        return args.every( (v:Value) => v.isStringV() ) ;
+    }
+
+    function argsAreNulls( args : Array<Value> ) : boolean {
+        return args.every( (v:Value) => v.isNullV() ) ;
+    }
+
+    function argsAreDones( args : Array<Value> ) : boolean {
+        return args.every( (v:Value) => v.isDoneV() ) ;
+    }
+
     function canConvertToNumber( val : Value ) : boolean {
         if( val.isStringV() ) {
             const str = (val as StringV).getVal() ;
@@ -236,14 +248,29 @@ module world {
             this.addField(lessequalf);
 
             function equalstep(vm : VMS, args : Array<Value>) : void {
-              let bool = true;
-              for(let i = 0; i < args.length-1; i++) { 
-                if ((args[i] as StringV).getVal() !== (args[i+1] as StringV).getVal()) {
-                  bool = false;
+                let bool : boolean;
+                if (argsAreStrings(args)) {
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ((args[i] as StringV).getVal() !== (args[i + 1] as StringV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } else if( argsAreDones( args ) ) {
+                    bool = true ;
+                } else if( argsAreNulls( args ) ) {
+                    bool = true ;
+                } else {
+                    // In all other cases, we require pointer equality.
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ( args[i] !== args[i + 1] ) {
+                            bool = false ;
+                        }
+                    }
                 }
-              }
-              const val = new StringV( bool+"" ) ;
-              vm.finishStep( val ) ;  
+                const val = new StringV(bool + "");
+                vm.finishStep( val ) ;  
             }
             const equal = new BuiltInV(equalstep);
             const equalf = new Field("=", equal, Type.BOOL, true, true, manager);
