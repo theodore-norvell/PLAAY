@@ -100,7 +100,7 @@ module evaluationManager {
     }
 
     // Advance at least once.
-    // After that stop when the top evaluation is done or is ready to step.
+    // After that, stop when the top evaluation is done or is ready to step.
     class NextStopper extends Stopper {
         private count : number = 0 ;
 
@@ -136,29 +136,40 @@ module evaluationManager {
     //Stops when the current evaluation is done or when the current expression
     //is evaluated
     class StepOverStopper extends Stopper {
-        private count : number = 0 ;
-        private currentEval : Evaluation;
-        private pending : List<number>;
+        protected count : number = 0 ;
+        protected stackDepth : number ;
+        protected currentEval : Evaluation;
+        protected savedPath : List<number>;
 
-        public init(vm : VMS) : void{
+        public init(vm : VMS) : void {
             this.currentEval = vm.getEval();
-            this.pending = vm.getPending();
-            let pathSize : number = this.pending.size();
-        
-            let path = this.pending;
+            this.stackDepth = vm.getEvalStack().getSize() ;
+            this.savedPath = this.pathToLowestInterestingNode(vm) ;
+        }
+
+        protected pathToLowestInterestingNode(vm : VMS) : List<number> {
+            if( vm.isDone() ) return collections.nil() ;
+            // Find the path to the lowest node on the path that is the child of
+            // a node with vertical layout.
+            let path = vm.getPending();
+            const pathSize : number = path.size();
             for (let i = 0; i < pathSize; i++){
-                let temp : List<number> = path;
+                const temp : List<number> = path;
                 path = collections.butLast(path);
-                if (this.currentEval.getRoot().get(path).isExprSeqNode()){
-                    this.pending = temp;
-                    break;
+                if (this.currentEval.getRoot().get(path).hasVerticalLayout()){
+                    return temp ;
                 }
             }
+            return path ;
         }
 
         public shouldStop( vm : VMS ) : boolean {
             return this.count > 0
-                && (this.currentEval.isDone() && vm.isReady() ||  (vm.isMapped(this.pending) && vm.isReady())) ;
+                && (   this.currentEval.isDone() 
+                   ||  this.stackDepth > vm.getEvalStack().getSize() && vm.isReady()
+                   ||  this.currentEval === vm.getEval()
+                       && ! this.savedPath.equals( this.pathToLowestInterestingNode(vm) )
+                       && vm.isReady() ) ;
         }
         public step( vm : VMS ) : void {
             this.count += 1 ;
@@ -168,34 +179,12 @@ module evaluationManager {
 
     //Stops when the current evaluation is done or when the current expression
     //is evaluated, or when a new evaluation is popped onto the stack.
-    class StepIntoStopper extends Stopper {
-        private count : number = 0 ;
-        private currentEval : Evaluation;
-        private pending : List<number>;
-
-        public init(vm : VMS) : void{
-            this.currentEval = vm.getEval();
-            this.pending = vm.getPending();
-            let pathSize : number = this.pending.size();
-        
-            let path = this.pending;
-            for (let i = 0; i < pathSize; i++){
-                let temp : List<number> = path;
-                path = collections.butLast(path);
-                if (this.currentEval.getRoot().get(path).isExprSeqNode()){
-                    this.pending = temp;
-                    break;
-                }
-            }
-        }
+    class StepIntoStopper extends StepOverStopper {
 
         public shouldStop( vm : VMS ) : boolean {
-            return this.count > 0
-                && (this.currentEval.isDone() && vm.isReady() ||  (vm.isMapped(this.pending) && vm.isReady())
-                    || (vm.getEval() != this.currentEval && vm.isReady())) ;
-        }
-        public step( vm : VMS ) : void {
-            this.count += 1 ;
+            return super.shouldStop(vm)
+                || this.stackDepth < vm.getEvalStack().getSize()
+                   && vm.isReady() ;
         }
 
     }
