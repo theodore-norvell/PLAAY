@@ -130,6 +130,7 @@ html, body
     right:0;
     height: 506px;
     width: 506px;
+    padding: 0px 0px 0px 0px ;
     border: 3px solid white;
     z-index: +1 ;
 }
@@ -139,6 +140,7 @@ html, body
     position:static;
     height: 500px;
     width: 500px;
+    margin: 3px 3px 3px 3px ;
     background-color: silver;
 }
 
