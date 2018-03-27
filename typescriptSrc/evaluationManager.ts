@@ -53,27 +53,27 @@ module evaluationManager {
 
         public next() : void {
             const stopper = new NextStopper() ;
-            this.run( 100, stopper ) ;
+            this.run( 100000, stopper ) ;
         }
         
         public stepTillFinished() : void {
             const stopper = new TillFinishedStopper() ;
-            this.run( 10000, stopper ) ;
+            this.run( 100000, stopper ) ;
         }
 
         public stepToReturn() : void {
             const stopper = new ReturnStopper();
-            this.run( 100, stopper);
+            this.run( 100000, stopper);
         }
 
         public stepOver() : void {
             const stopper = new StepOverStopper();
-            this.run( 100, stopper);
+            this.run( 100000, stopper);
         }
 
         public stepInto() : void {
             const stopper = new StepIntoStopper();
-            this.run( 100, stopper);
+            this.run( 100000, stopper);
         }
 
         private run( limit : number, stopper : Stopper ) : void {
