@@ -35,6 +35,7 @@ import {AssignLabel, ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, Va
 import {Value} from "../vms";
 
 const emptyList = collections.nil<number>() ;
+const list = collections.list ;
 const interp = interpreter.getInterpreter() ;
 
 function makeStdVMS( root : PNode ) : VMS {
@@ -1512,6 +1513,36 @@ describe('VarDeclLabel', function () : void {
         vm.advance() ;
         assert.check( vm.hasError() ) ;
         assert.checkEqual( vm.getError(), "Variable a is declared twice." )
+    });
+
+    it('should declare variables with no initializer', function () : void {
+        //setup
+        const variableNode : PNode = labels.mkVar("a");
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const noExpNode : PNode = labels.mkNoExpNd( ) ;
+        const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, noExpNode);;
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode1]);
+        const vm = makeStdVMS( root )  ;
+
+        // Select the expr seq node
+        vm.advance() ;
+        // Step the expr seq node
+        vm.advance() ;
+        const field = vm.getStack().getField( "a" ) ;
+        assert.check( ! field.getIsDeclared() ) ;
+        assert.check( ! vm.isMapped( list(0) ) ) ;
+        // Select the variable declaration node
+        vm.advance() ;
+        // Step the variable declaration node
+        vm.advance() ;
+        assert.check( field.getIsDeclared() ) ;
+        assert.check( field.getValue().isNullV() ) ;
+        assert.check( vm.isMapped( list(0) ) ) ;
+        assert.check( vm.getVal( list(0) ).isDoneV() ) ;
+        // Select and step the expr seq node again.
+        vm.advance() ;
+        vm.advance() ;
+        assert.check( vm.isDone() ) ;
     });
 });
 

@@ -267,7 +267,9 @@ module interpreter {
     function varDeclSelector(vms : VMS) : void {
         const variableNode : PNode = vms.getPendingNode().child(0);
         assert.check(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        if (!vms.isChildMapped(2)) {
+        const initializerNode : PNode = vms.getPendingNode().child(2) ;
+        if ( ! (initializerNode.label() instanceof labels.NoExprLabel )
+         &&  !vms.isChildMapped(2) ) {
             vms.pushPending(2);
             vms.getInterpreter().select(vms);
         }
@@ -557,28 +559,28 @@ module interpreter {
         vms.finishStep(field.getValue());
     }
 
-    function varDeclStepper(vms : VMS) : void {
-        const variableNode : PNode = vms.getPendingNode().child(0);
+    function varDeclStepper(vm : VMS) : void {
+        const variableNode : PNode = vm.getPendingNode().child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        const variableName : string = variableNode.label().getVal();
-        const value : Value = vms.getChildVal(2);
-        // TODO. Variable should be added to the frame at the start when the stack frame is created.
-            //const type : Type = Type.NOTYPE; //TODO: actually select the type based on the type entered
-            //const isConstant : boolean = false;
-            //vms.addVariable(name, value, type, isConstant);
         
-        const variableStack : VarStack = vms.getStack();
+        const variableName : string = variableNode.label().getVal();
+        const variableStack : VarStack = vm.getStack();
         assert.check( variableStack.hasField(variableName) ) ;
         const field = variableStack.getField(variableName) ;
         assert.check( ! field.getIsDeclared() ) ;
         field.setIsDeclared() ;
-        // TODO Check that the value is assignable to the field.
-        field.setValue( value ) ;
-        vms.finishStep( DoneV.theDoneValue ) ;
+
+        const initializerNode : PNode = vm.getPendingNode().child(2) ;
+        if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
+            const value : Value = vm.getChildVal(2);
+            // TODO Check that the value is assignable to the field.
+            field.setValue( value ) ;
+        } 
+        vm.finishStep( DoneV.theDoneValue ) ;
     }
 
-    function placeHolderStepper(vms : VMS) : void {
-        vms.reportError( "Missing code." ) ;
+    function placeHolderStepper(vm : VMS) : void {
+        vm.reportError( "Missing code." ) ;
     }
 }
 
