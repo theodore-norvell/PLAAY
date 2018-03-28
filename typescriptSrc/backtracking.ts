@@ -5,11 +5,14 @@ import assert = require( './assert' );
 
 module backtracking
 {
+//    let tvarCounter : number = 0 ;/*dbg*/
+
     export class TVar<T>
     {
         private manager : TransactionManager;
         private currentValue : T;
         private alive : boolean = false;
+//        private id : number ;/*dbg*/
 
         public get() : T 
         {
@@ -35,7 +38,12 @@ module backtracking
             this.alive = true;
             this.manager.notifyOfBirth(this);
             this.currentValue = val;
+//            this.id = tvarCounter++ ; /*dbg*/
         }
+
+//        public dump(indent:string) : void { /*dbg*/
+//            console.log( indent + "TVar(" + this.id + ") currentValue: " +this.currentValue+ " alive: " + this.alive ) ; /*dbg*/
+//        } /*dbg*/
 
         public kill() : void 
         {
@@ -80,6 +88,13 @@ module backtracking
             const emptyArray = new Array<TVar<T>>() ;
             this.array = new TVar<Array<TVar<T>>>(emptyArray, manager);
         }
+
+//        public dump(indent:string) : void { /*dbg*/
+//            console.log( indent + "TArray" ) ; /*dbg*/
+//            this.array.dump( indent+"  array: " ) ; /*dbg*/
+//            for( let i=0 ; i < this.size() ; ++i ) { /*dbg*/
+//                this.array.get()[i].dump( indent+"  ["+i+"]" ) ; } /*dbg*/
+//        } /*dbg*/
 
         public size() : number
         {
@@ -142,84 +157,6 @@ module backtracking
         }
     }
 
-    export class TMap<K,T>
-    {
-        private map : Map<K, TVar<T>>;
-        private manager : TransactionManager;
-        public constructor(manager : TransactionManager)
-        {
-            this.map = new Map<K, TVar<T>>();
-            this.manager = manager;
-        }
-
-        public keys() : Array<K>
-        {
-            let returnArray : Array<K> = new Array<K>();
-            for(let key of this.map.keys())
-            {
-                let myVal : TVar<T> | undefined = this.map.get(key);
-                if(myVal !== undefined && myVal.isAlive())
-                {
-                    returnArray.push(key);
-                }
-            }
-            return returnArray;
-        }
-
-        public values() : Array<T>
-        {
-            let returnArray : Array<T> = new Array<T>();
-            for(let key of this.map.keys())
-            {
-                let myVal : TVar<T> | undefined = this.map.get(key);
-                if(myVal !== undefined && myVal.isAlive())
-                {
-                    returnArray.push(myVal.get());
-                }
-            }
-            return returnArray;        }
-
-        public size() : number
-        {
-            let size : number = 0;
-            for(let val of this.map.values())
-            {
-                if(val.isAlive())
-                {
-                    size++;
-                }
-            }
-            return size;
-        }
-
-        public get(K : K) : T | null
-        {
-            let myTVar : TVar<T> | undefined = this.map.get(K);
-            if(myTVar === undefined || !myTVar.isAlive())
-            {
-                return null;
-            }
-            else
-            {
-                return myTVar.get();
-            } 
-        }
-
-        public set(key: K, val : T) : void
-        {
-            let myTVar : TVar<T> | undefined = this.map.get(key);
-            if(myTVar === undefined || !myTVar.isAlive())
-            {
-                myTVar = new TVar<T>(val, this.manager);
-                this.map.set(key, myTVar);
-            }
-            else
-            {
-                myTVar.set(val);
-            }
-        }
-    }
-
     export class TransactionManager
     {
         private undoStack : Array<Transaction>;
@@ -239,25 +176,25 @@ module backtracking
             return this.state;
         }
 
-        public notifyOfSet(v : TVar<any>)
+        public notifyOfSet(v : TVar<any>) : void
         {
-            this.preNotify()
+            this.preNotify() ;
             this.currentTransaction.put(v);
         }
 
-        public notifyOfBirth(v : TVar<any>)
+        public notifyOfBirth(v : TVar<any>) : void
         {
             this.preNotify();
             this.currentTransaction.birthPut(v);
         }
 
-        public notifyOfDeath(v: TVar<any>)
+        public notifyOfDeath(v: TVar<any>) : void
         {
             this.preNotify();
             this.currentTransaction.deathPut(v);
         }
 
-        public preNotify()
+        public preNotify() : void
         {
             if(this.state === States.UNDOING)
             {
@@ -280,6 +217,23 @@ module backtracking
                 this.currentTransaction = new Transaction();
             }
         }
+
+//        public dump( indent : string ) : void { /*dbg*/
+//            console.log( indent+"TransactionManager") ; /*dbg*/
+//            console.log( indent+"| Undo depth is " + this.undoStack.length ) ; /*dbg*/
+//            console.log( indent+"| Redo depth is " + this.redoStack.length ) ; /*dbg*/
+//            console.log( indent+"| State is " + (this.state===States.DOING /*dbg*/
+//                                       ? "DOING" : this.state===States.NOTDOING /*dbg*/
+//                                       ? "NOTDOING" : "UNDOING") ) ; /*dbg*/
+//            for( let i = 0 ; i < this.undoStack.length ; ++i ) { /*dbg*/
+//                console.log( indent+"| undo["+i+"]: ") ; /*dbg*/
+//                this.undoStack[i].dump( indent+ "    " ) ; } /*dbg*/
+//            console.log( indent+"| current: ") ; /*dbg*/
+//            this.currentTransaction.dump( indent+ "|   " ) ; /*dbg*/
+//            for( let i = this.redoStack.length-1 ; i >= 0 ; --i ) { /*dbg*/
+//                console.log( indent+"| redo["+i+"]: ") ; /*dbg*/
+//                this.undoStack[i].dump( indent+ "|   " ) ; } /*dbg*/
+//        } /*dbg*/
 
         public canUndo() : boolean {
             return (this.undoStack.length > 1 || (this.undoStack.length > 0 && this.state === States.DOING));
@@ -304,7 +258,7 @@ module backtracking
             this.checkpoint();
             if(this.canUndo())
             {
-                let trans : Transaction = this.undoStack[0];
+                const trans : Transaction = this.undoStack[0];
                 this.undoStack.shift();
                 this.state = States.UNDOING; //prevent setting TVars from making a new transaction until undo is done.
                 trans.apply();
@@ -333,27 +287,37 @@ module backtracking
     {
         private map : Map<TVar<any>, TransactionEntry> = new Map<TVar<any>, TransactionEntry>();
 
+//        public dump( indent : string ) : void { /*dbg*/
+//            for(let key of this.map.keys()) { /*dbg*/
+//                key.dump(indent + "key: " ) ; /*dbg*/
+//                let entry : TransactionEntry|undefined = this.map.get(key); /*dbg*/
+//                if(entry !== undefined) { /*dbg*/
+//                    entry.dump( indent + "---> val: " ) ; } } /*dbg*/
+//        } /*dbg*/
+
         public getMap() : Map<TVar<any>, TransactionEntry>
         {
             return this.map;
         }
 
-        public put(v : TVar<any>)
+        public put(v : TVar<any>) : void 
         {
-            this.map.set(v, new TransactionEntry(true, v.get()));
+            if( ! this.map.has(v) ) {
+                this.map.set(v, new TransactionEntry(true, v.get())); }
         }
 
-        public birthPut(v : TVar<any>)
+        public birthPut(v : TVar<any>) : void 
         {
             this.map.set(v, new TransactionEntry(false, null));
         }
 
-        public deathPut(v : TVar<any>)
+        public deathPut(v : TVar<any>) : void 
         {
-            this.map.set(v, new TransactionEntry(true, v.get()));
+            if( ! this.map.has(v) ) {
+                this.map.set(v, new TransactionEntry(true, v.get())); }
         }
 
-        public apply()
+        public apply() : void 
         {
             for(let key of this.map.keys())
             {
@@ -381,6 +345,10 @@ module backtracking
             this.alive = alive;
             this.val = val;
         }
+        
+//        public dump( indent : string ) : void { /*dbg*/
+//            console.log( indent + "TEntry{ val: " + this.val + " alive: " + this.alive + "}" ) ; /*dbg*/
+//        } /*dbg*/
     }
 
     export enum States
