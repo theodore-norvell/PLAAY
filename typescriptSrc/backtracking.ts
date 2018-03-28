@@ -5,11 +5,14 @@ import assert = require( './assert' );
 
 module backtracking
 {
+    let tvarCounter : number = 0 ;/*dbg*/
+
     export class TVar<T>
     {
         private manager : TransactionManager;
         private currentValue : T;
         private alive : boolean = false;
+        private id : number ;/*dbg*/
 
         public get() : T 
         {
@@ -35,7 +38,12 @@ module backtracking
             this.alive = true;
             this.manager.notifyOfBirth(this);
             this.currentValue = val;
+            this.id = tvarCounter++ ; /*dbg*/
         }
+
+        public dump(indent:string) : void { /*dbg*/
+            console.log( indent + "TVar(" + this.id + ") currentValue: " +this.currentValue+ " alive: " + this.alive ) ; /*dbg*/
+        } /*dbg*/
 
         public kill() : void 
         {
@@ -80,6 +88,13 @@ module backtracking
             const emptyArray = new Array<TVar<T>>() ;
             this.array = new TVar<Array<TVar<T>>>(emptyArray, manager);
         }
+
+        public dump(indent:string) : void { /*dbg*/
+            console.log( indent + "TArray" ) ; /*dbg*/
+            this.array.dump( indent+"  array: " ) ; /*dbg*/
+            for( let i=0 ; i < this.size() ; ++i ) { /*dbg*/
+                this.array.get()[i].dump( indent+"  ["+i+"]" ) ; } /*dbg*/
+        } /*dbg*/
 
         public size() : number
         {
@@ -203,13 +218,22 @@ module backtracking
             }
         }
 
-        public dump() : void {
-            console.log( "Undo depth is " + this.undoStack.length ) ;
-            console.log( "Redo depth is " + this.redoStack.length ) ;
-            console.log( "State is " + (this.state===States.DOING
-                                       ? "DOING" : this.state===States.NOTDOING
-                                       ? "NOTDOING" : "UNDOING") ) ;
-        }
+        public dump( indent : string ) : void { /*dbg*/
+            console.log( indent+"TransactionManager") ; /*dbg*/
+            console.log( indent+"| Undo depth is " + this.undoStack.length ) ; /*dbg*/
+            console.log( indent+"| Redo depth is " + this.redoStack.length ) ; /*dbg*/
+            console.log( indent+"| State is " + (this.state===States.DOING /*dbg*/
+                                       ? "DOING" : this.state===States.NOTDOING /*dbg*/
+                                       ? "NOTDOING" : "UNDOING") ) ; /*dbg*/
+            for( let i = 0 ; i < this.undoStack.length ; ++i ) { /*dbg*/
+                console.log( indent+"| undo["+i+"]: ") ; /*dbg*/
+                this.undoStack[i].dump( indent+ "    " ) ; } /*dbg*/
+            console.log( indent+"| current: ") ; /*dbg*/
+            this.currentTransaction.dump( indent+ "|   " ) ; /*dbg*/
+            for( let i = this.redoStack.length-1 ; i >= 0 ; --i ) { /*dbg*/
+                console.log( indent+"| redo["+i+"]: ") ; /*dbg*/
+                this.undoStack[i].dump( indent+ "|   " ) ; } /*dbg*/
+        } /*dbg*/
 
         public canUndo() : boolean {
             return (this.undoStack.length > 1 || (this.undoStack.length > 0 && this.state === States.DOING));
@@ -263,6 +287,14 @@ module backtracking
     {
         private map : Map<TVar<any>, TransactionEntry> = new Map<TVar<any>, TransactionEntry>();
 
+        public dump( indent : string ) : void { /*dbg*/
+            for(let key of this.map.keys()) { /*dbg*/
+                key.dump(indent + "key: " ) ; /*dbg*/
+                let entry : TransactionEntry|undefined = this.map.get(key); /*dbg*/
+                if(entry !== undefined) { /*dbg*/
+                    entry.dump( indent + "---> val: " ) ; } } /*dbg*/
+        } /*dbg*/
+
         public getMap() : Map<TVar<any>, TransactionEntry>
         {
             return this.map;
@@ -270,7 +302,8 @@ module backtracking
 
         public put(v : TVar<any>) : void 
         {
-            this.map.set(v, new TransactionEntry(true, v.get()));
+            if( ! this.map.has(v) ) {
+                this.map.set(v, new TransactionEntry(true, v.get())); }
         }
 
         public birthPut(v : TVar<any>) : void 
@@ -280,7 +313,8 @@ module backtracking
 
         public deathPut(v : TVar<any>) : void 
         {
-            this.map.set(v, new TransactionEntry(true, v.get()));
+            if( ! this.map.has(v) ) {
+                this.map.set(v, new TransactionEntry(true, v.get())); }
         }
 
         public apply() : void 
@@ -311,6 +345,10 @@ module backtracking
             this.alive = alive;
             this.val = val;
         }
+        
+        public dump( indent : string ) : void { /*dbg*/
+            console.log( indent + "TEntry{ val: " + this.val + " alive: " + this.alive + "}" ) ; /*dbg*/
+        } /*dbg*/
     }
 
     export enum States

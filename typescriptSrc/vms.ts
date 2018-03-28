@@ -85,6 +85,11 @@ module vms{
             this.lastError = new TVar<string|null>( null, manager ) ;
         }
 
+        public dump( indent : string ) : void { /*dbg*/
+            console.log( indent+"VMS" ) ; /*dbg*/
+            this.evalStack.dump( indent+"|  ") ; /*dbg*/
+        } /*dbg*/
+
         public getTransactionManager() : TransactionManager { //testing purposes
             return this.manager ;
         }
@@ -270,6 +275,11 @@ module vms{
             this.map = new ValueMap(manager);
             this.extraInformationMap = new AnyMap(manager) ;
         }
+        
+        public dump( indent : string ) : void { /*dbg*/
+            console.log( indent + "pending: " ) ; /*dbg*/
+            this.pending.dump( indent + "|   " ) ; /*dbg*/
+        } /*dbg*/
 
         public getRoot() : PNode {
             return this.root.get() ;
@@ -623,6 +633,14 @@ module vms{
 
         constructor(manager : TransactionManager){
             this.stk = new TArray<Evaluation>(manager);
+        }
+
+        public dump( indent : string ) : void { /*dbg*/
+            console.log( indent +"EvalStack ") ; /*dbg*/
+            for( let i=0 ; i<this.stk.size() ; ++i ) { /*dbg*/
+                console.log( indent + "    Evaluation["+i+"]" ) ; /*dbg*/
+                this.stk.get(i).dump( "    | " ) ; /*dbg*/
+            } /*dbg*/
         }
 
         public push(evaluation : Evaluation ) : void {
