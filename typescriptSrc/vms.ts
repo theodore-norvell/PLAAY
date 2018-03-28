@@ -20,7 +20,6 @@ module vms{
     import PNode = pnode.PNode;
     import TVar = backtracking.TVar;
     import TArray = backtracking.TArray;
-    import TMap = backtracking.TMap;
     import TransactionManager = backtracking.TransactionManager;
 
     import List = collections.List ;

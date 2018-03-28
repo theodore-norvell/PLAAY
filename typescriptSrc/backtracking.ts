@@ -142,84 +142,6 @@ module backtracking
         }
     }
 
-    export class TMap<K,T>
-    {
-        private map : Map<K, TVar<T>>;
-        private manager : TransactionManager;
-        public constructor(manager : TransactionManager)
-        {
-            this.map = new Map<K, TVar<T>>();
-            this.manager = manager;
-        }
-
-        public keys() : Array<K>
-        {
-            let returnArray : Array<K> = new Array<K>();
-            for(let key of this.map.keys())
-            {
-                let myVal : TVar<T> | undefined = this.map.get(key);
-                if(myVal !== undefined && myVal.isAlive())
-                {
-                    returnArray.push(key);
-                }
-            }
-            return returnArray;
-        }
-
-        public values() : Array<T>
-        {
-            let returnArray : Array<T> = new Array<T>();
-            for(let key of this.map.keys())
-            {
-                let myVal : TVar<T> | undefined = this.map.get(key);
-                if(myVal !== undefined && myVal.isAlive())
-                {
-                    returnArray.push(myVal.get());
-                }
-            }
-            return returnArray;        }
-
-        public size() : number
-        {
-            let size : number = 0;
-            for(let val of this.map.values())
-            {
-                if(val.isAlive())
-                {
-                    size++;
-                }
-            }
-            return size;
-        }
-
-        public get(K : K) : T | null
-        {
-            let myTVar : TVar<T> | undefined = this.map.get(K);
-            if(myTVar === undefined || !myTVar.isAlive())
-            {
-                return null;
-            }
-            else
-            {
-                return myTVar.get();
-            } 
-        }
-
-        public set(key: K, val : T) : void
-        {
-            let myTVar : TVar<T> | undefined = this.map.get(key);
-            if(myTVar === undefined || !myTVar.isAlive())
-            {
-                myTVar = new TVar<T>(val, this.manager);
-                this.map.set(key, myTVar);
-            }
-            else
-            {
-                myTVar.set(val);
-            }
-        }
-    }
-
     export class TransactionManager
     {
         private undoStack : Array<Transaction>;
@@ -239,25 +161,25 @@ module backtracking
             return this.state;
         }
 
-        public notifyOfSet(v : TVar<any>)
+        public notifyOfSet(v : TVar<any>) : void
         {
-            this.preNotify()
+            this.preNotify() ;
             this.currentTransaction.put(v);
         }
 
-        public notifyOfBirth(v : TVar<any>)
+        public notifyOfBirth(v : TVar<any>) : void
         {
             this.preNotify();
             this.currentTransaction.birthPut(v);
         }
 
-        public notifyOfDeath(v: TVar<any>)
+        public notifyOfDeath(v: TVar<any>) : void
         {
             this.preNotify();
             this.currentTransaction.deathPut(v);
         }
 
-        public preNotify()
+        public preNotify() : void
         {
             if(this.state === States.UNDOING)
             {
@@ -279,6 +201,14 @@ module backtracking
                 this.undoStack.unshift(this.currentTransaction);
                 this.currentTransaction = new Transaction();
             }
+        }
+
+        public dump() : void {
+            console.log( "Undo depth is " + this.undoStack.length ) ;
+            console.log( "Redo depth is " + this.redoStack.length ) ;
+            console.log( "State is " + (this.state===States.DOING
+                                       ? "DOING" : this.state===States.NOTDOING
+                                       ? "NOTDOING" : "UNDOING") ) ;
         }
 
         public canUndo() : boolean {
@@ -304,7 +234,7 @@ module backtracking
             this.checkpoint();
             if(this.canUndo())
             {
-                let trans : Transaction = this.undoStack[0];
+                const trans : Transaction = this.undoStack[0];
                 this.undoStack.shift();
                 this.state = States.UNDOING; //prevent setting TVars from making a new transaction until undo is done.
                 trans.apply();
@@ -338,22 +268,22 @@ module backtracking
             return this.map;
         }
 
-        public put(v : TVar<any>)
+        public put(v : TVar<any>) : void 
         {
             this.map.set(v, new TransactionEntry(true, v.get()));
         }
 
-        public birthPut(v : TVar<any>)
+        public birthPut(v : TVar<any>) : void 
         {
             this.map.set(v, new TransactionEntry(false, null));
         }
 
-        public deathPut(v : TVar<any>)
+        public deathPut(v : TVar<any>) : void 
         {
             this.map.set(v, new TransactionEntry(true, v.get()));
         }
 
-        public apply()
+        public apply() : void 
         {
             for(let key of this.map.keys())
             {

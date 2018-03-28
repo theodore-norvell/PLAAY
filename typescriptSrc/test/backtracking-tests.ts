@@ -21,7 +21,6 @@ import labels = require('../labels') ;
 
 import TVar = backtracking.TVar;
 import TArray = backtracking.TArray;
-import TMap = backtracking.TMap;
 import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
@@ -34,6 +33,8 @@ import VarStack = vms.VarStack;
 import Evaluation = vms.Evaluation;
 import StringV = valueTypes.StringV;
 
+import nil = collections.nil ;
+import list = collections.list ;
 
 
 const interp = interpreter.getInterpreter();
@@ -362,149 +363,6 @@ describe('Backtracking.TArray', function() : void {
     });
 });
 
-describe('Backtracking.TMap', function() : void {
-    const manager : TransactionManager = new TransactionManager();
-
-    it('Should be initialized properly', function() : void{
-        const a : TMap<string, number> = new TMap<string, number>(manager);
-        const keys : Array<string> = a.keys();
-        const vals : Array<number> = a.values();
-
-        assert.check( a.size() === 0 , "Map's size should be 0 after initialization");
-        assert.check(a.get("one") === null, "Get on a key not in the map should return null.");
-        assert.check(keys.length === 0, "Key set should be empty after initialization");
-        assert.check(vals.length === 0, "Values set should be empty after initialization");
-    });
-
-    it('Should set and get properly', function() : void {
-        const a : TMap<string, number> = new TMap<string, number>(manager);
-        a.set("one", 1);
-        a.set("two", 2);
-        a.set("three", 3);
-
-        assert.check( a.size() === 3, "Size of TMap should be 3 after setting" );
-        assert.check( a.get("one") === 1, "Get on 'one' should return 1 after setting");
-        assert.check( a.get("two") === 2, "Get on 'two' should return 2 after setting");
-        assert.check( a.get("three") === 3, "Get on 'three' should return 3 after setting");
-
-        a.set("one", 1111);
-        assert.check( a.size() === 3, "Size of TMap should still be 3");
-        assert.check( a.get("one") === 1111, "Get on 'one' should return 1111 after second setting");
-    });
-
-    it('Should return proper keys and values', function() : void {
-        const a : TMap<string, number> = new TMap<string, number>(manager);
-        a.set("one", 1);
-        a.set("two", 2);
-        a.set("three", 3);        
-        assert.check( a.size() === 3, "Size should be 3");
-
-        const keys : Array<string> = a.keys();
-        const vals : Array<number> = a.values();
-
-        assert.check(keys.includes("one"), "Keys set should contain 'one'");
-        assert.check(keys.includes("two"), "Keys set should contain 'two'");
-        assert.check(keys.includes("three"), "Keys set should contain 'three'");
-        assert.check(vals.includes(1), "Values set should contain 1");
-        assert.check(vals.includes(2), "Values set should contain 2");
-        assert.check(vals.includes(3), "Values set should contain 3");
-    });
-
-    it('Should undo/redo properly', function() : void {
-        const a : TMap<string, number> = new TMap<string, number>(manager);
-        a.set("one", 1);
-        a.set("two", 2);
-        a.set("three", 3);        
-        assert.check( a.size() === 3, "Size should be 3");
-        //State A
-        manager.checkpoint();
-
-        a.set("four", 4);
-        //State B
-        let keys : Array<string> = a.keys();
-        let vals : Array<number> = a.values();
-        assert.check( a.size() === 4, "Size should be 4 after set");
-        assert.check( a.get("four") === 4, "Get on 'four' should return 4 after set.");
-        assert.check(keys.includes("four"), "Keys set should contain 'four' after set");
-        assert.check(vals.includes(4), "Values set should contain 4 after set");
-
-        //Back to State A
-        manager.undo();
-
-        keys = a.keys();
-        vals = a.values();
-        assert.check( a.size() === 3, "Size should be 3 after undo");
-        assert.check( a.get("four") === null, "Get on 'four' should return null after undo.");
-        assert.check(!keys.includes("four"), "Keys set should no longer contain 'four' after undo");
-        assert.check(!vals.includes(4), "Values set should no longer contain 4 after undo");
-
-        //Forward to state B
-        manager.redo();
-
-        keys = a.keys();
-        vals = a.values();
-        assert.check( a.size() === 4, "Size should be 4 after redo");
-        assert.check( a.get("four") === 4, "Get on 'four' should return 4 after redo.");
-        assert.check(keys.includes("four"), "Keys set should contain 'four' after redo");
-        assert.check(vals.includes(4), "Values set should contain 4 after redo");
-
-        a.set("five", 5);
-        //State C
-        keys = a.keys();
-        vals = a.values();
-        assert.check( a.size() === 5, "Size should be 5 after set");
-        assert.check( a.get("five") === 5, "Get on 'five' should return 5 after set.");
-        assert.check(keys.includes("five"), "Keys set should contain 'five' after set");
-        assert.check(vals.includes(5), "Values set should contain 5 after set");
-
-        //Undo from state C back to B
-        manager.undo();
-
-        keys = a.keys();
-        vals = a.values();
-        assert.check( a.size() === 4, "Size should be 4 after second undo");
-        assert.check( a.get("five") === null, "Get on 'five' should return null after second undo.");
-        assert.check(!keys.includes("five"), "Keys set should no longer contain 'five0' after second undo");
-        assert.check(!vals.includes(5), "Values set should no longer contain 5 after second undo");
-
-        //Branch from state B to state D
-        a.set("six", 6);
-
-        assert.check( a.size() === 5, "Size should be 5 after set");
-        assert.check(!manager.canRedo(), "Shouldn't be able to redo to a dead state");
-        assert.check(a.size() === 5, "Size should be 5 after setting a value.");
-        assert.check(a.get("six") === 6, "Get on 'six' should return 6 after set");
-        manager.checkpoint();
-        
-        a.set("three", 333);
-        //State E
-        vals = a.values();
-        assert.check( a.size() === 5, "Size should remain 5 after setting already present variable");
-        assert.check(a.get("three") === 333, "Get on 'three' should return 333 after set");
-        assert.check(!vals.includes(3), "Values set should no longer contain 3 after set");
-        assert.check(vals.includes(333), "Values set should contain 333 after set");
-
-        //Back to state D
-        manager.undo();
-
-        vals = a.values();
-        assert.check( a.size() === 5, "Size should remain 5 after undo");
-        assert.check(a.get("three") === 3, "Get on 'three' should return 3 after undo");
-        assert.check(!vals.includes(333), "Values set should no longer contain 333 after undo");
-        assert.check(vals.includes(3), "Values set should contain 3 after undo");
-
-        //Forward again to state E
-        manager.redo();
-
-        vals = a.values();
-        assert.check( a.size() === 5, "Size should remain 5 after redo");
-        assert.check(a.get("three") === 333, "Get on 'three' should return 333 after redo");
-        assert.check(!vals.includes(3), "Values set should no longer contain 3 after redo");
-        assert.check(vals.includes(333), "Values set should contain 333 after redo");
-
-    });
-});
-
 describe('vms.Evaluation isReady undo/redo', function() : void {
     const label = new labels.StringLiteralLabel( "hello", false );
     const root = new PNode( label, [] );
@@ -552,8 +410,8 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
     const wld = new World(manager);
     const wlds : Array<ObjectV> = new Array();
     wlds.push(wld);
+    // The program is 9/3
     const vm = new VMS(root, wlds, interp, manager);
-    const evaluation = new Evaluation(root, vm.getStack(), vm);
     const emptyList = collections.nil<number>() ;
 
     it('Should be initialized properly', function() : void {
@@ -563,37 +421,53 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         const evaluation = vm.getEval();
         assert.check(!evaluation.isDone(), 'pending shouldn\'t be null')
         assert.check(evaluation.getPendingNode() === vm.getRoot(), 'pending node should be root')
-        assert.check(vm.canAdvance(), 'should be able to advance')
+        assert.check(vm.canAdvance(), 'should be able to advance') ;
         assert.check( !vm.isReady() );
     });
     it('Should undo/redo properly', function() : void {
         //State A
+        manager.dump() ;
         manager.checkpoint() ;
-        assert.check(vm.getPendingNode() == vm.getRoot(), "Root should be the pending node");
+        manager.dump() ;
+        assert.check(vm.getPendingNode() === vm.getRoot(), "Root should be the pending node");
         assert.check( ! vm.isReady() ) ;
         const pending : collections.List<number> = vm.getPending();
+        assert.check( pending.equals( nil() )) ;
 
-        //State B
-        vm.advance() ;
+        vm.advance() ; // select the 9
         assert.check(  vm.isReady() ) ;
-        assert.check(vm.getPendingNode() != vm.getRoot(), "Root should not be the pending node");
+        assert.check( vm.getPendingNode() === op1, "Root should not be the pending node");
         assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
         assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
-        assert.check(vm.isMapped(pending), "path of pending should be mapped");
+        assert.check( ! vm.isMapped(nil()), "The root should not be mapped.");
+        assert.check( ! vm.isMapped(list(0)), "The 9 should not be mapped.");
 
-        //Back to State A
+        vm.advance() ; // Step the 9, mapping it to a value
+        assert.check(  ! vm.isReady() ) ;
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
+        assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
+        assert.check( ! vm.isMapped(nil()), "The root should not be mapped.");
+        assert.check( vm.isMapped(list(0)), "The 9 should be mapped.");
+
+        manager.dump() ;
+        // State B
+        //Undo should make an implicit chekpoint (state B) and then go back to State A
         manager.undo();
-        assert.check(vm.getPendingNode() == vm.getRoot(), "Root should be the pending node");
+        manager.dump() ;
+        assert.check( vm.getPending().equals( nil() ), "pending should be nil") ;
+        assert.check(  ! vm.isReady(), "machine should not be ready" ) ;
+        assert.check( vm.getPendingNode() === vm.getRoot(), "Root should be the pending node" );
         assert.check( manager.canRedo(), "Manager should be able to redo after undo" ) ;
         assert.check( !manager.canUndo(), "Manager shouldn't be able to undo a second time" ) ;
         //assert.check(vm.isMapped(vm.getPending()), "path of pending should be mapped");
 
         //Forward to state B
-        manager.redo();
-        assert.check(vm.getPendingNode() != vm.getRoot(), "Root should be the pending node");
-        assert.check( !manager.canRedo(), "Manager should be able to redo after undo" ) ;
-        assert.check( manager.canUndo(), "Manager shouldn't be able to undo a second time" ) ;
-    })
+        assert.check(  ! vm.isReady() ) ;
+        assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
+        assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
+        assert.check( ! vm.isMapped(nil()), "The root should not be mapped.");
+        assert.check( vm.isMapped(list(0)), "The 9 should be mapped.");
+    }) ;
 });
 
 
