@@ -53,7 +53,6 @@ module animator
     const animatorWidth = 1000 ;
     const animatorHeight = 1000 ;
     const evaluationMgr = new EvaluationManager() ;
-    const highlighted = false;
 
     let turtleWorld : seymour.TurtleWorld ;
 	
@@ -89,6 +88,7 @@ module animator
         const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, animatorHeight);
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
+        animatorHelpers.clearObjectDrawingInfo() ;
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
