@@ -122,8 +122,9 @@ module treeManager {
             const seq = labels.mkExprSeq([]);
 
             const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [cond, seq]);
-            const template = new Selection( whilenode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const template0 = new Selection( whilenode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( whilenode, list<number>(0), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
             return edit.applyEdit(selection);
         }
 
@@ -169,9 +170,10 @@ module treeManager {
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
 
             // console.log( "makeIfNode: Making template") ;
-            const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
+            const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( ifNode, list<number>(1), 0, 0 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             // console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
@@ -210,8 +212,9 @@ module treeManager {
 
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
-            const template = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
+            const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             return edit.applyEdit(selection);
 
         }

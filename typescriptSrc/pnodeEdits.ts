@@ -734,10 +734,12 @@ module pnodeEdits {
             return node.isPlaceHolder() ; }
         else if( end === start ) {
             // Dropzones are suitable unless there is a place holder
-            // (or similar) immediately to the right
+            // (or similar) immediately to the right or left
             return sel.parent().hasDropZonesAt( start )
                 && ! (   sel.parent().count() > start
-                      && sel.parent().child( start ).isPlaceHolder() ) ;
+                      && sel.parent().child( start ).isPlaceHolder() ) 
+                && ! (   start > 0
+                      && sel.parent().child( start-1 ).isPlaceHolder() ) ;
         } else {
             return false ;
         }
@@ -952,9 +954,11 @@ module pnodeEdits {
 
     /** replaceWithTemplateEdit is basically an InsertChidren 
      */
-    export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
-        const nodes = [ template.root() ] ;
-        return new InsertChildrenEdit( nodes ) ;
+    export function replaceWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
+        const editList : Array<Edit<Selection>>
+           = templates.map( (template) =>
+                            new InsertChildrenEdit( [ template.root() ] ) ) ;
+        return alt( editList )  ;
     }
 
     /** 
@@ -998,8 +1002,10 @@ module pnodeEdits {
     }
 
     /** Engulf the selected nodes with a template. */
-    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
-        return new EngulfEdit( template ) ;
+    export function engulfWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
+        const editList : Array<Edit<Selection>>
+            = templates.map( (template) => new EngulfEdit( template ) ) ;
+        return alt( editList )  ;
     }
 
     /** Either replace the current seletion with a given template or
@@ -1009,9 +1015,10 @@ module pnodeEdits {
      * 
      * @param template 
      */
-    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
-        const replace = compose( replaceWithTemplateEdit( template ), optionally( tabForwardEdit ) ) ;
-        const engulf = compose( engulfWithTemplateEdit( template ), optionally( tabForwardIfNeededEdit ) ) ;
+    export function replaceOrEngulfTemplateEdit( template : Selection | Array<Selection> ) : Edit<Selection> {
+        const templates = (template instanceof Selection) ? [template] : template ;
+        const replace = compose( replaceWithTemplateEdit( templates ), optionally( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( templates ), optionally( tabForwardIfNeededEdit ) ) ;
         const selectionIsAllPlaceHolder
             = testEdit( (sel:Selection) =>
                            sel.selectedNodes().every( (p : PNode) =>
