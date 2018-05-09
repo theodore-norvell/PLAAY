@@ -1,8 +1,8 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
-/// <reference path="assert.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
@@ -38,261 +38,408 @@ module sharedMkHtml
     {
         let result : JQuery ;
         const dropzones : Array<JQuery> = [] ;
-        const label = node.label().toString();
-        // TODO: Change to a switch on the LabelKind
-        if(label.match('if'))
-        {
-            assert.check( children.length === 3 ) ;
-
-            const guardbox : JQuery = $(document.createElement("div")) ;
-            guardbox.addClass( "ifGuardBox" ) ;
-            guardbox.addClass( "H" ) ;
-            guardbox.addClass( "workplace" ) ;
-            guardbox.append( children[0] ) ;
-
-            const thenbox : JQuery = $(document.createElement("div")) ;
-            thenbox.addClass( "thenBox" ) ;
-            thenbox.addClass( "H" ) ;
-            thenbox.addClass( "workplace" ) ;
-            thenbox.append( children[1] ) ;
-
-            const elsebox : JQuery = $(document.createElement("div")) ;
-            elsebox.addClass( "elseBox" ) ;
-            elsebox.addClass( "H" ) ;
-            elsebox.addClass( "workplace" ) ;
-            elsebox.append( children[2] ) ;
-
-            result  = $(document.createElement("div")) ;
-            result.addClass( "ifBox" ) ;
-            result.addClass( "V" ) ;
-            result.addClass( "workplace" ) ;
-            result.addClass( "canDrag" ) ;
-            result.addClass( "droppable" ) ;
-            result.append( guardbox, thenbox, elsebox ) ;
-        }
-        else if(label.match("seq"))
-        {
-            // TODO show only the unevaluated members during evaluation
-
-            result = $( document.createElement("div") ) ;
-            result.addClass( "seqBox" ) ;
-            result.addClass( "V" ) ;
-            // Add children and drop zones.
-            for (let i = 0; true; ++i) {
-                const dz = makeDropZone(i, true ) ;
-                dropzones.push( dz ) ;
-                result.append(dz);
-                if (i === children.length) break;
-                result.append(children[i]);
-            }
-        }
-        else if(label.match("expPH"))
-        {
-            result = $( document.createElement("div") ) ;
-            result.addClass( "placeHolder" ) ;
-            result.addClass( "V" ) ;
-            result.addClass( "droppable" ) ;
-            result.addClass( "canDrag" ) ;
-            result.text("...") ;
-        }
-        else if(label.match("param"))
-        {
-            result = $( document.createElement("div") ) ;
-            result.addClass( "paramlistOuter" ) ;
-            result.addClass( "H" ) ;
-            result.addClass( "droppable" ) ;
-            
-            // Add children and dropZones.
-            for (let i = 0; true; ++i) {
-                const dz = makeDropZone(i, false) ;
-                dropzones.push( dz ) ;
-                result.append(dz);
-                if (i === children.length) break;
-                result.append(children[i]);
-            }
-        }
-        else if(label.match("while"))
-        {
-            assert.check( children.length === 2 ) ;
-
-            const guardBox : JQuery = $( document.createElement("div") ) ;
-            guardBox.addClass( "whileGuardBox") ;
-            guardBox.addClass( "H") ;
-            guardBox.addClass( "workplace") ;
-            guardBox.append( children[0] ) ;
-
-
-
-            const doBox : JQuery = $( document.createElement("div") ) ;
-            doBox.addClass( "doBox") ;
-            doBox.addClass( "H") ;
-            doBox.addClass( "workplace") ;
-            doBox.append( children[1] ) ;
-
-            result  = $(document.createElement("div")) ;
-            result.addClass( "whileBox" ) ;
-            result.addClass( "V" ) ;
-            result.addClass( "workplace" ) ;
-            result.addClass( "canDrag" ) ;
-            result.addClass( "droppable" ) ;
-            result.append( guardBox );
-            result.append( doBox );
-
-        }
-        else if(label.match("callWorld"))
-        {
-            result  = $(document.createElement("div")) ;
-            result.addClass( "callWorld" ) ;
-            result.addClass( "H" ) ;
-            result.addClass( "canDrag" ) ;
-            result.addClass( "droppable" ) ;
-
-            result.attr("type", "text");
-            result.attr("list", "oplist");
-            
-            // TODO Allow infix operators again some day.
-
-            let opElement : JQuery ;
-            if(! node.label().isOpen() )
+        // Switch on the LabelKind
+        const kind = node.label().kind() ;
+        switch( kind ) {
+            case labels.IfLabel.kindConst :
             {
-                opElement = $(document.createElement("div") ) ;
-                opElement.addClass( "op" ) ;
-                opElement.addClass( "H" ) ;
-                opElement.addClass( "click" ) ;
-                opElement.text( node.label().getVal() ) ;
-            }
-            else {
-                opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
-            }
-            result.append(opElement);
-            for( let i=0 ; true ; ++i) {
-                const dz : JQuery = makeDropZone(i, false) ;
-                dropzones.push( dz ) ;
-                result.append( dz ) ;
-                if( i === children.length ) break ;
-                result.append( children[i] ) ;
-            }
-        }
-        else if(label.match("assign"))
-        {
-            result = $(document.createElement("div")) ;
-            result.addClass( "assign" ) ;
-            result.addClass( "H" ) ;
-            result.addClass( "canDrag" ) ;
-            result.addClass( "droppable" ) ;
+                assert.check( children.length === 3 ) ;
 
-            const opDiv : JQuery = $( document.createElement("div") ) ;
-            opDiv.addClass( "op" );
-            opDiv.text( ":=" ) ;
+                const guardbox : JQuery = $(document.createElement("div")) ;
+                guardbox.addClass( "ifGuardBox" ) ;
+                guardbox.addClass( "H" ) ;
+                guardbox.addClass( "workplace" ) ;
+                guardbox.append( children[0] ) ;
 
-            result.append(children[0]);
-            result.append(opDiv);
-            result.append(children[1]);
+                const thenbox : JQuery = $(document.createElement("div")) ;
+                thenbox.addClass( "thenBox" ) ;
+                thenbox.addClass( "H" ) ;
+                thenbox.addClass( "workplace" ) ;
+                thenbox.append( children[1] ) ;
 
-        }
-        else if(label.match("lambda"))
-        {
-            const lambdahead : JQuery = $( document.createElement("div") ) ;
-            lambdahead.addClass( "lambdaHeader") ;
-            lambdahead.addClass( "V") ;
-            lambdahead.append( children[0] ) ;
-            lambdahead.append( children[1]);
+                const elsebox : JQuery = $(document.createElement("div")) ;
+                elsebox.addClass( "elseBox" ) ;
+                elsebox.addClass( "H" ) ;
+                elsebox.addClass( "workplace" ) ;
+                elsebox.append( children[2] ) ;
 
-            const doBox : JQuery = $( document.createElement("div") ) ;
-            doBox.addClass( "doBox") ;
-            doBox.addClass( "H") ;
-            doBox.append( children[2] ) ;
-
-            result  = $(document.createElement("div")) ;
-            result.addClass( "lambdaBox" ) ;
-            result.addClass( "V" ) ;
-            result.addClass( "droppable" ) ;
-            result.append(lambdahead);
-            result.append(doBox);
-
-        }
-        else if(label.match("null"))
-        {
-            result  = $(document.createElement("div")) ;
-            result.addClass( "nullLiteral" ) ;
-            result.addClass( "H" ) ;
-            result.addClass( "droppable" ) ;
-            result.text( "&#x23da;" ) ;  // The Ground symbol. I hope.
-        }
-        else if (label.match("var"))
-        {
-            if( ! node.label().isOpen() ) 
-            {
                 result  = $(document.createElement("div")) ;
-                result.addClass( "var" ) ;
+                result.addClass( "ifBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardbox, thenbox, elsebox ) ;
+            }
+            break ;
+            case labels.ExprSeqLabel.kindConst :
+            {
+                // TODO show only the unevaluated members during evaluation
+
+                result = $( document.createElement("div") ) ;
+                result.addClass( "seqBox" ) ;
+                result.addClass( "V" ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                }
+            }
+            break ;
+            case labels.ExprPHLabel.kindConst :
+            {
+                result = $( document.createElement("div") ) ;
+                result.addClass( "placeHolder" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "canDrag" ) ;
+                result.text("...") ;
+            }
+            break ;
+            case labels.ParameterListLabel.kindConst :
+            {
+                result = $( document.createElement("div") ) ;
+                result.addClass( "paramlistOuter" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
-                result.addClass( "click" ) ;
-                result.addClass( "canDrag" ) ;
-                result.text( node.label().getVal() ) ;
+                
+                // Add children and dropZones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                }
             }
-            else
+            break ;
+            case labels.WhileLabel.kindConst :
             {
-                result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
-            }
-        }
-        else if (label.match("string"))
-        {
+                assert.check( children.length === 2 ) ;
 
-            if (! node.label().isOpen() )
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "whileGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+                guardBox.append( children[0] ) ;
+
+                const doBox : JQuery = $( document.createElement("div") ) ;
+                doBox.addClass( "doBox") ;
+                doBox.addClass( "H") ;
+                doBox.addClass( "workplace") ;
+                doBox.append( children[1] ) ;
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "whileBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( doBox );
+            }
+            break ;
+            case labels.CallWorldLabel.kindConst :
             {
                 result  = $(document.createElement("div")) ;
-                result.addClass( "stringLiteral" ) ;
+                result.addClass( "callWorld" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                result.attr("type", "text");
+                result.attr("list", "oplist");
+                
+                let opElement : JQuery ;
+                if(! node.label().isOpen() )
+                {
+                    opElement = $(document.createElement("div") ) ;
+                    opElement.addClass( "op" ) ;
+                    opElement.addClass( "H" ) ;
+                    opElement.addClass( "click" ) ;
+                    opElement.text( node.label().getVal() ) ;
+                }
+                else {
+                    opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
+                }
+                result.append(opElement);
+                for( let i=0 ; true ; ++i) {
+                    const dz : JQuery = makeDropZone(i, false) ;
+                    dropzones.push( dz ) ;
+                    result.append( dz ) ;
+                    if( i === children.length ) break ;
+                    result.append( children[i] ) ;
+                }
+                // Binary infix operators
+                if( ! node.label().isOpen() && children.length === 2 )
+                {
+                    const labelString = node.label().getVal() ;
+                    if( stringIsInfixOperator( labelString ) ) {
+                        // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
+                        assert.check( result.children().length === 6 ) ;
+                        // Move the opElement to after the first child
+                        opElement.insertAfter( children[0]) ;
+                        // TODO: Find a way to make dropzone[1] very skinny. Maybe by adding a class to it.
+                    }
+                }
+            }
+            break ;
+            case labels.CallLabel.kindConst :
+            {
+                result  = $(document.createElement("div")) ;
+                result.addClass( "call" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                result.attr("type", "text");
+
+                for( let i=0 ; true ; ++i) {
+                    const dz : JQuery = makeDropZone(i, false) ;
+                    dropzones.push( dz ) ;
+                    result.append( dz ) ;
+                    if( i === children.length ) break ;
+                    result.append( children[i] ) ;
+                }
+            }
+            break ;
+            case labels.AssignLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "assign" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "op" );
+                opDiv.text( ":=" ) ;
+
+                result.append(children[0]);
+                result.append(opDiv);
+                result.append(children[1]);
+
+            }
+            break ;
+            case labels.ObjectLiteralLabel.kindConst :
+            {
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "objectGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+
+                const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "seqBox" ) ;
+                seqBox.addClass( "V" ) ;
+                seqBox.addClass( "workplace") ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    seqBox.append(dz);
+                    if (i === children.length) break;
+                    seqBox.append(children[i]);
+                }
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "objectBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( seqBox );
+            }
+            break ;
+            case labels.ArrayLiteralLabel.kindConst :
+            {
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "arrayGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+
+                const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "seqBox" ) ;
+                seqBox.addClass( "V" ) ;
+                seqBox.addClass( "workplace") ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    seqBox.append(dz);
+                    if (i === children.length) break;
+                    seqBox.append(children[i]);
+                }
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "arrayBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( seqBox );
+            }
+            break ;
+            case labels.AccessorLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "accessor" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const leftBracket : JQuery = $( document.createElement("div") ) ;
+                leftBracket.addClass( "op" );
+                leftBracket.text( "[" ) ;
+
+                const rightBracket : JQuery = $( document.createElement("div") ) ;
+                rightBracket.addClass( "op" );
+                rightBracket.text( "]" ) ;
+
+                result.append(children[0]);
+                result.append(leftBracket);
+                result.append(children[1]);
+                result.append(rightBracket);
+
+            }
+            break ;
+            case labels.LambdaLabel.kindConst :
+            {
+                const lambdahead : JQuery = $( document.createElement("div") ) ;
+                lambdahead.addClass( "lambdaHeader") ;
+                lambdahead.addClass( "V") ;
+                lambdahead.append( children[0] ) ;
+                lambdahead.append( children[1] ) ;
+
+                const doBox : JQuery = $( document.createElement("div") ) ;
+                doBox.addClass( "doBox") ;
+                doBox.addClass( "H") ;
+                doBox.append( children[2] ) ;
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "lambdaBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( lambdahead ) ;
+                result.append( doBox ) ;
+            }
+            break ;
+            case labels.NullLiteralLabel.kindConst :
+            {
+                result  = $(document.createElement("div")) ;
+                result.addClass( "nullLiteral" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
+            }
+            break ;
+            case labels.VariableLabel.kindConst :
+            {
+                if( ! node.label().isOpen() ) 
+                {
+                    result  = $(document.createElement("div")) ;
+                    result.addClass( "var" ) ;
+                    result.addClass( "H" ) ;
+                    result.addClass( "droppable" ) ;
+                    result.addClass( "click" ) ;
+                    result.addClass( "canDrag" ) ;
+                    result.text( node.label().getVal() ) ;
+                }
+                else
+                {
+                    result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
+                }
+            }
+            break ;
+            case labels.StringLiteralLabel.kindConst :
+            {
+
+                if (! node.label().isOpen() )
+                {
+                    result  = $(document.createElement("div")) ;
+                    result.addClass( "stringLiteral" ) ;
+                    result.addClass( "H" ) ;
+                    result.addClass( "droppable" ) ;
+                    result.addClass( "click" ) ;
+                    result.addClass( "canDrag" ) ;
+                    result.text( node.label().getVal() ) ;
+                }
+                else
+                {
+                    result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                }
+            }
+            break ;
+            case labels.NumberLiteralLabel.kindConst :
+            {
+
+                if (! node.label().isOpen() )
+                {
+                    result  = $(document.createElement("div")) ;
+                    result.addClass( "numberLiteral" ) ;
+                    result.addClass( "H" ) ;
+                    result.addClass( "droppable" ) ;
+                    result.addClass( "click" ) ;
+                    result.addClass( "canDrag" ) ;
+                    result.text( node.label().getVal() ) ;
+                }
+                else
+                {
+                    result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                }
+            }
+            break ;
+            case labels.NoTypeLabel.kindConst :
+            {
+                result  = $(document.createElement("div")) ;
+                result.addClass( "noType" ) ; 
+                result.addClass( "V" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "canDrag" ) ;
+            }
+            break ;
+            case labels.NoExprLabel.kindConst :
+            {
+                result  = $(document.createElement("div")) ;
+                result.addClass( "expOp" ) ; // Need a better class for this, I think.
+                result.addClass( "V" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "canDrag" ) ;
+            }
+            break ;
+            case labels.VarDeclLabel.kindConst :
+            {
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "vardecl" ) ; // Need a better class for this, I think.
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
-                result.addClass( "click" ) ;
                 result.addClass( "canDrag" ) ;
-                result.text( node.label().getVal() ) ;
+
+                const colon : JQuery = $( document.createElement("div") );
+                colon.text(":") ;
+
+                const becomes : JQuery = $( document.createElement("div") );
+                becomes.text(":=") ;
+
+                result.append(children[0]);
+                result.append(colon);
+                result.append(children[1]);
+                result.append(becomes);
+                result.append(children[2]);
             }
-            else
+            break ;
+            default:
             {
-                result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                result = assert.unreachable( "Unknown label in buildHTML.") ;
             }
-        }
-        else if(label.match("noType"))
-        {
-            result  = $(document.createElement("div")) ;
-            result.addClass( "noType" ) ; 
-            result.addClass( "V" ) ;
-            result.addClass( "droppable" ) ;
-            result.addClass( "canDrag" ) ;
-        }
-        else if(label.match("noExp"))
-        {
-            result  = $(document.createElement("div")) ;
-            result.addClass( "expOp" ) ; // Need a better class for this, I think.
-            result.addClass( "V" ) ;
-            result.addClass( "droppable" ) ;
-            result.addClass( "canDrag" ) ;
-        }
-        else if(label.match("vdecl"))
-        {
-
-            result  = $(document.createElement("div")) ;
-            result.addClass( "vardecl" ) ; // Need a better class for this, I think.
-            result.addClass( "H" ) ;
-            result.addClass( "droppable" ) ;
-            result.addClass( "canDrag" ) ;
-
-            const colon : JQuery = $( document.createElement("div") );
-            colon.text(":") ;
-
-            const becomes : JQuery = $( document.createElement("div") );
-            becomes.text(":=") ;
-
-            result.append(children[0]);
-            result.append(colon);
-            result.append(children[1]);
-            result.append(becomes);
-            result.append(children[2]);
-        }
-        else {
-            result = assert.unreachable( "Unknown label in buildHTML.") ;
         }
         // Give the result a number. // TODO Use data instead of attr.
         result.attr( "data-childNumber", childNumber.toString() ) ; 
@@ -308,11 +455,11 @@ module sharedMkHtml
 
     export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
         assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
-        localHighlightSlection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
+        localHighlightSelection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
     }
 
-    function  localHighlightSlection( pn : PNode, path : List<number>, start : number, end : number, jq : JQuery ) : void {
-        if( path.isEmpty() ) {
+    function  localHighlightSelection( pn : PNode, thePath : List<number>, start : number, end : number, jq : JQuery ) : void {
+        if( thePath.isEmpty() ) {
             if( start === end ) {
                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
                 assert.check( zones !== null ) ;
@@ -326,11 +473,11 @@ module sharedMkHtml
                 }
             }
         } else {
-            const i = path.first() ;
+            const i = thePath.first() ;
             const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
             assert.check( children !== null ) ;
             assert.check( i < children.length ) ;
-            localHighlightSlection( pn.child(i), path.rest(), start, end, children[i] ) ;
+            localHighlightSelection( pn.child(i), thePath.rest(), start, end, children[i] ) ;
         }
     }
 
@@ -357,7 +504,20 @@ module sharedMkHtml
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
             element.attr("value", text) ;
+            // Give the element focus and move the caret to the end of the text.
+            const len = text.length ;
+            setSelection(element, len, len) ;
             return element ;
+    }
+
+    function setSelection( element : JQuery, start : number, end : number ) : void {
+        // Precondition: element should contain one input element of type text
+        // Code based on https://www.sitepoint.com/6-jquery-cursor-functions/
+        const input = element[0] ;
+        input.focus() ;
+        if( input["setSelectionRange"] !== "undefined" ) {
+            input["setSelectionRange"]( start, end ) ;
+        }
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
@@ -410,14 +570,18 @@ module sharedMkHtml
         }
         assert.check( jq.length !== 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
         // Now make a path out of the array.
-        let path = list<number>();
+        let thePath = list<number>();
         for( let i = 0 ; i < array.length ; i++ ) {
-            path = collections.cons( array[i], path ) ; }
+            thePath = collections.cons( array[i], thePath ) ; }
         
         // If making the selection fails, then the root passed in was not the root
         // used to make the HTML.
-        return some( new pnodeEdits.Selection(root, path, anchor, focus) ) ;
+        return some( new pnodeEdits.Selection(root, thePath, anchor, focus) ) ;
     }
+
+    export function stringIsInfixOperator( str : string ) : boolean {
+        return str.match( /^([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+$|^[`].*$/ ) !== null ;
+    }  
 }
 
 export = sharedMkHtml;

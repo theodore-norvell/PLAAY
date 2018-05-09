@@ -24,7 +24,7 @@ input.selected {
 }
 
 .selected {
-     background-color: slategray ;
+     background-color: #696969 ;
 }
 
 div.trashitem {
@@ -80,13 +80,13 @@ div {
 {
     display:none;
     width:300px;
-    border: 1px solid slategrey;
+    border: 1px solid #696969;
     position: relative;
 }
 
 html, body
 {
-    background-color: #727272;
+    background-color: #696969;
 }
 
 #upperArea
@@ -101,7 +101,7 @@ html, body
     font-weight: bold;
     line-height: 1.7em;
     font-size: 1.2em;
-    background-color: #727272;
+    background-color: #696969 ;
 }
 
 #bannerArea
@@ -123,6 +123,28 @@ html, body
     background-color: #cccccc;
 }
 
+#outputArea
+{
+    position:absolute;
+    bottom:0;
+    right:0;
+    height: 506px;
+    width: 506px;
+    padding: 0px 0px 0px 0px ;
+    border: 3px solid white;
+    z-index: +1 ;
+}
+
+#outputAreaCanvas
+{
+    position:static;
+    height: 500px;
+    width: 500px;
+    margin: 3px 3px 3px 3px ;
+    background-color: silver;
+}
+
+
 #contentArea
 {
     position:absolute;
@@ -134,59 +156,99 @@ html, body
     background-color: #cccccc;
 }
 
-#leftSideArea
+.tab
 {
-    position:absolute;
-    top:0;
+    position: absolute ; /* Absolute within its container */
+    top: 0 ;
     left:0;
-    height: 98%;
-    width: 6em;
-    margin: .4%;
+    height: 100% ;
+    width: 100% ;
+   
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    
+    -webkit-align-items: stretch;
+    align-items: stretch ; 
+
+}
+
+.leftSideArea
+{
+    flex: 0 0 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    width: auto ;
+    margin: 1%;
     background-color: #262626;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: column ;
+    flex-direction: column ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    
+    -webkit-align-items: flex-start;
+    align-items: flex-start ;
 }
 
 #container
 {
-    position:absolute;
-    top:0;
-    bottom:0;
-    right:0;
-    left: 6.8em;
-    height:98%;
-    margin: .4%;
-    overflow: scroll;
-    background-color:#262626;
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    overflow: auto;
+    background-color: #262626 ;
 }
 
-#sidebar
+.palette
 {
-    position:absolute;
-    height:19em;
-    width:5.4em;
-    left:0;
-    margin: .5em .3em .5em .3em;
-    background-color:#a3a3a3;
+    flex: 10 1 auto ;
+    width: auto;
+    margin: 1em 1em 1em 1em ;
+    background-color:#a6a6a6 ;
+    overflow: auto;
 }
 
-#buttonArea
+.buttonArea
 {
-    position:absolute;
-    max-height: 13em;
-    width:5.4em;
-    bottom:0;
-    left:0;
-    margin: 5em 5% 5% 5%;
-    background-color:#a3a3a3;
+    flex: 1 1 auto ;
+    width: auto;
+    margin: 1em 1em 1em 1em ;
+    background-color: #a6a6a6 ;
 }
 
 .leftSideButton
 {
-    height: 30;
+    height: 30px;
     width: 75px;
-    margin-top: 3px;
+    margin: 2px 5px ;
+    color: white ;
+    background-color: black ;
 }
 
-.buildingBlockButton 
+.paletteItem 
 {
     text-align: center;
     line-height: 30px;
@@ -194,59 +256,6 @@ html, body
     background-color: black;
     box-shadow: 0px 0px 3px;
     color: rgb(190, 133, 197);
-}
-
-#play { background-color: #05440a;}
-#turtle { background-color: orange; height: 40px;}
-#undo { background-color: orangered;}
-#redo { background-color: mediumorchid;}
-#trash { background-color: darkred;}
-
-
-
-div.advance
-{
-    width:40px;
-    bottom:4px; left: 0px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
-
-div.multistep
-{
-    width:40px;
-    bottom:4px; left: 50px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
-
-div.run
-{
-    width:40px;
-    bottom:4px; left: 100px;
-    height:calc(4%);
-    background-color: royalblue;
-    position:absolute;
-}
-
-div.quitworld
-{
-    width: 50px;
-    height: calc(5%);
-    background-color: darkgreen;
-    position:fixed;
-    bottom:100px; left: 100px;
-}
-
-div.edit
-{
-    width:90px;
-    height:calc(5%);
-    background-color:green;
-    position:fixed;
-    bottom:50px; left: 0px;
 }
 
 div.stack
@@ -304,18 +313,12 @@ div.closewindow {
 
 div.vms
 {
-    display:block;
-    position: absolute;
-    top:0;
-    bottom:0;
-    left:0;
-    right:0;
-    height:auto;
-    margin-top:4px;
-    margin-bottom:4px;
-    margin-right:4px;
-    margin-left:159px;
-    background-color:black;
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    background-color: #262626 ;
+    overflow: auto;
 }
 
 /*actual visualization*/
@@ -436,6 +439,8 @@ div.paramlistInner {
 }
 
 div.noType {
+    border: thin solid #999 ;
+    border-radius: 5px ;
     margin: 2px 0px 2px 0px ;
     min-height: 1ex ;
     min-width: 2ex ;
@@ -456,6 +461,7 @@ div.seqBox {
 
 /* This sort of dropzone is usually used in vertical boxes like seqBoxes. */
 div.dropZone {
+    border: 1px solid transparent;
     margin: 2px 0px 2px 0px ;
     min-height: 1ex ;
     min-width: 10ex ;
@@ -464,14 +470,14 @@ div.dropZone {
 }
 
 div.dropZone:hover {
-    border: 1px solid white;
+    border-color: white;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
 div.dropZoneSmall {
     margin: 0px 0px 0px 0px ;
     min-height: 2ex ;
-    min-width: 1ex ;
+    min-width: 0.5ex ;
     border-radius: 5px ;
 }
 
@@ -533,22 +539,6 @@ div.vardecl{
     margin: 1px 2px 1px 2px ;
 }
 
-div.turtleFunc:before {
-    content:url('turtle1.png');
-    display: inline ;
-    vertical-align: top ;
-}
-
-div.turtleFunc{
-    border: thin solid green ;
-    border-radius: 5px ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: ghostwhite ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
 div.type {
     border: thin solid #999 ;
     border-radius: 5px ;
@@ -581,6 +571,69 @@ div.callWorld {
     min-height: 1em ;
 }
 
+div.objectGuardBox:before { content: "$" ;
+    display: inline ;
+    vertical-align: top ;
+    color: rgb(135,206,250) ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.objectGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed rgb(135,206,250) ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.objectBox {
+    border-top: medium solid rgb(135,206,250) ;
+    border-bottom: medium solid rgb(135,206,250) ;
+    border-left: 10px solid rgb(135,206,250) ;
+    border-right: thin solid rgb(135,206,250) ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.arrayGuardBox:before { content: "array" ;
+    display: inline ;
+    vertical-align: top ;
+    color: rgb(135,206,250) ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.arrayGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed rgb(135,206,250) ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.arrayBox {
+    border-top: medium solid rgb(135,206,250) ;
+    border-bottom: medium solid rgb(135,206,250) ;
+    border-left: 10px solid rgb(135,206,250) ;
+    border-right: thin solid rgb(135,206,250) ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.accessor {
+    border:thin solid rgb(190, 133, 197) ; /* Mauve */
+    border-radius: 5px ;
+    color:rgb(190, 133, 197) ; /* Mauve */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
+}
+
 
 div.stringLiteral{
     border: thin solid rgb(135,206,250);
@@ -589,6 +642,22 @@ div.stringLiteral{
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
+    min-width: 1ex ;
+    min-height: 1em ;
+    max-width: 200px ;
+    white-space: pre-wrap ;
+    word-wrap: break-word ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.numberLiteral{
+    border: thin solid rgb(135,206,250);
+    border-radius: 5px ;
+    font-family:"Lucida Console", monospace;
+    font-weight: normal ;
+    font-size: medium ;
+    color: rgb(244, 140, 0) ; /* Orange */
     min-width: 1ex ;
     min-height: 1em ;
     max-width: 200px ;

@@ -9,6 +9,7 @@
 /// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
+import backtracking = require( '../backtracking' ) ;
 import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
@@ -27,10 +28,7 @@ import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import PNode = pnode.PNode ;
-
-const wld = new World();
-const wlds : Array<ObjectV> = new Array();
-wlds.push(wld);
+import TransactionManager = backtracking.TransactionManager ;
 const interp = interpreter.getInterpreter() ;
 const a : pnode.PNode = labels.mkVar("a");
 const b : pnode.PNode = labels.mkVar("b");
@@ -56,11 +54,16 @@ const lambda0 : pnode.PNode = labels.mkLambda( param, t, body0);
 //                             exprSeq(var[b]) )  <--- This time it's b
 
 const body1 : pnode.PNode = labels.mkExprSeq([b]) ;
-const lambda1 : pnode.PNode = labels.mkLambda( param, t, body0) ;
+const lambda1 : pnode.PNode = labels.mkLambda( param, t, body1) ;
 
 describe( 'Lambda', function() : void {
     // Here we evaluate a Lamdba expression to get a closure value
-    const vm = new VMS( lambda0, wlds, interp ) ;
+
+    const manager = new TransactionManager() ;
+    const wld = new World(manager);
+    const wlds : Array<ObjectV> = new Array();
+    wlds.push(wld);
+    const vm = new VMS( lambda0, wlds, interp, manager ) ;
 
     it('Should be selected', function() : void {
         vm.advance() ;
@@ -88,12 +91,16 @@ describe( 'Call', function() : void {
     
     function doTest( lambda : PNode, expectedResult : string ) : void {
         const call = labels.mkCall( lambda, str0, str1 ) ;
-        const vm = new VMS( call, wlds, interp ) ;
+        const manager = new TransactionManager() ;
+        const wld = new World(manager);
+        const wlds : Array<ObjectV> = new Array();
+        wlds.push(wld);
+        const vm = new VMS( call, wlds, interp, manager ) ;
         let timeOut = 1000 ;
-        for( ; timeOut > 0 && ! vm.isDone() ; timeOut -= 1 ) {
+        for( ; timeOut > 0 && vm.canAdvance() ; timeOut -= 1 ) {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
-        const val : vms.Value  = vm.getValMap().get( collections.nil<number>() ) ;
+        const val : vms.Value = vm.getFinalValue() ;
         assert.check( val instanceof valueTypes.StringV ) ;
         const stringVal =  val as valueTypes.StringV ;
         assert.check( stringVal.getVal() === expectedResult ) ;

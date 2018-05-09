@@ -6,7 +6,8 @@
         "alwaysStrict": true,
         "noImplicitAny": false,
         "noImplicitReturns": true,
-        "noImplicitThis": true
+        "noImplicitThis": true,
+        "target": "es2016"
     },
     "include" : [ "*.ts" ,"test/*.ts" ]
 }

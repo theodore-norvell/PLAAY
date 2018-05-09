@@ -64,6 +64,9 @@ module pnode {
         /** Is this label a label for an expression node? */
         isExprNode : () => boolean ;
 
+        /** Is this label a label for an variable declaration node? */
+        isVarDeclNode : () => boolean ;
+
         /** Is this label a label for an expression sequence node? */
         isExprSeqNode : () => boolean ;
 
@@ -73,6 +76,8 @@ module pnode {
         isPlaceHolder : () => boolean ;
 
         hasDropZonesAt : (start : number) => boolean ;
+
+        hasVerticalLayout : () => boolean ;
             
         kind : () => string ;
     }
@@ -105,6 +110,10 @@ module pnode {
         /** How many children. */
         public count():number {
             return this._children.length;
+        }
+
+        public hasChildren(): boolean {
+          return this.count() > 0;
         }
 
         /** Get some of the children as an array. */
@@ -206,11 +215,15 @@ module pnode {
 
         public isExprNode():boolean { return this._label.isExprNode() ; }
 
+        public isVarDeclNode():boolean { return this._label.isVarDeclNode() ; }
+
         public isExprSeqNode():boolean  { return this._label.isExprSeqNode() ; }
 
         public isTypeNode():boolean  { return this._label.isTypeNode() ; }
 
         public isPlaceHolder():boolean { return this._label.isPlaceHolder() ; }
+
+        public hasVerticalLayout():boolean { return this._label.hasVerticalLayout() ; }
 
         public hasDropZonesAt(start : number):boolean { return this._label.hasDropZonesAt(start) ;}
 

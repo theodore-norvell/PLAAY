@@ -4,6 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="createHTMLElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -13,6 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
+import createHTMLElements = require('./createHTMLElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
@@ -26,6 +28,7 @@ module editor {
     import Option = collections.Option ;
     import some = collections.some ;
     import none = collections.none ;
+    import snoc = collections.snoc;
 
     import Selection = pnodeEdits.Selection;
 
@@ -49,9 +52,10 @@ module editor {
         $("#undo").click( undo );
         $("#redo").click( redo ) ;
         $("#trash").click( toggleTrash ) ;
+        $("#toggleOutput").click( createHTMLElements.toggleOutput ) ;
 
         makeTrashDroppable( $("#trash") ) ;
-        $( ".palette" ).draggable( {
+        $( ".paletteItem" ).draggable( {
             helper:"clone",
             revert: true,
             revertDuration: 500,
@@ -73,6 +77,12 @@ module editor {
                 console.log( "<< Drag handler for things in pallette" ) ;
             } } ) ;
 
+        // When a palette item is clicked, insert a node at the current selection.
+        $( ".paletteItem" ).click(
+            function(this : HTMLElement, evt : Event) : void {
+                console.log( "click on " + $(this).attr("id") ) ;
+                createNodeOnCurrentSelection( $(this).attr("id") ) ; } ) ;
+
     }
 
     function create(elementType: string, className: string|null, idName: string|null, parentElement: JQuery|null) : JQuery {
@@ -93,6 +103,12 @@ module editor {
         if( trashArray.length === 0 ) return none<Selection>() ;
         else return some( trashArray[0] ) ;
     }
+
+    function getFromDeepTrash( depth : number ) : Option< Selection > {
+        if( trashArray.length <= depth ) return none<Selection>() ;
+        else return some( trashArray[depth] ) ;
+    }
+
 
     function toggleTrash() : void {
         let dialogDiv : JQuery = $('#trashDialog');
@@ -234,7 +250,7 @@ module editor {
                     if (  dragKind === DragEnum.CURRENT_TREE )
                     {
                         console.log("  First case" ) ;
-                        const selectionArray = treeMgr.moveCopySwapEditList( draggedSelection, dropTarget );
+                        const selectionArray = treeMgr.pasteMoveSwapEditList( draggedSelection, dropTarget );
                         console.log("  Back from moveCopySwapEditList" ) ;
                         // Pick the first action that succeeded, if any
                         if(  selectionArray.length > 0 ) {
@@ -249,7 +265,7 @@ module editor {
                     {
                         console.log("  Second case. (Drag from trash)." ) ;
                         console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
-                        const opt = treeMgr.copy( draggedSelection, dropTarget ) ;
+                        const opt = treeMgr.paste( draggedSelection, dropTarget ) ;
                         console.log("  opt is " + opt ) ;
                         assert.check( opt !== undefined ) ;
                         opt.map(
@@ -264,15 +280,7 @@ module editor {
                         console.log("  Third case." ) ;
                         console.log("  " + ui.draggable.attr("id"));
                         // Add create a new node and use it to replace the current selection.
-                        const selection = treeMgr.createNode(ui.draggable.attr("id") /*id*/, dropTarget );
-                        console.log("  selection is " + selection );
-                        assert.check( selection !== undefined ) ;
-                        selection.map(
-                            sel => {
-                                console.log("  createNode is possible." ) ;
-                                update( sel ) ;
-                                console.log("  HTML generated" ) ;
-                            } );
+                        createNode(ui.draggable.attr("id") /*id*/, dropTarget );
                     } else {
                         assert.check( false, "Drop without a drag.") ;
                     } } ) ;
@@ -302,9 +310,13 @@ module editor {
         const inputs : JQuery = $("#container .input") ;
         if( inputs.length > 0 ) {
             inputs.focus(); // Set the focus to the first item in inputs
-            inputs.keyup(keyUpHandlerForInputs); 
-            inputs.blur( updateLabelHandler ) ;
             $(document).off( "keydown" ) ;
+            inputs.keydown(keyDownHandlerForInputs) ;
+            // If there is any change to the input controls
+            // then update the label on the next blur.
+            inputs.change( function( ev : JQueryEventObject) : void {
+                inputs.blur( updateLabelHandler ) ;
+            }) ;
             // TODO Scroll the container so that the element in focus is visible.
         } else {
             $(document).off( "keydown" ) ;
@@ -351,17 +363,25 @@ module editor {
             opt.map( sel => update(sel) );
             console.log( "<< updateLabelHandler") ; } ;
 
-    const keyUpHandlerForInputs 
+    const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            if (e.keyCode === 13) {
-                console.log( ">>keyup handler") ;
+            if (e.keyCode === 13 || e.keyCode === 9) {
+                console.log( ">>input keydown handler") ;
                 updateLabelHandler.call( this, e ) ;
-                console.log( "<< keyup handler") ;
+                if(e.keyCode === 9)
+                {
+                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                }
+                e.stopPropagation() ;
+                e.preventDefault();
+                console.log( "<<input keydown handler") ;
             } } ;
 
     const keyDownHandler
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            console.log( ">>keydown handler") ;
+            console.log( ">>keydown handler." ) ;
+            console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
             {
@@ -373,7 +393,7 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            // Copy: Cntl-X or Cmd-X
+            // Copy: Cntl-C or Cmd-C
             else if ((e.ctrlKey || e.metaKey) && e.which === 67 ) 
             {
                 addToTrash(currentSelection);
@@ -381,14 +401,30 @@ module editor {
                 e.preventDefault(); 
             }
             // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && e.which === 86) 
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
                 getFromTrash().map( (src : Selection) =>
-                     treeMgr.copy( src, currentSelection ).map( (sel : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
+            // Paste from deep trash: Cntl-number key or Cmd-number key
+            else if ((e.ctrlKey || e.metaKey) && ((e.which >= 49 && e.which <= 57) || e.which >= 97 && e.which <= 105)) 
+            {
+                let num : number = e.which;
+                if(num >= 96)
+                {
+                    num -= 48; //Convert numpad key to number key
+                }
+                num -= 48; //convert from ASCII code to the number
+                getFromDeepTrash(num).map( (src : Selection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+
             // Swap: Cntl-B or Cmd-B
             else if ((e.ctrlKey || e.metaKey) && e.which === 66) 
             {
@@ -407,36 +443,261 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 38) // up arrow
+            // Undo: Cntl-Z or Cmd-Z
+            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey &&  e.which === 90) 
+            {
+                keyboardUndo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Redo: Cntl-Y or Cmd-Y (or Ctrl-Shift-Z or Cmd-Shift-Z)
+            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which === 90))) 
+            {
+                keyboardRedo();
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 32) // space bar
+            {
+                treeMgr.moveOut( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 38 && ! e.shiftKey ) // up arrow
             {
                 treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 40) // down arrow
+            else if (e.which === 40 && ! e.shiftKey) // down arrow
             {
                 treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            else if (e.which === 37) // left arrow
+            else if (e.which === 37 && ! e.shiftKey) // left arrow
             {
                 treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
-            else if (e.which === 39) // right arrow
+            else if (e.which === 39 && ! e.shiftKey) // right arrow
             {
                 treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
+            }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
+            {
+                treeMgr.moveFocusUp( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 40 && e.shiftKey) // shifted down arrow
+            {
+                treeMgr.moveFocusDown( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.which === 37 && e.shiftKey) // shifted left arrow
+            {
+                treeMgr.moveFocusLeft( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }            
+            else if (e.which === 39 && e.shiftKey) // shifted right arrow
+            {
+                treeMgr.moveFocusRight( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (!e.shiftKey && e.which === 9) // tab
+            {
+                treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (e.shiftKey && e.which === 9) // shift+tab
+            {
+                treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
+                         update( sel ) ) ;
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            else if (! e.shiftKey && e.which === 13) // enter
+            {
+                const edit = new pnodeEdits.OpenLabelEdit() ;
+                const opt = edit.applyEdit( currentSelection ) ;
+                opt.map( (sel : Selection) => update( sel ) ) ;
+                e.stopPropagation() ;
+                e.preventDefault() ;
+            }
+            else 
+            {
+                tryKeyboardNodeCreation(e);
             }
             console.log( "<<keydown handler") ;
     };
+
+    function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
+    {
+            console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
+            // Create var decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
+            if ( (!e.shiftKey && e.which===59)
+              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
+            {
+                createNode("vardecl", currentSelection );
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            //Create assignment node: shift+; (aka :)
+            else if (e.shiftKey && (e.which === 59 || e.which === 186))
+            {
+                createNode("assign", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create numeric literal node: any digit key (including numpad keys)
+            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57)
+                   || e.which >= 96 && e.which <= 105))
+            {
+                let charCode : number = e.which;
+                if(charCode >= 96)
+                {
+                    charCode -= 48; //Convert numpad key to number key
+                }
+                createNode("numberliteral", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create if node: shift+/ (aka ?)
+            else if (e.shiftKey && e.which === 191)
+            {
+                createNode("if", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create while node: shift+2 (aka @)
+            else if (e.shiftKey && e.which === 50)
+            {
+                createNode("while", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create lambda node: with the \ key
+            else if (!e.shiftKey && e.which === 220)
+            {
+                createNode("lambda", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create call node: with the shift - key (aka _)
+            else if (e.shiftKey && (e.which === 189 || e.which === 173) )
+            {
+                createNode("call", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create string literal node: shift+' (aka ")
+            else if (e.shiftKey && e.which === 222)
+            {
+                createNode("stringliteral", currentSelection, "" );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create variable node: any letter
+            else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
+            {
+                let charCode : number = e.which;
+                if(!e.shiftKey) //Handle capital vs lowercase letters.
+                {
+                    charCode += 32;
+                }
+                createNode("var", currentSelection, String.fromCharCode(charCode) );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            else if( !e.shiftKey && e.which === 192 ) {  // Backquote
+                createNode("worldcall", currentSelection );
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
+            // TODO:  What for shifts (and lack of shifts) here.
+            else if (
+                   (e.shiftKey && (e.which === 61         // Shift 61  +
+                                   || e.which === 187     // Shift 187 +
+                                   || e.which === 56      // Shift 56  *
+                                   || e.which === 188     // Shift 188 <
+                                   || e.which ===190      // Shift 190 >
+                                   || e.which === 53))    // Shift 53  %
+                   || (!e.shiftKey && (e.which === 191    // No shift 191 /
+                                      || e.which === 173  // No shift 173  -
+                                      || e.which === 189  // No shift 189  -
+                                      || e.which === 107  // No shift 107  +
+                                      || e.which === 106  // No shift 106 *
+                                      || e.which === 111  // No shift 111 /
+                                      || e.which === 61 // No shift 61 =
+                                      || e.which === 109 ) ) ) // No shift 109 -
+            {
+                const charCode : number = e.which;
+                if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
+                {
+                    createNode("worldcall", currentSelection, "+");
+                }
+                else if(charCode === 61)
+                {
+                    createNode("worldcall", currentSelection, "=");
+                }
+                else if(charCode === 109 || charCode === 173 || charCode === 189)
+                {
+                    createNode("worldcall", currentSelection, "-");
+                }
+                else if(charCode === 56 || charCode === 106)
+                {
+                    createNode("worldcall", currentSelection, "*");
+                }
+                else if( charCode === 188 ) {
+                    createNode("worldcall", currentSelection, "<");
+                }
+                else if( charCode === 190 ) {
+                    createNode("worldcall", currentSelection, ">");
+                }
+                else if( charCode === 53 ) {
+                    createNode("worldcall", currentSelection, "%");
+                }
+                else //only the codes for /  can possibly remain.
+                {
+                    createNode("worldcall", currentSelection, "/");
+                }
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            // Create Object Literal node: $
+            else if (e.shiftKey && e.which === 52)
+            {
+                createNode("objectliteral", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create accessor node: [
+            else if(!e.shiftKey && e.which === 219)
+            {
+                createNode("accessor", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            return;
+    }
 
     export function update( sel : Selection ) : void {
             undostack.push(currentSelection);
@@ -447,6 +708,26 @@ module editor {
 
     export function getCurrentSelection() : Selection {
         return currentSelection ;
+    }
+
+    function createNodeOnCurrentSelection(id: string, nodeText?: string) : void
+    {
+        createNode( id, getCurrentSelection(), nodeText) ;
+    }
+
+    function createNode(id: string, selection : Selection, nodeText?: string) : void
+    {
+        const opt : Option<Selection> =
+            (nodeText !== undefined) 
+            ? treeMgr.createNodeWithText(id, selection, nodeText)
+            : treeMgr.createNode(id, selection );
+        //console.log("  opt is " + opt );
+        opt.map(
+            sel => {
+                // console.log("  createNode is possible." ) ;
+                update( sel ) ;
+                // console.log("  HTML generated" ) ;
+            } );
     }
 
     function undo() : void {
@@ -465,15 +746,90 @@ module editor {
         }
     }
 
+    // Scroll container to make a selected element fully visible
+    function scrollIntoView() : void {
+        const container : JQuery | null = $("#container ");
+        const selection : JQuery | null = $(".selected");
+        if (selection.get(0) === undefined) { return; } //Return if no selected nodes
+
+        const selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
+        const selectionTop : number | null = selection.position().top; // Relative to visible container top
+        const selectionBot : number | null = (selectionHeight + selectionTop); 
+        const visibleHeight : number | null = container.outerHeight(); // Height of visible container   
+        const visibleTop : number | null = container.scrollTop(); // Top of visible container
+        const scrollBarWidth: number | null = container[0].offsetWidth - container[0].clientWidth;
+        const scrollSpeed : number = 50;
+
+        // If the bottom edge of an element is not visible, scroll up to meet the bottom edge 
+        if ( selectionBot > (visibleHeight-scrollBarWidth) && selectionHeight < visibleHeight) {
+            container.animate(
+                { scrollTop: (visibleTop + selectionBot - visibleHeight + 10 + scrollBarWidth)},
+                scrollSpeed );
+
+        // If the top edge of an element is not visible or element is too large, scroll to the top edge
+        // selectionTop is referenced from the top of the visible container; will be < 0 if above this point)
+        } else if ( selectionTop < 0 || selectionHeight > visibleHeight) {
+            container.animate(
+                { scrollTop: (selectionTop + visibleTop - 10)},
+                scrollSpeed );
+        }
+    }
+                                                           
+    //This version of undo is meant to be called by the keyboard shortcut.
+    //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
+    function keyboardUndo() : void {
+        let finished : boolean = false;
+        let sel : Selection = currentSelection;
+        while (undostack.length !== 0 && !finished)  {
+            redostack.push(sel);
+            sel = undostack.pop() as Selection ;
+            finished = hasOpenNodes(sel) ;
+        }
+        currentSelection = sel;
+        generateHTMLSoon();
+        return;
+    }
+
+    //This version of redo is meant to be called by the keyboard shortcut.
+    function keyboardRedo() : void {
+        let finished : boolean = false;
+        let sel : Selection = currentSelection;
+        while (redostack.length !== 0 && !finished)  {
+            undostack.push(sel);
+            sel = redostack.pop() as Selection;
+            finished = hasOpenNodes(sel) ;
+        }
+        currentSelection = sel;
+        generateHTMLSoon();
+        return;
+    }
+
+    function hasOpenNodes(sel: Selection) : boolean
+    {
+            if(Math.abs(sel.anchor() - sel.focus()) === 1)
+            {
+                if(sel.selectedNodes()[0].label().isOpen())
+                { //Keep going if the selected node is open.
+                    return false;
+                }
+                for(let child of sel.selectedNodes()[0].children())
+                { //deal with cases where a child of the selected node is open, but not the selected node itself.
+                    if(child.label().isOpen())
+                    {
+                        return false;
+                    }
+                }
+            }
+            return true;
+    }
+
     let pendingAction : number|null = null ;
     function generateHTMLSoon( ) : void {
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
-            function() : void { generateHTML() ; }, 20) ;
+            function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
     }
-
-
 }
 
 export = editor;

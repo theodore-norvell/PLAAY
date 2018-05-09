@@ -1,6 +1,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="edits.ts" />
+/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 
 import assert = require( './assert' ) ;
@@ -20,15 +21,20 @@ module pnodeEdits {
     import none = collections.none;
     import some = collections.some;
     import List = collections.List ;
+    import list = collections.list ;
     import cons = collections.cons ;
     import snoc = collections.snoc;
     import last = collections.last;
     import butLast = collections.butLast;
     import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
+    import Label = pnode.Label;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
-    import Label = pnode.Label;
+    import compose = edits.compose ;
+    import alt = edits.alt ;
+    import optionally = edits.optionally ;
+    import testEdit = edits.testEdit ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -101,7 +107,7 @@ module pnodeEdits {
         public toString() : string { return "Selection( " + "_root:" + this._root.toString() +
                             " _path:" + this._path.toString() +
                             " _anchor: " + this._anchor +
-                            " _focus: " + this._focus + ")"  ;}
+                            " _focus: " + this._focus + ")"  ; }
     }
     
     function isInteger( n : number ) : boolean {
@@ -123,6 +129,23 @@ module pnodeEdits {
                 && 0 <= head && head < tree.count()
                 && checkSelection( tree.child(head), path.rest(), anchor, focus ) ; } }
 
+    /** Move out. I.e. to the parent if possible.
+     * @param selection
+     * @param normal iff the anchor preceeds the focus.
+    */
+    function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
+        const root = selection.root();
+        const path = selection.path();
+        if( path.isEmpty() ) { return none<Selection>() ; }
+        else {
+            const last = collections.last(path) ;
+            return some( new Selection( root, collections.butLast( path ),
+                                        normal ? last : last+1,
+                                        normal ? last+1 : last ) ) ;
+        }
+
+    }
+
     /** Move left. */
     function moveLeft( selection : Selection ) : Option<Selection> {
         const start = selection.start() ;
@@ -130,32 +153,29 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point (empty) selection.
         if (start === end)
         {
-            //there is node at start-1
+            //If there is there is node to the point's left
             if(start > 0)
             {
+                // Select the right most point under that node.
                 const newPath : List<number> = snoc(path, start-1);
                 const numOfChildren : number = root.get(newPath).count();
                 return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
             }
-            //the path is empty
+            //If there is no node to the left and the parent is the root.
             else if (path.isEmpty())
             {
+                // This is the start of the line. Fail
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
+            //If there is no node to the point's left. Select the parent of the point.
+            else {
                 return some( new Selection(root, butLast(path), last(path), last(path)+1));
             }
-            else 
-            {
-                //return a selection representing the position to the left of the parent
-                return some( new Selection(root, butLast(path), last(path), last(path)));
-            }
         }      
-        else
+        else // This is a nonempty selection.
         {
             //return a selection representing the position to the left of the leftmost selected node
             return some( new Selection(root, path, start, start));
@@ -169,54 +189,83 @@ module pnodeEdits {
         const root = selection.root();
         const path = selection.path();
 
+        // If this is a point selection:
         if (start === end)
         {
-            //there is node at start
+            // If there is a node to the right.
             if(root.get(path).count() > start)
             {
-                return some( new Selection(root, snoc(path, start), 0, 0));
+                // Select that node
+                return some( new Selection(root, path, start, start+1));
             }
-            //the path is empty
+            //If there is no node to the right and the parent is the root"
             else if (path.isEmpty())
             {
+                // This is the end of the line. Fail.
                 return none<Selection>();
             }
-            //the parent of this position has no children
-            else if(root.get(path).count() === 0)
-            {
-                return some( new Selection(root, butLast(path), last(path), last(path)+1));
-            }
-            else 
-            {
+            //If there is no node to the right and the parent is
+            // not the root.
+            else {
                 //return a selection representing the position to the right of the parent
                 return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
             }
         }      
-        else
+        else // This is a nonempty selection
         {
-            //return a selection representing the position to the right of the rightmost selected node
-            return some( new Selection(root, path, end, end));
+            // Go to the first point under the first node
+            return some( new Selection(root, snoc(path, start), 0, 0));
         }
     }
 
     /** Move up. */
     function moveUp( selection : Selection ) : Option<Selection> {
-        const start = selection.start() ;
-        const end = selection.end() ;
-        const root = selection.root();
-        const path = selection.path();
-
-        assert.todo( "moveUp()"); return none<Selection>() ;
+        return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Move down. */
     function moveDown( selection : Selection ) : Option<Selection> {
-        const start = selection.start() ;
-        const end = selection.end() ;
+        return moveRight(selection) ; //In our case this is the same.
+    }
+    
+    /** Move Tab forward. */
+    function moveTabForward( selection : Selection ) : Option<Selection> {
+        return moveRight(selection) ; //In our case this is the same.
+    }
+
+    /** Move Tab back. */
+    function moveTabBack( selection : Selection ) : Option<Selection> {
+        return moveLeft(selection) ; //In our case this is the same.
+    }
+
+    /** Move the focus one place to the right if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusRight( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
         const root = selection.root();
         const path = selection.path();
+        const parent = selection.parent() ;
+        console.log( "moveFocusRight: anchor is " +anchor+
+                     " focus is " +focus+ 
+                     " parent.count() is " +parent.count() ) ;
+        if( focus < parent.count() ) {
+            return some( new Selection(root, path, anchor, focus+1) ) ; }
+        else {
+            return moveOut( selection, true ) ; }
+    }
 
-        assert.todo( "moveDown()"); return none<Selection>() ;
+    /** Move the focus one place to the left if possible.
+     * Otherwise, move up the tree.*/
+    function moveFocusLeft( selection : Selection ) : Option<Selection> {
+        const anchor = selection.anchor() ;
+        const focus = selection.focus() ;
+        const root = selection.root();
+        const path = selection.path();
+        if( focus > 0 ) {
+            return some( new Selection(root, path, anchor, focus-1) ) ; }
+        else {
+            return moveOut( selection, false ) ; }
     }
 
     /** Replace all selected nodes with another set of nodes. */
@@ -240,7 +289,7 @@ module pnodeEdits {
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
-            return opt.bind<Selection>( (newSeln : Selection)  => {
+            return opt.bind<Selection>( (newSeln : Selection) => {
                 const p0 = node.children(0, k ) ;
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
@@ -336,13 +385,22 @@ module pnodeEdits {
     /** Replace all selected nodes in two places with two other sequences */
     function doubleReplaceHelper(
                             node : PNode,
-                            srcPath : List<number>, srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
-                            trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<PNode>,
-                            allowSrcAncestorOverwrite : boolean = true,  allowTrgAncestorOverwrite : boolean = true )
+                            srcPath : List<number>,
+                            srcStart : number,
+                            srcEnd : number,
+                            newNodes4Src : Array<PNode>,
+                            trgPath : List<number>,
+                            trgStart : number,
+                            trgEnd : number,
+                            newNodes4Trg : Array<PNode>,
+                            allowSrcAncestorOverwrite : boolean = true,
+                            allowTrgAncestorOverwrite : boolean = true )
     : Option<Selection>
     {
         if( srcPath.isEmpty() && trgPath.isEmpty() ) {
+            // Common parent
             if( srcEnd <= trgStart ) {
+                // Source region is before target region
                 const p0 = node.children( 0, srcStart ) ;
                 const p1 = newNodes4Src ;
                 const p2 = node.children( srcEnd, trgStart ) ;
@@ -353,10 +411,9 @@ module pnodeEdits {
                 const newStart = trgStart + newNodes4Src.length - (srcEnd-srcStart) ;
                 const newEnd = newStart + newNodes4Trg.length ;
                 return opt.map( newNode =>
-                                   new Selection( newNode,
-                                                  collections.nil<number>(),
-                                                  newStart, newEnd ) ) ;
+                                    new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
             } else if( trgEnd <= srcStart ) {
+                // Target region is before source region
                 const p0 = node.children( 0, trgStart ) ;
                 const p1 = newNodes4Trg ;
                 const p2 = node.children( trgEnd, srcStart ) ;
@@ -365,10 +422,7 @@ module pnodeEdits {
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newEnd = trgStart + newNodes4Trg.length ;
-                return opt.map( newNode =>
-                                    new Selection( newNode,
-                                                   collections.nil<number>(),
-                                                   trgStart, newEnd ) ) ;
+                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), trgStart, newEnd ) ) ;
             } else {
                 // Overlaping src and target ranges.  This is ambiguous unless either the new source nodes
                 // or the new target nodes are empty.
@@ -385,9 +439,7 @@ module pnodeEdits {
                 const opt = pnode.tryMake( node.label(), newChildren ) ;
                 const newEnd = start + newNodes4Trg.length ;
                 return opt.map( newNode =>
-                                   new Selection( newNode,
-                                                  collections.nil<number>(),
-                                                  start, newEnd ) )  ;
+                    new Selection( newNode, collections.nil<number>(), start, newEnd ) )  ;
             }
         } else if( srcPath.isEmpty() ) {
             return doubleReplaceOnePathEmpty( node,
@@ -400,17 +452,13 @@ module pnodeEdits {
                                               srcPath, srcStart, srcEnd, newNodes4Src,
                                               allowSrcAncestorOverwrite, false ) ;
         } else if( srcPath.first() === trgPath.first() ) {
-            // Neither path is empty and the two paths do not diverge at this level.
-            // Recurse.
+            // Neither path is empty and they agree on their first item.
             const k = srcPath.first() ;
             const len = node.count() ;
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const child = node.child( k ) ;
-            const opt = doubleReplaceHelper( child,
-                                             srcPath.rest(), srcStart, srcEnd, newNodes4Src,
-                                             trgPath.rest(), trgStart, trgEnd, newNodes4Trg,
-                                             allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
+            const opt = doubleReplaceHelper( child, srcPath.rest(), srcStart, srcEnd, newNodes4Src, trgPath.rest(), trgStart, trgEnd, newNodes4Trg, allowSrcAncestorOverwrite, allowTrgAncestorOverwrite ) ;
             return opt.bind( newSeln => {
                 const p0 = node.children( 0, k ) ;
                 const p1 = [newSeln.root()] ;
@@ -418,24 +466,22 @@ module pnodeEdits {
                 const newChildren = p0.concat( p1, p2 ) ;
                 const opt0 = pnode.tryMake( node.label(), newChildren ) ;
                 return opt0.map( newNode => 
-                                     new Selection( newNode,
-                                                    cons( k, newSeln.path()),
-                                                    newSeln.anchor(), newSeln.focus() ) ) ;
+                    new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
              } ) ;
         } else {
-            // Neither path is empty and the two paths diverge.
-            // Treat it as two single replaces.
+            // Neither path is empty and they disagree. 
+            // Here the paths diverge.
             const kSrc = srcPath.first() ;
             const kTrg = trgPath.first() ;
             const len = node.count() ;
-            assert.check( 0 <= kSrc, "Bad Path. k < 0" ) ;
-            assert.check( kSrc < len, "Bad Path. k >= len" ) ;
-            assert.check( 0 <= kTrg, "Bad Path. k < 0" ) ;
-            assert.check( kSrc < kTrg, "Bad Path. k >= len" ) ;
+            assert.check( 0 <= kSrc, "Bad Path. 0 > kSrc" ) ;
+            assert.check( kSrc < len, "Bad Path. kSrc >= len" ) ;
+            assert.check( 0 <= kTrg, "Bad Path. 0 > kTrg" ) ;
+            assert.check( kTrg < len, "Bad Path. kTrg >= len" ) ;
             const childSrc = node.child( kSrc ) ;
             const childTrg = node.child( kTrg ) ;
             const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
-            const optTrg = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
+            const optTrg = singleReplaceHelper( childTrg, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
             return optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
                 let p0 : Array<PNode> ;
                 let p1 : Array<PNode> ;
@@ -464,27 +510,27 @@ module pnodeEdits {
     /** Replace all selected nodes with another sequence of nodes. 
      * The resulting selection should comprise the inserted children.
      */
-    export class InsertChildrenEdit extends AbstractEdit<Selection> {
+    class InsertChildrenEdit extends AbstractEdit<Selection> {
         private _newNodes : Array<PNode> ;
 
-        private readonly _backfills : Array<Array<PNode>> ;
-
-        constructor( newNodes : Array<PNode>, backfills : Array<Array<PNode>> ) {
+        constructor( newNodes : Array<PNode> ) {
             super() ;
-            this._newNodes = newNodes ;
-            this._backfills = backfills ; }
+            this._newNodes = newNodes ; }
 
         public applyEdit( selection : Selection ) : Option<Selection> {
 
             // Try to make the replacement.
-            let opt = singleReplace( selection, this._newNodes ) ;
-            // If that failed, try it with backfilling
-            if( this._newNodes.length === 0 ) {
-                for( let i=0 ; opt.isEmpty() && i < this._backfills.length ; ++ i) {
-                    opt = singleReplace( selection, this._backfills[i] ) ;
-                } }
-            return opt ;
+            return singleReplace( selection, this._newNodes ) ;
         }
+    }
+
+    export function insertChildrenEdit( newNodes : Array<PNode> ) : Edit<Selection> {
+        return new InsertChildrenEdit( newNodes ) ;
+    }
+
+    /** Replace with one of a sequence of choices. Picks the first that succeeds. */
+    export function replaceWithOneOf( choices : Array<Array<PNode>>  ) : AbstractEdit<Selection> {
+        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) )
     }
 
     /**  Changes the string value of a node's label.
@@ -545,82 +591,56 @@ module pnodeEdits {
         }
     }
 
-    // /** Copy all nodes in one selection over the selected nodes in another.
-    //  * The selection returned indicates the newly added nodes.
-    // */
-    // export class CopyEdit extends AbstractEdit<Selection> {
-    //     private _srcNodes : Array<PNode> ;
-
-    //     constructor(srcSelection:Selection) {
-    //         super();
-    //         this._srcNodes = srcSelection.selectedNodes() ;
-    //     }
-
-    //     public applyEdit(selection:Selection):Option<Selection> {
-    //         const opt = singleReplace( selection, this._srcNodes ) ;
-    //         if(  this._srcNodes.length === 0 ) {
-    //             // Copy of zero nodes may require backfilling.
-    //             return opt.recoverBy (
-    //                 () => singleReplace( selection, [labels.mkExprPH()] )
-    //             ) ;
-    //         } else {
-    //             return opt ;
-    //         }
-    //     }
-    // }
+    
+    /** Copy all nodes in the src selection over the selected nodes of the target selection.
+     * The selection returned indicates the newly added nodes.
+     * If the src selection is empty, also try replacing the target with something from the backfill list.
+    */
+    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+        const srcNodes = srcSelection.selectedNodes() ;
+        if( srcNodes.length === 0 )
+            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ;
+        else
+            return insertChildrenEdit( srcNodes ) ;
+    }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
-     * <p>The nodes to be moved are indicated by the first parameter to the constuctor.
+     * The nodes to be moved are indicated by the first parameter to the constuctor.
      * The source is given as a constructor parameter.
-     * The target is a parameter to applyEdit.
+     * The target as a parameter to applyEdit.
      * The source and target selections must share the same tree. Otherwise the edit will fail.
-     * The resulting tree must be valid, otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
-     *
-     *
      */
-    export class MoveEdit extends AbstractEdit<Selection> {
-        private readonly _srcSelection : Selection ;
-        private readonly _backfills : Array<Array<PNode>> ;
+    class MoveEdit extends AbstractEdit<Selection> {
+        private _srcSelection : Selection ;
+        private replacementNodes : Array<PNode> ;
 
-        constructor( srcSelection:Selection, backfills : Array<Array<PNode>> ) {
+        constructor( srcSelection:Selection, replacementNodes : Array<PNode> ) {
             super();
             this._srcSelection = srcSelection ;
-            this._backfills = backfills ;
+            this.replacementNodes = replacementNodes ;
         }
 
         public applyEdit( trgSelection:Selection ) : Option<Selection> {
             if( this._srcSelection.root() !== trgSelection.root() ) return none<Selection>() ;
             const newNodes = this._srcSelection.selectedNodes();
-            // Try filling in with the empty sequence first. Otherwise try some other defaults.
-            let opt = doubleReplace( this._srcSelection, [], trgSelection, newNodes, true, false ) ;
-            // Try the various backfill options until one succeeds or we run out
-            for( let i=0 ; opt.isEmpty() && i < this._backfills.length ; ++i) {
-                opt = doubleReplace( this._srcSelection, this._backfills[i], 
-                                     trgSelection, newNodes,
-                                     true, false ) ;
-            }
-            return opt ;
+            return doubleReplace( this._srcSelection, this.replacementNodes, trgSelection, newNodes, true, false ) ;
         }
     }
 
+    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+        // First try filling place where the source was with no nodes
+        const listOfReplacements = [[] as Array<PNode>].concat( backFillList ) ;
+        const moveEdits = listOfReplacements.map( replacements => new MoveEdit(srcSelection, replacements)) ;
+        return alt( moveEdits ) ;
+    }
+
     /** Swap.  Swap two selections that share the same root.
-     * <p>For example we should be able to swap the then and else part of an if node.
+     * For example we should be able to swap the then and else part of an if node.
      * The source is given as a constructor parameter.
-     * The target is a parameter to applyEdit.
-     * The source and target selections must share the same root. Otherwise the edit will fail.
+     * The target as a parameter to applyEdit.
+     * The source and target selections must share the same tree. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
-     * 
-     * <p>There are several cases to consider:
-     * <ul>
-     *     <li>If the two selections share a parent, the two sets of selected nodes must be disjoint,
-     *         otherwise the edit will fail.  For example if the source is a( $ b c ^ d) and the
-     *         target is a( b $ c d ^ ), the swap will fail, since node c is in the intersection.
-     *    <li>If one selection includes a node that is the parent of the other or an ancestor of 
-     *        the parent of the other, the swap will fail.  For example if the source is a( $ b( c(d) ) ^ )
-     *        and the target is a( b( c( $d^ ) ) ), the swap will fail, since the b node is selected in
-     *        the source and b is an ancestor of c, which is the parent of the target selection.
-     *    <li>In all other cases the edit should succeed, provided the new tree is valid.
     */
     export class SwapEdit extends AbstractEdit<Selection> {
         private _srcSelection:Selection;
@@ -652,16 +672,14 @@ module pnodeEdits {
         const sel = opt.first() ;
         const start = sel.start() ;
         const end = sel.end() ;
-        if( end - start === 1 ) {
-            // Placeholders and such are suitable
-            const node = sel.selectedNodes()[0] ;
-            return node.isPlaceHolder() ; }
+        if( end - start >= 1 ) {
+            // Any selection containing 1 or more nodes is
+            return true ; }
         else if( end === start ) {
-            const node = sel.root().get( sel.path() ) ;
-            return node.hasDropZonesAt( start ) ;
+            // Dropzones are suitable
+            return sel.parent().hasDropZonesAt( start ) ;
         } else {
-            return assert.failedPrecondition(
-                "leftRightSuitable: selection should be empty or one node." ) ; 
+            return false ;
         }
     }
 
@@ -671,15 +689,81 @@ module pnodeEdits {
     function upDownSuitable( opt : Option<Selection> ) : boolean {
         // Need to stop when we can go no further to the up or down.
         if( opt.isEmpty() ) return true ;
+        // Otherwise stop only on point selections whose
+        // parents have vertical layout.
+        const sel = opt.first() ;
+        const start = sel.start() ;
+        const end = sel.end() ;
+        if(end - start === 1)
+        {
+            return false ;
+        }
+        else if( end === start ) {
+            return sel.parent().hasVerticalLayout() ;
+        }
+        else
+        {
+            return false ;
+        }
+    }
+
+    /** Is this a suitable selection to stop at for the shift-up arrow and shift-down arrow keys are used to move the focus.
+    */
+    function upDownFocusMoveSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the up or down.
+        if( opt.isEmpty() ) return true ;
+        // Otherwise stop only on selections whose
+        // parents have vertical layout.
+        const sel = opt.first() ;
+        return sel.parent().hasVerticalLayout() ;
+    }
+
+    /** Is this a suitable selection to stop at for tab keys.
+     * 
+    */
+    function tabSuitable( opt : Option<Selection> ) : boolean {
+        // Need to stop when we can go no further to the left or right.
+        if( opt.isEmpty() ) return true ;
         // Otherwise stop on dropzones or placeholders and similar nodes.
         const sel = opt.first() ;
         const start = sel.start() ;
-        const end = sel.end() ; assert.todo("TODO: upDownSuitable()"); return false ;
+        const end = sel.end() ;
+        if( end - start === 1 ) {
+            // Placeholders and such are suitable
+            const node = sel.selectedNodes()[0] ;
+            return node.isPlaceHolder() ; }
+        else if( end === start ) {
+            // Dropzones are suitable unless there is a place holder
+            // (or similar) immediately to the right
+            return sel.parent().hasDropZonesAt( start )
+                && ! (   sel.parent().count() > start
+                      && sel.parent().child( start ).isPlaceHolder() ) ;
+        } else {
+            return false ;
+        }
     }
+
+    /** 
+     * OutEdit
+     */
+    class OutEdit extends AbstractEdit<Selection> {
+        private readonly normal : boolean ;
+
+        constructor(normal : boolean ) { super() ; this.normal = normal ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            return moveOut( selection, this.normal ) ;
+        }
+    }
+
+    export const moveOutNormal = new OutEdit( true ) ;
+
+    export const moveOutReversed = new OutEdit( false ) ;
+
     /** 
      * Left edit
      */
-    export class LeftEdit extends AbstractEdit<Selection> {
+    class LeftEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -690,10 +774,12 @@ module pnodeEdits {
         }
     }
 
+    export const leftEdit = new LeftEdit() ;
+
     /** 
      * Right edit
      */
-    export class RightEdit extends AbstractEdit<Selection> {
+    class RightEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -704,10 +790,12 @@ module pnodeEdits {
         }
     }
 
+    export const rightEdit = new RightEdit() ;
+
     /** 
      * Up edit
      */
-    export class UpEdit extends AbstractEdit<Selection> {
+    class UpEdit extends AbstractEdit<Selection> {
 
         constructor() { super() ; }
         
@@ -717,6 +805,8 @@ module pnodeEdits {
             return opt ;
         }
     }
+
+    export const upEdit = new UpEdit() ;
 
     /** 
      * Down edit
@@ -730,6 +820,205 @@ module pnodeEdits {
             while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
             return opt ;
         }
+    }
+
+    export const downEdit = new DownEdit() ;
+
+    /** 
+     * Move Focus Left edit
+     */
+    class MoveFocusLeftEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusLeftEdit = new MoveFocusLeftEdit() ;
+
+    /** 
+     * Move Focus Right edit
+     */
+    class MoveFocusRightEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! leftRightSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusRightEdit = new MoveFocusRightEdit() ;
+
+    /** 
+     * Move Focus Up edit
+     */
+    class MoveFocusUpEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusLeft( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusLeft( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusUpEdit = new MoveFocusUpEdit() ;
+
+    /** 
+     * Move Focus Down edit
+     */
+    class MoveFocusDownEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveFocusRight( selection ) ;
+            while( ! upDownFocusMoveSuitable(opt) ) {
+                const sel = opt.first() ;
+                opt = moveFocusRight( sel ) }
+            return opt ;
+        }
+    }
+
+    export const moveFocusDownEdit = new MoveFocusDownEdit() ;
+
+    /** 
+     * Tab edit
+     */
+    class TabForwardEdit extends AbstractEdit<Selection> {
+
+        private readonly moveFirst : boolean;
+        constructor(moveFirst : boolean ) { super() ; this.moveFirst = moveFirst ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = this.moveFirst ? moveTabForward( selection ) : some( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    export const tabForwardEdit = new TabForwardEdit( true ) ;
+
+    export const tabForwardIfNeededEdit = new TabForwardEdit( false ) ;
+
+    /** 
+     * Tab edit
+     */
+    class TabBackEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            let opt = moveTabBack( selection ) ;
+            while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
+            return opt ;
+        }
+    }
+
+    export const tabBackEdit = new TabBackEdit() ;
+
+    /** 
+     * Select Parent Edit
+     */
+    class SelectParentEdit extends AbstractEdit<Selection> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            const path = selection.path() ;
+            if( path.isEmpty() ) { return none<Selection>() ; }
+            else { return some( new Selection( selection.root(),
+                                               butLast( path ),
+                                               last(path),
+                                               last(path)+1 ) ) ; }
+        }
+    }
+
+    export const selectParentEdit = new SelectParentEdit() ;
+
+    /** replaceWithTemplateEdit is basically an InsertChidren 
+     */
+    export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        const nodes = [ template.root() ] ;
+        return new InsertChildrenEdit( nodes ) ;
+    }
+
+    /** 
+     * Engulf the selected nodes with a template
+     */
+    class EngulfEdit extends AbstractEdit<Selection> {
+
+        private  t : Selection ;
+
+        constructor(template : Selection ) {
+            super() ;
+            this.t = template ; }
+        
+        public applyEdit( selection : Selection ) : Option<Selection> {
+            // console.log( ">> EngulfEdit.applyEdit") ;
+            const nodes = selection.selectedNodes() ;
+            // First step: Insert the selected nodes into the template.
+            const i0 = insertChildrenEdit( nodes ) ;
+            // console.log( "   EngulfEdit.applyEdit: Applying first step") ;
+            const opt0 = i0.applyEdit( this.t ) ;
+            const res = opt0.bind( sel0 => {
+                // Second step: Insert the result into the selection
+                const i1 = insertChildrenEdit( [sel0.root() ] );
+                // Do the second steps
+                // console.log( "   EngulfEdit.applyEdit: Applying second step") ;
+                const opt1 =  i1.applyEdit( selection ) ;
+                // console.log( "   EngulfEdit.applyEdit: Done second step") ;
+                return opt1.map( sel1 => {
+                    // The third step adjusts the selection so that it is a point
+                    // selection with the point being to the right of the engulfed nodes.
+                    // console.log( "   EngulfEdit.applyEdit: Applying third step") ;
+                    const sel1Nodes = sel1.selectedNodes() ;
+                    assert.check( sel1Nodes.length === 1 && sel1Nodes[0] === sel0.root() ) ;
+                    const path2 = sel1.path().cat( list( sel1.start() ) ).cat( sel0.path() ) ;
+                    const anchor2 = sel0.end() ;
+                    return new Selection( sel1.root(), path2, anchor2, anchor2 ) ;
+                }) ; } ) ;
+            // console.log( "<< EngulfEdit.applyEdit") ;
+            return res ;
+        }
+    }
+
+    /** Engulf the selected nodes with a template. */
+    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
+        return new EngulfEdit( template ) ;
+    }
+
+    /** Either replace the current seletion with a given template or
+     * engulf the current selection with the template.
+     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * preferred.
+     * 
+     * @param template 
+     */
+    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
+        const replace = compose( replaceWithTemplateEdit( template ), optionally( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( template ), optionally( tabForwardIfNeededEdit ) ) ;
+        const selectionIsAllPlaceHolder
+            = testEdit( (sel:Selection) =>
+                           sel.selectedNodes().every( (p : PNode) =>
+                                                       p.isPlaceHolder() ) ) ;
+        return  alt( [compose( selectionIsAllPlaceHolder, replace ),
+                      engulf,
+                      replace] ) ;
     }
 
 }
