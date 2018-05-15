@@ -100,6 +100,10 @@ module pnodeEdits {
             return node ;
         }
 
+        public swap() : Selection {
+            return new Selection( this._root, this._path, this._focus, this._anchor ) ;
+        }
+
         public selectedNodes() : Array<PNode> {
             return this.parent().children( this.start(), this.end() ) ;
         }
@@ -138,10 +142,10 @@ module pnodeEdits {
         const path = selection.path();
         if( path.isEmpty() ) { return none<Selection>() ; }
         else {
-            const last = collections.last(path) ;
+            const l = collections.last(path) ;
             return some( new Selection( root, collections.butLast( path ),
-                                        normal ? last : last+1,
-                                        normal ? last+1 : last ) ) ;
+                                        normal ? l : l+1,
+                                        normal ? l+1 : l ) ) ;
         }
 
     }
@@ -530,7 +534,7 @@ module pnodeEdits {
 
     /** Replace with one of a sequence of choices. Picks the first that succeeds. */
     export function replaceWithOneOf( choices : Array<Array<PNode>>  ) : AbstractEdit<Selection> {
-        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) )
+        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) ) ;
     }
 
     /**  Changes the string value of a node's label.
@@ -596,12 +600,12 @@ module pnodeEdits {
      * The selection returned indicates the newly added nodes.
      * If the src selection is empty, also try replacing the target with something from the backfill list.
     */
-    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
         const srcNodes = srcSelection.selectedNodes() ;
-        if( srcNodes.length === 0 )
-            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ;
-        else
-            return insertChildrenEdit( srcNodes ) ;
+        if( srcNodes.length === 0 ) {
+            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ; }
+        else {
+            return insertChildrenEdit( srcNodes ) ; }
     }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
@@ -628,7 +632,7 @@ module pnodeEdits {
         }
     }
 
-    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
         // First try filling place where the source was with no nodes
         const listOfReplacements = [[] as Array<PNode>].concat( backFillList ) ;
         const moveEdits = listOfReplacements.map( replacements => new MoveEdit(srcSelection, replacements)) ;
@@ -734,10 +738,12 @@ module pnodeEdits {
             return node.isPlaceHolder() ; }
         else if( end === start ) {
             // Dropzones are suitable unless there is a place holder
-            // (or similar) immediately to the right
+            // (or similar) immediately to the right or left
             return sel.parent().hasDropZonesAt( start )
                 && ! (   sel.parent().count() > start
-                      && sel.parent().child( start ).isPlaceHolder() ) ;
+                      && sel.parent().child( start ).isPlaceHolder() ) 
+                && ! (   start > 0
+                      && sel.parent().child( start-1 ).isPlaceHolder() ) ;
         } else {
             return false ;
         }
@@ -832,10 +838,13 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() + 1 === selection.focus() ) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusLeft( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusLeft( sel ) }
+                opt = moveFocusLeft( sel ) ; }
             return opt ;
         }
     }
@@ -850,10 +859,13 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() === selection.focus() + 1) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusRight( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusRight( sel ) }
+                opt = moveFocusRight( sel ) ; }
             return opt ;
         }
     }
@@ -868,10 +880,13 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() +1  === selection.focus()) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusLeft( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusLeft( sel ) }
+                opt = moveFocusLeft( sel ) ; }
             return opt ;
         }
     }
@@ -886,10 +901,13 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() === selection.focus() + 1) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusRight( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusRight( sel ) }
+                opt = moveFocusRight( sel ) ; }
             return opt ;
         }
     }
@@ -952,9 +970,11 @@ module pnodeEdits {
 
     /** replaceWithTemplateEdit is basically an InsertChidren 
      */
-    export function replaceWithTemplateEdit( template : Selection ) : Edit<Selection> {
-        const nodes = [ template.root() ] ;
-        return new InsertChildrenEdit( nodes ) ;
+    export function replaceWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
+        const editList : Array<Edit<Selection>>
+           = templates.map( (template) =>
+                            new InsertChildrenEdit( [ template.root() ] ) ) ;
+        return alt( editList )  ;
     }
 
     /** 
@@ -998,8 +1018,10 @@ module pnodeEdits {
     }
 
     /** Engulf the selected nodes with a template. */
-    export function engulfWithTemplateEdit( template : Selection ) : Edit<Selection> {
-        return new EngulfEdit( template ) ;
+    export function engulfWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
+        const editList : Array<Edit<Selection>>
+            = templates.map( (template) => new EngulfEdit( template ) ) ;
+        return alt( editList )  ;
     }
 
     /** Either replace the current seletion with a given template or
@@ -1009,9 +1031,10 @@ module pnodeEdits {
      * 
      * @param template 
      */
-    export function replaceOrEngulfTemplateEdit( template : Selection ) : Edit<Selection> {
-        const replace = compose( replaceWithTemplateEdit( template ), optionally( tabForwardEdit ) ) ;
-        const engulf = compose( engulfWithTemplateEdit( template ), optionally( tabForwardIfNeededEdit ) ) ;
+    export function replaceOrEngulfTemplateEdit( template : Selection | Array<Selection> ) : Edit<Selection> {
+        const templates = (template instanceof Selection) ? [template] : template ;
+        const replace = compose( replaceWithTemplateEdit( templates ), optionally( tabForwardEdit ) ) ;
+        const engulf = compose( engulfWithTemplateEdit( templates ), optionally( tabForwardIfNeededEdit ) ) ;
         const selectionIsAllPlaceHolder
             = testEdit( (sel:Selection) =>
                            sel.selectedNodes().every( (p : PNode) =>
