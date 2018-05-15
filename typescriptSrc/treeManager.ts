@@ -26,18 +26,12 @@ module treeManager {
 
     export class TreeManager {
 
-        private root:PNode;
-
-        public getRoot():PNode {
-            return this.root;
-        }
-
         public createRoot() : Option<Selection>{
             
-            this.root = labels.mkExprSeq( [] )  ;
+            const rootNode = labels.mkExprSeq( [] )  ;
 
             const placeholder = labels.mkExprPH();
-            const sel = new Selection(this.root, collections.list(0), 0, 1);
+            const sel = new Selection(rootNode, collections.list(0), 0, 1);
             const edit = pnodeEdits.insertChildrenEdit([placeholder]);
             return edit.applyEdit(sel);
 
