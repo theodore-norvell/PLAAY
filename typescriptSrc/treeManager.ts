@@ -79,7 +79,7 @@ module treeManager {
                 case "worldcall":
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
-                    return this.makeAccessorNode(selection)
+                    return this.makeAccessorNode(selection) ;
 
                 //misc
                 case "lambda":
@@ -198,9 +198,10 @@ module treeManager {
 
             const assignnode = opt.first() ;
 
-            const template = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
-            return edit.applyEdit(selection);
+            const template0 = new Selection( assignnode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( assignnode, list<number>(), 0, 2 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
+            return edit.applyEdit(selection) ;
 
         }
 
