@@ -530,7 +530,7 @@ module pnodeEdits {
 
     /** Replace with one of a sequence of choices. Picks the first that succeeds. */
     export function replaceWithOneOf( choices : Array<Array<PNode>>  ) : AbstractEdit<Selection> {
-        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) )
+        return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) ) ;
     }
 
     /**  Changes the string value of a node's label.
@@ -596,12 +596,12 @@ module pnodeEdits {
      * The selection returned indicates the newly added nodes.
      * If the src selection is empty, also try replacing the target with something from the backfill list.
     */
-    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
         const srcNodes = srcSelection.selectedNodes() ;
-        if( srcNodes.length === 0 )
-            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ;
-        else
-            return insertChildrenEdit( srcNodes ) ;
+        if( srcNodes.length === 0 ) {
+            return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ; }
+        else {
+            return insertChildrenEdit( srcNodes ) ; }
     }
 
     /** Move nodes by copying them and, at the same time deleting, the originals.
@@ -628,7 +628,7 @@ module pnodeEdits {
         }
     }
 
-    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) {
+    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
         // First try filling place where the source was with no nodes
         const listOfReplacements = [[] as Array<PNode>].concat( backFillList ) ;
         const moveEdits = listOfReplacements.map( replacements => new MoveEdit(srcSelection, replacements)) ;
@@ -837,7 +837,7 @@ module pnodeEdits {
             let opt = moveFocusLeft( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusLeft( sel ) }
+                opt = moveFocusLeft( sel ) ; }
             return opt ;
         }
     }
@@ -855,7 +855,7 @@ module pnodeEdits {
             let opt = moveFocusRight( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusRight( sel ) }
+                opt = moveFocusRight( sel ) ; }
             return opt ;
         }
     }
@@ -873,7 +873,7 @@ module pnodeEdits {
             let opt = moveFocusLeft( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusLeft( sel ) }
+                opt = moveFocusLeft( sel ) ; }
             return opt ;
         }
     }
@@ -891,7 +891,7 @@ module pnodeEdits {
             let opt = moveFocusRight( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
-                opt = moveFocusRight( sel ) }
+                opt = moveFocusRight( sel ) ; }
             return opt ;
         }
     }
