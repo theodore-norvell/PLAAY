@@ -100,6 +100,10 @@ module pnodeEdits {
             return node ;
         }
 
+        public swap() : Selection {
+            return new Selection( this._root, this._path, this._focus, this._anchor ) ;
+        }
+
         public selectedNodes() : Array<PNode> {
             return this.parent().children( this.start(), this.end() ) ;
         }
@@ -138,10 +142,10 @@ module pnodeEdits {
         const path = selection.path();
         if( path.isEmpty() ) { return none<Selection>() ; }
         else {
-            const last = collections.last(path) ;
+            const l = collections.last(path) ;
             return some( new Selection( root, collections.butLast( path ),
-                                        normal ? last : last+1,
-                                        normal ? last+1 : last ) ) ;
+                                        normal ? l : l+1,
+                                        normal ? l+1 : l ) ) ;
         }
 
     }
@@ -834,6 +838,9 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() + 1 === selection.focus() ) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusLeft( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
@@ -852,6 +859,9 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() === selection.focus() + 1) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusRight( selection ) ;
             while( ! leftRightSuitable(opt) ) {
                 const sel = opt.first() ;
@@ -870,6 +880,9 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() +1  === selection.focus()) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusLeft( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
@@ -888,6 +901,9 @@ module pnodeEdits {
         constructor() { super() ; }
         
         public applyEdit( selection : Selection ) : Option<Selection> {
+            if( selection.anchor() === selection.focus() + 1) {
+                selection = selection.swap() ;
+            }
             let opt = moveFocusRight( selection ) ;
             while( ! upDownFocusMoveSuitable(opt) ) {
                 const sel = opt.first() ;
