@@ -307,6 +307,23 @@ module sharedMkHtml
 
             }
             break ;
+            case labels.DotLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "dot" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const suffix : JQuery = $( document.createElement("div") ) ;
+                suffix.addClass( "op" );
+                suffix.text( "." + node.label().getVal() ) ;
+
+                result.append(children[0]);
+                result.append(suffix);
+
+            }
+            break ;
             case labels.LambdaLabel.kindConst :
             {
                 const lambdahead : JQuery = $( document.createElement("div") ) ;

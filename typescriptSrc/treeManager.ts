@@ -74,6 +74,8 @@ module treeManager {
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
                     return this.makeAccessorNode(selection) ;
+                    case "dot":
+                        return this.makeDotNode(selection) ;
 
                 //misc
                 case "lambda":
@@ -149,6 +151,19 @@ module treeManager {
             const accessorNode = opt.first() ;
 
             const template = new Selection( accessorNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
+        //Object accessor
+        private makeDotNode(selection:Selection) : Option<Selection> {
+
+            const left = labels.mkExprPH();
+
+            const dotNode = labels.mkDot( "", true, left ) ;
+
+            const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
 
