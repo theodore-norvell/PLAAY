@@ -361,20 +361,27 @@ module sharedMkHtml
             case labels.StringLiteralLabel.kindConst :
             {
 
-                if (! node.label().isOpen() )
+                result  = $(document.createElement("div")) ;
+                result.addClass( "stringLiteral" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                const openQuote : JQuery = $( document.createElement("span") ).text("\u201C") ; // Left double quotation mark
+                result.append(openQuote) ;
+                if ( node.label().isOpen() )
                 {
-                    result  = $(document.createElement("div")) ;
-                    result.addClass( "stringLiteral" ) ;
-                    result.addClass( "H" ) ;
-                    result.addClass( "droppable" ) ;
-                    result.addClass( "click" ) ;
-                    result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const textField = makeTextInputElement( node, ["input"], collections.none() ) ;
+                    result.append(textField) ;
                 }
                 else
                 {
-                    result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                    const str = node.label().getVal() ;
+                    const textEl = $( document.createElement("span") ).text( str ) ;
+                    result.append(textEl) ;
                 }
+                const closeQuote : JQuery = $( document.createElement("span") ).text("\u201D") ; // Right double quotation mark
+                result.append(closeQuote) ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
