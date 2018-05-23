@@ -706,6 +706,13 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            //Create dot node: .
+            else if(!e.shiftKey && (e.which === 190 || e.which === 110) )
+            {
+                createNode("dot", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
             return;
     }
 

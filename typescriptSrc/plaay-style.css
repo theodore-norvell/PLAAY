@@ -634,6 +634,17 @@ div.accessor {
     min-height: 1em ;
 }
 
+div.dot {
+    border:thin solid rgb(190, 133, 197) ; /* Mauve */
+    border-radius: 5px ;
+    color:rgb(190, 133, 197) ; /* Mauve */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
+}
+
 
 div.stringLiteral{
     border: thin solid rgb(135,206,250);

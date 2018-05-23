@@ -307,6 +307,31 @@ module sharedMkHtml
 
             }
             break ;
+            case labels.DotLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "dot" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+
+                result.append(children[0]);
+
+                const suffix : JQuery = $( document.createElement("div") ) ;
+                suffix.addClass( "op" );
+                if( node.label().isOpen() ) {
+                    suffix.text( "." ) ;
+                    result.append(suffix);
+                    const textElem : JQuery = makeTextInputElement( node, ["input"], collections.none<number>() ) ;
+                    result.append( textElem ) ;
+                } else {
+                    suffix.text( "." + node.label().getVal() ) ;
+                    result.append(suffix);
+                }
+
+            }
+            break ;
             case labels.LambdaLabel.kindConst :
             {
                 const lambdahead : JQuery = $( document.createElement("div") ) ;
