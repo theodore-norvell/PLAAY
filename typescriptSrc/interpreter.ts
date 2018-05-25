@@ -451,59 +451,55 @@ module interpreter {
       vms.setReady( false ) ;
     }
 
-    function accessorStepper(vms: VMS) {
-      const node = vms.getPendingNode();
-      const object = vms.getChildVal(0);
-      const field = vms.getChildVal(1);
+    function accessorStepper(vm: VMS) : void {
+      const node = vm.getPendingNode();
+      const object = vm.getChildVal(0);
+      const field = vm.getChildVal(1);
       if (object instanceof ObjectV) {
         if (field instanceof StringV) {
           const fieldName = field.getVal();
           if (object.hasField(fieldName)) {
             const val = object.getField(fieldName).getValue();
-            vms.finishStep(val);
+            vm.finishStep(val);
           }
           else {
-            vms.reportError("No field named " + fieldName);
+            vm.reportError("No field named " + fieldName);
             return;
           }
         } 
         else {
-          vms.reportError("Fields of an object must be identified by a string value.");
+          vm.reportError("Fields of an object must be identified by a string value.");
           return;
         }
       }
       else {
-        vms.reportError("Attempted to access field of non-object value.");
+        vm.reportError("Attempted to access field of non-object value.");
         return;
       }
     }
 
-    function dotStepper(vms: VMS) {
-        const field  = vms.getPendingNode();
-        const object = vms.getChildVal(0); 
-        // orig attempt
-        //const object = field.child(0);
-        if(field.label().kind() === labels.DotLabel.kindConst) {
-            const name = field.label().getVal.toString();
-            if(object instanceof ObjectV) {
-                if(field instanceof StringV) {
-                    if(object.hasField(name)) {
-                        const val = object.getField(name).getValue();
-                        vms.finishStep(val);
-                    }
-                    else {
-                        vms.reportError("No Field named " + name);
-                        return;
-                    }
-                }
+    function dotStepper(vm: VMS) : void {
+        const node : PNode  = vm.getPendingNode();
+        assert.check( node.label().kind() === labels.DotLabel.kindConst ) ;
+        const object : Value = vm.getChildVal(0); 
+        const name : string = node.label().getVal() ;
+        if(object instanceof ObjectV) {
+            if(object.hasField(name)) {
+                const val = object.getField(name).getValue();
+                vm.finishStep(val);
             }
-        }        
+            else {
+                vm.reportError("No field named " + name + ".");
+            }
+        } else {
+            vm.reportError( "The dot operator may only be applied to objects." );
+        }
     }
 
     function ifStepper(vms : VMS) : void {
         assert.checkPrecondition(vms.isChildMapped(0), "Condition is not ready.");
         assert.checkPrecondition(vms.getChildVal(0).isStringV(), "Condition is not a StringV.");
-        const result : string = (<StringV> vms.getChildVal(0)).getVal();
+        const result : string = (vms.getChildVal(0) as StringV).getVal();
         assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
         const choice = result === "true" ? 1 : 2;
         vms.finishStep(vms.getChildVal(choice));

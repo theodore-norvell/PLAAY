@@ -1013,6 +1013,70 @@ describe('AccessorLabel', function(): void {
       const message = vm.getError() ;
       assert.checkEqual( message, "No field named y" );
     });
+
+    it('should report an error when applied to non-object', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const stringLiteral = mkNumberLiteral("5");
+      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [stringLiteral, labels.mkStringLiteral("y")]);
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "The index operator may only be applied to objects" );
+    });
+
+    it('should report an error when the index is not a string', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const stringLiteral = mkNumberLiteral("5");
+      const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
+      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [stringLiteral, index]);
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "The operand of the index operator must be a string." );
+    });
+});
+
+describe('DotLabel', function(): void {
+    it ('should work when the field is there', function(): void {
+        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
+        const root = labels.mkDot( "x", false, object ) ;
+        const vm = makeStdVMS(root);
+        while (vm.canAdvance()) {
+          vm.advance();
+        }
+        assert.check(!vm.hasError());
+        const val = vm.getFinalValue();
+        assert.check(val instanceof StringV);
+        assert.check((val as StringV).getVal() === "5");
+    });
+
+    it('should report an error that the object does not have a field named y', function(): void {
+      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const object = new PNode(new labels.ObjectLiteralLabel, [field]);
+      const root = labels.mkDot( "y", false, object ) ;
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "No field named y." );
+    });
+
+    it('should report an error when applied to a non-object', function(): void {
+      const stringLiteral = mkNumberLiteral("5") ;
+      const root = labels.mkDot( "y", false, stringLiteral ) ;
+      const vm = makeStdVMS(root);
+      while( vm.canAdvance() ) {
+        vm.advance(); }
+      assert.check( vm.hasError() );
+      const message = vm.getError() ;
+      assert.checkEqual( message, "The dot operator may only be applied to objects." );
+    });
 });
 
 describe('ArrayLiteralLabel', function(): void {
