@@ -126,6 +126,9 @@ module interpreter {
     theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
     theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
 
+    theSelectorRegistry[labels.DotLabel.kindConst] = leftToRightSelector;
+    theStepperRegistry[labels.DotLabel.kindConst] = dotStepper;
+
     theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelector;
     theStepperRegistry[labels.ArrayLiteralLabel.kindConst] = arrayStepper;
 
@@ -473,6 +476,28 @@ module interpreter {
         vms.reportError("Attempted to access field of non-object value.");
         return;
       }
+    }
+
+    function dotStepper(vms: VMS) {
+        const field  = vms.getPendingNode();
+        const object = vms.getChildVal(0); 
+        // orig attempt
+        //const object = field.child(0);
+        if(field.label().kind() === labels.DotLabel.kindConst) {
+            const name = field.label().getVal.toString();
+            if(object instanceof ObjectV) {
+                if(field instanceof StringV) {
+                    if(object.hasField(name)) {
+                        const val = object.getField(name).getValue();
+                        vms.finishStep(val);
+                    }
+                    else {
+                        vms.reportError("No Field named " + name);
+                        return;
+                    }
+                }
+            }
+        }        
     }
 
     function ifStepper(vms : VMS) : void {
