@@ -367,7 +367,8 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
                 result.addClass( "click" ) ;
                 result.addClass( "canDrag" ) ;
-                const openQuote : JQuery = $( document.createElement("span") ).text("\u201C") ; // Left double quotation mark
+                const leftDoubleQuotationMark = "\u201C" ;
+                const openQuote : JQuery = $( document.createElement("span") ).text(leftDoubleQuotationMark) ;
                 result.append(openQuote) ;
                 if ( node.label().isOpen() )
                 {
@@ -380,7 +381,8 @@ module sharedMkHtml
                     const textEl = $( document.createElement("span") ).text( str ) ;
                     result.append(textEl) ;
                 }
-                const closeQuote : JQuery = $( document.createElement("span") ).text("\u201D") ; // Right double quotation mark
+                const rightDoubleQuotationMark = "\u201D" ;
+                const closeQuote : JQuery = $( document.createElement("span") ).text(rightDoubleQuotationMark) ;
                 result.append(closeQuote) ;
             }
             break ;
