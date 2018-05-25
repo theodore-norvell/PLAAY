@@ -1086,11 +1086,11 @@ module animatorHelpers
     function highlightThis(el : svg.Container) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        const outline : svg.Rect = el.rect(bounds.width+2, bounds.height+2);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: WHITE, opacity: 1, width: 1.5});
+        outline.fill({color: WHITE, opacity: 0.4});
+        outline.stroke({color: WHITE, opacity: 0, width: 1.5});
     }
 }
 
