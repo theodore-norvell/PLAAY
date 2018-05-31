@@ -515,6 +515,27 @@ module interpreter {
         }
     }
 
+    function dotAssignStepper(vm: VMS) : void {
+        const node : PNode = vm.getPendingNode() ;
+        const object : Value = vm.getChildVal(0);
+        assert.check( node.label().kind() === labels.DotLabel.kindConst ) ;
+        const name :string = node.label().getVal() ;
+        if(object instanceof ObjectV) {
+            if(object.hasField(name)) {
+                const val : Value =vm.getChildVal(1) ;
+                object.getField(name).setValue(val) ;
+                vm.finishStep(DoneV.theDoneValue) ;
+            }
+            else {
+                vm.reportError(" No field named " + name +".") ;
+            }
+        }
+        else {
+            vm.reportError("The dot operator may only be applied to objects.") ;
+        }
+
+    }
+
     function assignStepper(vms : VMS) : void {
         const assignNode : PNode = vms.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
