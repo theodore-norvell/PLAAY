@@ -515,73 +515,59 @@ module interpreter {
         }
     }
 
-    function dotAssignStepper(vm: VMS) : void {
-        const node : PNode = vm.getPendingNode() ;
-        const object : Value = vm.getChildVal(0);
-        assert.check( node.label().kind() === labels.DotLabel.kindConst ) ;
-        const name :string = node.label().getVal() ;
-        if(object instanceof ObjectV) {
-            if(object.hasField(name)) {
-                const val : Value =vm.getChildVal(1) ;
-                object.getField(name).setValue(val) ;
-                vm.finishStep(DoneV.theDoneValue) ;
-            }
-            else {
-                vm.reportError(" No field named " + name +".") ;
-            }
-        }
-        else {
-            vm.reportError("The dot operator may only be applied to objects.") ;
-        }
-
-    }
-
-    function assignStepper(vms : VMS) : void {
-        const assignNode : PNode = vms.getPendingNode();
+    function assignStepper(vm : VMS) : void {
+        const assignNode : PNode = vm.getPendingNode();
         const variableNode : PNode = assignNode.child(0);
         //Handle the case when we are assigning to a field of an object
-        if (variableNode.label().kind() === labels.AccessorLabel.kindConst) {
-            const path = vms.getPending();
+        if (variableNode.label().kind() === labels.AccessorLabel.kindConst
+           || variableNode.label().kind() === labels.DotLabel.kindConst) {
+            const path = vm.getPending();
             const pathToObject = path.cat(collections.list<number>(0,0));
-            const pathToField = path.cat(collections.list<number>(0,1));
-            const object = vms.getVal(pathToObject);
+            const object = vm.getVal(pathToObject);
             if (!(object instanceof ObjectV)) {
-              vms.reportError(object + " is not an object value.");
-              return;
+                vm.reportError(object + " is not an object value.");
+                return;
             }
-            const field = vms.getVal(pathToField);
-            if (!(field instanceof StringV)) {
-              vms.reportError("Fields of object must be identified with a string value.");
-              return;
+            let fieldName : string ;
+            if( variableNode.label().kind() === labels.AccessorLabel.kindConst ) {
+                const pathToField = path.cat(collections.list<number>(0,1));
+                const field = vm.getVal(pathToField);
+                if (!(field instanceof StringV)) {
+                vm.reportError("Fields of object must be identified with a string value.");
+                return;
+                }
+                fieldName = field.getVal() ;
+            } else {
+                fieldName = variableNode.label().getVal() ;
             }
-            if (!object.hasField(field.getVal())) {
-              vms.reportError("Object has no field named " + field.getVal());
-              return;
+            if (!object.hasField(fieldName)) {
+                vm.reportError("Object has no field named " + fieldName);
+                return;
             }
-            const val : Value = vms.getChildVal(1);
-            object.getField(field.getVal()).setValue(val);
-            vms.finishStep(DoneV.theDoneValue);
+            const val : Value = vm.getChildVal(1);
+            object.getField(fieldName).setValue(val);
+            vm.finishStep(DoneV.theDoneValue);
         }
         //Handle the case when assigning to a variable
         else {
           if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
-            vms.reportError("Attempting to assign to something that isn't a variable.");
+            vm.reportError("Attempting to assign to something that isn't a variable.");
             return ; }
           const variableName : string = variableNode.label().getVal();
-          const value : Value = vms.getChildVal(1);
-          const variableStack : VarStack = vms.getStack();
+          const value : Value = vm.getChildVal(1);
+          const variableStack : VarStack = vm.getStack();
           if( ! variableStack.hasField(variableName) ) {
-              vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+              vm.reportError( "No variable named " + variableName + " is in scope." ) ;
               return ;
           }
           const field = variableStack.getField(variableName) ;
           if( ! field.getIsDeclared() ) {
-              vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+              vm.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
               return ;
           }
           // TODO Check that the value is assignable to the field.
           field.setValue( value ) ;
-          vms.finishStep( DoneV.theDoneValue ) ;
+          vm.finishStep( DoneV.theDoneValue ) ;
       }
     }
 
