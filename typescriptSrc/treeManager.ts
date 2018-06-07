@@ -217,20 +217,40 @@ module treeManager {
         }
 
         private makeVarDeclNode(selection:Selection, isConstant : boolean ) : Option<Selection> {
-
-            const varNode = labels.mkVar("");
-            const noTypeNode = labels.mkNoTypeNd();
-            const initExp = labels.mkNoExpNd();
+            let varNode : PNode ;
+            let typeNode : PNode ;
+            let initNode : PNode ;
+            // If the selection is a declNode, try changing it.
+            if( selection.size() === 1
+            && selection.selectedNodes()[0].isVarDeclNode() ) {
+                const declNode = selection.selectedNodes()[0] ;
+                varNode = declNode.child(0) ;
+                typeNode = declNode.child(1) ;
+                initNode = declNode.child(2) ;
+            } // If the selection parent is a declNode, try changing it.
+            else if( selection.parent().isVarDeclNode() ) {
+                const declNode = selection.parent() ;
+                varNode = declNode.child(0) ;
+                typeNode = declNode.child(1) ;
+                initNode = declNode.child(2) ;
+                // Try going up.
+                const upEdit = pnodeEdits.moveFocusUpEdit ;
+                upEdit.applyEdit(selection).map( s => selection=s ) ;
+            } // Otherwise try making a new node.
+            else {
+                varNode = labels.mkVar("");
+                typeNode = labels.mkNoTypeNd();
+                initNode = labels.mkNoExpNd();
+            }
 
             const vardeclnode = isConstant
-                                ? labels.mkConstDecl( varNode, noTypeNode, initExp ) 
-                                : labels.mkVarDecl( varNode, noTypeNode, initExp );
+                 ? labels.mkConstDecl( varNode, typeNode, initNode ) 
+                 : labels.mkVarDecl( varNode, typeNode, initNode );
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
             const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             return edit.applyEdit(selection);
-
         }
 
         private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {

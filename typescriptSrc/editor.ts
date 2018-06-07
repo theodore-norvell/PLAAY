@@ -569,8 +569,8 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            // Create constant decl node: ' or Cntl-Shift-C or Cmd-Shift-C 
-            else if ( (!e.shiftKey && e.which===59)
+            // Create constant decl node: , or Cntl-Shift-C or Cmd-Shift-C 
+            else if ( (!e.shiftKey && e.which===188)
               || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 67) 
             {
                 createNode("condecl", currentSelection );
