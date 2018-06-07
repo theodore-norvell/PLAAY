@@ -948,8 +948,9 @@ describe ('Call node', function(): void {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
-        assert.checkEqual( message,
-            "Attempt to call a value that is neither a closure nor a built-in function." );
+        assert.checkEqual( 
+            "Attempt to call a value that is neither a closure nor a built-in function.",
+            message );
     });
 
     it('should report an error if the number of arguments does not match the number of parameters', function() : void {
@@ -963,8 +964,9 @@ describe ('Call node', function(): void {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
-        assert.checkEqual( message,
-            "Number of arguments for lambda does not match parameter list." );
+        assert.checkEqual(
+            "Number of arguments for lambda does not match parameter list.",
+            message );
     });
 });
 
@@ -1011,7 +1013,7 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "No field named y" );
+      assert.checkEqual( "No field named 'y'.", message );
     });
 
     it('should report an error when applied to non-object', function(): void {
@@ -1023,20 +1025,20 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "The index operator may only be applied to objects" );
+      assert.checkEqual( "The index operator may only be applied to objects.", message );
     });
 
     it('should report an error when the index is not a string', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
-      const stringLiteral = mkNumberLiteral("5");
-      const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
-      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [stringLiteral, index]);
-      const vm = makeStdVMS(root);
-      while( vm.canAdvance() ) {
-        vm.advance(); }
-      assert.check( vm.hasError() );
-      const message = vm.getError() ;
-      assert.checkEqual( message, "The operand of the index operator must be a string." );
+        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const object = new PNode(new labels.ObjectLiteralLabel, [field]);
+        const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
+        const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, index]);
+        const vm = makeStdVMS(root);
+        while( vm.canAdvance() ) {
+            vm.advance(); }
+        assert.check( vm.hasError() );
+        const message = vm.getError() ;
+        assert.checkEqual( "The operand of the index operator must be a string.", message );
     });
 });
 
@@ -1064,7 +1066,7 @@ describe('DotLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "No field named y." );
+      assert.checkEqual( "No field named 'y'.", message );
     });
 
     it('should report an error when applied to a non-object', function(): void {
@@ -1075,7 +1077,7 @@ describe('DotLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "The dot operator may only be applied to objects." );
+      assert.checkEqual( "The dot operator may only be applied to objects.", message );
     });
 });
 
@@ -1226,7 +1228,7 @@ describe('IfLabel', function () : void{
         //it should fail here
         vm.advance();
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(), "Condition is neither true nor false." ) ;
+        assert.checkEqual( "Condition is neither true nor false.", vm.getError() ) ;
     });
 
     it('should evaluate to a StringV equaling 5 when true', function() : void {
@@ -1576,7 +1578,7 @@ describe('VarDeclLabel', function () : void {
         // Step the expr seq node
         vm.advance() ;
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(), "Variable a is declared twice." )
+        assert.checkEqual( "Variable 'a' is declared twice.", vm.getError() ) ;
     });
 
     it('should declare variables with no initializer', function () : void {
@@ -1621,8 +1623,8 @@ describe('VariableLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
-        while( vm.canAdvance() && ! vm.isDone() )
-            vm.advance() ;
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
 
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
@@ -1642,12 +1644,12 @@ describe('VariableLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
-        while( vm.canAdvance() && ! vm.isDone() )
-            vm.advance() ;
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
 
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(),"The variable named a has not been declared yet." ) ;
+        assert.checkEqual( "The variable named 'a' has not been declared yet.", vm.getError() ) ;
     });
 
     it('should fail when trying to reference an undeclared node', function () : void {
@@ -1664,7 +1666,7 @@ describe('VariableLabel', function () : void {
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
         assert.check( vm.hasError() ) ;
-        assert.check( vm.getError() === "No variable named a is in scope." ) ;
+        assert.check( vm.getError() === "No variable named 'a' is in scope." ) ;
     });
 });
 
@@ -1694,11 +1696,11 @@ describe('AssignLabel', function () : void {
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(), "No variable named a is in scope.") ;
+        assert.checkEqual( "No variable named 'a' is in scope.", vm.getError() ) ;
 
     });
 
-    it('should assign a new value to a previously declared variable', function () {
+    it('should assign a new value to a previously declared variable', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
         const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
@@ -1712,15 +1714,37 @@ describe('AssignLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
-        while( vm.canAdvance() && ! vm.isDone() )
-            vm.advance() ;
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
 
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
         assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (<StringV> val).getVal();
+        const result : string = (val as StringV).getVal();
         assert.check(result === "2", "It did not return 2 as expected. It returned " + result);
+    });
+
+    it('should fail if assigning to a constant', function () {
+        //setup
+        // exprSeq( decl a:= 1, a := 2, a )
+        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
+        const variableNode : PNode = labels.mkVar("a");
+        const typeNode : PNode = labels.mkNoTypeNd();
+        const valueNode1 : PNode = labels.mkNumberLiteral("1");
+        const valueNode2 : PNode = labels.mkNumberLiteral("2");
+        const varDeclNode : PNode = labels.mkConstDecl(variableNode, typeNode, valueNode1);
+
+        const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
+        const vm = makeStdVMS( root )  ;
+
+        //run the test until the top evaluation is done or there is an error
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
+        
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( "The variable named 'a' is a constant and may not be assigned.", vm.getError() ) ;
     });
 
     it('should fail when trying to assign to a variable not yet declared', function () : void {
@@ -1737,11 +1761,11 @@ describe('AssignLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
-        while( vm.canAdvance() && ! vm.isDone() )
-            vm.advance() ;
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(),"The variable named a has not been declared yet." ) ;
+        assert.checkEqual( "The variable named 'a' has not been declared yet.", vm.getError() ) ;
     });
 
     it('should fail when trying to assign to something that is not a variable', function () : void {
@@ -1756,11 +1780,11 @@ describe('AssignLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
-        while( vm.canAdvance() && ! vm.isDone() )
-            vm.advance() ;
+        while( vm.canAdvance() && ! vm.isDone() ) {
+            vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( vm.getError(),"Attempting to assign to something that isn't a variable." ) ;
+        assert.checkEqual( "Attempting to assign to something that isn't a variable.", vm.getError()) ;
     });
 
     it('should assign to the field of an object', function(): void {
@@ -1775,13 +1799,13 @@ describe('AssignLabel', function () : void {
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
-      while( vm.canAdvance() && ! vm.isDone() )
-          vm.advance() ;
+      while( vm.canAdvance() && ! vm.isDone() ) {
+          vm.advance() ; }
       assert.check(vm.isDone(), "VMS is not done.");
       assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
       const value : Value = vm.getVal(emptyList);
       assert.check(value instanceof StringV, "The value is not a StringV.");
-      const result : string = (<StringV> value).getVal();
+      const result : string = (value as StringV).getVal();
       assert.check(result === "10", "It did not return 10 as expected. It returned " + result); 
     });
 
@@ -1797,11 +1821,11 @@ describe('AssignLabel', function () : void {
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
-      while( vm.canAdvance() && ! vm.isDone() )
-          vm.advance() ;
+      while( vm.canAdvance() && ! vm.isDone() ) {
+          vm.advance() ; }
   
       assert.check( vm.hasError() ) ;
-      assert.checkEqual( vm.getError(), "Object has no field named y" ) ;
+      assert.checkEqual( "Object has no field named 'y'.", vm.getError() ) ;
     });
 
     it('should fail to assign if object is not in scope', function(): void {
@@ -1811,16 +1835,22 @@ describe('AssignLabel', function () : void {
       const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("NoObj"), labels.mkStringLiteral("x")]);
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
-      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign]) ;
+      //  We have expSeq( varDecl[false]( Variable["obj"],
+      //                                  NoType,
+      //                                  objectLiteral(
+      //                                         varDecl( Variable("x", NoType, NumberLiteral["5"] ) ) ),
+      //                  Assign( Accessor( Variable["NoObj"], StringLiteral["x"] ),
+      //                          NumberLiteral["10"] ) )
+      //
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
-      while( vm.canAdvance() && ! vm.isDone() )
-          vm.advance() ;
+      while( vm.canAdvance() && ! vm.isDone() ) {
+          vm.advance() ; }
   
       assert.check( vm.hasError() ) ;
-      assert.checkEqual( vm.getError(), "No variable named NoObj is in scope." ) ;
+      assert.checkEqual( "No variable named 'NoObj' is in scope.", vm.getError() ) ;
     });
 
     it('should assign to a field of an object within another object', function(): void {
@@ -1835,13 +1865,13 @@ describe('AssignLabel', function () : void {
       const root = mkExprSeq([objDecl, assign, accessor3]);
       const vm = makeStdVMS(root);
       //run the test until the top evaluation is done or there is an error
-      while( vm.canAdvance() && ! vm.isDone() )
-          vm.advance() ;
+      while( vm.canAdvance() && ! vm.isDone() ) {
+          vm.advance() ; } 
       assert.check(vm.isDone(), "VMS is not done.");
       assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
       const value : Value = vm.getVal(emptyList);
       assert.check(value instanceof StringV, "The value is not a StringV.");
-      const result : string = (<StringV> value).getVal();
+      const result : string = (value as StringV).getVal();
       assert.check(result === "666", "It did not return 666 as expected. It returned " + result);
     });
 });

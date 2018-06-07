@@ -334,7 +334,7 @@ module interpreter {
             completeCall( vms, functionValue, args ) ;
         } 
         else {
-            vms.reportError("No variable named " + fieldName + "is in scope.");
+            vms.reportError("No variable named '" + fieldName + "' is in scope.");
         } 
     }
 
@@ -423,32 +423,36 @@ module interpreter {
         vms.finishStep(array);
     }
 
-    function previsitNode(vms: VMS) {
+    function previsitNode(vm: VMS) : void {
       // Previsit. Build and push stack frame
-      const manager = vms.getTransactionManager() ;
+      const manager = vm.getTransactionManager() ;
       const stackFrame = new ObjectV( manager ) ;
-      const node = vms.getPendingNode() ;
+      const node = vm.getPendingNode() ;
       const sz = node.count() ;
       const names = new Array<string>() ;
       for( let i=0; i < sz ; ++i ) {
           const childNode = node.child(i) ;
           if( childNode.label() instanceof labels.VarDeclLabel ) {
-              const name : string = childNode.child(0).label().getVal() ;
-              const initialValue = null ;
-              const type : Type = Type.NOTYPE ;
-              const field = new Field( name, NullV.theNullValue, type, false, false, manager ) ;
+              const varDeclLabel = childNode.label() as labels.VarDeclLabel ;
+              const isConstant = varDeclLabel.declaresConstant() ;
+              const firstChild = childNode.child(0) ;
+              assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
+              const varLabel = firstChild.label() as labels.VariableLabel ;
+              const name : string = varLabel.getVal() ;
+              const type : Type = Type.NOTYPE ; // TODO compute the type from the 2nd child of the childNode
+              const field = new Field( name, NullV.theNullValue, type, isConstant, false, manager ) ;
               if( names.some( (v : string) => v===name ) ) {
-                  vms.reportError( "Variable " +name+ " is declared twice." ) ;
+                  vm.reportError( "Variable '" +name+ "' is declared twice." ) ;
                   return ;
               } else {
                   stackFrame.addField( field ) ;
                   names.push( name ) ; }
           }
       } // end for
-      vms.getEval().pushOntoVarStack( stackFrame ) ;
+      vm.getEval().pushOntoVarStack( stackFrame ) ;
       // Now map this node to say it's been previsited.
-      vms.putExtraInformation( stackFrame ) ;
-      vms.setReady( false ) ;
+      vm.putExtraInformation( stackFrame ) ;
+      vm.setReady( false ) ;
     }
 
     function accessorStepper(vm: VMS) : void {
@@ -463,17 +467,17 @@ module interpreter {
             vm.finishStep(val);
           }
           else {
-            vm.reportError("No field named " + fieldName);
+            vm.reportError("No field named '" + fieldName +"'.") ;
             return;
           }
         } 
         else {
-          vm.reportError("Fields of an object must be identified by a string value.");
+          vm.reportError("The operand of the index operator must be a string.");
           return;
         }
       }
       else {
-        vm.reportError("Attempted to access field of non-object value.");
+        vm.reportError("The index operator may only be applied to objects.");
         return;
       }
     }
@@ -489,7 +493,7 @@ module interpreter {
                 vm.finishStep(val);
             }
             else {
-                vm.reportError("No field named " + name + ".");
+                vm.reportError("No field named '" + name + "'.");
             }
         } else {
             vm.reportError( "The dot operator may only be applied to objects." );
@@ -527,7 +531,7 @@ module interpreter {
             const pathToObject = path.cat(collections.list<number>(0,0));
             const object = vm.getVal(pathToObject);
             if (!(object instanceof ObjectV)) {
-                vm.reportError(object + " is not an object value.");
+                vm.reportError("First operand is not an object value.");
                 return;
             }
             if( variableNode.label().kind() === labels.AccessorLabel.kindConst ) {
@@ -542,7 +546,7 @@ module interpreter {
                 fieldName = variableNode.label().getVal() ;
             }
             if (!object.hasField(fieldName)) {
-                vm.reportError("Object has no field named " + fieldName);
+                vm.reportError("Object has no field named '" + fieldName +"'.");
                 return;
             }
             field = object.getField(fieldName) ;
@@ -555,13 +559,17 @@ module interpreter {
             fieldName = variableNode.label().getVal();
             const variableStack : VarStack = vm.getStack();
             if( ! variableStack.hasField(fieldName) ) {
-                vm.reportError( "No variable named " + fieldName + " is in scope." ) ;
+                vm.reportError( "No variable named '" + fieldName + "' is in scope." ) ;
                 return ;
             }
             field = variableStack.getField(fieldName) ;
         }
         if( ! field.getIsDeclared() ) {
-            vm.reportError( "The variable named " + fieldName + " has not been declared yet." ) ;
+            vm.reportError( "The variable named '" + fieldName + "' has not been declared yet." ) ;
+            return ;
+        }
+        if( field.getIsConstant() ) {
+            vm.reportError( "The variable named '" + fieldName + "' is a constant and may not be assigned." ) ;
             return ;
         }
         const value : Value = vm.getChildVal(1);
@@ -575,12 +583,12 @@ module interpreter {
         const variableName : string = variableNode.label().getVal();
         const variableStack : VarStack = vms.getStack();
         if( ! variableStack.hasField(variableName) ) {
-            vms.reportError( "No variable named " + variableName + " is in scope." ) ;
+            vms.reportError( "No variable named '" + variableName + "' is in scope." ) ;
             return ;
         }
         const field = variableStack.getField(variableName) ;
         if( ! field.getIsDeclared() ) {
-            vms.reportError( "The variable named " + variableName + " has not been declared yet." ) ;
+            vms.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
             return ;
         }
         vms.finishStep(field.getValue());
