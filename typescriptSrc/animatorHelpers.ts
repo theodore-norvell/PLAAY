@@ -74,7 +74,7 @@ module animatorHelpers
     {
         //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
         let y = 0;
-        let padding : number = 15;
+        const padding : number = 15;
         
         if (stk.notEmpty()){
                 const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
@@ -624,7 +624,9 @@ module animatorHelpers
                 const padding : number = 10;
                 let x : number = 0;
 
-                const delta : svg.Text = element.text("\u03B4");
+                const label = node.label() as labels.VarDeclLabel ;
+                const isConst = label.declaresConstant() ;
+                const delta : svg.Text = element.text(isConst ? "con" : "loc");
                 delta.fill(GHOSTWHITE);
                 delta.dmove(0, -5); //testing
 
