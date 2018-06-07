@@ -223,23 +223,20 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
   const vm = makeStdVMS(root);
 
   it('should evaluate to a StringV equaling 8', function() : void {
-    let firstEvalDone: boolean = false;
+      let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
-      vm.advance();
+        vm.advance();
         if (vm.isDone()) {
-          if (firstEvalDone) {
-            evalDone = true;
-    }
-          else {
-            firstEvalDone = true;
-          }
-        }
+            if (firstEvalDone) {
+                evalDone = true; }
+        else {
+            firstEvalDone = true; } }
       }
       assert.check(vm.isMapped(emptyList));
-    const val = vm.getVal(emptyList);
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "8");
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "8");
   });
 });
 
@@ -254,23 +251,21 @@ describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void 
   const vm = makeStdVMS(root);
 
   it('should evaluate to a StringV equaling 1', function() : void {
-    let firstEvalDone: boolean = false;
+      let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
-      vm.advance();
+        vm.advance();
         if (vm.isDone()) {
           if (firstEvalDone) {
-            evalDone = true;
-          }
+            evalDone = true; }
           else {
-            firstEvalDone = true;
-          }
+            firstEvalDone = true; }
         }
-    }
+      }
       assert.check(vm.isMapped(emptyList));
-    const val = vm.getVal(emptyList);
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "1");
+      const val = vm.getVal(emptyList);
+      assert.check(val instanceof StringV);
+      assert.check((val as StringV).getVal() === "1");
   });
 });
 
@@ -984,8 +979,8 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue() as StringV).getVal() === "3")
-      assert.check(((val as ObjectV).getField("y").getValue() as StringV).getVal() === "5") 
+      assert.check(((val as ObjectV).getField("x").getValue() as StringV).getVal() === "3") ;
+      assert.check(((val as ObjectV).getField("y").getValue() as StringV).getVal() === "5") ;
   });
 });
 
@@ -1287,7 +1282,7 @@ describe('IfLabel', function () : void{
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
         assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (<StringV> val).getVal();
+        const result : string = (val as StringV).getVal();
         assert.check(result === "5", "It did not return 5 as expected. It returned " + result);
 
     });
@@ -1349,14 +1344,14 @@ describe('IfLabel', function () : void{
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
         assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (<StringV> val).getVal();
+        const result : string = (val as StringV).getVal();
         assert.check(result === "7", "It did not return 7 as expected. It returned " + result);
     });
 });
 
 //test this here since it is needed for while
 describe('scrub', function () : void {
-    it ('should unmap a single element', function () {
+    it ('should unmap a single element', function () : void {
         //setup
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const root : PNode = new PNode(new ExprSeqLabel(), [numberNode]);
@@ -1389,7 +1384,7 @@ describe('scrub', function () : void {
         assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
     });
 
-    it ('should unmap two elements', function () {
+    it ('should unmap two elements', function () : void {
         //setup
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const stringNode : PNode = labels.mkStringLiteral("hello");
@@ -1432,7 +1427,7 @@ describe('scrub', function () : void {
         assert.check(!vm.isChildMapped(0), "The number literal is still mapped.");
         assert.check(!vm.isChildMapped(1), "The string literal is still mapped.");
     });
-    it ('should unmap four elements', function () {
+    it ('should unmap four elements', function ()  : void {
         //setup
         const numberNode : PNode = labels.mkNumberLiteral("5");
         const stringNode : PNode = labels.mkStringLiteral("hello");
@@ -1510,15 +1505,15 @@ describe('VarDeclLabel', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run the test
-        let stackDepth = vm.getEval().getStack().getAllFrames().length ;
+        const stackDepth = vm.getEval().getStack().getAllFrames().length ;
         // step the expr seq node to create a new stack frame.
         selectAndStep( vm ) ; 
 
-        let newStackDepth = vm.getEval().getStack().getAllFrames().length ;
+        const newStackDepth = vm.getEval().getStack().getAllFrames().length ;
         assert.checkEqual( stackDepth+1, newStackDepth ) ;
         
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
-        let f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
+        const f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f.getIsDeclared() === false ) ;
 
         // step the mumber literal node
@@ -1528,7 +1523,7 @@ describe('VarDeclLabel', function () : void {
         selectAndStep( vm ) ;
 
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
-        let f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
+        const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
         assert.check( f.getIsDeclared() === true ) ;
         assert.check( f.getValue() instanceof StringV ) ;
@@ -1586,7 +1581,7 @@ describe('VarDeclLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const noExpNode : PNode = labels.mkNoExpNd( ) ;
-        const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, noExpNode);;
+        const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, noExpNode);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode1]);
         const vm = makeStdVMS( root )  ;
 
@@ -1725,7 +1720,7 @@ describe('AssignLabel', function () : void {
         assert.check(result === "2", "It did not return 2 as expected. It returned " + result);
     });
 
-    it('should fail if assigning to a constant', function () {
+    it('should fail if assigning to a constant', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
         const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
@@ -1795,7 +1790,7 @@ describe('AssignLabel', function () : void {
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
       const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
@@ -1817,7 +1812,7 @@ describe('AssignLabel', function () : void {
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
       const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2])
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
@@ -1945,7 +1940,7 @@ describe('WhileLabel', function () : void {
 
         // Select the guard again.  This should have the side effect of scrubbing.
         vm.advance() ;
-        assert.check( vm.isReady() )
+        assert.check( vm.isReady() ) ;
         assert.check( vm.getPending().equals( collections.list(0) ) ) ;
         
         assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
@@ -1989,7 +1984,7 @@ describe('WhileLabel', function () : void {
 
         // Select the guard again.  This should have the side effect of scrubbing.
         vm.advance() ;
-        assert.check( vm.isReady() )
+        assert.check( vm.isReady() ) ;
         assert.check( vm.getPending().equals( collections.list(0) ) ) ;
         
         assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
@@ -2027,8 +2022,8 @@ describe('WhileLabel', function () : void {
             vm.advance() ; // Select
             assert.check( vm.isReady()  ) ;
             assert.check( vm.getPendingNode() === n,
-                "Wrong node selected on iteration " +i+ ".\nSelected " +vm.getPendingNode()
-                + "\nrather than " +n+ ".") ;
+                          "Wrong node selected on iteration " +i+ ".\nSelected " +vm.getPendingNode()
+                          + "\nrather than " +n+ ".") ;
             vm.advance() ; // Step
             i += 1 ;
         } ) ;
@@ -2037,10 +2032,10 @@ describe('WhileLabel', function () : void {
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
         assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (<StringV> val).getVal();
+        const result : string = (val as StringV).getVal();
         assert.check(result === "false", "It did not return false as expected. It returned " + result);
 
-    })
+    }) ;
 
 });
 
@@ -2057,7 +2052,7 @@ describe('ExprPHLable', function () : void {
     });
 });
 
-function selectAndStep( vm : VMS ) {
+function selectAndStep( vm : VMS ) : void {
     assert.checkPrecondition(!vm.isReady() ) ;
     // Select
     vm.advance();

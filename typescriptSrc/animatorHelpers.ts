@@ -77,9 +77,9 @@ module animatorHelpers
         let padding : number = 15;
         
         if (stk.notEmpty()){
-                let vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
-                let varstackSize : number = vars.getAllFrames().length;
-                let frameArray : ObjectI[] = vars.getAllFrames();
+                const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
+                const varstackSize : number = vars.getAllFrames().length;
+                const frameArray : ObjectI[] = vars.getAllFrames();
                 
                 for (let k = 0; k < varstackSize - 1 && k < 10; k++){
                     const obj : ObjectI = frameArray[k];
@@ -793,7 +793,7 @@ module animatorHelpers
                     const arrow : svg.Path = element.path(arrowPathString);
                     arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
                     arrow.fill({opacity : 0});
-                    arrow.marker("end", 10, 7, function(add){
+                    arrow.marker("end", 10, 7, function(add : svg.Marker) : void {
                         add.polygon("0,0 10,3.5 0,7");
                         add.fill(WHITE);
                     });
