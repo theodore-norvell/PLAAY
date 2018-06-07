@@ -64,8 +64,10 @@ module treeManager {
                 //variables & variable manipulation
                 case "var":
                     return this.makeVarNode(selection);
-                case "vardecl":
-                    return this.makeVarDeclNode(selection);
+                case "locdecl":
+                    return this.makeVarDeclNode(selection, false);
+                case "condecl":
+                    return this.makeVarDeclNode(selection, true);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
@@ -214,13 +216,15 @@ module treeManager {
 
         }
 
-        private makeVarDeclNode(selection:Selection) : Option<Selection> {
+        private makeVarDeclNode(selection:Selection, isConstant : boolean ) : Option<Selection> {
 
             const varNode = labels.mkVar("");
             const noTypeNode = labels.mkNoTypeNd();
             const initExp = labels.mkNoExpNd();
 
-            const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
+            const vardeclnode = isConstant
+                                ? labels.mkConstDecl( varNode, noTypeNode, initExp ) 
+                                : labels.mkVarDecl( varNode, noTypeNode, initExp );
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
@@ -383,7 +387,7 @@ module treeManager {
 
         public delete(selection:Selection) : Option<Selection> {
             const nodes : Array<PNode> = selection.selectedNodes() ;
-            if(nodes.length == 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
+            if(nodes.length === 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
                 return this.otherDeleteEdit.applyEdit( selection ) ; }
             else {
                 return this.deleteEdit.applyEdit(selection); }
