@@ -605,7 +605,7 @@ module labels {
     }
     pnode.registry[ ArrayLiteralLabel.kindConst ] = ArrayLiteralLabel ;
 
-    /** Assignments.  */
+    /** Accessor or subscript or indexing.  */
     export class AccessorLabel extends ExprLabel {
 
         public static readonly kindConst : string = "AccessorLabel" ;
@@ -625,12 +625,11 @@ module labels {
             super();
         }
 
-        // Singleton
-        public static theAccessorLabel = new AccessorLabel();
-
         public toJSON() : object {
             return { kind: AccessorLabel.kindConst, } ;
         }
+
+        public static theAccessorLabel :  AccessorLabel = new AccessorLabel() ;
 
         public static fromJSON( json : object ) : AccessorLabel {
             return AccessorLabel.theAccessorLabel ;
@@ -639,6 +638,44 @@ module labels {
         public kind() : string { return AccessorLabel.kindConst ; }
     }
     pnode.registry[ AccessorLabel.kindConst ] = AccessorLabel ;
+
+    /** Dot.  Access a field by name  */
+    export class DotLabel extends ExprLabelWithString {
+
+        public static readonly kindConst : string = "DotLabel" ;
+        
+        public isValid( children : Array<PNode> ) : boolean {
+            return children.length === 1 && children[0].isExprNode() ;
+        }
+
+        public toString():string {
+            return "dot["+ this._val + "]" ;
+        }
+
+        public constructor( val : string, open : boolean ) {
+            super( val, open );
+        }
+
+        public open() : Option<Label> {
+            return some( new DotLabel( this._val, true ) ) ;
+        }
+
+        public changeString (newString : string) : Option<Label> {
+             const newLabel = new DotLabel(newString, false);
+             return new Some(newLabel);
+         }
+
+        public toJSON() : object {
+            return { kind: DotLabel.kindConst, val : this._val, open: this._open } ;
+        }
+
+        public static fromJSON( json : object ) : DotLabel {
+            return new DotLabel( json["val"], json["open"] ) ;
+        }
+            
+        public kind() : string { return DotLabel.kindConst ; }
+    }
+    pnode.registry[ DotLabel.kindConst ] = DotLabel ;
 
     /** An indication that an optional type label is not there. */
     export class NoTypeLabel extends TypeLabel {
@@ -897,6 +934,11 @@ module labels {
 
     export function mkLambda( param:PNode, type:PNode, func : PNode) : PNode{
         return make (LambdaLabel.theLambdaLabel, [param, type, func]) ;}
+
+    export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
+        assert.check( child.isExprNode() ) ;
+        return make( new DotLabel( val, open), [child] ) ;
+    }
         
 }
 
