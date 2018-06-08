@@ -368,11 +368,21 @@ module editor {
             if (e.keyCode === 13 || e.keyCode === 9) {
                 console.log( ">>input keydown handler") ;
                 updateLabelHandler.call( this, e ) ;
-                if(e.keyCode === 9)
+                if( !e.shiftKey && e.keyCode === 9)
                 {
                     treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
                          update( sel ) ) ;
                 }
+                else if( e.shiftKey && e.which === 9 ) // shift+tab
+                {
+                    treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
+                             update( sel ) ) ;
+                }
+                // TODO: It would be nice to have special handling of
+                //   up and down arrows (for example). However that
+                //   requires handling of the event before it gets
+                //   intercepted by the field.
+                // TODO: Might be nice to handle space and operators specially when entering a number.
                 e.stopPropagation() ;
                 e.preventDefault();
                 console.log( "<<input keydown handler") ;
@@ -693,6 +703,13 @@ module editor {
             else if(!e.shiftKey && e.which === 219)
             {
                 createNode("accessor", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create dot node: .
+            else if(!e.shiftKey && (e.which === 190 || e.which === 110) )
+            {
+                createNode("dot", currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
