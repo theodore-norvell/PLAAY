@@ -45,5 +45,4 @@ typescriptSrc/.vscode
 
 tsServer/.env
 tsServer/dist
-tsServer/node_modules
-
+tsServer/node-modules
