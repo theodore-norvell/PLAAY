@@ -1023,20 +1023,20 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "The index operator may only be applied to objects" );
+      assert.checkEqual( message, "Attempted to access field of non-object value." );
     });
 
     it('should report an error when the index is not a string', function(): void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
-      const stringLiteral = mkNumberLiteral("5");
+      const object = new PNode(new labels.ObjectLiteralLabel(),[field]) ;
       const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
-      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [stringLiteral, index]);
+      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, index]);
       const vm = makeStdVMS(root);
       while( vm.canAdvance() ) {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( message, "The operand of the index operator must be a string." );
+      assert.checkEqual( message, "Fields of an object must be identified by a string value." );
     });
 });
 
