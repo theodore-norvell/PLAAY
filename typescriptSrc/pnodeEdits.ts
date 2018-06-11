@@ -104,6 +104,8 @@ module pnodeEdits {
             return new Selection( this._root, this._path, this._focus, this._anchor ) ;
         }
 
+        public size() : number { return this.end() - this.start() ; }
+
         public selectedNodes() : Array<PNode> {
             return this.parent().children( this.start(), this.end() ) ;
         }
