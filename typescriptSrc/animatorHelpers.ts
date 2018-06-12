@@ -700,6 +700,12 @@ module animatorHelpers
             makeStringLiteralSVG(element, text);
             return;
         }
+        if(value.isNumberV())
+        {
+            const num : svg.Text = element.text ( value.toString() );
+            makeNumberLiteralSVG(element, num);
+            return;
+        }
         if(value.isClosureV())
         {
             const text : svg.Text = element.text("Closure");

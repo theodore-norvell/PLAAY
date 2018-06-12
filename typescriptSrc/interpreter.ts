@@ -85,7 +85,7 @@ module interpreter {
     theStepperRegistry[ labels.NullLiteralLabel.kindConst ] = nullLiteralStepper ;
 
     theSelectorRegistry[ labels.NumberLiteralLabel.kindConst ] = alwaysSelector ;
-    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = stringLiteralStepper ;
+    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = numberLiteralStepper ;
     
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
@@ -285,8 +285,10 @@ module interpreter {
     // Steppers
 
     interface StringCache { [key:string] : StringV ; }
+    interface NumberCache { [key:number] : NumberV ; }
 
     const theStringCache : StringCache = {} ;
+    const theNumberCache : NumberCache = {} ;
 
     function stringLiteralStepper( vm : VMS ) : void {
         const label = vm.getPendingNode().label() ;
@@ -301,6 +303,24 @@ module interpreter {
         vm.finishStep( result ) ;
     }
 
+    function numberLiteralStepper( vm : VMS ) : void {
+        const label  = vm.getPendingNode().label() ;
+        let str = label.getVal() ;
+        var regexp = /(\d+(\.\d+)?)/g ;
+        if( regexp.test(str) ) {
+            const num = Number(str) ;
+            let result = theNumberCache[ num ] ; 
+            if(result === undefined) {
+            result = theNumberCache[ num ] = new NumberV( num ) ;
+            }
+        vm.finishStep( result ) ;
+        }
+        else {
+            vm.reportError("Not a valid number.") ;
+            return ;
+        }
+    }
+ 
     function nullLiteralStepper( vm : VMS ) : void {
         vm.finishStep( NullV.theNullValue ) ;
     }
