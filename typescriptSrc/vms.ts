@@ -680,6 +680,7 @@ module vms{
         isNullV : () => boolean ;
         isObjectV : () => boolean ;
         isDoneV : () => boolean ;
+        isNumberV : () => boolean ;
     }
 
     export interface ClosureI extends Value {

@@ -103,6 +103,10 @@ module valueTypes {
             return true;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -117,6 +121,51 @@ module valueTypes {
 
         public toString() : string {
             return '"' +this.contents+ '"' ;
+        }
+    }
+
+    /** A number value. */
+    export class NumberV implements Value {
+        private readonly contents : number;
+
+        constructor(val : number) {
+            this.contents = val;
+        }
+
+        public getVal() : number {
+            return this.contents;
+        }
+
+        public isNumberV() : boolean {
+            return true;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
         }
     }
 
@@ -179,6 +228,10 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -228,6 +281,10 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -257,6 +314,10 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isNumberV() : boolean {
+            return false;
         }
 
         public isDoneV() : boolean {
@@ -290,6 +351,10 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isNumberV() : boolean {
+            return false;
         }
 
         public isDoneV() : boolean {
@@ -330,6 +395,10 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isNumberV() : boolean {
+            return false;
         }
 
         public isDoneV() : boolean {

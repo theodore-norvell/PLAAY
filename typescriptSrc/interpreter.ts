@@ -29,6 +29,7 @@ module interpreter {
     import VMS = vms.VMS;
     import BuiltInV = valueTypes.BuiltInV ;
     import StringV = valueTypes.StringV ;
+    import NumberV = valueTypes.NumberV ;
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
