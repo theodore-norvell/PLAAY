@@ -136,6 +136,18 @@ module valueTypes {
             return this.contents;
         }
 
+        public canConvertToNumber() :boolean {
+           let val = this.getVal();
+           return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(val.toString()) ;
+        }
+
+        public converToNumber() : number {
+            let num = this.getVal();
+            assert.check( ! isNaN( num ) ) ;
+            return num ;
+        }
+        
+
         public isNumberV() : boolean {
             return true;
         }

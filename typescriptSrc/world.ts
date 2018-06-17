@@ -31,6 +31,7 @@ module world {
     import BuiltInV = valueTypes.BuiltInV ;
     import NullV = valueTypes.NullV ;
     import StringV = valueTypes.StringV;
+    import NumberV = valueTypes.NumberV;
     import DoneV = valueTypes.DoneV;
     import Type = vms.Type;
     import VMS = vms.VMS;
@@ -54,7 +55,7 @@ module world {
     function checkArgsAreNumbers( first : number, cap : number, args : Array<Value>, vm : VMS ) : boolean {
         for( let i = first ; i < cap && i < args.length ; ++i ) {
             const arg = args[i] ;
-            if( ! arg.isStringV() || ! canConvertToNumber( arg ) ) {
+            if( arg.isNumberV() ) {
                 vm.reportError( "Expected argument " +i+ " to be a number." ) ;
                 return false ; } }
         return true ;
@@ -72,20 +73,7 @@ module world {
         return args.every( (v:Value) => v.isDoneV() ) ;
     }
 
-    function canConvertToNumber( val : Value ) : boolean {
-        if( val.isStringV() ) {
-            const str = (val as StringV).getVal() ;
-            return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(str) ;
-        } else return false ;
-    }
     
-    function convertToNumber( val : Value ) : number {
-        let str = (val as StringV).getVal() ;
-        str = str.replace(/ |,/g, "" ) ;
-        const n = parseFloat( str ) ;
-        assert.check( ! isNaN( n ) ) ;
-        return n ;
-    }
     
     function nth( n : number ) : string {
         switch( n ) {
@@ -111,16 +99,27 @@ module world {
         return function(vm: VMS, args: Array<Value>) : void {
           const vals : Array<number>= [] ;
           let ok = true ;
+          if (args.length == 0) {
+              vm.reportError("0 arguments passed in.") ;
+          }
           for( let i=0 ; i < args.length ; ++i ) {
-              if( canConvertToNumber( args[i] ) ) {
-                  vals.push( convertToNumber( args[i] ) ) ; }
+              if( args[i].isNumberV() ) {
+                  let num = args[i] as NumberV;
+                  if( num.canConvertToNumber() ) {
+                    vals.push( num.converToNumber() ) ; 
+                  }
+                  else {
+                      vm.reportError("The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ;
+                  }
+                }
               else {
                   vm.reportError( "The "+nth(i+1)+" argument is not a number.") ;
                   ok = false ; } }
           
           if( ok ) {
-              const result = vals.reduce(callback);
-              const val = new StringV(result+"");
+              const result = vals.reduce(callback);              
+              const val = new NumberV( result ) ;
               vm.finishStep(val);
           }
         } ;
@@ -130,9 +129,21 @@ module world {
       return function(vm : VMS, args : Array<Value>) : void {
         const vals : Array<number>= [] ;
         let ok = true ;
+        if (args.length == 0) {
+            vm.reportError("0 arguments passed in.") ;
+        }
         for( let i=0 ; i < args.length ; ++i ) {
-            if( canConvertToNumber( args[i] ) ) {
-                vals.push( convertToNumber( args[i] ) ) ; }
+            if( args[i].isNumberV() ) {
+                let num = args[i] as NumberV;
+                if( num.canConvertToNumber() ) {
+                    vals.push( num.converToNumber() ) ; 
+                }
+                else {
+                    vm.reportError( "The "+nth(i+1)+" argument is not a number.");
+                    ok = false ;
+                }
+            }
+                
             else {
                 vm.reportError( "The "+nth(i+1)+" argument is not a number.");
                 ok = false ; } }
@@ -364,7 +375,7 @@ module world {
             const forwardStepper = (vm : VMS, args : Array<Value> ) : void => {
                     if( checkNumberOfArgs( 1, 1, args, vm ) 
                         && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                        const n : number = convertToNumber( args[0] ) ;
+                        const n : number = (args[0] as NumberV).converToNumber() ;
                         tw.forward( n ) ;
                         vm.finishStep( done ) ; } } ;
             const forwardValue = new BuiltInV( forwardStepper ) ;
@@ -375,7 +386,7 @@ module world {
             const rightStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 1, 1, args, vm ) 
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                    const n : number = convertToNumber( args[0] ) ;
+                    const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.right( n ) ;
                     vm.finishStep( done ) ; } } ;
             const rightValue = new BuiltInV( rightStepper ) ;
@@ -386,7 +397,7 @@ module world {
             const leftStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 1, 1, args, vm ) 
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                    const n : number = convertToNumber( args[0] ) ;
+                    const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.left( n ) ;
                     vm.finishStep( done ) ; } } ;
             const leftValue = new BuiltInV( leftStepper ) ;
@@ -441,9 +452,9 @@ module world {
             const setBackgroundStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 3, 3, args, vm ) 
                     && checkArgsAreNumbers(0, 3, args, vm ) ) {
-                    const r : number = convertToNumber( args[0] ) ;
-                    const g : number = convertToNumber( args[1] ) ;
-                    const b : number = convertToNumber( args[2] ) ;
+                    const r : number = (args[0] as NumberV).converToNumber() ;
+                    const g : number = (args[1] as NumberV).converToNumber() ;
+                    const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setBackground( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
@@ -453,9 +464,9 @@ module world {
             const setTurtleColorStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 3, 3, args, vm ) 
                     && checkArgsAreNumbers(0, 3, args, vm ) ) {
-                    const r : number = convertToNumber( args[0] ) ;
-                    const g : number = convertToNumber( args[1] ) ;
-                    const b : number = convertToNumber( args[2] ) ;
+                    const r : number = (args[0] as NumberV).converToNumber() ;
+                    const g : number = (args[1] as NumberV).converToNumber() ;
+                    const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setTurtleColor( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;
