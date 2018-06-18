@@ -65,6 +65,10 @@ module world {
         return args.every( (v:Value) => v.isStringV() ) ;
     }
 
+    function argsAreNumbers( args : Array<Value>) : boolean {
+        return args.every( (v:Value) => v.isNumberV() ) ;
+    }
+
     function argsAreNulls( args : Array<Value> ) : boolean {
         return args.every( (v:Value) => v.isNullV() ) ;
     }
@@ -264,6 +268,14 @@ module world {
                     bool = true ;
                     for (let i = 0; i < args.length - 1; i++) {
                         if ((args[i] as StringV).getVal() !== (args[i + 1] as StringV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } 
+                else if( argsAreNumbers(args)) {
+                    bool = true;
+                    for (let i=0; i < args.length - 1; i++) {
+                        if((args[i] as NumberV).getVal() !== (args[i +1] as NumberV).getVal()) {
                             bool = false;
                         }
                     }
