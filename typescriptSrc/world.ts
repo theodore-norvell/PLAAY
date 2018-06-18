@@ -295,9 +295,49 @@ module world {
                 const val = new StringV(bool + "");
                 vm.finishStep( val ) ;  
             }
+
+            function notEqualStep(vm : VMS, args : Array<Value>) : void {
+                let bool : boolean;
+                if (argsAreStrings(args)) {
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ((args[i] as StringV).getVal() === (args[i + 1] as StringV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } 
+                else if( argsAreNumbers(args)) {
+                    bool = true;
+                    for (let i=0; i < args.length - 1; i++) {
+                        if((args[i] as NumberV).getVal() === (args[i +1] as NumberV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } else if( argsAreDones( args ) ) {
+                    bool = true ;
+                } else if( argsAreNulls( args ) ) {
+                    bool = true ;
+                } else {
+                    // In all other cases, we require pointer equality.
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ( args[i] === args[i + 1] ) {
+                            bool = false ;
+                        }
+                    }
+                }
+                const val = new StringV(bool + "");
+                vm.finishStep( val ) ;  
+            }
+
+            
             const equal = new BuiltInV(equalstep);
             const equalf = new Field("=", equal, Type.BOOL, true, true, manager);
             this.addField(equalf);
+
+            const notequal = new BuiltInV(notEqualStep);
+            const notequalf = new Field("!=",notequal, Type.BOOL, true,true, manager);
+            this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
             const andstep = logicalStepperFactory(andCallback);
