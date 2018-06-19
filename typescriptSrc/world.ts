@@ -293,7 +293,8 @@ module world {
                         }
                     }
                 }
-                const val = new StringV(bool + "");
+                //const val = new StringV(bool + "");
+                const val : BoolV = BoolV.getVal(bool) ;
                 vm.finishStep( val ) ;  
             }
 

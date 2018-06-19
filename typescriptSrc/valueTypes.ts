@@ -199,8 +199,15 @@ module valueTypes {
             this.contents = val;    
         }
 
-        public getVal() : boolean {
-            return this.contents;
+        public static getVal(val : boolean) : BoolV {
+            if ( val == true) {
+                return this.true;
+            }
+            else {
+                return this.false;
+            }
+                
+            //return this.contents;
         }
 
         public isNumberV() : boolean {
