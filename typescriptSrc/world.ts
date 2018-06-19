@@ -154,8 +154,8 @@ module world {
                 ok = false ; } }
         
         if( ok ) {
-            const result = callback(vals);
-            const val = new StringV( result+"" );
+            const result = callback(vals);            
+            const val : BoolV = BoolV.getVal(result);
             vm.finishStep( val ) ;
         }
       } ;
@@ -176,7 +176,7 @@ module world {
         }    
         if(ok) {
             const result = vals.reduce(callback);
-            const val = new StringV(result+"") ;            
+            const val : BoolV = BoolV.getVal(result);          
             vm.finishStep(val);
         }
       } ;
@@ -292,8 +292,7 @@ module world {
                             bool = false ;
                         }
                     }
-                }
-                //const val = new StringV(bool + "");
+                }                
                 const val : BoolV = BoolV.getVal(bool) ;
                 vm.finishStep( val ) ;  
             }
@@ -328,7 +327,7 @@ module world {
                         }
                     }
                 }
-                const val = new StringV(bool + "");
+                const val : BoolV = BoolV.getVal(bool);
                 vm.finishStep( val ) ;  
             }
 
@@ -338,7 +337,7 @@ module world {
             this.addField(equalf);
 
             const notequal = new BuiltInV(notEqualStep);
-            const notequalf = new Field("!=",notequal, Type.BOOL, true,true, manager);
+            const notequalf = new Field("/=",notequal, Type.BOOL, true,true, manager);
             this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;

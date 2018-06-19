@@ -192,8 +192,8 @@ module valueTypes {
     /** A boolean value. */
     export class BoolV implements Value {
         private readonly contents : boolean;
-        public static true : BoolV = new BoolV(true);
-        public static false : BoolV = new BoolV(false);
+        public static trueValue : BoolV = new BoolV(true);
+        public static falseValue : BoolV = new BoolV(false);
 
         private constructor(val : boolean) {
             this.contents = val;    
@@ -201,11 +201,15 @@ module valueTypes {
 
         public static getVal(val : boolean) : BoolV {
             if ( val ) {
-                return this.true;
+                return this.trueValue;
             }
             else {
-                return this.false;
+                return this.falseValue;
             }
+        }
+
+        public getVal() : boolean {
+            return this.contents;
         }
 
         public isNumberV() : boolean {
