@@ -200,14 +200,12 @@ module valueTypes {
         }
 
         public static getVal(val : boolean) : BoolV {
-            if ( val == true) {
+            if ( val ) {
                 return this.true;
             }
             else {
                 return this.false;
             }
-                
-            //return this.contents;
         }
 
         public isNumberV() : boolean {
@@ -428,6 +426,10 @@ module valueTypes {
             return "null" ;
         }
 
+        private constructor() {
+
+        }
+
         public static  readonly theNullValue = new NullV() ;
     }
 
@@ -468,8 +470,11 @@ module valueTypes {
         public toString() : string {
             return "done" ;
         }
-        
 
+        private constructor() {
+
+        }
+        
         public static  readonly theDoneValue = new DoneV() ;
     }
 

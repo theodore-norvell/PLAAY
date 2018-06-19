@@ -40,7 +40,7 @@ module world {
     import Evaluation = vms.Evaluation;
 
     
-    const done : DoneV = new DoneV() ;
+    const done : DoneV = DoneV.theDoneValue;
 
     function checkNumberOfArgs( min : number, max : number, args : Array<Value>, vm : VMS ) : boolean {
         if( args.length < min || args.length > max ) {
