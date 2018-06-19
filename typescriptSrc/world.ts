@@ -32,6 +32,7 @@ module world {
     import NullV = valueTypes.NullV ;
     import StringV = valueTypes.StringV;
     import NumberV = valueTypes.NumberV;
+    import BoolV = valueTypes.BoolV;
     import DoneV = valueTypes.DoneV;
     import Type = vms.Type;
     import VMS = vms.VMS;
@@ -175,7 +176,7 @@ module world {
         }    
         if(ok) {
             const result = vals.reduce(callback);
-            const val = new StringV(result+"") ;
+            const val = new StringV(result+"") ;            
             vm.finishStep(val);
         }
       } ;

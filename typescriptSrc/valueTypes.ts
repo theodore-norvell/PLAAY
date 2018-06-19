@@ -107,6 +107,10 @@ module valueTypes {
             return false;
         }
 
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -152,6 +156,10 @@ module valueTypes {
             return true;
         }
 
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isClosureV() : boolean {
             return false;
         }
@@ -180,6 +188,59 @@ module valueTypes {
             return this.contents.toString() ;
         }
     }
+
+    /** A boolean value. */
+    export class BoolV implements Value {
+        private readonly contents : boolean;
+        public static true : BoolV = new BoolV(true);
+        public static false : BoolV = new BoolV(false);
+
+        private constructor(val : boolean) {
+            this.contents = val;    
+        }
+
+        public getVal() : boolean {
+            return this.contents;
+        }
+
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return true;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
+        }
+    }
+
+
 
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
@@ -244,6 +305,10 @@ module valueTypes {
             return false;
         }
 
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -297,6 +362,10 @@ module valueTypes {
             return false;
         }
 
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -329,6 +398,10 @@ module valueTypes {
         }
 
         public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
             return false;
         }
 
@@ -366,6 +439,10 @@ module valueTypes {
         }
 
         public isNumberV() : boolean {
+            return false;
+        }
+        
+        public isBoolV() : boolean {
             return false;
         }
 
@@ -410,6 +487,10 @@ module valueTypes {
         }
 
         public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
             return false;
         }
 
