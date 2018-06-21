@@ -215,6 +215,8 @@ module labels {
             this._isConst = isConst ;
         }
 
+        public declaresConstant() : boolean { return this._isConst ; }
+
         /** Is this label a label for a variable declaration node? */
         public isVarDeclNode() : boolean  { return true ; }
 

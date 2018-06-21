@@ -521,15 +521,23 @@ div.hCont, div.var, div.assign {
     margin: 1px 2px 1px 2px ;
 }
 
-div.vardecl:before {
-    content: "\0003B4" ;
+div.locdecl:before {
+    content: "loc" ;
     display: inline ;
     vertical-align: top ;
     color: ghostwhite ;
     font-size: large ;
 }
 
-div.vardecl{
+div.condecl:before {
+    content: "con" ;
+    display: inline ;
+    vertical-align: top ;
+    color: ghostwhite ;
+    font-size: large ;
+}
+
+div.locdecl, div.condecl {
     border: thin solid ghostwhite ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;

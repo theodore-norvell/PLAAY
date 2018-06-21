@@ -441,9 +441,10 @@ module sharedMkHtml
             break ;
             case labels.VarDeclLabel.kindConst :
             {
-
+                const label = node.label() as labels.VarDeclLabel ;
+                const isConst = label.declaresConstant() ;
                 result  = $(document.createElement("div")) ;
-                result.addClass( "vardecl" ) ; // Need a better class for this, I think.
+                result.addClass( isConst ? "condecl" : "locdecl" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;

@@ -561,11 +561,19 @@ module editor {
     function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
             console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
-            // Create var decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
+            // Create location decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
             if ( (!e.shiftKey && e.which===59)
               || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
             {
-                createNode("vardecl", currentSelection );
+                createNode("locdecl", currentSelection );
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+            // Create constant decl node: , or Cntl-Shift-C or Cmd-Shift-C 
+            else if ( (!e.shiftKey && e.which===188)
+              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 67) 
+            {
+                createNode("condecl", currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
