@@ -182,6 +182,7 @@ module world {
       } ;
     }
 
+    
     function impliesStepperFactory( callback: (leftOperand : boolean, rightOperand: boolean) => boolean) 
              : (vm : VMS, arg : Array<Value>) => void {
                  return function impliesStep( vm : VMS, args : Array<Value> ) : void {
@@ -374,6 +375,10 @@ module world {
             const orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
 
+            const not = new BuiltInV(notStep);
+            const notf = new Field("not",not,Type.BOOL,true,true,manager);
+            this.addField(notf);
+
             // TODO : add tests 
             const impliesCallback = (leftOperand : boolean, rightOperand :boolean) : boolean => { return impliesFunc(leftOperand,rightOperand) };
             const impliesStep = impliesStepperFactory(impliesCallback);
@@ -403,6 +408,21 @@ module world {
                     }
                 }
                 return false; */
+            }
+
+            function notStep(vm : VMS, args : Array<Value>) : void {
+                if ( args.length !== 1) {
+                    vm.reportError("not expects 1 argument of type boolean.");
+                    return;
+                }
+                const bool = args[0];
+                if (!(bool instanceof BoolV)) {
+                    vm.reportError("not only works with boolean values.");
+                    return;
+                  }
+                const result = BoolV.getVal(!bool);
+                vm.finishStep(result);
+
             }
 
             function lenStep(vms: VMS, args: Array<Value>) : void  {
