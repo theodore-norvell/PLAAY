@@ -383,6 +383,33 @@ module world {
             const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
             this.addField(lenf);
 
+            function booleanStep(vm : VMS, args: Array<Value>) : void {
+                if (args.length !== 1) {
+                    vm.reportError("booleanStep expects 1 argument of type BoolV.");
+                    return;
+                  }
+
+                  const bool = args[0];
+                  if(!(bool instanceof BoolV)) {
+                      vm.reportError("boolean constant should be of type BoolV.");
+                      return;
+                  }
+                  if(bool.getVal() === true) {
+                      vm.finishStep(BoolV.trueValue);
+                  }
+                  else {
+                      vm.finishStep(BoolV.falseValue);
+                  }
+            }
+
+            const trueConstant = new BuiltInV(booleanStep);
+            const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
+            this.addField(trueConstantf);
+
+            const falseConstant = new BuiltInV(booleanStep);
+            const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
+            this.addField(falseConstantf);
+
             function pushStep(vms: VMS, args: Array<Value>) {
               if (args.length !== 2) {
                 vms.reportError("push expects 2 arguments, an object and a value to be pushed.");
