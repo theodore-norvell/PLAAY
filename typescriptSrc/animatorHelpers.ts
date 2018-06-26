@@ -42,6 +42,7 @@ module animatorHelpers
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
+    const GREEN : string = "rgb(0,200,0)";
 
     let objectsToDraw : Array<ObjectV> = new Array<ObjectV>();
     let arrowStartPoints : Map<ObjectV, Array<svg.Rect>> = new Map<ObjectV, Array<svg.Rect>>();
@@ -688,7 +689,7 @@ module animatorHelpers
             makeNullLiteralSVG(element);
             return;
         }
-        if(value.isDoneV())
+        if(value.isTupleV())
         {
             // const text : svg.Text = element.text( "Done" );
             // makeDoneSVG(element, text);
@@ -705,6 +706,16 @@ module animatorHelpers
             const num : svg.Text = element.text ( value.toString() );
             makeNumberLiteralSVG(element, num);
             return;
+        }
+        if(value.isBoolV())
+        {
+            const bool : svg.Text = element.text ( value.toString() );
+            if(value == valueTypes.BoolV.trueValue) {
+                makeBooleanLiteralSVG(element,bool,true);
+            }
+            else {
+                makeBooleanLiteralSVG(element,bool,false);
+            }            
         }
         if(value.isClosureV())
         {
@@ -926,6 +937,24 @@ module animatorHelpers
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
+    }
+
+    function makeBooleanLiteralSVG(base : svg.Container, textElement : svg.Text, isTrue : boolean) : void 
+    {
+        if(isTrue) {
+            textElement.fill(GREEN);
+        }
+        else {
+            textElement.fill(RED);
+        }
+
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5 , bounds.height +5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});

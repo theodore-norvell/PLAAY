@@ -89,7 +89,7 @@ describe( 'BooleanLiteralLabel', function() : void {
     const root = new PNode( label, [] ) ;
     const vm = makeStdVMS( root )  ;
 
-    it('should evaluate to a StringV', function() : void {
+    it('should evaluate to a BoolV', function() : void {
         assert.check( ! vm.isReady() ) ;
         vm.advance() ;
         assert.check( vm.isReady() ) ;
@@ -97,8 +97,8 @@ describe( 'BooleanLiteralLabel', function() : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof StringV ) ;
-        assert.check( (val as StringV).getVal() === label.getVal() ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === true ) ;
     } );
 } ) ;
 
@@ -696,6 +696,95 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   } );
 } ) ;
 
+/* Test for (true = true) = (false = false) = true */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkFalseBooleanLiteral();
+    const op3 = labels.mkTrueBooleanLiteral();
+    const op4 = labels.mkFalseBooleanLiteral();
+    const root1 = new PNode(rootLabel, [op1,op3]);
+    const root2 = new PNode(rootLabel, [op2,op4]);
+    const vm1 = makeStdVMS( root1 );
+    const vm2 = makeStdVMS( root2 );
+
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      
+      assert.check( vm1.isDone() ) ;
+      assert.check( vm1.isMapped( emptyList ) ) ;
+      assert.check( vm2.isDone() ) ;
+      assert.check( vm2.isMapped( emptyList ) ) ;
+      const val1 = vm1.getVal( emptyList ) ;
+      const val2 = vm2.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( val2 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === (val2 as BoolV).getVal() === true);
+    })
+});
+
+/* Test for (true = x) = (x = true) = false for any x not true */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkNumberLiteral("123");
+    const root = new PNode(rootLabel, [op1,op2,op2,op1]);
+    const vm = makeStdVMS( root );
+    
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val1 = vm.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === false);
+    })
+});
+
 describe( 'CallWorldLabel - equal', function() : void {
   const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
@@ -1193,7 +1282,7 @@ describe( 'ExprSeqLabel', function () : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof valueTypes.DoneV ) ;
+        assert.check( val instanceof valueTypes.TupleV ) ;
     } );
 });
 
@@ -1540,7 +1629,7 @@ describe('VarDeclLabel', function () : void {
 
         assert.check(vm.isDone(), "VMS is not done");
         assert.check(vm.isMapped(emptyList), "Empty list is not mapped.");
-        assert.check( vm.getVal( emptyList ) instanceof valueTypes.DoneV ) ;
+        assert.check( vm.getVal( emptyList ) instanceof valueTypes.TupleV ) ;
     });
 
     it('should fail when not using a variable node as the first node', function () : void {
@@ -1602,7 +1691,7 @@ describe('VarDeclLabel', function () : void {
         assert.check( field.getIsDeclared() ) ;
         assert.check( field.getValue().isNullV() ) ;
         assert.check( vm.isMapped( list(0) ) ) ;
-        assert.check( vm.getVal( list(0) ).isDoneV() ) ;
+        assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
         vm.advance() ;
         vm.advance() ;
@@ -2034,9 +2123,9 @@ describe('WhileLabel', function () : void {
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV).getVal();
-        assert.check(result === "false", "It did not return false as expected. It returned " + result);
+        assert.check(val instanceof BoolV, "The value is not a BoolV.");
+        const result : boolean = (val as BoolV).getVal();
+        assert.check(result === false, "It did not return false as expected. It returned " + result);
 
     }) ;
 

@@ -173,7 +173,7 @@ module world {
               vm.reportError("The "+nth(i+1)+" argument is not a bool.");
               ok = false;
             }
-        }    
+        }
         if(ok) {
             const result = vals.reduce(callback);
             const val : BoolV = BoolV.getVal(result);          
@@ -181,6 +181,11 @@ module world {
         }
       } ;
     }
+
+    /*function impliesStepperFactory( callback: (leftOperand : boolean, rightOperand: boolean) => boolean) 
+             : (vm : VMS, arg : Array<Value>) => void {
+                 return function 
+             } */
 
     export class World extends ObjectV {
 
@@ -351,6 +356,13 @@ module world {
             const or = new BuiltInV(orstep);
             const orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
+
+            // TODO : move it somewhere 
+            /*const impliesCallback = (leftOperand : boolean, rightOperand : boolean) : boolean => { return true; };
+            const impliesStep = impliesStepperFactory(impliesCallback);
+            const implies = new BuiltInV(impliesStep);
+            const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
+            this.addField(impliesf); */
 
             function lenStep(vms: VMS, args: Array<Value>) : void  {
               if (args.length !== 1) {
