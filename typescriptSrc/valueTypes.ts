@@ -437,8 +437,19 @@ module valueTypes {
         public static  readonly theNullValue = new NullV() ;
     }
 
-    /** The Done value. Used to indicate completion of a command. */
+    /** The Tuple value */
     export class TupleV implements Value {
+
+        public values : Array<PNode>;
+
+        constructor(exprNodes : Array<PNode>) {
+            assert.checkPrecondition(exprNodes.length !== 1,"Cannot create tuple with one element.");
+            for(let i=0;  i<exprNodes.length; i++) {
+                assert.checkPrecondition(!exprNodes[i].isExprNode(), "Tuple cannot have values that are not expression nodes.");
+            }
+            this.values = exprNodes;
+        }
+  
         public isClosureV() : boolean {
             return false;
         }
@@ -475,11 +486,7 @@ module valueTypes {
             return "done" ;
         }
 
-        private constructor() {
-
-        }
-        
-        public static  readonly theDoneValue = new TupleV() ;
+        public static  readonly theDoneValue = new TupleV(new Array<PNode>(0)) ;
     }
 
     /** A built in function. */
