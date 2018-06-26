@@ -182,10 +182,27 @@ module world {
       } ;
     }
 
-    /*function impliesStepperFactory( callback: (leftOperand : boolean, rightOperand: boolean) => boolean) 
+    function impliesStepperFactory( callback: (leftOperand : boolean, rightOperand: boolean) => boolean) 
              : (vm : VMS, arg : Array<Value>) => void {
-                 return function 
-             } */
+                 return function impliesStep( vm : VMS, args : Array<Value> ) : void {
+                     const vals : Array<boolean> = [];
+                     let ok = true;
+                     for(let i=0; i< args.length; ++i) {
+                         if(isBool(args[i])) {
+                            vals.push(convertToBool(args[i]));
+                         }
+                         else {
+                             vm.reportError("The "+nth(i+1)+" argument is not a bool.");
+                             ok = false;
+                         }                         
+                     }
+                     if(ok) {
+                         const result = vals.reduce(callback);
+                         const val : BoolV = BoolV.getVal(result);
+                         vm.finishStep(val);
+                     }
+                 }
+             }
 
     export class World extends ObjectV {
 
@@ -357,12 +374,36 @@ module world {
             const orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
 
-            // TODO : move it somewhere 
-            /*const impliesCallback = (leftOperand : boolean, rightOperand : boolean) : boolean => { return true; };
+            // TODO : add tests 
+            const impliesCallback = (leftOperand : boolean, rightOperand :boolean) : boolean => { return impliesFunc(leftOperand,rightOperand) };
             const impliesStep = impliesStepperFactory(impliesCallback);
             const implies = new BuiltInV(impliesStep);
             const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
-            this.addField(impliesf); */
+            this.addField(impliesf);
+
+            function impliesFunc(leftOperand : boolean, rightOperand : boolean) : boolean {
+                if(leftOperand) {
+                    if(rightOperand) {
+                        return true;
+                    }
+                    else {
+                        return false;
+                    }
+                }
+                else {
+                    return true;
+                }
+                /*if(operands[operands.length - 1]) {
+                    return true;
+                }
+                
+                for(let i=0; i<operands.length-1; ++i) {
+                    if(!operands[i]) {
+                        return true;
+                    }
+                }
+                return false; */
+            }
 
             function lenStep(vms: VMS, args: Array<Value>) : void  {
               if (args.length !== 1) {
@@ -391,7 +432,7 @@ module world {
 
                   const bool = args[0];
                   if(!(bool instanceof BoolV)) {
-                      vm.reportError("boolean constant should be of type BoolV.");
+                      vm.reportError("Boolean constant should be of type BoolV.");
                       return;
                   }
                   if(bool.getVal() === true) {
