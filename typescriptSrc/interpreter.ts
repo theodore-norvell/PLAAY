@@ -34,7 +34,7 @@ module interpreter {
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
-    import DoneV = valueTypes.DoneV ;
+    import TupleV = valueTypes.TupleV ;
     import Field = valueTypes.Field;
     import NonEmptyVarStack = vms.NonEmptyVarStack;
 
@@ -412,7 +412,7 @@ module interpreter {
             // Set it to the value of the last child node if there is one and pop the stack frame.
             const numberOfChildren : number = vm.getPendingNode().count();
             const value : Value = (numberOfChildren === 0
-                                   ? DoneV.theDoneValue
+                                   ? TupleV.theDoneValue
                                    : vm.getChildVal( numberOfChildren - 1) ) ;
             vm.finishStep( value );
             vm.getEval().popFromVarStack() ; }
@@ -537,7 +537,7 @@ module interpreter {
             vm.finishStep(vm.getChildVal(1));
         }
         else {
-            vm.finishStep( DoneV.theDoneValue ) ;
+            vm.finishStep( TupleV.theDoneValue ) ;
         }
     }
 
@@ -597,7 +597,7 @@ module interpreter {
         const value : Value = vm.getChildVal(1);
         // TODO Check that the value is assignable to the field.
         field.setValue( value ) ;
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function variableStepper(vm : VMS) : void {
@@ -633,7 +633,7 @@ module interpreter {
             // TODO Check that the value is assignable to the field.
             field.setValue( value ) ;
         } 
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function placeHolderStepper(vm : VMS) : void {

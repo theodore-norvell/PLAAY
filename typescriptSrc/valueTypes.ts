@@ -111,7 +111,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -172,7 +172,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -232,7 +232,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -318,7 +318,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -375,7 +375,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -414,7 +414,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -438,7 +438,7 @@ module valueTypes {
     }
 
     /** The Done value. Used to indicate completion of a command. */
-    export class DoneV implements Value {
+    export class TupleV implements Value {
         public isClosureV() : boolean {
             return false;
         }
@@ -459,7 +459,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return true;
         }
 
@@ -479,7 +479,7 @@ module valueTypes {
 
         }
         
-        public static  readonly theDoneValue = new DoneV() ;
+        public static  readonly theDoneValue = new TupleV() ;
     }
 
     /** A built in function. */
@@ -510,7 +510,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 

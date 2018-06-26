@@ -33,14 +33,14 @@ module world {
     import StringV = valueTypes.StringV;
     import NumberV = valueTypes.NumberV;
     import BoolV = valueTypes.BoolV;
-    import DoneV = valueTypes.DoneV;
+    import TupleV = valueTypes.TupleV;
     import Type = vms.Type;
     import VMS = vms.VMS;
     import EvalStack = vms.EvalStack;
     import Evaluation = vms.Evaluation;
 
     
-    const done : DoneV = DoneV.theDoneValue;
+    const done : TupleV = TupleV.theDoneValue;
 
     function checkNumberOfArgs( min : number, max : number, args : Array<Value>, vm : VMS ) : boolean {
         if( args.length < min || args.length > max ) {
@@ -75,7 +75,7 @@ module world {
     }
 
     function argsAreDones( args : Array<Value> ) : boolean {
-        return args.every( (v:Value) => v.isDoneV() ) ;
+        return args.every( (v:Value) => v.isTupleV() ) ;
     }
 
     
@@ -385,7 +385,7 @@ module world {
               console.log(obj.numFields()+"");
               const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
               obj.addField(field);
-              vms.finishStep(DoneV.theDoneValue);
+              vms.finishStep(TupleV.theDoneValue);
             }
 
             const push = new BuiltInV(pushStep);
@@ -408,7 +408,7 @@ module world {
                 return;
                 }
                 obj.popField();
-                vms.finishStep(DoneV.theDoneValue);
+                vms.finishStep(TupleV.theDoneValue);
             }
 
             const pop = new BuiltInV(popStep);
