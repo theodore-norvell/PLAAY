@@ -440,14 +440,17 @@ module valueTypes {
     /** The Tuple value */
     export class TupleV implements Value {
 
-        public values : Array<PNode>;
+        private readonly values : Array<Value>;
 
-        constructor(exprNodes : Array<PNode>) {
-            assert.checkPrecondition(exprNodes.length !== 1,"Cannot create tuple with one element.");
-            for(let i=0;  i<exprNodes.length; i++) {
-                assert.checkPrecondition(!exprNodes[i].isExprNode(), "Tuple cannot have values that are not expression nodes.");
+        private constructor(vals : Array<Value>) {
+            if(vals.length > 1) {
+                this.values = vals.slice(0,vals.length - 1);
             }
-            this.values = exprNodes;
+        }
+
+        public static CreateTuple(vals : Array<Value>) : TupleV {
+            assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
+            return new TupleV(vals); 
         }
   
         public isClosureV() : boolean {
@@ -486,7 +489,7 @@ module valueTypes {
             return "done" ;
         }
 
-        public static  readonly theDoneValue = new TupleV(new Array<PNode>(0)) ;
+        public static  readonly theDoneValue = new TupleV(new Array<Value>(0)) ;
     }
 
     /** A built in function. */

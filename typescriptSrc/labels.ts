@@ -817,6 +817,49 @@ module labels {
     }
     pnode.registry[ BooleanLiteralLabel.kindConst ] = BooleanLiteralLabel ;
 
+    /** Tuple label. */
+    export class TupleLabel extends ExprLabelWithString {
+        
+        public static readonly kindConst : string = "TupleLabel" ;
+
+        private constructor(val: string, open : boolean) {
+            super(val,open);
+        } 
+
+        public static readonly theTupleLabel : TupleLabel = new TupleLabel("",true);
+
+        public isValid(children: Array<PNode>): boolean {
+            return children.every( (c:PNode) => c.isExprNode()) ;
+        }
+
+        public toString():string {
+            return "tuple["+ this._val + "]" ;
+        }
+
+        public open() : Option<Label> {
+            return some( new TupleLabel( this._val, true ) ) ;
+        }
+
+        public changeString (newString : string) : Option<Label> {
+             const newLabel = new TupleLabel(newString, false);
+             return new Some(newLabel);
+         }
+
+        public toJSON(): object {
+            return { kind: TupleLabel.kindConst, val : this._val, open: this._open};
+        }
+
+        public static fromJSON( json : object ) : TupleLabel {
+            return new TupleLabel(json["val"], json["open"]);
+        }
+
+        public kind(): string {
+            return TupleLabel.kindConst;
+        }
+        
+    }
+    pnode.registry[ TupleLabel.kindConst ] = TupleLabel ;
+
     /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
         
@@ -940,6 +983,15 @@ module labels {
     export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
         assert.check( child.isExprNode() ) ;
         return make( new DotLabel( val, open), [child] ) ;
+    }
+
+    export function mkTuple( val:string, open:boolean, children : Array<PNode>) : PNode {
+        let i = 0 ;
+        children.forEach( (c : PNode) : void => { 
+            assert.check(c.isExprNode(),"The "+i+"th child is not a expression node");
+            i++;
+        }); 
+        return make(new DotLabel( val, open), children);
     }
         
 }

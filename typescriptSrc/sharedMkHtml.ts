@@ -462,6 +462,29 @@ module sharedMkHtml
                 result.append(children[2]);
             }
             break ;
+            case labels.TupleLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "dot" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const vals : JQuery = $( document.createElement("div") ) ;
+                vals.addClass( "seqBox" ) ;
+                vals.addClass( "V" ) ;
+                vals.addClass( "workplace") ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, true ) ;
+                    dropzones.push( dz ) ;
+                    vals.append(dz);
+                    if (i === children.length) break;
+                    vals.append(children[i]);
+                }
+                result.append(vals);
+            }
+            break;
             default:
             {
                 result = assert.unreachable( "Unknown label in buildHTML.") ;

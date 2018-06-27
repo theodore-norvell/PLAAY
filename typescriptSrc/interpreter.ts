@@ -91,6 +91,10 @@ module interpreter {
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
 
+    theSelectorRegistry[ labels.TupleLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.TupleLabel.kindConst ] = tupleStepper ;
+
+
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
@@ -520,6 +524,21 @@ module interpreter {
         } else {
             vm.reportError( "The dot operator may only be applied to objects." );
         }
+    }
+
+    function tupleStepper( vm:VMS) : void{
+        const node = vm.getPendingNode() ;
+        const length = node.count() ;
+        if(length === 1) {
+            vm.reportError("Cannot create a tuple with one element");
+        }
+        const vals = new Array<Value>();
+        for(let i = 0; i < length ; ++i) {
+            const val = vm.getChildVal(i);
+            vals.push(val);
+        }
+        const tuple = TupleV.CreateTuple(vals);
+        vm.finishStep(tuple);
     }
 
     function ifStepper(vm : VMS) : void {

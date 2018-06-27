@@ -721,6 +721,13 @@ module editor {
                 e.stopPropagation();
                 e.preventDefault();
             }
+            //Create tuple node: (
+            else if(!e.shiftKey && (e.which === 57 )) 
+            {
+                createNode("tuple", currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
             return;
     }
 
