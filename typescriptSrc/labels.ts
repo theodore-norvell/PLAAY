@@ -818,12 +818,12 @@ module labels {
     pnode.registry[ BooleanLiteralLabel.kindConst ] = BooleanLiteralLabel ;
 
     /** Tuple label. */
-    export class TupleLabel extends ExprLabelWithString {
+    export class TupleLabel extends ExprLabel {
         
         public static readonly kindConst : string = "TupleLabel" ;
 
         private constructor(val: string, open : boolean) {
-            super(val,open);
+            super();
         } 
 
         public static readonly theTupleLabel : TupleLabel = new TupleLabel("",true);
@@ -833,28 +833,19 @@ module labels {
         }
 
         public toString():string {
-            return "tuple["+ this._val + "]" ;
+            return "tuple" ;
         }
-
-        public open() : Option<Label> {
-            return some( new TupleLabel( this._val, true ) ) ;
-        }
-
-        public changeString (newString : string) : Option<Label> {
-             const newLabel = new TupleLabel(newString, false);
-             return new Some(newLabel);
-         }
 
         public hasVerticalLayout() : boolean {return false;}
     
         public hasDropZonesAt(start : number): boolean { return true; }
 
         public toJSON(): object {
-            return { kind: TupleLabel.kindConst, val : this._val, open: this._open};
+            return { kind: TupleLabel.kindConst };
         }
 
         public static fromJSON( json : object ) : TupleLabel {
-            return new TupleLabel(json["val"], json["open"]);
+            return TupleLabel.theTupleLabel ;
         }
 
         public kind(): string {
@@ -989,13 +980,8 @@ module labels {
         return make( new DotLabel( val, open), [child] ) ;
     }
 
-    export function mkTuple( val:string, open:boolean, children : Array<PNode>) : PNode {
-        let i = 0 ;
-        children.forEach( (c : PNode) : void => { 
-            assert.check(c.isExprNode(),"The "+i+"th child is not a expression node");
-            i++;
-        }); 
-        return make(TupleLabel.theTupleLabel,[]);
+    export function mkTuple( children : Array<PNode>) : PNode {
+        return make(TupleLabel.theTupleLabel,children);
     }
         
 }

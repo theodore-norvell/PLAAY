@@ -470,19 +470,21 @@ module sharedMkHtml
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 
-                const comma : JQuery = $( document.createElement("div") );
-                comma.text(",") ;
-
+                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    result.append(comma);
                     const dz = makeDropZone(i, false ) ;
                     dropzones.push( dz ) ;
                     result.append(dz);
                     if (i === children.length) break;
                     result.append(children[i]);
-                    
-                }   
+                    if( i < children.length -1 ) {
+                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        result.append( comma ) ; }
+                }
+                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                result.append( closePar ) ; 
             }
             break;
             default:

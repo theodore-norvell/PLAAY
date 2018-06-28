@@ -529,16 +529,17 @@ module interpreter {
     function tupleStepper( vm:VMS) : void{
         const node = vm.getPendingNode() ;
         const length = node.count() ;
-        if(length === 1) {
-            vm.reportError("Cannot create a tuple with one element");
-        }
-        const vals = new Array<Value>();
-        for(let i = 0; i < length ; ++i) {
-            const val = vm.getChildVal(i);
-            vals.push(val);
-        }
-        const tuple = TupleV.CreateTuple(vals);
-        vm.finishStep(tuple);
+        if( length === 1) {
+            const val = vm.getChildVal(0) ;
+            vm.finishStep(val);
+        } else {
+            const vals = new Array<Value>();
+            for(let i = 0; i < length ; ++i) {
+                const val = vm.getChildVal(i);
+                vals.push(val);
+            }
+            const tuple = TupleV.createTuple(vals);
+            vm.finishStep(tuple); }
     }
 
     function ifStepper(vm : VMS) : void {
