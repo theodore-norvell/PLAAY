@@ -444,7 +444,7 @@ module valueTypes {
 
         private constructor(vals : Array<Value>) {
             if(vals.length > 1) {
-                this.values = vals.slice(0,vals.length - 1);
+                this.values = vals.slice(0,vals.length);
             }
         }
 

@@ -602,6 +602,24 @@ module animatorHelpers
                 // result.addClass( "H" ) ;
             }
             break ;
+            case labels.TupleLabel.kindConst :
+            {
+                const childArray = element.children();
+                let seqBoxY : number = 0;
+                const seqBox :  svg.G = element.group().dmove(10, 20) ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(0, seqBoxY));
+                    seqBoxY += childArray[i].bbox().height + 15;
+                }
+                if(seqBoxY === 0)
+                {
+                    seqBox.rect(10,10).opacity(0);
+                }
+
+                makeSimpleBorder(element, ORANGE);
+            }
+            break;
             case labels.NoTypeLabel.kindConst :
             {
                 makeNoTypeLabelSVG(element);
@@ -688,10 +706,11 @@ module animatorHelpers
             makeNullLiteralSVG(element);
             return;
         }
-        if(value.isDoneV())
+        if(value.isTupleV())
         {
-            // const text : svg.Text = element.text( "Done" );
-            // makeDoneSVG(element, text);
+            // Temporary.. need to create function makeTupleSVG
+            const text : svg.Text = element.text(value.toString() );
+            makeDoneSVG(element, text);
             return;
         }
         if(value.isStringV())

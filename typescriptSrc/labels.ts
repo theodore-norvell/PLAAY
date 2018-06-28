@@ -845,6 +845,10 @@ module labels {
              return new Some(newLabel);
          }
 
+        public hasVerticalLayout() : boolean {return false;}
+    
+        public hasDropZonesAt(start : number): boolean { return true; }
+
         public toJSON(): object {
             return { kind: TupleLabel.kindConst, val : this._val, open: this._open};
         }
@@ -991,7 +995,7 @@ module labels {
             assert.check(c.isExprNode(),"The "+i+"th child is not a expression node");
             i++;
         }); 
-        return make(new DotLabel( val, open), children);
+        return make(TupleLabel.theTupleLabel,[]);
     }
         
 }

@@ -1193,7 +1193,7 @@ describe( 'ExprSeqLabel', function () : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof valueTypes.DoneV ) ;
+        assert.check( val instanceof valueTypes.TupleV ) ;
     } );
 });
 
@@ -1540,7 +1540,7 @@ describe('VarDeclLabel', function () : void {
 
         assert.check(vm.isDone(), "VMS is not done");
         assert.check(vm.isMapped(emptyList), "Empty list is not mapped.");
-        assert.check( vm.getVal( emptyList ) instanceof valueTypes.DoneV ) ;
+        assert.check( vm.getVal( emptyList ) instanceof valueTypes.TupleV ) ;
     });
 
     it('should fail when not using a variable node as the first node', function () : void {
@@ -1602,7 +1602,7 @@ describe('VarDeclLabel', function () : void {
         assert.check( field.getIsDeclared() ) ;
         assert.check( field.getValue().isNullV() ) ;
         assert.check( vm.isMapped( list(0) ) ) ;
-        assert.check( vm.getVal( list(0) ).isDoneV() ) ;
+        assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
         vm.advance() ;
         vm.advance() ;

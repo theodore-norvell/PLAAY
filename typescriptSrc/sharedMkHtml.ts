@@ -465,24 +465,24 @@ module sharedMkHtml
             case labels.TupleLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "dot" ) ;
+                result.addClass( "tuple" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 
-                const vals : JQuery = $( document.createElement("div") ) ;
-                vals.addClass( "seqBox" ) ;
-                vals.addClass( "V" ) ;
-                vals.addClass( "workplace") ;
+                const comma : JQuery = $( document.createElement("div") );
+                comma.text(",") ;
+
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, true ) ;
+                    result.append(comma);
+                    const dz = makeDropZone(i, false ) ;
                     dropzones.push( dz ) ;
-                    vals.append(dz);
+                    result.append(dz);
                     if (i === children.length) break;
-                    vals.append(children[i]);
-                }
-                result.append(vals);
+                    result.append(children[i]);
+                    
+                }   
             }
             break;
             default:

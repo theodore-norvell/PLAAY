@@ -175,10 +175,20 @@ module treeManager {
 
         private makeTupleNode(selection:Selection) : Option<Selection> {
             
-            const tuplenode = pnode.make(labels.TupleLabel.theTupleLabel, []);
+            /*const tuplenode = pnode.make(labels.TupleLabel.theTupleLabel, []);
+            const template = new Selection( tuplenode, list<number>(), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection); */
+            const args = new Array<PNode>() ;
+            const ph = labels.mkExprPH();
+            for( let i = 0 ; i < 2 ; ++i ) {
+                args.push(ph) ;
+            }
+            const tuplenode = labels.mkTuple("",true,args);
             const template = new Selection( tuplenode, list<number>(), 0, 0 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
+
         }
 
         // If nodes
