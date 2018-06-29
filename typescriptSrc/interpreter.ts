@@ -264,14 +264,14 @@ module interpreter {
         }
 
         else if (varNode.label().kind() === labels.DotLabel.kindConst) {
-            const path = vms.getPending();
+            const path = vm.getPending();
             const pathToObject = path.cat(collections.list<number>(0,0));
-            if(!vms.isMapped(pathToObject)) {
-                vms.pushPending(0);
-                vms.getInterpreter().select(vms);
+            if(!vm.isMapped(pathToObject)) {
+                vm.pushPending(0);
+                vm.getInterpreter().select(vm);
             }
             else {
-                vms.setReady(true);
+                vm.setReady(true);
             }             
         }
         else {
