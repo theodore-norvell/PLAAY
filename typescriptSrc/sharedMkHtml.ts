@@ -386,20 +386,29 @@ module sharedMkHtml
             case labels.StringLiteralLabel.kindConst :
             {
 
-                if (! node.label().isOpen() )
+                result  = $(document.createElement("div")) ;
+                result.addClass( "stringLiteral" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                const leftDoubleQuotationMark = "\u201C" ;
+                const openQuote : JQuery = $( document.createElement("span") ).text(leftDoubleQuotationMark) ;
+                result.append(openQuote) ;
+                if ( node.label().isOpen() )
                 {
-                    result  = $(document.createElement("div")) ;
-                    result.addClass( "stringLiteral" ) ;
-                    result.addClass( "H" ) ;
-                    result.addClass( "droppable" ) ;
-                    result.addClass( "click" ) ;
-                    result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const textField = makeTextInputElement( node, ["input"], collections.none() ) ;
+                    result.append(textField) ;
                 }
                 else
                 {
-                    result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                    const str = node.label().getVal() ;
+                    const textEl = $( document.createElement("span") ).text( str ) ;
+                    result.append(textEl) ;
                 }
+                const rightDoubleQuotationMark = "\u201D" ;
+                const closeQuote : JQuery = $( document.createElement("span") ).text(rightDoubleQuotationMark) ;
+                result.append(closeQuote) ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
@@ -520,18 +529,15 @@ module sharedMkHtml
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-            let text = node.label().getVal() ;
-            text = text.replace( /&/g, "&amp;" ) ;
-            text = text.replace( /"/g, "&quot;") ;
-
+            const str = node.label().getVal() ;
             const element : JQuery = $(document.createElement("input"));
             for( let i=0 ; i < classes.length ; ++i ) {
                 element.addClass( classes[i] ) ; }
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
-            element.attr("value", text) ;
+            element.attr("value", str) ;
             // Give the element focus and move the caret to the end of the text.
-            const len = text.length ;
+            const len = str.length ;
             setSelection(element, len, len) ;
             return element ;
     }

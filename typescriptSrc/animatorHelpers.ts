@@ -29,9 +29,10 @@ module animatorHelpers
     const path : (  ...args : Array<number> ) => List<number> = list;
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
+    import ObjectV = valueTypes.ObjectV;
+    import StringV = valueTypes.StringV;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
-    import ObjectV = valueTypes.ObjectV;
     import ObjectI = vms.ObjectI;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
@@ -588,8 +589,7 @@ module animatorHelpers
             break ;
             case labels.StringLiteralLabel.kindConst :
             {
-                const text : svg.Text = element.text( node.label().getVal() );
-                makeStringLiteralSVG(element, text);
+                makeStringLiteralSVG(element, node.label().getVal());
                 // result.addClass( "stringLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
@@ -696,8 +696,7 @@ module animatorHelpers
         }
         if(value.isStringV())
         {
-            const text : svg.Text = element.text( value.toString() );
-            makeStringLiteralSVG(element, text);
+            makeStringLiteralSVG(element, (value as StringV).getVal() );
             return;
         }
         if(value.isClosureV())
@@ -927,8 +926,11 @@ module animatorHelpers
     }
     
     //I assume textElement is already contained within base.
-    function makeStringLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
     {
+        const leftDoubleQuotationMark = "\u201C" ;
+        const rightDoubleQuotationMark = "\u201D" ;
+        const textElement : svg.Text = base.text( leftDoubleQuotationMark + str + rightDoubleQuotationMark );
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
@@ -1093,11 +1095,11 @@ module animatorHelpers
     function highlightThis(el : svg.Container) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        const outline : svg.Rect = el.rect(bounds.width+2, bounds.height+2);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: WHITE, opacity: 1, width: 1.5});
+        outline.fill({color: WHITE, opacity: 0.4});
+        outline.stroke({color: WHITE, opacity: 0, width: 1.5});
     }
 }
 
