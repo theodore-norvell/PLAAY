@@ -353,31 +353,34 @@ module interpreter {
             stepper(vm, args);
         } 
         else if (functionValue instanceof ClosureV) {
-            const lambda = functionValue.getLambdaNode();
-            const paramlist = lambda.child(0);
-            processAndPushArgs(args, paramlist, lambda.child(2), vm);
+            callClosure(args, functionValue, vm);
         } 
         else {
             vm.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
         } 
     }
 
-    function processAndPushArgs(args: Value[], paramlist: PNode, root: PNode, vm: VMS) : void {
-      if(args.length !== paramlist.children(0, paramlist.count()).length) {
-        vm.reportError("Number of arguments for lambda does not match parameter list.");
-        return;
-      }
-      const manager = vm.getTransactionManager();
-      const stackFrame = new ObjectV(manager);
-      for (let i = 0; i < args.length; i++) {
-        const varName = paramlist.child(i).child(0).label().getVal();
-        const val = args[i];
-        //TODO: check that the types of val and vardecl are the same
-        const field = new Field(varName, val, Type.ANY, true, true, manager);
-        field.setIsDeclared();
-        stackFrame.addField(field);
-      }
-      vm.pushEvaluation(root, new NonEmptyVarStack(stackFrame, vm.getStack()));
+    function callClosure(args: Value[], closure: ClosureV, vm: VMS) : void {
+        const lambda = closure.getLambdaNode();
+        const paramlist = lambda.child(0);
+        const returnType = lambda.child(1) ;
+        const body = lambda.child(2) ;
+        const context = closure.getContext() ;
+        if(args.length !== paramlist.children(0, paramlist.count()).length) {
+            vm.reportError("Number of arguments for lambda does not match parameter list.");
+            return;
+        }
+        const manager = vm.getTransactionManager();
+        const stackFrame = new ObjectV(manager);
+        for (let i = 0; i < args.length; i++) {
+            const varName = paramlist.child(i).child(0).label().getVal();
+            const val = args[i];
+            //TODO: check that the types of val and vardecl are the same
+            const field = new Field(varName, val, Type.ANY, true, true, manager);
+            field.setIsDeclared();
+            stackFrame.addField(field);
+        }
+        vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
     }
 
     function exprSeqStepper(vm : VMS) : void {
