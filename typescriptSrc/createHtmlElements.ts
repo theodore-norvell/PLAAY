@@ -75,17 +75,20 @@ module createHtmlElements {
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
 		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
-		createTexted("div", "leftSideButton paletteItem", "vardecl", palette, "\u03B4");
+		createTexted("div", "leftSideButton paletteItem", "condecl", palette, "con");
+		createTexted("div", "leftSideButton paletteItem", "locdecl", palette, "loc");
 		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
 		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
 		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+");
 		createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
 		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
+		createTexted("div", "leftSideButton paletteItem", "numberliteral", palette, '123');
 		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
 		createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
 		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
 		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
+		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".");
 
 		// The container for the tree.
 		create("div", "container", "container", editorDiv);
