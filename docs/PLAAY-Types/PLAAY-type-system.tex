@@ -1,0 +1,70 @@
+
+\documentclass{article}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+\usepackage{amsfonts}
+\usepackage{graphicx}
+\usepackage{amsmath}
+
+\setcounter{MaxMatrixCols}{10}
+%TCIDATA{OutputFilter=LATEX.DLL}
+%TCIDATA{Version=5.50.0.2960}
+%TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
+%TCIDATA{BibliographyScheme=Manual}
+%TCIDATA{Created=Tuesday, May 08, 2018 11:08:28}
+%TCIDATA{LastRevised=Tuesday, May 08, 2018 17:47:25}
+%TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
+%TCIDATA{<META NAME="DocumentShell" CONTENT="Articles\Literate Programming Article">}
+%TCIDATA{CSTFile=Literate Programming Article.cst}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{acknowledgement}[theorem]{Acknowledgement}
+\newtheorem{algorithm}[theorem]{Algorithm}
+\newtheorem{axiom}[theorem]{Axiom}
+\newtheorem{case}[theorem]{Case}
+\newtheorem{claim}[theorem]{Claim}
+\newtheorem{conclusion}[theorem]{Conclusion}
+\newtheorem{condition}[theorem]{Condition}
+\newtheorem{conjecture}[theorem]{Conjecture}
+\newtheorem{corollary}[theorem]{Corollary}
+\newtheorem{criterion}[theorem]{Criterion}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{example}[theorem]{Example}
+\newtheorem{exercise}[theorem]{Exercise}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{notation}[theorem]{Notation}
+\newtheorem{problem}[theorem]{Problem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{remark}[theorem]{Remark}
+\newtheorem{solution}[theorem]{Solution}
+\newtheorem{summary}[theorem]{Summary}
+\newenvironment{proof}[1][Proof]{\textbf{#1.} }{\ \rule{0.5em}{0.5em}}
+\input{tcilatex}
+\input{litprog.sty}
+\begin{document}
+
+\title{The Type System of PLAAY}
+\author{Theodore S\ Norvell \\
+%EndAName
+Electrical and Computer Engineering\\
+Memorial University}
+\maketitle
+
+\begin{abstract}
+Abstract to be done.
+\end{abstract}
+
+\section{The basic idea of the type system}
+
+In PLAAY, values are organized into types. \ When variables and constants
+have declared types we try to ensure that only values of the given type are
+assigned to the variable or constants. This is done through a combination of
+static (i.e., composition-time) and dynamic (i.e., run-time)\ checks. \ The
+basic principle is to report problems to the user as soon as possible. Thus
+we report errors at composition-time when possible. Errors reported at
+composition time may be ignored by the user. That is they can run the
+program even if errors are being reported. So we still need run time checks
+even for errors that would normally by caught at compile time. This is in
+contrast languages like Java where compile there is limited need for
+run-time type checking.
+
+\end{document}
