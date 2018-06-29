@@ -262,6 +262,18 @@ module interpreter {
               vm.setReady(true);
             }         
         }
+
+        else if (varNode.label().kind() === labels.DotLabel.kindConst) {
+            const path = vms.getPending();
+            const pathToObject = path.cat(collections.list<number>(0,0));
+            if(!vms.isMapped(pathToObject)) {
+                vms.pushPending(0);
+                vms.getInterpreter().select(vms);
+            }
+            else {
+                vms.setReady(true);
+            }             
+        }
         else {
             vm.setReady(true);
         }
