@@ -605,19 +605,34 @@ module animatorHelpers
             case labels.TupleLabel.kindConst :
             {
                 const childArray = element.children();
-                let seqBoxY : number = 0;
+                let seqBoxX : number = 0;
                 const seqBox :  svg.G = element.group().dmove(10, 20) ;
+                const leftBracketText : svg.Text= element.text( "(");
+                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.fill(LIGHT_BLUE.toString());
+                seqBox.add( leftBracketText.dmove(-20,0) );
+    
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    seqBox.add(childArray[i].dmove(0, seqBoxY));
-                    seqBoxY += childArray[i].bbox().height + 15;
+                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    if( i !== childArray.length - 1) {
+                        const comma : svg.Text= element.text( ",");
+                        comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        comma.fill(LIGHT_BLUE.toString());
+                        seqBox.add(comma.dmove(seqBoxX + 20,0));
+                    }
+                    seqBoxX += childArray[i].bbox().height + 15;
                 }
-                if(seqBoxY === 0)
+                if(seqBoxX === 0)
                 {
                     seqBox.rect(10,10).opacity(0);
                 }
+                const rightBracketText : svg.Text= element.text( ")");
+                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.fill(LIGHT_BLUE.toString());
+                seqBox.add( rightBracketText.dmove(seqBoxX - 10,0) );
 
-                makeSimpleBorder(element, ORANGE);
+                makeSimpleBorder(element, LIGHT_BLUE);
             }
             break;
             case labels.NoTypeLabel.kindConst :
