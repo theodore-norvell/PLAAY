@@ -21,10 +21,10 @@ module assert {
      * 
      * @param message  an optional message to accompany the Error.
      */
-    export function todo( message? : string ) : void {
+    export function todo( message? : string ) : never {
         if( message===undefined ) message = "Code not written yet." ;
         else message = "Code not written yet: "+message ;
-        raiseTheAlarm( message ) ;
+        return raiseTheAlarm( message ) ;
     }
     
     /** The call is intended should not be reachable.
