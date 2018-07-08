@@ -785,6 +785,44 @@ describe( 'CallWorldLabel - equal', function() : void {
     })
 });
 
+/* Test for (false = x) = (x = false) = false for any x not false */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkFalseBooleanLiteral();
+    const op2 = labels.mkNumberLiteral("123");
+    const root = new PNode(rootLabel, [op1,op2,op2,op1]);
+    const vm = makeStdVMS( root );
+    
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val1 = vm.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === false);
+    })
+});
+
 describe( 'CallWorldLabel - equal', function() : void {
   const rootlabel = new labels.CallWorldLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
@@ -843,8 +881,8 @@ describe( 'CallWorldLabel - equal', function() : void {
 
 describe( 'CallWorldLabel - logical and', function() : void {
   const rootlabel = new labels.CallWorldLabel("and", false);
-  const op1 = labels.mkStringLiteral("true");
-  const op2 = labels.mkStringLiteral("true");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
@@ -871,8 +909,8 @@ describe( 'CallWorldLabel - logical and', function() : void {
 
 describe( 'CallWorldLabel - logical and', function() : void {
   const rootlabel = new labels.CallWorldLabel("and", false);
-  const op1 = labels.mkStringLiteral("true");
-  const op2 = labels.mkStringLiteral("false");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
@@ -899,8 +937,8 @@ describe( 'CallWorldLabel - logical and', function() : void {
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkStringLiteral("true");
-  const op2 = labels.mkStringLiteral("true");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
@@ -927,8 +965,8 @@ describe( 'CallWorldLabel - logical or', function() : void {
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkStringLiteral("true");
-  const op2 = labels.mkStringLiteral("false");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
@@ -955,8 +993,8 @@ describe( 'CallWorldLabel - logical or', function() : void {
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkStringLiteral("false");
-  const op2 = labels.mkStringLiteral("false");
+  const op1 = labels.mkFalseBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 

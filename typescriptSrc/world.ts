@@ -90,13 +90,13 @@ module world {
     }
 
     function isBool(val: Value) : boolean {
-      if(!val.isStringV()) return false;
-      const str = (val as StringV).getVal();
-      return str === "true" || str === "false";
+      if(!val.isBoolV()) return false;
+      const bool = (val as BoolV).getVal();
+      return bool === true || bool === false;
     }
 
     function convertToBool(val: Value) : boolean {
-      return (val as StringV).getVal() === "true" ? true : false;
+      return (val as BoolV).getVal() === true ? true : false;
     }
 
     function arithmeticStepperFactory( callback: (leftOperand: number, rightOperand: number) => number )
