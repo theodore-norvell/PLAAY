@@ -722,7 +722,7 @@ module editor {
                 e.preventDefault();
             }
             //Create tuple node: (
-            else if(!e.shiftKey && (e.which === 57 )) 
+            else if(e.shiftKey && (e.which === 57 )) 
             {
                 createNode("tuple", currentSelection);
                 e.stopPropagation();
