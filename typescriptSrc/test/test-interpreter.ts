@@ -1019,6 +1019,82 @@ describe( 'CallWorldLabel - logical or', function() : void {
   } );
 } ) ;
 
+describe( 'CallWorldLabel - implies', function() : void {
+    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const op1 = labels.mkFalseBooleanLiteral();
+    const op2 = labels.mkFalseBooleanLiteral();
+    const op3 = labels.mkFalseBooleanLiteral();
+    const op4 = labels.mkTrueBooleanLiteral();
+    const root = new PNode(rootlabel, [op1, op2, op3, op4]);
+    const vm = makeStdVMS( root )  ;
+  
+    it('should evaluate to a BoolV equaling true', function() : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;    
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === true);
+    } );
+  } ) ;
+
+  describe( 'CallWorldLabel - implies', function() : void {
+    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkTrueBooleanLiteral();
+    const op3 = labels.mkTrueBooleanLiteral();
+    const op4 = labels.mkFalseBooleanLiteral();
+    const root = new PNode(rootlabel, [op1, op2, op3, op4]);
+    const vm = makeStdVMS( root )  ;
+  
+    it('should evaluate to a BoolV equaling false', function() : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;    
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === false);
+    } );
+  } ) ;
+
 
 describe ('Call Label with closure', function(): void {
     const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));

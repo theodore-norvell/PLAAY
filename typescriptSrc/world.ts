@@ -183,23 +183,27 @@ module world {
     }
 
     
-    function impliesStepperFactory( callback: (leftOperand : boolean, rightOperand: boolean) => boolean) 
+    function impliesStepperFactory( callback: (vals: Array<boolean>) => boolean) 
              : (vm : VMS, arg : Array<Value>) => void {
-                 return function impliesStep( vm : VMS, args : Array<Value> ) : void {
+                 return function( vm : VMS, args : Array<Value> ) : void {            
                      const vals : Array<boolean> = [];
                      let ok = true;
+                     if(args.length === 0) {
+                        vm.reportError("Zero arguments for implies function.");
+                        ok = false;            
+                     }
                      for(let i=0; i< args.length; ++i) {
                          if(isBool(args[i])) {
                             vals.push(convertToBool(args[i]));
                          }
                          else {
-                             vm.reportError("The "+nth(i+1)+" argument is not a bool.");
+                             vm.reportError("Implies function accepts only arguments of type bool.");
                              ok = false;
                          }                         
                      }
                      if(ok) {
-                         const result = vals.reduce(callback);
-                         const val : BoolV = BoolV.getVal(result);
+                         const result = callback(vals);
+                         const val : BoolV = BoolV.getVal(result);                         
                          vm.finishStep(val);
                      }
                  }
@@ -378,37 +382,27 @@ module world {
             const not = new BuiltInV(notStep);
             const notf = new Field("not",not,Type.BOOL,true,true,manager);
             this.addField(notf);
-
-            // TODO : add tests 
-            const impliesCallback = (leftOperand : boolean, rightOperand :boolean) : boolean => { return impliesFunc(leftOperand,rightOperand) };
-            const impliesStep = impliesStepperFactory(impliesCallback);
+            
+            const impliesCallback = ( vals : Array<boolean>):boolean => {
+                let result = true;
+                for(let i=0; i<vals.length - 1; i++) {
+                    if(vals[i]) {
+                        if(!vals[i+1]) {
+                            result = false;
+                        }
+                    }                    
+                }
+                if(vals[vals.length-1] === true) {
+                    return true;
+                }
+                else {
+                    return result;
+                }                
+            }
+            const impliesStep = impliesStepperFactory(impliesCallback);          
             const implies = new BuiltInV(impliesStep);
             const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
             this.addField(impliesf);
-
-            function impliesFunc(leftOperand : boolean, rightOperand : boolean) : boolean {
-                if(leftOperand) {
-                    if(rightOperand) {
-                        return true;
-                    }
-                    else {
-                        return false;
-                    }
-                }
-                else {
-                    return true;
-                }
-                /*if(operands[operands.length - 1]) {
-                    return true;
-                }
-                
-                for(let i=0; i<operands.length-1; ++i) {
-                    if(!operands[i]) {
-                        return true;
-                    }
-                }
-                return false; */
-            }
 
             function notStep(vm : VMS, args : Array<Value>) : void {
                 if ( args.length !== 1) {
