@@ -603,6 +603,17 @@ module animatorHelpers
                 // result.addClass( "H" ) ;
             }
             break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+                const text : svg.Text = element.text( node.label().getVal() );
+                if(text.toString() === "true") {
+                    makeBooleanLiteralSVG(element,text,true);
+                }
+                else {
+                    makeBooleanLiteralSVG(element,text,false);
+                }
+            }
+            break;
             case labels.NoTypeLabel.kindConst :
             {
                 makeNoTypeLabelSVG(element);
@@ -689,12 +700,6 @@ module animatorHelpers
             makeNullLiteralSVG(element);
             return;
         }
-        if(value.isTupleV())
-        {
-            // const text : svg.Text = element.text( "Done" );
-            // makeDoneSVG(element, text);
-            return;
-        }
         if(value.isStringV())
         {
             const text : svg.Text = element.text( value.toString() );
@@ -707,6 +712,12 @@ module animatorHelpers
             makeNumberLiteralSVG(element, num);
             return;
         }
+        if(value.isDoneV())
+        {
+            const text : svg.Text = element.text( "Done" );
+            makeDoneSVG(element, text);
+            return;
+        }
         if(value.isBoolV())
         {
             const bool : svg.Text = element.text ( value.toString() );
@@ -715,7 +726,8 @@ module animatorHelpers
             }
             else {
                 makeBooleanLiteralSVG(element,bool,false);
-            }            
+            }  
+            return;          
         }
         if(value.isClosureV())
         {

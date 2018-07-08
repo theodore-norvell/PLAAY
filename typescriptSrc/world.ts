@@ -463,11 +463,11 @@ module world {
                   }
             }
 
-            const trueConstant = new BuiltInV(booleanStep);
+            const trueConstant = BoolV.trueValue;
             const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
             this.addField(trueConstantf);
 
-            const falseConstant = new BuiltInV(booleanStep);
+            const falseConstant = BoolV.falseValue;
             const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
             this.addField(falseConstantf);
 
