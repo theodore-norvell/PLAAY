@@ -660,7 +660,7 @@ module animatorHelpers
             {
                 const childArray = element.children();
                 let seqBoxX : number = 0;
-                const padding : number = 5;
+                const padding : number = 15;
                 const seqBox :  svg.G = element.group().dmove(10, 20) ;
                 const leftBracketText : svg.Text= element.text( "(");
                 leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
@@ -687,7 +687,7 @@ module animatorHelpers
                 const rightBracketText : svg.Text= element.text( ")");
                 rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                 rightBracketText.fill(LIGHT_BLUE.toString());
-                seqBox.add( rightBracketText.dmove(seqBoxX - 5,-5) );
+                seqBox.add( rightBracketText.dmove(seqBoxX - 10 ,-5) );
 
                 makeSimpleBorder(element, LIGHT_BLUE);
             }
@@ -780,6 +780,11 @@ module animatorHelpers
         }
         if(value.isTupleV())
         {
+            if( (value as TupleV).numFields() === 0) {
+                const text : svg.Text = element.text( "Done" );
+                makeDoneSVG(element,text);
+                return;
+            }
             if(!drawNestedObjects && !tuplesToDraw.includes(value as TupleV))
             {
                 const text : svg.Text = element.text("Tuple");
@@ -944,6 +949,9 @@ module animatorHelpers
 
         for(const tup of tuplesToDraw)
         {
+            if(tup.numFields() === 0) {
+                continue;
+            }
             if(drawnTuplesMap.has(tup as TupleV) && tupleArrowStartPoints.has(tup))
             {
                 const tupleGroup : svg.Rect = drawnTuplesMap.get(tup as TupleV) as svg.Rect;
