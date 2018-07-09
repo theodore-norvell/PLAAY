@@ -452,6 +452,14 @@ module valueTypes {
             assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
             return new TupleV(vals); 
         }
+
+        public numFields():number {
+            return this.values.length;
+        } 
+
+        public getValueByIndex(index : number) : Value {
+            return this.values[index];
+        }
   
         public isClosureV() : boolean {
             return false;

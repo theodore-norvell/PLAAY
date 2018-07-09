@@ -33,6 +33,7 @@ module animatorHelpers
     import Value = vms.Value;
     import ObjectV = valueTypes.ObjectV;
     import ObjectI = vms.ObjectI;
+    import TupleV = valueTypes.TupleV;
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
 
     const MAUVE : string = "rgb(190, 133, 197)";
@@ -43,15 +44,27 @@ module animatorHelpers
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
 
-    let objectsToDraw : Array<ObjectV> = new Array<ObjectV>();
-    let arrowStartPoints : Map<ObjectV, Array<svg.Rect>> = new Map<ObjectV, Array<svg.Rect>>();
+    let objectsToDraw : Array<ObjectI> = new Array<ObjectI>();
+    let arrowStartPoints : Map<ObjectI, Array<svg.Rect>> = new Map<ObjectI, Array<svg.Rect>>();
     let drawnObjectsMap : Map<ObjectI, svg.Rect> = new Map<ObjectI, svg.Rect>();
+
+    let tuplesToDraw : Array<TupleV> = new Array<TupleV>();
+    let tupleArrowStartPoints : Map<TupleV, Array<svg.Rect>> = new Map<TupleV, Array<svg.Rect>>();
+    let drawnTuplesMap : Map<TupleV, svg.Rect> = new Map<TupleV, svg.Rect>();
+
 
     export function clearObjectDrawingInfo() : void
     {
         objectsToDraw = new Array<ObjectV>();
         arrowStartPoints = new Map<ObjectV, Array<svg.Rect>>();
         drawnObjectsMap = new Map<ObjectI, svg.Rect>();
+    }
+
+    export function clearTupleDrawingInfo() : void
+    {
+        tuplesToDraw = new Array<TupleV>();
+        tupleArrowStartPoints = new Map<TupleV, Array<svg.Rect>>();
+        drawnTuplesMap = new Map<TupleV, svg.Rect>();
     }
 
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
@@ -82,18 +95,21 @@ module animatorHelpers
                 const frameArray : ObjectI[] = vars.getAllFrames();
                 
                 for (let k = 0; k < varstackSize - 1 && k < 10; k++){
-                    const obj : ObjectI = frameArray[k];
+                    const obj : Value = frameArray[k];
                     if(k !== 0)
                     {
                         y += padding;
                     }
-                    y += drawObject(obj, el, y).bbox().height;
+                    if(obj.isObjectV()) {
+                        y += drawObject(obj as ObjectI, el, y).bbox().height;
+                    }
                 }
         }
     }
 
     function drawObject(object : ObjectI, element : svg.Container, y : number, drawNestedObjects : boolean = true) : svg.Rect
     {
+        
         const padding : number = 15;
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
@@ -118,6 +134,44 @@ module animatorHelpers
             border = element.rect(0,0);
         }
         return border;
+    }
+
+    function drawTuple(tuple : TupleV, element : svg.Container, y : number, drawNestedTuples : boolean = true) : svg.Rect
+    {
+        
+        const padding : number = 15;
+        const result : svg.G = element.group();
+        const numFields : number = tuple.numFields();
+        for (let j = 0; j < numFields; j++){
+            const field : Value = tuple.getValueByIndex(j);
+            const subGroup : svg.G = result.group();
+            const name : svg.Text = subGroup.text(j.toString());
+            const value : svg.G = subGroup.group();
+            buildSVGForMappedNode(value, subGroup, field, drawNestedTuples);
+            makeObjectFieldSVG(subGroup, name, value);
+                          
+            subGroup.dmove(10, y + 5);  
+            y += subGroup.bbox().height + 5;
+        }
+        let border;
+        if(result.children().length !== 0)
+        {
+            border = makeObjectBorderSVG(element, result);
+        }
+        else
+        {
+            border = element.rect(0,0);
+        }
+        return border;
+    }
+
+    function makeTupleValueSVG(base : svg.Container, value : svg.G) : void {
+        let x : number = 0;
+        const padding : number = 20;
+        const valueBox : svg.G = base.group();
+        valueBox.add(value);
+        x += value.bbox().width + padding;
+        valueBox.dmove(x, 0);
     }
 
     function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
@@ -606,22 +660,25 @@ module animatorHelpers
             {
                 const childArray = element.children();
                 let seqBoxX : number = 0;
+                const padding : number = 5;
                 const seqBox :  svg.G = element.group().dmove(10, 20) ;
                 const leftBracketText : svg.Text= element.text( "(");
                 leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                 leftBracketText.fill(LIGHT_BLUE.toString());
-                seqBox.add( leftBracketText.dmove(-20,0) );
+                seqBox.add( leftBracketText.dmove(-20,-5) );
+
+                let len = findWidthOfLargestChild(childArray)+padding;
     
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;
-                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    seqBox.add(childArray[i].dmove(seqBoxX, -5));
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
                         comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                         comma.fill(LIGHT_BLUE.toString());
-                        seqBox.add(comma.dmove(seqBoxX + 20,0));
+                        seqBox.add(comma.dmove(seqBoxX + 20,-5));
                     }
-                    seqBoxX += childArray[i].bbox().height + 15;
+                    seqBoxX += childArray[i].bbox().width + 25;
                 }
                 if(seqBoxX === 0)
                 {
@@ -630,7 +687,7 @@ module animatorHelpers
                 const rightBracketText : svg.Text= element.text( ")");
                 rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                 rightBracketText.fill(LIGHT_BLUE.toString());
-                seqBox.add( rightBracketText.dmove(seqBoxX - 10,0) );
+                seqBox.add( rightBracketText.dmove(seqBoxX - 5,-5) );
 
                 makeSimpleBorder(element, LIGHT_BLUE);
             }
@@ -723,11 +780,26 @@ module animatorHelpers
         }
         if(value.isTupleV())
         {
-            // Temporary.. need to create function makeTupleSVG
-            const text : svg.Text = element.text(value.toString() );
-            makeDoneSVG(element, text);
+            if(!drawNestedObjects && !tuplesToDraw.includes(value as TupleV))
+            {
+                const text : svg.Text = element.text("Tuple");
+                makeObjectSVG(element, text);
+                return;
+            }
+            if(!tuplesToDraw.includes(value as TupleV))
+            {
+                tuplesToDraw.push(value as TupleV);
+            }
+            const tupleArrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
+            if(!tupleArrowStartPoints.has(value as TupleV))
+            {
+                tupleArrowStartPoints.set(value as TupleV, new Array<svg.Rect>());
+            }
+            // This array is setting the value of the corresponding key in tupleArrowStartPoints. Without this the value would be empty for that key.
+            const myArray : Array<svg.Rect> = tupleArrowStartPoints.get(value as TupleV) as Array<svg.Rect>;
+            myArray.push(tupleArrowStartPoint);
             return;
-        }
+        } 
         if(value.isStringV())
         {
             const text : svg.Text = element.text( value.toString() );
@@ -804,6 +876,29 @@ module animatorHelpers
         return;
     }
 
+    export function buildTupleArea(element : svg.G) : void
+    {
+        let y = 0;
+        const padding : number = 15;
+        
+        if (tuplesToDraw.length !== 0)
+        {
+            const originalLength = tuplesToDraw.length;
+            for (let k = 0; k < tuplesToDraw.length; k++){
+                const tup : TupleV = tuplesToDraw[k];
+                if(k !== 0)
+                {
+                    y += padding;
+                }
+                const drawNesteTuples : boolean = (k < originalLength);
+                const tupleGroup : svg.Rect = drawTuple(tup, element, y, drawNesteTuples);                
+                drawnTuplesMap.set(tup, tupleGroup);
+                y += tupleGroup.bbox().height;
+            }
+        }
+        return;
+    }
+
     // I assume at this point that all objects which need to be drawn have been drawn.
     export function drawArrows(element : svg.G, parent : svg.Container) : void
     {
@@ -831,6 +926,46 @@ module animatorHelpers
                     else if(startRBox.cx >= objectGroupRBox.cx && startRBox.cy >= objectGroupRBox.y2) //The arrow needs to point to the bottom right corner
                     {
                         arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (objectGroupRBox.x2 + 25) + "," + (objectGroupRBox.y2 - 5) + " H" + (objectGroupRBox.x2 + 6);
+                    }
+                    const arrow : svg.Path = element.path(arrowPathString);
+                    arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
+                    arrow.fill({opacity : 0});
+                    arrow.marker("end", 10, 7, function(add : svg.Marker) : void {
+                        add.polygon("0,0 10,3.5 0,7");
+                        add.fill(WHITE);
+                    });
+                }
+            }
+            else
+            {
+                assert.check(false, "Failed to draw object.");
+            }
+        }
+
+        for(const tup of tuplesToDraw)
+        {
+            if(drawnTuplesMap.has(tup as TupleV) && tupleArrowStartPoints.has(tup))
+            {
+                const tupleGroup : svg.Rect = drawnTuplesMap.get(tup as TupleV) as svg.Rect;
+                const arrowStarts : Array<svg.Rect> = tupleArrowStartPoints.get(tup) as Array<svg.Rect>;
+                //This awful looking assignment gets the coordinates of the object's SVG representation relative to the parent document.
+                const tupleGroupRBox : svg.Box = tupleGroup.rbox().transform(parent.screenCTM().inverse());
+                for(const start of arrowStarts)
+                {
+                    const startRBox : svg.Box = start.rbox().transform(parent.screenCTM().inverse());
+                    let arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (tupleGroupRBox.x - 25) + "," + (tupleGroupRBox.y + 5) + " H" + (tupleGroupRBox.x - 6);
+                    //The arrow points to the top left corner of the box by default.
+                    if(startRBox.cx >= tupleGroupRBox.cx && startRBox.cy <= tupleGroupRBox.y2) //The arrow needs to point to the top right corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (tupleGroupRBox.x2 + 25) + "," + (tupleGroupRBox.y + 5) + " H" + (tupleGroupRBox.x2 + 6);
+                    }
+                    else if(startRBox.cx <= tupleGroupRBox.cx && startRBox.cy >= tupleGroupRBox.y2) //The arrow needs to point to the bottom left corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (tupleGroupRBox.x - 25) + "," + (tupleGroupRBox.y2 - 5) + " H" + (tupleGroupRBox.x - 6);
+                    }
+                    else if(startRBox.cx >= tupleGroupRBox.cx && startRBox.cy >= tupleGroupRBox.y2) //The arrow needs to point to the bottom right corner
+                    {
+                        arrowPathString = "M" + startRBox.cx + "," +  startRBox.cy + " L" + (tupleGroupRBox.x2 + 25) + "," + (tupleGroupRBox.y2 - 5) + " H" + (tupleGroupRBox.x2 + 6);
                     }
                     const arrow : svg.Path = element.path(arrowPathString);
                     arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
@@ -1016,10 +1151,11 @@ module animatorHelpers
         outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
-    function makeSimpleBorder(el : svg.Container, color : string ) : void
+    function makeSimpleBorder(el : svg.Container, color : string, width : number = 0 ) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        const boundsWidth = bounds.width + width;
+        const outline : svg.Rect = el.rect(boundsWidth, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
@@ -1092,6 +1228,7 @@ module animatorHelpers
         outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
+    
     //I assume textElement is already contained within base.
     function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
     {
