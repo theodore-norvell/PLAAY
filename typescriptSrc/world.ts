@@ -335,7 +335,24 @@ module world {
                             bool = false;
                         }
                     }
-                } else if( argsAreDones( args ) ) {
+                }
+                else if ( argsAreTuples(args)) {
+                    bool = true;
+                    for (let i=0; i < args.length - 1; i++) {
+                        if((args[i] as TupleV).numFields() === (args[i+1] as TupleV).numFields()) {
+                            bool = false;
+                            break;
+                        }
+
+                        for( let j=0; j < (args[i] as TupleV).numFields() ; j++ ) {
+                            if((args[i] as TupleV).getValueByIndex(j) === (args[i+1] as TupleV).getValueByIndex(j)) {
+                                bool = false;
+                            }
+                        }
+                    }
+
+                }
+                 else if( argsAreDones( args ) ) {
                     bool = true ;
                 } else if( argsAreNulls( args ) ) {
                     bool = true ;
