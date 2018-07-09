@@ -719,12 +719,13 @@ module animatorHelpers
             return;
         }
         if(value.isBoolV())
-        {
-            const bool : svg.Text = element.text ( value.toString() );
+        {            
             if(value == valueTypes.BoolV.trueValue) {
+                const bool : svg.Text = element.text( "\u2714" );
                 makeBooleanLiteralSVG(element,bool,true);
             }
             else {
+                const bool : svg.Text = element.text( "\u2718" );
                 makeBooleanLiteralSVG(element,bool,false);
             }  
             return;          
