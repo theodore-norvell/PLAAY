@@ -502,8 +502,24 @@ module interpreter {
           return;
         }
       }
+      else if( object instanceof TupleV) {
+          if( field instanceof NumberV) {
+              const index : number = field.converToNumber();
+              if( index < 0 || index > object.numFields() - 1 ) {
+                vm.reportError("Invalid index value: "+index);
+              }
+              else {
+                  const val = object.getValueByIndex(index);
+                  vm.finishStep(val);
+              }
+          }
+          else {
+              vm.reportError("The operand of the index operator must be a number.");
+              return;
+          }
+      }
       else {
-        vm.reportError("The index operator may only be applied to objects.");
+        vm.reportError("The index operator may only be applied to objects and tuples.");
         return;
       }
     }
