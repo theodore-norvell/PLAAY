@@ -194,8 +194,8 @@ describe ('Call - method', function(): void {
         const error = vm.hasError() ? vm.getError() : "" ;
         assert.checkEqual( "", error ) ;
         const val = vm.getFinalValue() ;
-        assert.check(val instanceof StringV) ;
-        assert.check((val as StringV).getVal() === "5") ;
+        assert.check(val instanceof NumberV) ;
+        assert.check((val as NumberV).getVal() === 5) ;
   });
 });
 
@@ -281,37 +281,6 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
       const val = vm.getVal(emptyList);
       assert.check(val instanceof NumberV);
       assert.check((val as NumberV).getVal() === 8 );
-  });
-});
-
-
-describe( 'CallWorldLabel - addition', function() : void {
-    const rootlabel = new labels.CallWorldLabel("+", false);
-    const op1 = labels.mkNumberLiteral("2");
-    const op2 = labels.mkNumberLiteral("3");
-    const root = new PNode(rootlabel, [op1, op2]);
-  const vm = makeStdVMS(root);
-
-  it('should evaluate to a NumberV equaling 1', function() : void {
-      let firstEvalDone: boolean = false;
-      let evalDone: boolean = false;
-      while (!evalDone) {
-        vm.advance();
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( vm.isDone() ) ;
-      assert.check(vm.isMapped(emptyList));
-      const val = vm.getVal(emptyList);
-      assert.check(val instanceof NumberV);
-      assert.check((val as NumberV).getVal() === 1);
   });
 });
 
