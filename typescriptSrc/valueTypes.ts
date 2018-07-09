@@ -446,8 +446,8 @@ module valueTypes {
             if(vals.length > 1) {
                 this.values = vals.slice(0,vals.length);
             }
-            else  {
-                this.values = new Array<Value>(0);
+            else {
+                return TupleV.theDoneValue;
             }
         }
 

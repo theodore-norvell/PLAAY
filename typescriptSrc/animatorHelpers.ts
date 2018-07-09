@@ -780,7 +780,7 @@ module animatorHelpers
         }
         if(value.isTupleV())
         {
-            if( (value as TupleV).numFields() === 0) {
+            if( (value as TupleV) === TupleV.theDoneValue ) {
                 const text : svg.Text = element.text( "Done" );
                 makeDoneSVG(element,text);
                 return;
@@ -949,7 +949,7 @@ module animatorHelpers
 
         for(const tup of tuplesToDraw)
         {
-            if(tup.numFields() === 0) {
+            if( tup === TupleV.theDoneValue ) {
                 continue;
             }
             if(drawnTuplesMap.has(tup as TupleV) && tupleArrowStartPoints.has(tup))
