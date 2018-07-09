@@ -447,6 +447,7 @@ module valueTypes {
                 this.values = vals.slice(0,vals.length);
             }
             else {
+                this.values = vals.slice(0,vals.length);
                 return TupleV.theDoneValue;
             }
         }
