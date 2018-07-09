@@ -31,9 +31,10 @@ import NumberV = valueTypes.NumberV;
 import BoolV = valueTypes.BoolV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
-import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld, mkCall } from '../labels';
+import { mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq, mkLambda, mkNoExpNd,
+         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkVar, mkVarDecl } from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
-import {AssignLabel, ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
+import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
 
 const emptyList = collections.nil<number>() ;
@@ -157,6 +158,47 @@ describe ('LambdaLabel w/ duplicate parameter names', function() : void {
   });
 });
 
+describe ('Call - method', function(): void {
+    // con a : noType := object( 
+    //                           var x : noType := 0
+    //                           const f : notType := lambda con y : noType := noExp
+    //                                                 -> noType { x := x + y } )
+    // a.f _ 2
+    // a.f _ 3
+    // a.x // Should equal 5
+    const decla =   mkConstDecl( mkVar("a"),
+                                 mkNoTypeNd(),
+                                 mkObject([
+                                            mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("0")),
+                                            mkConstDecl(mkVar("f"), mkNoTypeNd(),
+                                                        mkLambda( mkParameterList([mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
+                                                                  mkNoTypeNd(),
+                                                                  mkExprSeq([
+                                                                mkAssign( mkVar("x"),
+                                                                          mkCallWorld("+", [mkVar("x"), mkVar("y")]))
+                                                                ]) ))
+                                    ]));
+    const add2 = mkCall( mkDot( "f", false, mkVar("a") ),
+                         mkNumberLiteral("2") ) ;
+    const add3 = mkCall( mkDot( "f", false, mkVar("a") ),
+                         mkNumberLiteral("3") ) ;
+    const aDotx = mkDot( "x", false, mkVar("a") ) ;
+    const root = mkExprSeq( [decla, add2, add3, aDotx] ) ;
+
+    it('should evaluate done', function() : void {
+
+        const vm = makeStdVMS(root) ;
+        while ( vm.canAdvance() ) {
+            vm.advance() ;
+        }
+        const error = vm.hasError() ? vm.getError() : "" ;
+        assert.checkEqual( "", error ) ;
+        const val = vm.getFinalValue() ;
+        assert.check(val instanceof StringV) ;
+        assert.check((val as StringV).getVal() === "5") ;
+  });
+});
+
 describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
@@ -242,14 +284,12 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
   });
 });
 
-describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void {
-  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-  const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-  const lambdaBody = mkExprSeq([mkCallWorld("-", [mkVar("x"), mkVar("y")])]);
-  const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
-  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-  const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("2")]);
-  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
+
+describe( 'CallWorldLabel - addition', function() : void {
+    const rootlabel = new labels.CallWorldLabel("+", false);
+    const op1 = labels.mkNumberLiteral("2");
+    const op2 = labels.mkNumberLiteral("3");
+    const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS(root);
 
   it('should evaluate to a NumberV equaling 1', function() : void {
@@ -257,13 +297,17 @@ describe ('CallWorldLabel - closure (w/ arguments + context)', function(): void 
       let evalDone: boolean = false;
       while (!evalDone) {
         vm.advance();
-        if (vm.isDone()) {
-          if (firstEvalDone) {
-            evalDone = true; }
-          else {
-            firstEvalDone = true; }
-        }
-      }
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( vm.isDone() ) ;
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
       assert.check(val instanceof NumberV);
@@ -1874,10 +1918,9 @@ describe('VariableLabel', function () : void {
 describe('AssignLabel', function () : void {
     it('should fail when assigning a non-declared variable', function () : void {
         //setup
-        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
-        const root : PNode = new PNode(assignLabel, [variableNode, valueNode]);
+        const root : PNode = mkAssign( variableNode, valueNode );
         const vm = makeStdVMS( root )  ;
 
         //run test
@@ -1904,13 +1947,12 @@ describe('AssignLabel', function () : void {
     it('should assign a new value to a previously declared variable', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
-        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
-        const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
+        const assignNode : PNode = mkAssign( variableNode, valueNode2 ); 
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
         const vm = makeStdVMS( root )  ;
 
@@ -1929,14 +1971,13 @@ describe('AssignLabel', function () : void {
     it('should fail if assigning to a constant', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
-        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkConstDecl(variableNode, typeNode, valueNode1);
 
-        const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
+        const assignNode : PNode = mkAssign( variableNode, valueNode2 );
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
         const vm = makeStdVMS( root )  ;
 
@@ -1951,13 +1992,12 @@ describe('AssignLabel', function () : void {
     it('should fail when trying to assign to a variable not yet declared', function () : void {
         //setup
         // exprSeq( a := 2, decl a: := 1 )
-        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
-        const assignNode : PNode = new PNode(assignLabel, [variableNode, valueNode2]);
+        const assignNode : PNode = mkAssign( variableNode, valueNode2 );
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode, varDeclNode]);
         const vm = makeStdVMS( root )  ;
 
@@ -1972,11 +2012,10 @@ describe('AssignLabel', function () : void {
     it('should fail when trying to assign to something that is not a variable', function () : void {
         //setup
         // exprSeq( a := 2, decl a: := 1 )
-        const assignLabel : AssignLabel = labels.AssignLabel.theAssignLabel;
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
-        const assignNode : PNode = new PNode(assignLabel, [valueNode1, valueNode2]);
+        const assignNode : PNode = mkAssign( valueNode1, valueNode2 );
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
         const vm = makeStdVMS( root )  ;
 
