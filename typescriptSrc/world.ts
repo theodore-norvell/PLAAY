@@ -189,8 +189,9 @@ module world {
                      const vals : Array<boolean> = [];
                      let ok = true;
                      if(args.length === 0) {
-                        vm.reportError("Zero arguments for implies function.");
-                        ok = false;            
+                        const val : BoolV = BoolV.getVal(!ok);
+                        vm.finishStep(val);
+                        return;            
                      }
                      for(let i=0; i< args.length; ++i) {
                          if(isBool(args[i])) {
@@ -384,20 +385,11 @@ module world {
             this.addField(notf);
             
             const impliesCallback = ( vals : Array<boolean>):boolean => {
-                let result = true;
+                let result : boolean  = true;
                 for(let i=0; i<vals.length - 1; i++) {
-                    if(vals[i]) {
-                        if(!vals[i+1]) {
-                            result = false;
-                        }
-                    }                    
+                    result = result && vals[i];
                 }
-                if(vals[vals.length-1] === true) {
-                    return true;
-                }
-                else {
-                    return result;
-                }                
+                return !result || vals[vals.length -1];             
             }
             const impliesStep = impliesStepperFactory(impliesCallback);          
             const implies = new BuiltInV(impliesStep);
