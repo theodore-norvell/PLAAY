@@ -130,7 +130,7 @@ module treeManager {
 
         //objects
         private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
-            const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
+            const objectnode = labels.mkObject([]);
             const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);

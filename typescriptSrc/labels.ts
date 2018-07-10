@@ -923,15 +923,15 @@ module labels {
     export function mkNoExpNd():PNode {
         return  make(NoExprLabel.theNoExprLabel, []); }
 
-
     export function mkIf(guard:PNode, thn:PNode, els:PNode):PNode {
         return make(IfLabel.theIfLabel, [guard, thn, els]); }
 
-    export function mkWorldCall(left:PNode, right:PNode):PNode {
-        return make(new CallWorldLabel("", true), [left, right]); }
-
     export function mkWhile(cond:PNode, seq:PNode):PNode {
         return make(WhileLabel.theWhileLabel, [cond, seq]); }
+
+    export function mkAssign( lhs:PNode, rhs:PNode ) : PNode {
+        return make( AssignLabel.theAssignLabel, [lhs, rhs] ) ;
+    }
 
     export function mkExprSeq( exprs : Array<PNode> ) : PNode {
         return make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
@@ -974,6 +974,10 @@ module labels {
 
     export function mkLambda( param:PNode, type:PNode, func : PNode) : PNode{
         return make (LambdaLabel.theLambdaLabel, [param, type, func]) ;}
+
+    export function mkObject( children : Array<PNode> ) : PNode {
+        return make( ObjectLiteralLabel.theObjectLiteralLabel, children ) ;
+    }
 
     export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
         assert.check( child.isExprNode() ) ;
