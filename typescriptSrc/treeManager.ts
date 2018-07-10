@@ -174,10 +174,9 @@ module treeManager {
         }
 
         private makeTupleNode(selection:Selection) : Option<Selection> {
-            
-            
-            const tuplenode = labels.mkTuple([labels.mkExprPH(), labels.mkExprPH()]);
-            const template = new Selection( tuplenode, list<number>(), 0, 2 ) ;
+                                    
+            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
+            const template = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
 

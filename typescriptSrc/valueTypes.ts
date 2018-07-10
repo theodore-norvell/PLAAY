@@ -443,7 +443,7 @@ module valueTypes {
         private readonly values : Array<Value>;
 
         private constructor(vals : Array<Value>) {
-            if(vals.length > 1) {
+            if(vals.length > 0 ) {
                 this.values = vals.slice(0,vals.length);
             }
             else {
