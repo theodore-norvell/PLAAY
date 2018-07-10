@@ -1023,7 +1023,7 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "The index operator may only be applied to objects.", message );
+      assert.checkEqual( "The index operator may only be applied to objects and tuples.", message );
     });
 
     it('should report an error when the index is not a string', function(): void {
