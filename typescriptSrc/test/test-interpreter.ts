@@ -29,6 +29,7 @@ import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NumberV = valueTypes.NumberV;
 import BoolV = valueTypes.BoolV;
+import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
 import { mkVarDecl, mkVar, mkNoTypeNd, mkNoExpNd, mkParameterList, mkLambda, mkExprSeq, mkNumberLiteral, mkCallWorld, mkCall } from '../labels';
@@ -2052,6 +2053,109 @@ describe('ExprPHLable', function () : void {
 
         assert.check( vm.hasError() ) ;
         assert.check( vm.getError() === "Missing code." ) ;
+    });
+});
+
+describe('TupleLable', function () : void {
+    it('should return done value for empty tuple', function () : void {
+            const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
+            const root = new PNode( tupleLable, [] ) ;
+            const vm = makeStdVMS( root )  ;
+            
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isDone() ) ;
+            assert.check( vm.isMapped( emptyList ) ) ;
+            const val = vm.getVal( emptyList ) ;
+            assert.check( val instanceof TupleV ) ;
+            assert.check( val === TupleV.theDoneValue);
+
+    });
+});
+
+describe('TupleLable', function () : void {
+    it('should return NumberV value for one value tuple containing a number', function () : void {
+            const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
+            const numberNode : PNode = labels.mkNumberLiteral("10");
+            const root = new PNode( tupleLable, [numberNode] ) ;
+            const vm = makeStdVMS( root )  ;
+            
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isDone() ) ;
+            assert.check( vm.isMapped( emptyList ) ) ;
+            const val = vm.getVal( emptyList ) ;
+            assert.check( val instanceof NumberV ) ;
+            assert.check( (val as NumberV).getVal() === 10);
+
+    });
+});
+
+describe('TupleLable', function () : void {
+    it('should return StringV value for one value tuple containing a string.', function () : void {
+            const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
+            const stringNode : PNode = labels.mkStringLiteral("test123");
+            const root = new PNode( tupleLable, [stringNode] ) ;
+            const vm = makeStdVMS( root )  ;
+            
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isDone() ) ;
+            assert.check( vm.isMapped( emptyList ) ) ;
+            const val = vm.getVal( emptyList ) ;
+            assert.check( val instanceof StringV ) ;
+            assert.check( (val as StringV).getVal() === "test123");
+
+    });
+});
+
+describe('TupleLable', function () : void {
+    it('should return TupleV value for more than one value tuple.', function () : void {
+            const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
+            const numberNode : PNode = labels.mkNumberLiteral("10");
+            const stringNode : PNode = labels.mkStringLiteral("test123");
+            const root = new PNode( tupleLable, [numberNode,stringNode] ) ;
+            const vm = makeStdVMS( root )  ;
+            
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( ! vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isReady() ) ;
+            vm.advance() ;
+            assert.check( vm.isDone() ) ;
+            assert.check( vm.isMapped( emptyList ) ) ;
+            const val = vm.getVal( emptyList ) ;
+            assert.check( val instanceof TupleV ) ;            
+            const val1 : Value = (val as TupleV).getValueByIndex(0);
+            assert.check( val1 instanceof NumberV );
+            const val1Result : number = (val1 as NumberV).getVal();
+            const val2 : Value = (val as TupleV).getValueByIndex(1);
+            assert.check( val2 instanceof StringV );
+            const val2Result : string = (val2 as StringV).getVal();            
+            assert.check( val1Result === 10 );
+            assert.check( val2Result === "test123");
+
     });
 });
 
