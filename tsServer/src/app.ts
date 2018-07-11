@@ -6,30 +6,28 @@ import logger from "morgan";
 import lusca from "lusca";
 import dotenv from "dotenv";
 import mongo from "connect-mongo";
-import flash from "express-flash";
 import path from "path";
 import mongoose from "mongoose";
 import passport from "passport";
+import passportLocal from "passport-local"
 import expressValidator from "express-validator";
 import bluebird from "bluebird";
 
 const MongoStore = mongo(session);
+const LocalStrategy = passportLocal.Strategy;
 
 // Load environment variables from .env file, where API keys and passwords are configured
 dotenv.config({path: ".env"});
 
 // Controllers
-import * as homeController from "./controllers/home";
 import * as userController from "./controllers/user";
-import * as apiController from "./controllers/api";
-import * as contactController from "./controllers/contact";
 import * as plaayController from "./controllers/plaay";
 import * as saveController from "./controllers/save";
 import * as loadController from "./controllers/load";
 
+import User from "./models/User";
 
-// API keys and Passport config
-import * as passportConfig from "./config/passport";
+
 
 //Create Express server
 const app = express();
@@ -61,9 +59,40 @@ app.use(session({
         autoReconnect: true
     })
 }));
+
 app.use(passport.initialize());
 app.use(passport.session());
-app.use(flash());
+
+passport.use(new LocalStrategy({ usernameField: "email"}, (email, password, done) => {
+    User.findOne({email: email.toLowerCase()}, (err, user: any) => {
+        if (err) {
+            return done(err);
+        }
+        if (!user) {
+            return done(undefined, false, {message: `Email ${email} not found.`});
+        }
+        user.comparePassword(password, (err: Error, isMatch: boolean) => {
+            if (err) {
+                return done(err);
+            }
+            if (isMatch) {
+                return done(undefined, user);
+            }
+            return done(undefined, false, {message: "Invalid email or password."});
+        });
+    });
+}));
+
+passport.serializeUser<any, any>((user, done) => {
+    done(undefined, user.id);
+});
+
+passport.deserializeUser((id, done) => {
+    User.findById(id, (err, user) => {
+        done(err, user);
+    });
+});
+
 app.use(lusca.xframe("SAMEORIGIN"));
 app.use(lusca.xssProtection(true));
 app.use((req, res, next) => {
@@ -87,43 +116,17 @@ app.use(
 /**
  Primary app routes.
  */
-// app.get("/", homeController.index);
 app.get("/", plaayController.newProgram);
-app.get("/login", userController.getLogin);
+app.get("/loginfailed", userController.getLoginFailed);
 app.post("/login", userController.postLogin);
 app.get("/logout", userController.logout);
-app.get("/forgot", userController.getForgot);
-app.post("/forgot", userController.postForgot);
-app.get("/reset/:token", userController.getReset);
-app.post("/reset/:token", userController.postReset);
-app.get("/signup", userController.getSignup);
+app.get("/signupfailed", userController.getSignupFailed);
 app.post("/signup", userController.postSignup);
-app.get("/contact", contactController.getContact);
-app.post("/contact", contactController.postContact);
-app.get("/account", passportConfig.isAuthenticated, userController.getAccount);
-app.post("/account/profile", passportConfig.isAuthenticated, userController.postUpdateProfile);
-app.post("/account/password", passportConfig.isAuthenticated, userController.postUpdatePassword);
-app.post("/account/delete", passportConfig.isAuthenticated, userController.postDeleteAccount);
-app.get("/account/unlink/:provider", passportConfig.isAuthenticated, userController.getOauthUnlink);
 app.get("/plaay", plaayController.newProgram);
 app.post("/save", saveController.save);
 app.post("/load", loadController.load);
 app.post("/listPrograms", loadController.listPrograms);
 app.get("/p/:programId", plaayController.loadProgram);
 app.post("/update", saveController.update);
-
-/**
- * API examples routes.
- */
-app.get("/api", apiController.getApi);
-app.get("/api/facebook", passportConfig.isAuthenticated, passportConfig.isAuthorized, apiController.getFacebook);
-
-/**
- * OAuth authentication routes. (Sign in)
- */
-app.get("/auth/facebook", passport.authenticate("facebook", { scope: ["email", "public_profile"] }));
-app.get("/auth/facebook/callback", passport.authenticate("facebook", { failureRedirect: "/login" }), (req, res) => {
-    res.redirect(req.session.returnTo || "/");
-});
 
 export default app;

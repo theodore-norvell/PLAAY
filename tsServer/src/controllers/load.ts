@@ -13,7 +13,6 @@ export let load = (req: Request, res: Response, next: NextFunction) => {
                     res.end(program.content);
                 }
                 else {
-                    req.flash("errors", {msg: "No such program exists."});
                 }
             }
         }

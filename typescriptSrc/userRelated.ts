@@ -25,7 +25,6 @@ module userRelated
     {
         sessionStorage.removeItem("programId");
         $('#login').click(loginAction);
-        // $('#userSettings').click(userSettingsAction);
         $('#logout').click(logoutAction);
         $('#clearProgram').click(clearProgramAction);
         $('#updateProgram').click(updateProgramAction);
@@ -46,7 +45,7 @@ module userRelated
             "</form></div>" +
             "<div id='registrationSection'>" +
             "Register <br>" +
-            "<form name='registerNewUser' id='registerNewUser' method='post' action='/signup'>" +
+            "<form name='registerNewUser' id='registerNewUser' method='post' action='/signup/'>" +
             "Email: <input type='text' name='email' class='login-textbox' required><br>" +
             "Password: <input type='password' name='password' class='login-textbox' required><br>" +
             "Confirm Password: <input type='password' name='confirmPassword' class='login-textbox' required><br>" +
