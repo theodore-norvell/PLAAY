@@ -20,7 +20,6 @@ module vms{
     import PNode = pnode.PNode;
     import TVar = backtracking.TVar;
     import TArray = backtracking.TArray;
-    import TMap = backtracking.TMap;
     import TransactionManager = backtracking.TransactionManager;
 
     import List = collections.List ;
@@ -66,10 +65,11 @@ module vms{
     export class VMS {
 
         private readonly evalStack : EvalStack ;
+        // Invariant: this.evalStack.notEmpty()
         private readonly manager : TransactionManager ;
         private readonly interpreter : Interpreter ;
         private readonly lastError : TVar<string|null> ;
-        private readonly value : TVar<Value|null> ;
+        // Invariant: this.lastError.get() !== null iff this.hasError() 
 
         constructor(root : PNode, worlds: Array<ObjectI>, interpreter : Interpreter, manager : TransactionManager ) {
             assert.checkPrecondition( worlds.length > 0 ) ;
@@ -82,18 +82,23 @@ module vms{
             const evalu = new Evaluation(root, varStack, this);
             this.evalStack = new EvalStack(this.manager);
             this.evalStack.push(evalu);
-            // Invariant: this.lastError.get() !== null iff this.hasError() 
             this.lastError = new TVar<string|null>( null, manager ) ;
-            // Invariant: this.lastError.get() !== null iff !this.canAdvance() && this.hasError()
-            this.value = new TVar<Value|null>( null, manager) ;
         }
+
+//        public dump( indent : string ) : void { /*dbg*/
+//            console.log( indent+"VMS" ) ; /*dbg*/
+//            this.evalStack.dump( indent+"|  ") ; /*dbg*/
+//        } /*dbg*/
 
         public getTransactionManager() : TransactionManager { //testing purposes
             return this.manager ;
         }
 
         public canAdvance() : boolean {
-            return !this.hasError() && this.evalStack.notEmpty();
+            return !this.hasError()
+                 && this.evalStack.notEmpty()
+                 && (this.evalStack.getSize() > 1 ||
+                     ! this.evalStack.top().isDone() ) ;
         }
 
         public getInterpreter() : Interpreter {
@@ -126,12 +131,12 @@ module vms{
         }
 
         public pushPending( childNum : number ) : void {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().pushPending( childNum ) ;
         }
         
         public popPending( ) : void {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().popPending( ) ;
         }
 
@@ -170,12 +175,12 @@ module vms{
         }
 
         public putExtraInformation( v : {} ) : void {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().putExtraInformation( v ) ;
         }
 
         public scrub( path : List<number> ) : void {
-            assert.checkPrecondition( this.canAdvance() ) ;
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().scrub( path ) ;
         }
 
@@ -200,9 +205,8 @@ module vms{
         }
 
         public getFinalValue( ) : Value {
-            assert.checkPrecondition( !this.canAdvance() && ! this.hasError() ) ;
-            assert.check( this.value.get() !== null ) ;
-            return this.value.get() as Value ;
+            assert.checkPrecondition( this.isDone() ) ;
+            return this.getVal( nil() ) ;
         }
 
         public isDone() : boolean {
@@ -212,6 +216,7 @@ module vms{
 
         public advance() : void {
             assert.checkPrecondition( this.canAdvance() ) ;
+            assert.check( this.evalStack.notEmpty() ) ;
             const ev = this.evalStack.top();
             
             if( ev.isDone() ) {
@@ -224,16 +229,14 @@ module vms{
             }
         }
 
-        public pushEvaluation(root: PNode, varStack: VarStack) {
+        public pushEvaluation(root: PNode, varStack: VarStack) : void {
           const evaluation = new Evaluation(root, varStack, this);
           this.evalStack.push(evaluation);
         }
 
         private setResult(value : Value ) : void {
-            if( this.evalStack.notEmpty() ) {
-                this.evalStack.top().finishStep( value ) ; }
-            else {
-                this.value.set( value ) ; }
+            assert.check(this.evalStack.notEmpty() ) ;
+            this.evalStack.top().finishStep( value ) ;
         }
 
         public reportError( message : string ) : void {
@@ -272,6 +275,11 @@ module vms{
             this.map = new ValueMap(manager);
             this.extraInformationMap = new AnyMap(manager) ;
         }
+        
+//        public dump( indent : string ) : void { /*dbg*/
+//            console.log( indent + "pending: " ) ; /*dbg*/
+//            this.pending.dump( indent + "|   " ) ; /*dbg*/
+//        } /*dbg*/
 
         public getRoot() : PNode {
             return this.root.get() ;
@@ -374,13 +382,13 @@ module vms{
         }
 
         public hasExtraInformation( path ? : List<number> ) : boolean {
-            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            const p : List<number>| null = typeof(path)==="undefined" ? this.pending.get() : path ;
             if( p === null ) return false ;
             return this.extraInformationMap.isMapped( p ) ; 
         }
 
         public getExtraInformation( path ? : List<number> ) : {} {
-            const p : List<number>| null = typeof(path)=="undefined" ? this.pending.get() : path ;
+            const p : List<number>| null = typeof(path)==="undefined" ? this.pending.get() : path ;
             if( p === null ) return assert.failedPrecondition() ;
             assert.checkPrecondition( this.extraInformationMap.isMapped( p ) ) ;
             return this.extraInformationMap.get( p ) ; 
@@ -626,6 +634,14 @@ module vms{
         constructor(manager : TransactionManager){
             this.stk = new TArray<Evaluation>(manager);
         }
+
+//        public dump( indent : string ) : void { /*dbg*/
+//            console.log( indent +"EvalStack ") ; /*dbg*/
+//            for( let i=0 ; i<this.stk.size() ; ++i ) { /*dbg*/
+//                console.log( indent + "    Evaluation["+i+"]" ) ; /*dbg*/
+//                this.stk.get(i).dump( "    | " ) ; /*dbg*/
+//            } /*dbg*/
+//        } /*dbg*/
 
         public push(evaluation : Evaluation ) : void {
             this.stk.push( evaluation ) ;

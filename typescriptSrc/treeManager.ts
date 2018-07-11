@@ -26,18 +26,12 @@ module treeManager {
 
     export class TreeManager {
 
-        private root:PNode;
-
-        public getRoot():PNode {
-            return this.root;
-        }
-
         public createRoot() : Option<Selection>{
             
-            this.root = labels.mkExprSeq( [] )  ;
+            const rootNode = labels.mkExprSeq( [] )  ;
 
             const placeholder = labels.mkExprPH();
-            const sel = new Selection(this.root, collections.list(0), 0, 1);
+            const sel = new Selection(rootNode, collections.list(0), 0, 1);
             const edit = pnodeEdits.insertChildrenEdit([placeholder]);
             return edit.applyEdit(sel);
 
@@ -79,7 +73,9 @@ module treeManager {
                 case "worldcall":
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
-                    return this.makeAccessorNode(selection)
+                    return this.makeAccessorNode(selection) ;
+                    case "dot":
+                        return this.makeDotNode(selection) ;
 
                 //misc
                 case "lambda":
@@ -122,8 +118,9 @@ module treeManager {
             const seq = labels.mkExprSeq([]);
 
             const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [cond, seq]);
-            const template = new Selection( whilenode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            const template0 = new Selection( whilenode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( whilenode, list<number>(0), 0, 0 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
             return edit.applyEdit(selection);
         }
 
@@ -159,6 +156,19 @@ module treeManager {
 
         }
 
+        //Object accessor
+        private makeDotNode(selection:Selection) : Option<Selection> {
+
+            const left = labels.mkExprPH();
+
+            const dotNode = labels.mkDot( "", true, left ) ;
+
+            const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
         // If nodes
         private makeIfNode(selection:Selection) : Option<Selection> {
 
@@ -169,9 +179,10 @@ module treeManager {
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
 
             // console.log( "makeIfNode: Making template") ;
-            const template = new Selection( ifNode, list<number>(), 0, 1 ) ;
+            const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( ifNode, list<number>(1), 0, 0 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             // console.log( "makeIfNode: Applying edit") ;
             return edit.applyEdit(selection);
         }
@@ -196,9 +207,10 @@ module treeManager {
 
             const assignnode = opt.first() ;
 
-            const template = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
-            return edit.applyEdit(selection);
+            const template0 = new Selection( assignnode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( assignnode, list<number>(), 0, 2 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
+            return edit.applyEdit(selection) ;
 
         }
 
@@ -210,8 +222,9 @@ module treeManager {
 
             const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
 
-            const template = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
+            const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             return edit.applyEdit(selection);
 
         }

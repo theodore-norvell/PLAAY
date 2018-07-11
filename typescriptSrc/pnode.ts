@@ -161,6 +161,7 @@ module pnode {
         public tryModify(newChildren:Array<PNode>, start?:number, end?:number):Option<PNode> {
             if (start === undefined) start = 0;
             if (end === undefined) end = this._children.length;
+            assert.checkPrecondition( 0<= start && start <= end && end <= this._children.length ) ;
             const firstPart = this._children.slice(0, start);
             const lastPart = this._children.slice(end, this._children.length);
             const allChildren = firstPart.concat(newChildren, lastPart);

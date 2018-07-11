@@ -86,6 +86,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
 		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
+		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".");
 
 		// The container for the tree.
 		create("div", "container", "container", editorDiv);
@@ -108,6 +109,9 @@ module createHtmlElements {
 		const evalButtonArea = $("#evalButtonArea");
 		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit");
 		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next");
+		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Into") ;
+		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Over");
+		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Return");
 		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
 		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
 		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
