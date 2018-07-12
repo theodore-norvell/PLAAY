@@ -17,6 +17,9 @@ import vms = require('./vms') ;
  */
 module valueTypes {
 
+    import Option = collections.Option ;
+    import none = collections.none ;
+    import some = collections.some ;
     import PNode = pnode.PNode ;
     import Value = vms.Value ;
     import VarStack = vms.VarStack ;
@@ -33,20 +36,17 @@ module valueTypes {
 
     /** A field of an object. */
     export class Field implements FieldI {
-        private readonly manager : TransactionManager ;
         private readonly name : string;
-        private readonly value : TVar<Value>;
+        private readonly value : TVar<Option<Value>>;
         private readonly type : Type;
-        private readonly isConstant : boolean;
-        private readonly isDeclared : TVar<boolean> ;
 
-        constructor(name : string, initialValue : Value, type : Type, isConstant : boolean, isDeclared : boolean, manager : TransactionManager) {
-            this.manager = manager ;
+        constructor(name : string, type : Type, manager : TransactionManager, value? : Value) {
             this.name = name;
-            this.value = new TVar<Value>( initialValue, manager ) ;
+            if( value === undefined ) {
+                this.value = new TVar<Option<Value>>( none(), manager ) ; }
+            else {
+                this.value = new TVar<Option<Value>>( some( value), manager ) ; }
             this.type = type;
-            this. isConstant = isConstant;
-            this.isDeclared = new TVar<boolean>( isDeclared, manager ) ;
         }
 
         // getters and setters
@@ -54,28 +54,17 @@ module valueTypes {
             return this.name;
         }
 
-        public getValue() : Value {
+        public getValue() : Option<Value> {
             return this.value.get();
         }
 
         public setValue(value : Value) : void {
-            this.value.set( value ) ;
+            assert.checkPrecondition( this.value.get().isEmpty() ) ;
+            this.value.set( some(value) ) ;
         }
 
         public getType() : Type {
             return this.type;
-        }
-
-        public getIsConstant() : boolean {
-            return this.isConstant;
-        }
-
-        public getIsDeclared() : boolean {
-            return this.isDeclared.get() ;
-        }
-
-        public setIsDeclared() : void {
-            this.isDeclared.set(true) ;
         }
     }
 
@@ -259,7 +248,6 @@ module valueTypes {
         constructor(manager : TransactionManager) {
             this.fields = new TArray( manager ) ;
         }
-
 
         public numFields():number {
             return this.fields.size() ;

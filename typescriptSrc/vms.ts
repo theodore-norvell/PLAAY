@@ -26,6 +26,7 @@ module vms{
     import nil = collections.nil ;
     import cons = collections.cons ;
     import list = collections.list ;
+    import Option = collections.Option ;
 
     export interface Interpreter {
         step : (vms:VMS) => void ;
@@ -701,15 +702,13 @@ module vms{
 
     export interface FieldI  {
         getName : () => string ;
-        getValue : () => Value ;
+        getValue : () => Option<Value> ;
         getType : () => Type ;
         setValue : ( value : Value ) => void ;
-        getIsDeclared : () => boolean ;
-        getIsConstant : () => boolean ;
-        setIsDeclared : () => void ;
     }
 
 
+    // TODO replace this with a proper system of types.
     export enum Type {
         NOTYPE,
         STRING,
