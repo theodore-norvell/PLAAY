@@ -675,6 +675,7 @@ module vms{
      * Concrete value classes can be found elsewhere.
      */
     export interface Value {
+        getKind : () => ValueKind ;
         isClosureV : () => boolean ;
         isBuiltInV : () => boolean ;
         isStringV : () => boolean ;
@@ -684,6 +685,16 @@ module vms{
         isNumberV : () => boolean ;
         isBoolV : () => boolean ;
     }
+
+    export enum ValueKind {
+        STRING,
+        NUMBER,
+        BOOL,
+        NULL,
+        TUPLE,
+        OBJECT,
+        BUILTIN,
+        CLOSURE }
 
     export interface ClosureI extends Value {
         getLambdaNode : () => PNode ;

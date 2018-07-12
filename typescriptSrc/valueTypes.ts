@@ -22,6 +22,7 @@ module valueTypes {
     import some = collections.some ;
     import PNode = pnode.PNode ;
     import Value = vms.Value ;
+    import ValueKind = vms.ValueKind ;
     import VarStack = vms.VarStack ;
     import Evaluation = vms.Evaluation ;
     import ClosureI = vms.ClosureI ;
@@ -68,11 +69,49 @@ module valueTypes {
         }
     }
 
+    abstract class AbstractValue implements Value {
+
+        public abstract getKind() : ValueKind ;
+
+        public isClosureV() : boolean {
+            return this.getKind() === ValueKind.CLOSURE ;
+        }
+
+        public isBuiltInV() : boolean {
+            return this.getKind() === ValueKind.BUILTIN ;
+        }
+
+        public isStringV() : boolean {
+            return this.getKind() === ValueKind.STRING ;
+        }
+
+        public isNumberV() : boolean {
+            return this.getKind() === ValueKind.NUMBER ;
+        }
+
+        public isBoolV() : boolean {
+            return this.getKind() === ValueKind.BOOL ;
+        }
+
+        public isTupleV() : boolean {
+            return this.getKind() === ValueKind.TUPLE ;
+        }
+
+        public isObjectV() : boolean {
+            return this.getKind() === ValueKind.OBJECT ;
+        }
+
+        public isNullV() : boolean {
+            return this.getKind() === ValueKind.NULL ;
+        }
+    }
+
     /** A string value. */
-    export class StringV implements Value {
+    export class StringV extends AbstractValue {
         private readonly contents : string;
 
         constructor(val : string){
+            super() ;
             this.contents = val ;
         }
 
@@ -80,37 +119,7 @@ module valueTypes {
             return this.contents;
         }
 
-        public isClosureV() : boolean {
-            return false;
-        }
-
-        public isBuiltInV() : boolean {
-            return false;
-        }
-
-        public isStringV() : boolean {
-            return true;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.STRING ; }
 
         public toString() : string {
             return '"' +this.contents+ '"' ;
@@ -118,10 +127,11 @@ module valueTypes {
     }
 
     /** A number value. */
-    export class NumberV implements Value {
+    export class NumberV extends AbstractValue {
         private readonly contents : number;
 
         constructor(val : number) {
+            super() ;
             this.contents = val;
         }
 
@@ -139,39 +149,8 @@ module valueTypes {
             assert.check( ! isNaN( num ) ) ;
             return num ;
         }
-        
 
-        public isNumberV() : boolean {
-            return true;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isClosureV() : boolean {
-            return false;
-        }
-
-        public isBuiltInV() : boolean {
-            return false;
-        }
-
-        public isStringV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.NUMBER ; }
 
         public toString() : string {
             return this.contents.toString() ;
@@ -179,12 +158,13 @@ module valueTypes {
     }
 
     /** A boolean value. */
-    export class BoolV implements Value {
+    export class BoolV extends AbstractValue {
         private readonly contents : boolean;
         public static trueValue : BoolV = new BoolV(true);
         public static falseValue : BoolV = new BoolV(false);
 
         private constructor(val : boolean) {
+            super() ;
             this.contents = val;    
         }
 
@@ -201,37 +181,7 @@ module valueTypes {
             return this.contents;
         }
 
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return true;
-        }
-
-        public isClosureV() : boolean {
-            return false;
-        }
-
-        public isBuiltInV() : boolean {
-            return false;
-        }
-
-        public isStringV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.BOOL ; }
 
         public toString() : string {
             return this.contents.toString() ;
@@ -241,11 +191,12 @@ module valueTypes {
 
 
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
-    export class ObjectV implements ObjectI {
+    export class ObjectV extends AbstractValue {
 
         protected readonly fields:TArray<Field> ;
 
         constructor(manager : TransactionManager) {
+            super() ;
             this.fields = new TArray( manager ) ;
         }
 
@@ -286,37 +237,7 @@ module valueTypes {
           this.fields.pop();
         }
 
-        public isClosureV() : boolean {
-            return false;
-        }
-
-        public isBuiltInV() : boolean {
-            return false;
-        }
-
-        public isStringV() : boolean {
-            return false ;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return true;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.OBJECT ; }
 
         public toString() : string {
             return "object" ;
@@ -324,12 +245,13 @@ module valueTypes {
     }
 
     /** Closures.  */
-    export class ClosureV implements ClosureI {
+    export class ClosureV extends AbstractValue {
 
         private readonly func : PNode ;
         private readonly context : VarStack;
 
         constructor( func : PNode, context : VarStack ) {
+            super() ;
             assert.check( func.label() instanceof labels.LambdaLabel ) ;
             this.func = func ;
             this.context = context ;
@@ -343,37 +265,7 @@ module valueTypes {
             return this.func ;
         }
 
-        public isClosureV() : boolean {
-            return true;
-        }
-
-        public isBuiltInV() : boolean {
-            return false;
-         }
-      
-        public isStringV() : boolean {
-            return false ;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.CLOSURE ; }
 
         public toString() : string {
             return "closure" ;
@@ -381,68 +273,35 @@ module valueTypes {
     }
 
     /** Null values.  */
-    export class NullV implements Value {
-        public isClosureV() : boolean {
-            return false;
-        }
+    export class NullV extends AbstractValue {
 
-        public isBuiltInV() : boolean {
-            return false;
-        }
-      
-        public isStringV() : boolean {
-            return false ;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return true;
-        }
+        public getKind() : ValueKind { return ValueKind.NULL ; }
 
         public toString() : string {
             return "null" ;
         }
 
         private constructor() {
-
+            super() ;
         }
 
         public static  readonly theNullValue = new NullV() ;
     }
 
     /** The Tuple value */
-    export class TupleV implements Value {
+    export class TupleV extends AbstractValue {
 
         private readonly values : Array<Value>;
 
         private constructor(vals : Array<Value>) {
-            if(vals.length > 0 ) {
-                this.values = vals.slice(0,vals.length);
-            }
-            else {
-                this.values = vals.slice(0,vals.length);
-                return TupleV.theDoneValue;
-            }
+            super() ;
+            this.values = vals.slice();
         }
 
         public static createTuple(vals : Array<Value>) : TupleV {
             assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
-            return new TupleV(vals); 
+            if( vals.length === 0 ) { return this.theDoneValue ; }
+            else { return new TupleV(vals) ; }
         }
 
         public numFields():number {
@@ -452,85 +311,26 @@ module valueTypes {
         public getValueByIndex(index : number) : Value {
             return this.values[index];
         }
-  
-        public isClosureV() : boolean {
-            return false;
-        }
 
-        public isBuiltInV() : boolean {
-            return false;
-        }
-      
-        public isStringV() : boolean {
-            return false ;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-        
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return true;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.TUPLE ; }
 
         public toString() : string {
             return "done" ;
         }
 
-        public static  readonly theDoneValue = new TupleV(new Array<Value>(0)) ;
+        public static readonly theDoneValue = new TupleV(new Array<Value>(0)) ;
     }
 
     /** A built in function. */
-    export class BuiltInV implements Value {
+    export class BuiltInV extends AbstractValue {
         private stepper : (vms : vms.VMS, args : Array<Value> ) => void;
 
         constructor ( step : (vms : vms.VMS, args : Array<Value> ) => void ){
+            super() ;
             this.stepper = step;
         }
 
-        public isClosureV() : boolean {
-            return false;
-        }
-
-        public isBuiltInV() : boolean {
-            return true;
-        }
-      
-        public isStringV() : boolean {
-            return false ;
-        }
-
-        public isNumberV() : boolean {
-            return false;
-        }
-
-        public isBoolV() : boolean {
-            return false;
-        }
-
-        public isTupleV() : boolean {
-            return false;
-        }
-
-        public isObjectV() : boolean {
-            return false;
-        }
-
-        public isNullV() : boolean {
-            return false;
-        }
+        public getKind() : ValueKind { return ValueKind.BUILTIN ; }
 
         public toString() : string {
             return "built-in" ;
