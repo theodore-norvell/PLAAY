@@ -94,13 +94,13 @@ module world {
     }
 
     function isBool(val: Value) : boolean {
-      if(!val.isStringV()) return false;
-      const str = (val as StringV).getVal();
-      return str === "true" || str === "false";
+      if(!val.isBoolV()) return false;
+      const bool = (val as BoolV).getVal();
+      return bool === true || bool === false;
     }
 
     function convertToBool(val: Value) : boolean {
-      return (val as StringV).getVal() === "true" ? true : false;
+      return (val as BoolV).getVal() === true ? true : false;
     }
 
     function arithmeticStepperFactory( callback: (leftOperand: number, rightOperand: number) => number )
@@ -177,7 +177,7 @@ module world {
               vm.reportError("The "+nth(i+1)+" argument is not a bool.");
               ok = false;
             }
-        }    
+        }
         if(ok) {
             const result = vals.reduce(callback);
             const val : BoolV = BoolV.getVal(result);          
@@ -185,6 +185,34 @@ module world {
         }
       } ;
     }
+
+    
+    function impliesStepperFactory( callback: (vals: Array<boolean>) => boolean) 
+             : (vm : VMS, arg : Array<Value>) => void {
+                 return function( vm : VMS, args : Array<Value> ) : void {            
+                     const vals : Array<boolean> = [];
+                     let ok = true;
+                     if(args.length === 0) {
+                        const val : BoolV = BoolV.getVal(!ok);
+                        vm.finishStep(val);
+                        return;            
+                     }
+                     for(let i=0; i< args.length; ++i) {
+                         if(isBool(args[i])) {
+                            vals.push(convertToBool(args[i]));
+                         }
+                         else {
+                             vm.reportError("Implies function accepts only arguments of type bool.");
+                             ok = false;
+                         }                         
+                     }
+                     if(ok) {
+                         const result = callback(vals);
+                         const val : BoolV = BoolV.getVal(result);                         
+                         vm.finishStep(val);
+                     }
+                 }
+             }
 
     export class World extends ObjectV {
 
@@ -319,6 +347,7 @@ module world {
             }
 
             function notEqualStep(vm : VMS, args : Array<Value>) : void {
+                // TODO Eliminate redundancy with EqualStep.
                 let bool : boolean;
                 if (argsAreStrings(args)) {
                     bool = true ;
@@ -390,40 +419,78 @@ module world {
             const orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
 
-            function lenStep(vms: VMS, args: Array<Value>) : void  {
-              if (args.length !== 1) {
-                vms.reportError("len expects 1 argument, of type object.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("len only works with object values.");
-                return;
-              }
-              const len = obj.numFields();
-              const val = new StringV(len+"");
-              vms.finishStep(val);
+            const not = new BuiltInV(notStep);
+            const notf = new Field("not",not,Type.BOOL,true,true,manager);
+            this.addField(notf);
+            
+            const impliesCallback = ( vals : Array<boolean>):boolean => {
+                let result : boolean  = true;
+                for(let i=0; i<vals.length - 1; i++) {
+                    result = result && vals[i];
+                }
+                return !result || vals[vals.length -1];             
+            } ;
+            const impliesStep = impliesStepperFactory(impliesCallback);          
+            const implies = new BuiltInV(impliesStep);
+            const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
+            this.addField(impliesf);
+
+            function notStep(vm : VMS, args : Array<Value>) : void {
+                if ( args.length !== 1) {
+                    vm.reportError("not expects 1 argument of type boolean.");
+                    return;
+                }
+                const bool = args[0];
+                if (!(bool instanceof BoolV)) {
+                    vm.reportError("not only works with boolean values.");
+                    return;
+                }
+                const result = BoolV.getVal(!bool);
+                vm.finishStep(result);
+            }
+
+            function lenStep(vm: VMS, args: Array<Value>) : void  {
+                if (args.length !== 1) {
+                    vm.reportError("len expects 1 argument, of type object.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("len only works with object values.");
+                    return;
+                }
+                const count = obj.numFields();
+                const val = new NumberV(count);
+                vm.finishStep(val);
             }
 
             const len = new BuiltInV(lenStep);
             const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
             this.addField(lenf);
 
-            function pushStep(vms: VMS, args: Array<Value>) {
-              if (args.length !== 2) {
-                vms.reportError("push expects 2 arguments, an object and a value to be pushed.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("First argument should be an object value.");
-                return;
-              }
-              const val = args[1];
-              console.log(obj.numFields()+"");
-              const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
-              obj.addField(field);
-              vms.finishStep(TupleV.theDoneValue);
+            const trueConstant = BoolV.trueValue;
+            const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
+            this.addField(trueConstantf);
+
+            const falseConstant = BoolV.falseValue;
+            const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
+            this.addField(falseConstantf);
+
+            function pushStep(vm: VMS, args: Array<Value>) : void {
+                if (args.length !== 2) {
+                    vm.reportError("push expects 2 arguments, an object and a value to be pushed.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("First argument should be an object value.");
+                    return;
+                }
+                const val = args[1];
+                console.log(obj.numFields()+"");
+                const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
+                obj.addField(field);
+                vm.finishStep(TupleV.theDoneValue);
             }
 
             const push = new BuiltInV(pushStep);

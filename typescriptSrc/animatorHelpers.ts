@@ -35,7 +35,13 @@ module animatorHelpers
     import Value = vms.Value;
     import ObjectI = vms.ObjectI;
     import TupleV = valueTypes.TupleV;
+
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
+    import TRUEMARK  = sharedMkHtml.TRUEMARK ;
+    import FALSEMARK = sharedMkHtml.FALSEMARK ;
+    import WHILEMARK = sharedMkHtml.WHILEMARK ;
+    import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
+    import NULLMARK = sharedMkHtml.NULLMARK ;
 
     const MAUVE : string = "rgb(190, 133, 197)";
     const ORANGE : string = "rgb(244, 140, 0)";
@@ -44,6 +50,9 @@ module animatorHelpers
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
+    const GREEN : string = "rgb(0,200,0)";
+
+    
 
     let objectsToDraw : Array<ObjectI> = new Array<ObjectI>();
     let arrowStartPoints : Map<ObjectI, Array<svg.Rect>> = new Map<ObjectI, Array<svg.Rect>>();
@@ -339,7 +348,7 @@ module animatorHelpers
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
-                const textElement = guardBox.text("\u27F3").dmove(0, -5);
+                const textElement = guardBox.text(WHILEMARK).dmove(0, -5);
                 guardBox.add( childArray[0].dmove(30, 5) ) ;
                 const childBBox : svg.BBox = childArray[0].bbox();
                 if(childBBox.y < 5)
@@ -602,7 +611,7 @@ module animatorHelpers
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
-                const textElement = lambdahead.text("\u03BB");
+                const textElement = lambdahead.text(LAMBDAMARK);
                 lambdahead.add( childArray[0].dmove(20, 10) ) ;
                 y += childArray[0].bbox().height + padding;
                 if(y === padding) {y += padding;} //i.e. there are no arguments. This prevents the type from overlapping with the lambda symbol.
@@ -690,6 +699,18 @@ module animatorHelpers
                 seqBox.add( rightBracketText.dmove(seqBoxX - 10 ,-5) );
 
                 makeSimpleBorder(element, LIGHT_BLUE);
+            }
+            break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+                if(node.label().getVal() === "true") {
+                    const text : svg.Text = element.text( TRUEMARK );
+                    makeBooleanLiteralSVG(element,text,true);
+                }
+                else {
+                    const text : svg.Text = element.text( FALSEMARK );
+                    makeBooleanLiteralSVG(element,text,false);
+                }
             }
             break;
             case labels.NoTypeLabel.kindConst :
@@ -812,9 +833,22 @@ module animatorHelpers
         }
         if(value.isNumberV())
         {
+            // TODO. Use the correct unparsing routine.
             const num : svg.Text = element.text ( value.toString() );
             makeNumberLiteralSVG(element, num);
             return;
+        }
+        if(value.isBoolV())
+        {
+            if(value === valueTypes.BoolV.trueValue) {
+                const bool : svg.Text = element.text( TRUEMARK );
+                makeBooleanLiteralSVG(element,bool,true);
+            }
+            else {
+                const bool : svg.Text = element.text( FALSEMARK );
+                makeBooleanLiteralSVG(element,bool,false);
+            }  
+            return;          
         }
         if(value.isClosureV())
         {
@@ -1107,6 +1141,24 @@ module animatorHelpers
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
+
+    function makeBooleanLiteralSVG(base : svg.Container, textElement : svg.Text, isTrue : boolean) : void 
+    {
+        if(isTrue) {
+            textElement.fill(GREEN);
+        }
+        else {
+            textElement.fill(RED);
+        }
+
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5 , bounds.height +5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
+    }
     
     //I assume textElement is already contained within base.
     function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
@@ -1139,7 +1191,7 @@ module animatorHelpers
 
     function makeNullLiteralSVG(base : svg.Container) : void
     {
-        const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
+        const textElement : svg.Text = base.text( NULLMARK ) ;  // The Ground symbol. I hope.
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
