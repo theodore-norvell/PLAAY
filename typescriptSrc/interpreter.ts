@@ -21,6 +21,7 @@ import world = require('./world') ;
  */
 module interpreter {
 
+    import Option = collections.Option ;
     import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
     import Type = vms.Type ;
@@ -358,16 +359,22 @@ module interpreter {
 
     function callWorldStepper( vm : VMS ) : void {
         const node = vm.getPendingNode();
-        const fieldName = node.label().getVal();
-        if (vm.getStack().hasField(fieldName)) {
-            const functionValue : Value = vm.getStack().getField(fieldName).getValue();
+        const variableName = node.label().getVal();
+        if (vm.getStack().hasField(variableName)) {
+            const opt : Option<Value>
+                = vm.getStack().getField(variableName).getValue();
+            if( opt.isEmpty() ) {
+                vm.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
+                return ;
+            }
+            const functionValue = opt.first() ;
             const args : Array<Value> = [];
             for (let i = 0; i < node.count(); i++) {
                 args.push(vm.getChildVal(i)); }
             completeCall( vm, functionValue, args ) ;
         } 
         else {
-            vm.reportError("No variable named '" + fieldName + "' is in scope.");
+            vm.reportError("No variable named '" + variableName + "' is in scope.");
         } 
     }
 
@@ -408,9 +415,10 @@ module interpreter {
         for (let i = 0; i < args.length; i++) {
             const varName = paramlist.child(i).child(0).label().getVal();
             const val = args[i];
+            //TODO: Correctly set the type of the field.
             //TODO: check that the types of val and vardecl are the same
-            const field = new Field(varName, val, Type.ANY, true, true, manager);
-            field.setIsDeclared();
+            //TODO: Deal with location parameters by creating a location.
+            const field = new Field(varName, Type.ANY, manager, val);
             stackFrame.addField(field);
         }
         vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
@@ -452,8 +460,7 @@ module interpreter {
         for(let i = 0; i < sz ; ++i) {
             const val = vm.getChildVal(i);
             const name : string = i+"";
-            const type : Type = Type.NOTYPE ;
-            const field = new Field(name, val, type, false, true, manager);
+            const field = new Field(name, Type.ANY, manager, val);
             array.addField(field) ;
         }
         vm.finishStep(array);
@@ -475,8 +482,8 @@ module interpreter {
               assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
               const varLabel = firstChild.label() as labels.VariableLabel ;
               const name : string = varLabel.getVal() ;
-              const type : Type = Type.NOTYPE ; // TODO compute the type from the 2nd child of the childNode
-              const field = new Field( name, NullV.theNullValue, type, isConstant, false, manager ) ;
+              const type : Type = Type.ANY ; // TODO compute the type from the 2nd child of the childNode
+              const field = new Field( name, type, manager ) ;
               if( names.some( (v : string) => v===name ) ) {
                   vm.reportError( "Variable '" +name+ "' is declared twice." ) ;
                   return ;
@@ -499,8 +506,12 @@ module interpreter {
         if (field instanceof StringV) {
           const fieldName = field.getVal();
           if (object.hasField(fieldName)) {
-            const val = object.getField(fieldName).getValue();
-            vm.finishStep(val);
+            const opt = object.getField(fieldName).getValue();
+            if( opt.isEmpty() ) {
+                vm.reportError( "The field named '" + fieldName + "' has not yet been declared.") ;
+                return ;
+            }
+            vm.finishStep(opt.first());
           }
           else {
             vm.reportError("No field named '" + fieldName +"'.") ;
@@ -541,8 +552,12 @@ module interpreter {
         const name : string = node.label().getVal() ;
         if(object instanceof ObjectV) {
             if(object.hasField(name)) {
-                const val = object.getField(name).getValue();
-                vm.finishStep(val);
+                const opt = object.getField(name).getValue();
+                if( opt.isEmpty() ) {
+                    vm.reportError( "The field named '" + name + "' has not yet been declared.") ;
+                    return ;
+                }
+                vm.finishStep( opt.first() );
             }
             else {
                 vm.reportError("No field named '" + name + "'.");
@@ -632,12 +647,8 @@ module interpreter {
             }
             field = variableStack.getField(fieldName) ;
         }
-        if( ! field.getIsDeclared() ) {
+        if( field.getValue().isEmpty() ) {
             vm.reportError( "The variable named '" + fieldName + "' has not been declared yet." ) ;
-            return ;
-        }
-        if( field.getIsConstant() ) {
-            vm.reportError( "The variable named '" + fieldName + "' is a constant and may not be assigned." ) ;
             return ;
         }
         const value : Value = vm.getChildVal(1);
@@ -655,11 +666,12 @@ module interpreter {
             return ;
         }
         const field = variableStack.getField(variableName) ;
-        if( ! field.getIsDeclared() ) {
+        const optVal = field.getValue() ;
+        if( optVal.isEmpty() ) {
             vm.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
             return ;
         }
-        vm.finishStep(field.getValue());
+        vm.finishStep( optVal.first() );
     }
 
     function varDeclStepper(vm : VMS) : void {
@@ -670,15 +682,19 @@ module interpreter {
         const variableStack : VarStack = vm.getStack();
         assert.check( variableStack.hasField(variableName) ) ;
         const field = variableStack.getField(variableName) ;
-        assert.check( ! field.getIsDeclared() ) ;
-        field.setIsDeclared() ;
+        assert.check( field.getValue().isEmpty() ) ;
 
         const initializerNode : PNode = vm.getPendingNode().child(2) ;
         if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
             const value : Value = vm.getChildVal(2);
             // TODO Check that the value is assignable to the field.
             field.setValue( value ) ;
-        } 
+        } else {
+            // This is not terribly satisfactory, but we have
+            // have to assign something.
+            // For con nodes, the initialization should be non-optional.
+            field.setValue( NullV.theNullValue ) ;
+        }
         vm.finishStep( TupleV.theDoneValue ) ;
     }
 

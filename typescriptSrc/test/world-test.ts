@@ -28,7 +28,7 @@ describe( 'World', function () : void {
         const manager : TransactionManager = new TransactionManager();
         const wld = new World(manager);
         const str = new valueTypes.StringV("hello");
-        const f : Field = new Field("abcd", str, Type.ANY , false, true, manager);
+        const f : Field = new Field("abcd", Type.ANY , manager, str);
         const n = wld.numFields() ;
         wld.addField(f);
         assert.check(wld.getField(f.getName()) === f);

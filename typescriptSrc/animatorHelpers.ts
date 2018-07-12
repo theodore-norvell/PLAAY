@@ -128,7 +128,11 @@ module animatorHelpers
             const subGroup : svg.G = result.group();
             const name : svg.Text = subGroup.text("  " + field.getName());
             const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field.getValue(), drawNestedObjects);
+            const optVal = field.getValue() ;
+            if( optVal.isEmpty() ) {
+                // Field not initialized. Do nothing.
+            } else {
+                buildSVGForMappedNode(value, subGroup, optVal.first(), drawNestedObjects); }
             makeObjectFieldSVG(subGroup, name, value);
                           
             subGroup.dmove(10, y + 5);
@@ -676,7 +680,7 @@ module animatorHelpers
                 leftBracketText.fill(LIGHT_BLUE.toString());
                 seqBox.add( leftBracketText.dmove(-20,-5) );
 
-                let len = findWidthOfLargestChild(childArray)+padding;
+                const len = findWidthOfLargestChild(childArray)+padding;
     
                 for (let i = 0; true; ++i) {
                     if (i === childArray.length) break;

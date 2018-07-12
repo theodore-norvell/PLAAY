@@ -139,13 +139,15 @@ module valueTypes {
             return this.contents;
         }
 
+        // TODO  Delete this
         public canConvertToNumber() :boolean {
-           let val = this.getVal();
+           const val = this.getVal();
            return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(val.toString()) ;
         }
 
+        // TODO  Delete this
         public converToNumber() : number {
-            let num = this.getVal();
+            const num = this.getVal();
             assert.check( ! isNaN( num ) ) ;
             return num ;
         }

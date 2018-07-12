@@ -758,7 +758,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       assert.check( val1 instanceof BoolV ) ;
       assert.check( val2 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === (val2 as BoolV).getVal() === true);
-    })
+    }) ;
 });
 
 /* Test for (true = x) = (x = true) = false for any x not true */
@@ -796,7 +796,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       const val1 = vm.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === false);
-    })
+    }) ;
 });
 
 /* Test for (false = x) = (x = false) = false for any x not false */
@@ -834,7 +834,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       const val1 = vm.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === false);
-    })
+    }) ;
 });
 
 describe( 'CallWorldLabel - equal', function() : void {
@@ -1071,7 +1071,7 @@ describe( 'CallWorldLabel - implies', function() : void {
     } );
   } ) ;
 
-  describe( 'CallWorldLabel - implies', function() : void {
+describe( 'CallWorldLabel - implies', function() : void {
     const rootlabel = new labels.CallWorldLabel("implies", false);
     const op1 = labels.mkTrueBooleanLiteral();
     const op2 = labels.mkTrueBooleanLiteral();
@@ -1199,8 +1199,8 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue() as NumberV).getVal() === 3) ;
-      assert.check(((val as ObjectV).getField("y").getValue() as NumberV).getVal() === 5) ;
+      assert.check(((val as ObjectV).getField("x").getValue().first() as NumberV).getVal() === 3) ;
+      assert.check(((val as ObjectV).getField("y").getValue().first() as NumberV).getVal() === 5) ;
   });
 });
 
@@ -1309,8 +1309,8 @@ describe('ArrayLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("0").getValue() as NumberV).getVal() === 12345);
-      assert.check(((val as ObjectV).getField("1").getValue() as NumberV).getVal() === 67890);
+      assert.check(((val as ObjectV).getField("0").getValue().first() as NumberV).getVal() === 12345);
+      assert.check(((val as ObjectV).getField("1").getValue().first() as NumberV).getVal() === 67890);
   });
 });
 
@@ -1734,7 +1734,7 @@ describe('VarDeclLabel', function () : void {
         
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
-        assert.check( f.getIsDeclared() === false ) ;
+        assert.check( f.getValue().isEmpty() ) ;
 
         // step the mumber literal node
         selectAndStep( vm ) ;
@@ -1745,9 +1745,9 @@ describe('VarDeclLabel', function () : void {
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
-        assert.check( f.getIsDeclared() === true ) ;
-        assert.check( f.getValue() instanceof NumberV ) ;
-        assert.check( (f.getValue() as NumberV ).getVal() === 5 ) ;
+        assert.check( ! f.getValue().isEmpty() ) ;
+        assert.check( f.getValue().first() instanceof NumberV ) ;
+        assert.check( (f.getValue().first() as NumberV ).getVal() === 5 ) ;
 
         // step the expr seq node
         selectAndStep( vm ) ;
@@ -1810,14 +1810,14 @@ describe('VarDeclLabel', function () : void {
         // Step the expr seq node
         vm.advance() ;
         const field = vm.getStack().getField( "a" ) ;
-        assert.check( ! field.getIsDeclared() ) ;
+        assert.check( field.getValue().isEmpty() ) ;
         assert.check( ! vm.isMapped( list(0) ) ) ;
         // Select the variable declaration node
         vm.advance() ;
         // Step the variable declaration node
         vm.advance() ;
-        assert.check( field.getIsDeclared() ) ;
-        assert.check( field.getValue().isNullV() ) ;
+        assert.check( ! field.getValue().isEmpty() ) ;
+        assert.check( field.getValue().first().isNullV() ) ;
         assert.check( vm.isMapped( list(0) ) ) ;
         assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
