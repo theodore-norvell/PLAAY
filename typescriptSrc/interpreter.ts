@@ -29,6 +29,8 @@ module interpreter {
     import VMS = vms.VMS;
     import BuiltInV = valueTypes.BuiltInV ;
     import StringV = valueTypes.StringV ;
+    import NumberV = valueTypes.NumberV ;
+    import BoolV = valueTypes.BoolV ;
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
@@ -78,13 +80,13 @@ module interpreter {
 
     // Constants
     theSelectorRegistry[ labels.BooleanLiteralLabel.kindConst ] = alwaysSelector ;
-    theStepperRegistry[ labels.BooleanLiteralLabel.kindConst ] = stringLiteralStepper ;
+    theStepperRegistry[ labels.BooleanLiteralLabel.kindConst ] = booleanLiteralStepper ;
 
     theSelectorRegistry[ labels.NullLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.NullLiteralLabel.kindConst ] = nullLiteralStepper ;
 
     theSelectorRegistry[ labels.NumberLiteralLabel.kindConst ] = alwaysSelector ;
-    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = stringLiteralStepper ;
+    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = numberLiteralStepper ;
     
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
@@ -178,26 +180,18 @@ module interpreter {
         //check if the condition node is mapped
         if (vm.isChildMapped(0)) {
             //if it is, get the result of the condition node
-            if( ! vm.getChildVal(0).isStringV() ) {
-                vm.reportError( "Condition is not a StringV." );
+            if( ! vm.getChildVal(0).isBoolV() ) {
+                vm.reportError( "Guard is neither true nor false." );
                 return ; }
-            const result : string = (vm.getChildVal(0) as StringV).getVal();
-            let choiceNode = -1;
-            if (result === "true") {
-                choiceNode = 1;
-            }
-            else if (result === "false") {
-                choiceNode = 2;
-            } else {
-                vm.reportError("Condition is neither true nor false.") ;
-                return ; }
-
-            assert.check(choiceNode === 1 || choiceNode === 2, );
+            const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
+            const choiceNode = result ? 1 : 2 ;
             if (!vm.isChildMapped(choiceNode)) {
+                // More work to do on child. Recurse
                 vm.pushPending(choiceNode);
                 vm.getInterpreter().select(vm);
             }
             else {
+                // The If node is ripe.
                 vm.setReady(true);
             }
         }
@@ -216,23 +210,19 @@ module interpreter {
         }
         //check if the guard node is mapped
         if (vm.isChildMapped(0)) {
-            if( ! vm.getChildVal(0).isStringV() ) {
-                vm.reportError("Guard is not a StringV") ;
+            if( ! vm.getChildVal(0).isBoolV() ) {
+                vm.reportError("Guard is neither true nor false!") ;
                 return ;
             }
-            const result : string = (vm.getChildVal(0) as StringV).getVal();
+            const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
             //check if true or false, if true, check select the body
-            if (result === "true") {
+            if (result) {
                 vm.pushPending(1);
                 vm.getInterpreter().select(vm);
             }
             //otherwise, if it is false, set this node to ready
-            else if (result === "false"){
-                vm.setReady(true);
-            }
-            //otherwise, report an error!
             else {
-                vm.reportError( "Guard is neither true nor false!" ) ;
+                vm.setReady(true);
             }
         }
         //if it isn't selected, select the guard node
@@ -262,7 +252,6 @@ module interpreter {
               vm.setReady(true);
             }         
         }
-
         else if (varNode.label().kind() === labels.DotLabel.kindConst) {
             const path = vm.getPending();
             const pathToObject = path.cat(collections.list<number>(0,0));
@@ -296,9 +285,19 @@ module interpreter {
     // Steppers
 
     interface StringCache { [key:string] : StringV ; }
-
+    interface NumberCache { [key:number] : NumberV ; }
+    
     const theStringCache : StringCache = {} ;
+    const theNumberCache : NumberCache = {} ;
 
+    function booleanLiteralStepper( vm: VMS ) : void {
+        const label = vm.getPendingNode().label() ;
+        assert.check( label.kind() === labels.BooleanLiteralLabel.kindConst ) ;
+        const str = label.getVal();
+        const result = str==="true" ? BoolV.trueValue : BoolV.falseValue ;
+        vm.finishStep( result ) ;
+    }
+    
     function stringLiteralStepper( vm : VMS ) : void {
         const label = vm.getPendingNode().label() ;
         const str = label.getVal() ;
@@ -312,6 +311,24 @@ module interpreter {
         vm.finishStep( result ) ;
     }
 
+    function numberLiteralStepper( vm : VMS ) : void {
+        const label  = vm.getPendingNode().label() ;
+        const str = label.getVal() ;
+        // TODO use the proper parser.
+        const regexp = /(\d+(\.\d+)?)/g ;
+        if( regexp.test(str) ) {
+            const num = Number(str) ;
+            let result = theNumberCache[ num ] ; 
+            if(result === undefined) {
+                result = theNumberCache[ num ] = new NumberV( num ) ;
+            }
+            vm.finishStep( result ) ;
+        }
+        else {
+            vm.reportError("Not a valid number.") ;
+        }
+    }
+ 
     function nullLiteralStepper( vm : VMS ) : void {
         vm.finishStep( NullV.theNullValue ) ;
     }
@@ -516,11 +533,11 @@ module interpreter {
     }
 
     function ifStepper(vm : VMS) : void {
-        assert.checkPrecondition(vm.isChildMapped(0), "Condition is not ready.");
-        assert.checkPrecondition(vm.getChildVal(0).isStringV(), "Condition is not a StringV.");
-        const result : string = (vm.getChildVal(0) as StringV).getVal();
-        assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
-        const choice = result === "true" ? 1 : 2;
+        assert.checkPrecondition(vm.isChildMapped(0), "Guard is not ready.");
+        assert.checkPrecondition(vm.getChildVal(0).isBoolV(), "Guard is not a BoolV.");
+        const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
+        const choice = result === true ? 1 : 2;
+        assert.checkPrecondition(vm.isChildMapped(choice), "'If' not ripe.");
         vm.finishStep(vm.getChildVal(choice));
     }
 

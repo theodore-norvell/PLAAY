@@ -1,15 +1,19 @@
 /// <reference path="jquery.d.ts" />
 
-/// <reference path="collections.ts" />
+/// <reference path="sharedMkHtml.ts" />
 
-import collections = require('./collections');
+import sharedMkHtml = require('./sharedMkHtml');
 
 /** Create the top level HTML and buttons.
  */
 module createHtmlElements {
 
-	import list = collections.list;
-
+	import TRUEMARK  = sharedMkHtml.TRUEMARK ;
+	import FALSEMARK = sharedMkHtml.FALSEMARK ;
+	import WHILEMARK = sharedMkHtml.WHILEMARK ;
+	import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
+	import NULLMARK = sharedMkHtml.NULLMARK ;
+	
 	export function createHtmls() : void {
 
 		//  Overall structure
@@ -74,21 +78,23 @@ module createHtmlElements {
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
-		createTexted("div", "leftSideButton paletteItem", "while", palette, "\u27F3");
+		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK);
 		createTexted("div", "leftSideButton paletteItem", "condecl", palette, "con");
 		createTexted("div", "leftSideButton paletteItem", "locdecl", palette, "loc");
 		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
 		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
-		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+");
+		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...");
 		createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
-		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
-		createTexted("div", "leftSideButton paletteItem", "numberliteral", palette, '123');
-		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, "\u23da");
-		createTexted("div", "leftSideButton paletteItem", "lambda", palette, "\u03BB");
-		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
-		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
 		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".");
+		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
+		createTexted("div", "leftSideButton paletteItem", "numberliteral", palette, '123');
+		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, NULLMARK);
+		createTexted("div", "leftSideButton paletteItem", "lambda", palette, LAMBDAMARK);
+		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
+		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
+		createTexted("div", "leftSideButton paletteItem", "trueliteral", palette, TRUEMARK);
+		createTexted("div", "leftSideButton paletteItem", "falseliteral", palette, FALSEMARK);
 
 		// The container for the tree.
 		create("div", "container", "container", editorDiv);

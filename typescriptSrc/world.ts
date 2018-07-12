@@ -31,6 +31,8 @@ module world {
     import BuiltInV = valueTypes.BuiltInV ;
     import NullV = valueTypes.NullV ;
     import StringV = valueTypes.StringV;
+    import NumberV = valueTypes.NumberV;
+    import BoolV = valueTypes.BoolV;
     import DoneV = valueTypes.DoneV;
     import Type = vms.Type;
     import VMS = vms.VMS;
@@ -38,7 +40,7 @@ module world {
     import Evaluation = vms.Evaluation;
 
     
-    const done : DoneV = new DoneV() ;
+    const done : DoneV = DoneV.theDoneValue;
 
     function checkNumberOfArgs( min : number, max : number, args : Array<Value>, vm : VMS ) : boolean {
         if( args.length < min || args.length > max ) {
@@ -54,7 +56,7 @@ module world {
     function checkArgsAreNumbers( first : number, cap : number, args : Array<Value>, vm : VMS ) : boolean {
         for( let i = first ; i < cap && i < args.length ; ++i ) {
             const arg = args[i] ;
-            if( ! arg.isStringV() || ! canConvertToNumber( arg ) ) {
+            if( arg.isNumberV() ) {
                 vm.reportError( "Expected argument " +i+ " to be a number." ) ;
                 return false ; } }
         return true ;
@@ -62,6 +64,10 @@ module world {
 
     function argsAreStrings( args : Array<Value>) : boolean {
         return args.every( (v:Value) => v.isStringV() ) ;
+    }
+
+    function argsAreNumbers( args : Array<Value>) : boolean {
+        return args.every( (v:Value) => v.isNumberV() ) ;
     }
 
     function argsAreNulls( args : Array<Value> ) : boolean {
@@ -72,20 +78,7 @@ module world {
         return args.every( (v:Value) => v.isDoneV() ) ;
     }
 
-    function canConvertToNumber( val : Value ) : boolean {
-        if( val.isStringV() ) {
-            const str = (val as StringV).getVal() ;
-            return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(str) ;
-        } else return false ;
-    }
     
-    function convertToNumber( val : Value ) : number {
-        let str = (val as StringV).getVal() ;
-        str = str.replace(/ |,/g, "" ) ;
-        const n = parseFloat( str ) ;
-        assert.check( ! isNaN( n ) ) ;
-        return n ;
-    }
     
     function nth( n : number ) : string {
         switch( n ) {
@@ -97,13 +90,13 @@ module world {
     }
 
     function isBool(val: Value) : boolean {
-      if(!val.isStringV()) return false;
-      const str = (val as StringV).getVal();
-      return str === "true" || str === "false";
+      if(!val.isBoolV()) return false;
+      const bool = (val as BoolV).getVal();
+      return bool === true || bool === false;
     }
 
     function convertToBool(val: Value) : boolean {
-      return (val as StringV).getVal() === "true" ? true : false;
+      return (val as BoolV).getVal() === true ? true : false;
     }
 
     function arithmeticStepperFactory( callback: (leftOperand: number, rightOperand: number) => number )
@@ -111,16 +104,27 @@ module world {
         return function(vm: VMS, args: Array<Value>) : void {
           const vals : Array<number>= [] ;
           let ok = true ;
+          if (args.length == 0) {
+              vm.reportError("0 arguments passed in.") ;
+          }
           for( let i=0 ; i < args.length ; ++i ) {
-              if( canConvertToNumber( args[i] ) ) {
-                  vals.push( convertToNumber( args[i] ) ) ; }
+              if( args[i].isNumberV() ) {
+                  let num = args[i] as NumberV;
+                  if( num.canConvertToNumber() ) {
+                    vals.push( num.converToNumber() ) ; 
+                  }
+                  else {
+                      vm.reportError("The "+nth(i+1)+" argument is not a number.") ;
+                      ok = false ;
+                  }
+                }
               else {
                   vm.reportError( "The "+nth(i+1)+" argument is not a number.") ;
                   ok = false ; } }
           
           if( ok ) {
-              const result = vals.reduce(callback);
-              const val = new StringV(result+"");
+              const result = vals.reduce(callback);              
+              const val = new NumberV( result ) ;
               vm.finishStep(val);
           }
         } ;
@@ -130,16 +134,28 @@ module world {
       return function(vm : VMS, args : Array<Value>) : void {
         const vals : Array<number>= [] ;
         let ok = true ;
+        if (args.length == 0) {
+            vm.reportError("0 arguments passed in.") ;
+        }
         for( let i=0 ; i < args.length ; ++i ) {
-            if( canConvertToNumber( args[i] ) ) {
-                vals.push( convertToNumber( args[i] ) ) ; }
+            if( args[i].isNumberV() ) {
+                let num = args[i] as NumberV;
+                if( num.canConvertToNumber() ) {
+                    vals.push( num.converToNumber() ) ; 
+                }
+                else {
+                    vm.reportError( "The "+nth(i+1)+" argument is not a number.");
+                    ok = false ;
+                }
+            }
+                
             else {
                 vm.reportError( "The "+nth(i+1)+" argument is not a number.");
                 ok = false ; } }
         
         if( ok ) {
-            const result = callback(vals);
-            const val = new StringV( result+"" );
+            const result = callback(vals);            
+            const val : BoolV = BoolV.getVal(result);
             vm.finishStep( val ) ;
         }
       } ;
@@ -157,14 +173,42 @@ module world {
               vm.reportError("The "+nth(i+1)+" argument is not a bool.");
               ok = false;
             }
-        }    
+        }
         if(ok) {
             const result = vals.reduce(callback);
-            const val = new StringV(result+"") ;
+            const val : BoolV = BoolV.getVal(result);          
             vm.finishStep(val);
         }
       } ;
     }
+
+    
+    function impliesStepperFactory( callback: (vals: Array<boolean>) => boolean) 
+             : (vm : VMS, arg : Array<Value>) => void {
+                 return function( vm : VMS, args : Array<Value> ) : void {            
+                     const vals : Array<boolean> = [];
+                     let ok = true;
+                     if(args.length === 0) {
+                        const val : BoolV = BoolV.getVal(!ok);
+                        vm.finishStep(val);
+                        return;            
+                     }
+                     for(let i=0; i< args.length; ++i) {
+                         if(isBool(args[i])) {
+                            vals.push(convertToBool(args[i]));
+                         }
+                         else {
+                             vm.reportError("Implies function accepts only arguments of type bool.");
+                             ok = false;
+                         }                         
+                     }
+                     if(ok) {
+                         const result = callback(vals);
+                         const val : BoolV = BoolV.getVal(result);                         
+                         vm.finishStep(val);
+                     }
+                 }
+             }
 
     export class World extends ObjectV {
 
@@ -256,6 +300,14 @@ module world {
                             bool = false;
                         }
                     }
+                } 
+                else if( argsAreNumbers(args)) {
+                    bool = true;
+                    for (let i=0; i < args.length - 1; i++) {
+                        if((args[i] as NumberV).getVal() !== (args[i +1] as NumberV).getVal()) {
+                            bool = false;
+                        }
+                    }
                 } else if( argsAreDones( args ) ) {
                     bool = true ;
                 } else if( argsAreNulls( args ) ) {
@@ -268,13 +320,54 @@ module world {
                             bool = false ;
                         }
                     }
-                }
-                const val = new StringV(bool + "");
+                }                
+                const val : BoolV = BoolV.getVal(bool) ;
                 vm.finishStep( val ) ;  
             }
+
+            function notEqualStep(vm : VMS, args : Array<Value>) : void {
+                // TODO Eliminate redundancy with EqualStep.
+                let bool : boolean;
+                if (argsAreStrings(args)) {
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ((args[i] as StringV).getVal() === (args[i + 1] as StringV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } 
+                else if( argsAreNumbers(args)) {
+                    bool = true;
+                    for (let i=0; i < args.length - 1; i++) {
+                        if((args[i] as NumberV).getVal() === (args[i +1] as NumberV).getVal()) {
+                            bool = false;
+                        }
+                    }
+                } else if( argsAreDones( args ) ) {
+                    bool = true ;
+                } else if( argsAreNulls( args ) ) {
+                    bool = true ;
+                } else {
+                    // In all other cases, we require pointer equality.
+                    bool = true ;
+                    for (let i = 0; i < args.length - 1; i++) {
+                        if ( args[i] === args[i + 1] ) {
+                            bool = false ;
+                        }
+                    }
+                }
+                const val : BoolV = BoolV.getVal(bool);
+                vm.finishStep( val ) ;  
+            }
+
+            
             const equal = new BuiltInV(equalstep);
             const equalf = new Field("=", equal, Type.BOOL, true, true, manager);
             this.addField(equalf);
+
+            const notequal = new BuiltInV(notEqualStep);
+            const notequalf = new Field("/=",notequal, Type.BOOL, true,true, manager);
+            this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
             const andstep = logicalStepperFactory(andCallback);
@@ -288,40 +381,78 @@ module world {
             const orf = new Field("or", or, Type.BOOL, true, true, manager);
             this.addField(orf);
 
-            function lenStep(vms: VMS, args: Array<Value>) : void  {
-              if (args.length !== 1) {
-                vms.reportError("len expects 1 argument, of type object.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("len only works with object values.");
-                return;
-              }
-              const len = obj.numFields();
-              const val = new StringV(len+"");
-              vms.finishStep(val);
+            const not = new BuiltInV(notStep);
+            const notf = new Field("not",not,Type.BOOL,true,true,manager);
+            this.addField(notf);
+            
+            const impliesCallback = ( vals : Array<boolean>):boolean => {
+                let result : boolean  = true;
+                for(let i=0; i<vals.length - 1; i++) {
+                    result = result && vals[i];
+                }
+                return !result || vals[vals.length -1];             
+            } ;
+            const impliesStep = impliesStepperFactory(impliesCallback);          
+            const implies = new BuiltInV(impliesStep);
+            const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
+            this.addField(impliesf);
+
+            function notStep(vm : VMS, args : Array<Value>) : void {
+                if ( args.length !== 1) {
+                    vm.reportError("not expects 1 argument of type boolean.");
+                    return;
+                }
+                const bool = args[0];
+                if (!(bool instanceof BoolV)) {
+                    vm.reportError("not only works with boolean values.");
+                    return;
+                }
+                const result = BoolV.getVal(!bool);
+                vm.finishStep(result);
+            }
+
+            function lenStep(vm: VMS, args: Array<Value>) : void  {
+                if (args.length !== 1) {
+                    vm.reportError("len expects 1 argument, of type object.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("len only works with object values.");
+                    return;
+                }
+                const count = obj.numFields();
+                const val = new NumberV(count);
+                vm.finishStep(val);
             }
 
             const len = new BuiltInV(lenStep);
             const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
             this.addField(lenf);
 
-            function pushStep(vms: VMS, args: Array<Value>) {
-              if (args.length !== 2) {
-                vms.reportError("push expects 2 arguments, an object and a value to be pushed.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("First argument should be an object value.");
-                return;
-              }
-              const val = args[1];
-              console.log(obj.numFields()+"");
-              const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
-              obj.addField(field);
-              vms.finishStep(DoneV.theDoneValue);
+            const trueConstant = BoolV.trueValue;
+            const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
+            this.addField(trueConstantf);
+
+            const falseConstant = BoolV.falseValue;
+            const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
+            this.addField(falseConstantf);
+
+            function pushStep(vm: VMS, args: Array<Value>) : void {
+                if (args.length !== 2) {
+                    vm.reportError("push expects 2 arguments, an object and a value to be pushed.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("First argument should be an object value.");
+                    return;
+                }
+                const val = args[1];
+                console.log(obj.numFields()+"");
+                const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
+                obj.addField(field);
+                vm.finishStep(DoneV.theDoneValue);
             }
 
             const push = new BuiltInV(pushStep);
@@ -364,7 +495,7 @@ module world {
             const forwardStepper = (vm : VMS, args : Array<Value> ) : void => {
                     if( checkNumberOfArgs( 1, 1, args, vm ) 
                         && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                        const n : number = convertToNumber( args[0] ) ;
+                        const n : number = (args[0] as NumberV).converToNumber() ;
                         tw.forward( n ) ;
                         vm.finishStep( done ) ; } } ;
             const forwardValue = new BuiltInV( forwardStepper ) ;
@@ -375,7 +506,7 @@ module world {
             const rightStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 1, 1, args, vm ) 
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                    const n : number = convertToNumber( args[0] ) ;
+                    const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.right( n ) ;
                     vm.finishStep( done ) ; } } ;
             const rightValue = new BuiltInV( rightStepper ) ;
@@ -386,7 +517,7 @@ module world {
             const leftStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 1, 1, args, vm ) 
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
-                    const n : number = convertToNumber( args[0] ) ;
+                    const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.left( n ) ;
                     vm.finishStep( done ) ; } } ;
             const leftValue = new BuiltInV( leftStepper ) ;
@@ -441,9 +572,9 @@ module world {
             const setBackgroundStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 3, 3, args, vm ) 
                     && checkArgsAreNumbers(0, 3, args, vm ) ) {
-                    const r : number = convertToNumber( args[0] ) ;
-                    const g : number = convertToNumber( args[1] ) ;
-                    const b : number = convertToNumber( args[2] ) ;
+                    const r : number = (args[0] as NumberV).converToNumber() ;
+                    const g : number = (args[1] as NumberV).converToNumber() ;
+                    const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setBackground( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
@@ -453,9 +584,9 @@ module world {
             const setTurtleColorStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 3, 3, args, vm ) 
                     && checkArgsAreNumbers(0, 3, args, vm ) ) {
-                    const r : number = convertToNumber( args[0] ) ;
-                    const g : number = convertToNumber( args[1] ) ;
-                    const b : number = convertToNumber( args[2] ) ;
+                    const r : number = (args[0] as NumberV).converToNumber() ;
+                    const g : number = (args[1] as NumberV).converToNumber() ;
+                    const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setTurtleColor( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;

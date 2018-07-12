@@ -103,6 +103,14 @@ module valueTypes {
             return true;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -119,6 +127,129 @@ module valueTypes {
             return '"' +this.contents+ '"' ;
         }
     }
+
+    /** A number value. */
+    export class NumberV implements Value {
+        private readonly contents : number;
+
+        constructor(val : number) {
+            this.contents = val;
+        }
+
+        public getVal() : number {
+            return this.contents;
+        }
+
+        public canConvertToNumber() :boolean {
+           let val = this.getVal();
+           return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(val.toString()) ;
+        }
+
+        public converToNumber() : number {
+            let num = this.getVal();
+            assert.check( ! isNaN( num ) ) ;
+            return num ;
+        }
+        
+
+        public isNumberV() : boolean {
+            return true;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
+        }
+    }
+
+    /** A boolean value. */
+    export class BoolV implements Value {
+        private readonly contents : boolean;
+        public static trueValue : BoolV = new BoolV(true);
+        public static falseValue : BoolV = new BoolV(false);
+
+        private constructor(val : boolean) {
+            this.contents = val;    
+        }
+
+        public static getVal(val : boolean) : BoolV {
+            if ( val ) {
+                return this.trueValue;
+            }
+            else {
+                return this.falseValue;
+            }
+        }
+
+        public getVal() : boolean {
+            return this.contents;
+        }
+
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return true;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isDoneV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
+        }
+    }
+
+
 
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
@@ -179,6 +310,14 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -228,6 +367,14 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -259,6 +406,14 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return false;
         }
@@ -273,6 +428,10 @@ module valueTypes {
 
         public toString() : string {
             return "null" ;
+        }
+
+        private constructor() {
+
         }
 
         public static  readonly theNullValue = new NullV() ;
@@ -292,6 +451,14 @@ module valueTypes {
             return false ;
         }
 
+        public isNumberV() : boolean {
+            return false;
+        }
+        
+        public isBoolV() : boolean {
+            return false;
+        }
+
         public isDoneV() : boolean {
             return true;
         }
@@ -307,8 +474,11 @@ module valueTypes {
         public toString() : string {
             return "done" ;
         }
-        
 
+        private constructor() {
+
+        }
+        
         public static  readonly theDoneValue = new DoneV() ;
     }
 
@@ -330,6 +500,14 @@ module valueTypes {
       
         public isStringV() : boolean {
             return false ;
+        }
+
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
         }
 
         public isDoneV() : boolean {

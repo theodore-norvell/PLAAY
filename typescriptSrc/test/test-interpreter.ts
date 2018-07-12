@@ -27,6 +27,8 @@ import VarStack = vms.VarStack;
 import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
+import NumberV = valueTypes.NumberV;
+import BoolV = valueTypes.BoolV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
 import { mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq, mkLambda, mkNoExpNd,
@@ -70,7 +72,7 @@ describe( 'NumberLiteralLabel', function() : void {
     const root = new PNode( label, [] ) ;
     const vm = makeStdVMS( root )  ;
 
-    it('should evaluate to a StringV', function() : void {
+    it('should evaluate to a NumberV', function() : void {
         assert.check( ! vm.isReady() ) ;
         vm.advance() ;
         assert.check( vm.isReady() ) ;
@@ -78,8 +80,8 @@ describe( 'NumberLiteralLabel', function() : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof StringV ) ;
-        assert.check( (val as StringV).getVal() === label.getVal() ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === Number(label.getVal()) ) ;
     } );
 } ) ;
 
@@ -88,7 +90,7 @@ describe( 'BooleanLiteralLabel', function() : void {
     const root = new PNode( label, [] ) ;
     const vm = makeStdVMS( root )  ;
 
-    it('should evaluate to a StringV', function() : void {
+    it('should evaluate to a BoolV', function() : void {
         assert.check( ! vm.isReady() ) ;
         vm.advance() ;
         assert.check( vm.isReady() ) ;
@@ -96,8 +98,8 @@ describe( 'BooleanLiteralLabel', function() : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof StringV ) ;
-        assert.check( (val as StringV).getVal() === label.getVal() ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === true ) ;
     } );
 } ) ;
 
@@ -192,8 +194,8 @@ describe ('Call - method', function(): void {
         const error = vm.hasError() ? vm.getError() : "" ;
         assert.checkEqual( "", error ) ;
         const val = vm.getFinalValue() ;
-        assert.check(val instanceof StringV) ;
-        assert.check((val as StringV).getVal() === "5") ;
+        assert.check(val instanceof NumberV) ;
+        assert.check((val as NumberV).getVal() === 5) ;
   });
 });
 
@@ -204,7 +206,7 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const root = mkExprSeq([lambdaDecl, callWorld]);
     const vm = makeStdVMS(root);
     
-    it('should evaluate to a StringV equaling 42', function() : void {
+    it('should evaluate to a NumberV equaling 42', function() : void {
       let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
@@ -220,8 +222,8 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
-      assert.check(val instanceof StringV);
-      assert.check((val as StringV).getVal() === "42");
+      assert.check(val instanceof NumberV);
+      assert.check((val as NumberV).getVal() === 42);
     });
 });
 
@@ -234,7 +236,7 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
     const root = mkExprSeq([lambdaDecl, callWorld]);
     const vm = makeStdVMS(root);
 
-    it('should evaluate to a StringV equaling 15', function() : void {
+    it('should evaluate to a NumberV equaling 15', function() : void {
       let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
@@ -250,8 +252,8 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
-      assert.check(val instanceof StringV);
-      assert.check((val as StringV).getVal() === "15");
+      assert.check(val instanceof NumberV);
+      assert.check((val as NumberV).getVal() === 15);
     });
 });
 
@@ -264,7 +266,7 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
   const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
   const vm = makeStdVMS(root);
 
-  it('should evaluate to a StringV equaling 8', function() : void {
+  it('should evaluate to a NumberV equaling 8', function() : void {
       let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
@@ -277,39 +279,10 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
-      assert.check(val instanceof StringV);
-      assert.check((val as StringV).getVal() === "8");
+      assert.check(val instanceof NumberV);
+      assert.check((val as NumberV).getVal() === 8 );
   });
 });
-
-
-describe( 'CallWorldLabel - addition', function() : void {
-    const rootlabel = new labels.CallWorldLabel("+", false);
-    const op1 = labels.mkNumberLiteral("2");
-    const op2 = labels.mkNumberLiteral("3");
-    const root = new PNode(rootlabel, [op1, op2]);
-    const vm = makeStdVMS( root )  ;
-  
-    it('should evaluate to a StringV equaling 5', function() : void {
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ;
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ;
-        assert.check( vm.isDone() ) ;
-        assert.check( vm.isMapped( emptyList ) ) ;
-        const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof StringV ) ;
-        assert.check( (val as StringV).getVal() === "5");
-    } );
-  } ) ;
 
 describe( 'CallWorldLabel - addition', function() : void {
   const rootlabel = new labels.CallWorldLabel("+", false);
@@ -318,7 +291,7 @@ describe( 'CallWorldLabel - addition', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling 5', function() : void {
+  it('should evaluate to a NumberV equaling 5', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -331,11 +304,12 @@ describe( 'CallWorldLabel - addition', function() : void {
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
       vm.advance() ;
+      
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "5");
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === 5);
   } );
 } ) ;
 
@@ -346,7 +320,7 @@ describe( 'CallWorldLabel - subtraction', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling 2', function() : void {
+  it('should evaluate to a NumberV equaling 2', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -362,8 +336,8 @@ describe( 'CallWorldLabel - subtraction', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "2");
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === 2 );
   } );
 } ) ;
 
@@ -374,7 +348,7 @@ describe( 'CallWorldLabel - multiplication', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling 15', function() : void {
+  it('should evaluate to a NumberV equaling 15', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -390,8 +364,8 @@ describe( 'CallWorldLabel - multiplication', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "15");
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === 15);
   } );
 } ) ;
 
@@ -406,7 +380,7 @@ describe( 'CallWorldLabel - division', function() : void {
   wlds.push(wld);
   const vm = new VMS( root, wlds, interp, manager ) ;
 
-  it('should evaluate to a StringV equaling 3', function() : void {
+  it('should evaluate to a NumberV equaling 3', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -422,8 +396,8 @@ describe( 'CallWorldLabel - division', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "3");
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === 3);
   } );
 } ) ;
 
@@ -434,7 +408,7 @@ describe( 'CallWorldLabel - division', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling 2.5', function() : void {
+  it('should evaluate to a NumberV equaling 2.5', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -450,8 +424,8 @@ describe( 'CallWorldLabel - division', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "2.5");
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === 2.5);
   } );
 } ) ;
 
@@ -462,7 +436,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -478,8 +452,8 @@ describe( 'CallWorldLabel - greater than', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
@@ -490,7 +464,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -506,8 +480,8 @@ describe( 'CallWorldLabel - greater than', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
@@ -518,7 +492,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -534,8 +508,8 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
@@ -546,7 +520,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -562,8 +536,8 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
@@ -574,7 +548,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -590,8 +564,8 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
@@ -602,7 +576,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -618,8 +592,8 @@ describe( 'CallWorldLabel - less than', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
@@ -630,7 +604,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -646,8 +620,8 @@ describe( 'CallWorldLabel - less than', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
@@ -658,7 +632,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -674,8 +648,8 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
@@ -686,7 +660,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -702,8 +676,8 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
@@ -714,7 +688,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -730,10 +704,137 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
+
+/* Test for (true = true) = (false = false) = true */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkFalseBooleanLiteral();
+    const op3 = labels.mkTrueBooleanLiteral();
+    const op4 = labels.mkFalseBooleanLiteral();
+    const root1 = new PNode(rootLabel, [op1,op3]);
+    const root2 = new PNode(rootLabel, [op2,op4]);
+    const vm1 = makeStdVMS( root1 );
+    const vm2 = makeStdVMS( root2 );
+
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check( ! vm1.isReady() ) ;
+      vm1.advance() ;
+      assert.check(  vm1.isReady() ) ;
+      vm1.advance() ;
+      
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check( ! vm2.isReady() ) ;
+      vm2.advance() ;
+      assert.check(  vm2.isReady() ) ;
+      vm2.advance() ;
+      
+      assert.check( vm1.isDone() ) ;
+      assert.check( vm1.isMapped( emptyList ) ) ;
+      assert.check( vm2.isDone() ) ;
+      assert.check( vm2.isMapped( emptyList ) ) ;
+      const val1 = vm1.getVal( emptyList ) ;
+      const val2 = vm2.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( val2 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === (val2 as BoolV).getVal() === true);
+    })
+});
+
+/* Test for (true = x) = (x = true) = false for any x not true */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkNumberLiteral("123");
+    const root = new PNode(rootLabel, [op1,op2,op2,op1]);
+    const vm = makeStdVMS( root );
+    
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val1 = vm.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === false);
+    })
+});
+
+/* Test for (false = x) = (x = false) = false for any x not false */
+describe( 'CallWorldLabel - equal', function() : void {
+    const rootLabel = new labels.CallWorldLabel("=",false);
+    const op1 = labels.mkFalseBooleanLiteral();
+    const op2 = labels.mkNumberLiteral("123");
+    const root = new PNode(rootLabel, [op1,op2,op2,op1]);
+    const vm = makeStdVMS( root );
+    
+    it( 'should evaluate to a BoolV equalling true', function() : void {
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+      assert.check( ! vm.isReady() ) ;
+      vm.advance() ;
+      assert.check(  vm.isReady() ) ;
+      vm.advance() ;
+
+      assert.check( vm.isDone() ) ;
+      assert.check( vm.isMapped( emptyList ) ) ;
+      const val1 = vm.getVal( emptyList ) ;
+      assert.check( val1 instanceof BoolV ) ;
+      assert.check( (val1 as BoolV).getVal()  === false);
+    })
+});
 
 describe( 'CallWorldLabel - equal', function() : void {
   const rootlabel = new labels.CallWorldLabel("=", false);
@@ -742,7 +843,7 @@ describe( 'CallWorldLabel - equal', function() : void {
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -758,19 +859,19 @@ describe( 'CallWorldLabel - equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
   const rootlabel = new labels.CallWorldLabel("=", false);
-  const op1 = labels.mkNumberLiteral("This is a string");
-  const op2 = labels.mkNumberLiteral("This is not the same string");
+  const op1 = labels.mkStringLiteral("This is a string");
+  const op2 = labels.mkStringLiteral("This is not the same string");
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -786,19 +887,19 @@ describe( 'CallWorldLabel - equal', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
   const rootlabel = new labels.CallWorldLabel("and", false);
-  const op1 = labels.mkNumberLiteral("true");
-  const op2 = labels.mkNumberLiteral("true");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -814,19 +915,19 @@ describe( 'CallWorldLabel - logical and', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
   const rootlabel = new labels.CallWorldLabel("and", false);
-  const op1 = labels.mkNumberLiteral("true");
-  const op2 = labels.mkNumberLiteral("false");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -842,19 +943,19 @@ describe( 'CallWorldLabel - logical and', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkNumberLiteral("true");
-  const op2 = labels.mkNumberLiteral("true");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -870,19 +971,19 @@ describe( 'CallWorldLabel - logical or', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkNumberLiteral("true");
-  const op2 = labels.mkNumberLiteral("false");
+  const op1 = labels.mkTrueBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling true', function() : void {
+  it('should evaluate to a BoolV equaling true', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -898,19 +999,19 @@ describe( 'CallWorldLabel - logical or', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "true");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === true);
   } );
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
   const rootlabel = new labels.CallWorldLabel("or", false);
-  const op1 = labels.mkNumberLiteral("false");
-  const op2 = labels.mkNumberLiteral("false");
+  const op1 = labels.mkFalseBooleanLiteral();
+  const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
   const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a StringV equaling false', function() : void {
+  it('should evaluate to a BoolV equaling false', function() : void {
       assert.check( ! vm.isReady() ) ;
       vm.advance() ;
       assert.check(  vm.isReady() ) ;
@@ -926,10 +1027,86 @@ describe( 'CallWorldLabel - logical or', function() : void {
       assert.check( vm.isDone() ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof StringV ) ;
-      assert.check( (val as StringV).getVal() === "false");
+      assert.check( val instanceof BoolV ) ;
+      assert.check( (val as BoolV).getVal() === false);
   } );
 } ) ;
+
+describe( 'CallWorldLabel - implies', function() : void {
+    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const op1 = labels.mkFalseBooleanLiteral();
+    const op2 = labels.mkFalseBooleanLiteral();
+    const op3 = labels.mkFalseBooleanLiteral();
+    const op4 = labels.mkTrueBooleanLiteral();
+    const root = new PNode(rootlabel, [op1, op2, op3, op4]);
+    const vm = makeStdVMS( root )  ;
+  
+    it('should evaluate to a BoolV equaling true', function() : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;    
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === true);
+    } );
+  } ) ;
+
+  describe( 'CallWorldLabel - implies', function() : void {
+    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const op1 = labels.mkTrueBooleanLiteral();
+    const op2 = labels.mkTrueBooleanLiteral();
+    const op3 = labels.mkTrueBooleanLiteral();
+    const op4 = labels.mkFalseBooleanLiteral();
+    const root = new PNode(rootlabel, [op1, op2, op3, op4]);
+    const vm = makeStdVMS( root )  ;
+  
+    it('should evaluate to a BoolV equaling false', function() : void {
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check(  vm.isReady() ) ;
+        vm.advance() ;    
+        assert.check( vm.isDone() ) ;
+        assert.check( vm.isMapped( emptyList ) ) ;
+        const val = vm.getVal( emptyList ) ;
+        assert.check( val instanceof BoolV ) ;
+        assert.check( (val as BoolV).getVal() === false);
+    } );
+  } ) ;
 
 
 describe ('Call Label with closure', function(): void {
@@ -940,7 +1117,7 @@ describe ('Call Label with closure', function(): void {
     const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
     const vm = makeStdVMS(root);
 
-    it('should evaluate to a StringV equaling 136', function() : void {
+    it('should evaluate to a NumberV equaling 136', function() : void {
       let firstEvalDone: boolean = false;
       let evalDone: boolean = false;
       while (!evalDone) {
@@ -956,8 +1133,8 @@ describe ('Call Label with closure', function(): void {
       }
       assert.check(vm.isMapped(emptyList));
       const val = vm.getVal(emptyList);
-      assert.check(val instanceof StringV);
-      assert.check((val as StringV).getVal() === "136");
+      assert.check(val instanceof NumberV);
+      assert.check((val as NumberV).getVal() === 136);
     });
 });
 
@@ -970,8 +1147,8 @@ describe ('Call of built-in', function(): void {
             vm.advance(); }
         assert.check( !vm.hasError() );
         const val = vm.getFinalValue() ;
-        assert.check(val instanceof StringV);
-        assert.check((val as StringV).getVal() === "666");
+        assert.check(val instanceof NumberV);
+        assert.check((val as NumberV).getVal() === 666);
     });
 });
 
@@ -1021,8 +1198,8 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue() as StringV).getVal() === "3") ;
-      assert.check(((val as ObjectV).getField("y").getValue() as StringV).getVal() === "5") ;
+      assert.check(((val as ObjectV).getField("x").getValue() as NumberV).getVal() === 3) ;
+      assert.check(((val as ObjectV).getField("y").getValue() as NumberV).getVal() === 5) ;
   });
 });
 
@@ -1037,8 +1214,8 @@ describe('AccessorLabel', function(): void {
         }
         assert.check(!vm.hasError());
         const val = vm.getFinalValue();
-        assert.check(val instanceof StringV);
-        assert.check((val as StringV).getVal() === "5");
+        assert.check(val instanceof NumberV);
+        assert.check((val as NumberV).getVal() === 5);
     });
 
     it('should report an error that the object does not have a field named y', function(): void {
@@ -1090,8 +1267,8 @@ describe('DotLabel', function(): void {
         }
         assert.check(!vm.hasError());
         const val = vm.getFinalValue();
-        assert.check(val instanceof StringV);
-        assert.check((val as StringV).getVal() === "5");
+        assert.check(val instanceof NumberV);
+        assert.check((val as NumberV).getVal() === 5);
     });
 
     it('should report an error that the object does not have a field named y', function(): void {
@@ -1131,8 +1308,8 @@ describe('ArrayLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("0").getValue() as StringV).getVal() === "12345");
-      assert.check(((val as ObjectV).getField("1").getValue() as StringV).getVal() === "67890");
+      assert.check(((val as ObjectV).getField("0").getValue() as NumberV).getVal() === 12345);
+      assert.check(((val as ObjectV).getField("1").getValue() as NumberV).getVal() === 67890);
   });
 });
 
@@ -1147,13 +1324,13 @@ describe('len built in', function(): void {
     }
     assert.check(!vm.hasError());
     const val = vm.getFinalValue();
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "2");
+    assert.check(val instanceof NumberV);
+    assert.check((val as NumberV).getVal() === 2);
   });
 });
 
 describe('push built in', function(): void {
-  it('should return a StringV equaling 1000', function(): void {
+  it('should return a NumberV equaling 1000', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23")]);
     const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
     const pushCall = new PNode(new labels.CallWorldLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
@@ -1165,8 +1342,8 @@ describe('push built in', function(): void {
     }
     assert.check(!vm.hasError());
     const val = vm.getFinalValue();
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "1000");
+    assert.check(val instanceof NumberV);
+    assert.check((val as NumberV).getVal() === 1000);
   });
 });
 
@@ -1183,13 +1360,13 @@ describe('pop built in', function(): void {
     }
     assert.check(!vm.hasError());
     const val = vm.getFinalValue();
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "2");
+    assert.check(val instanceof NumberV);
+    assert.check((val as NumberV).getVal() === 2);
   });
 });
 
 describe( 'ExprSeqLabel', function () : void {
-    it( 'should evaluate to a StringV equaling 3', function () : void {
+    it( 'should evaluate to a NumberV equaling 3', function () : void {
         const rootLabel = new labels.ExprSeqLabel();
         const op1 = labels.mkNumberLiteral("1");
         const op2 = labels.mkNumberLiteral("2");
@@ -1214,8 +1391,8 @@ describe( 'ExprSeqLabel', function () : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof StringV ) ;
-        assert.check( ( val as StringV ).getVal() === "2" ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( ( val as NumberV ).getVal() === 2 ) ;
     } );
     it( 'should work when the sequence is empty', function () : void {
         const rootLabel = new labels.ExprSeqLabel();
@@ -1265,10 +1442,10 @@ describe('IfLabel', function () : void{
         //it should fail here
         vm.advance();
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "Condition is neither true nor false.", vm.getError() ) ;
+        assert.checkEqual( "Guard is neither true nor false.", vm.getError() ) ;
     });
 
-    it('should evaluate to a StringV equaling 5 when true', function() : void {
+    it('should evaluate to a NumberV equaling 5 when true', function() : void {
         //setup
         const ifLabel : IfLabel = new labels.IfLabel();
         const condition : PNode = labels.mkTrueBooleanLiteral();
@@ -1323,13 +1500,13 @@ describe('IfLabel', function () : void{
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV).getVal();
-        assert.check(result === "5", "It did not return 5 as expected. It returned " + result);
+        assert.check(val instanceof NumberV, "The value is not a NumberV.");
+        const result : number = (val as NumberV).getVal();
+        assert.check(result === 5, "It did not return 5 as expected. It returned " + result);
 
     });
 
-    it('should evaluate to a StringV equaling 7 when false', function() : void {
+    it('should evaluate to a NumberV equaling 7 when false', function() : void {
         //setup
         const ifLabel : IfLabel = new labels.IfLabel();
         const condition : PNode = labels.mkFalseBooleanLiteral();
@@ -1385,9 +1562,9 @@ describe('IfLabel', function () : void{
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV).getVal();
-        assert.check(result === "7", "It did not return 7 as expected. It returned " + result);
+        assert.check(val instanceof NumberV, "The value is not a Numberv.");
+        const result : number = (val as NumberV).getVal();
+        assert.check(result === 7, "It did not return 7 as expected. It returned " + result);
     });
 });
 
@@ -1568,8 +1745,8 @@ describe('VarDeclLabel', function () : void {
         const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
         assert.check( f.getIsDeclared() === true ) ;
-        assert.check( f.getValue() instanceof StringV ) ;
-        assert.check( (f.getValue() as StringV ).getVal() === "5" ) ;
+        assert.check( f.getValue() instanceof NumberV ) ;
+        assert.check( (f.getValue() as NumberV ).getVal() === 5 ) ;
 
         // step the expr seq node
         selectAndStep( vm ) ;
@@ -1666,9 +1843,9 @@ describe('VariableLabel', function () : void {
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV ).getVal();
-        assert.check(result === "1729", "It did not return 1729 as expected. It returned " + result);
+        assert.check(val instanceof NumberV, "The value is not a NumberV.");
+        const result : number = (val as NumberV ).getVal();
+        assert.check(result === 1729, "It did not return 1729 as expected. It returned " + result);
     });
 
     it('should fail if used before being declared', function () : void {
@@ -1755,9 +1932,9 @@ describe('AssignLabel', function () : void {
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV).getVal();
-        assert.check(result === "2", "It did not return 2 as expected. It returned " + result);
+        assert.check(val instanceof NumberV, "The value is not a NumberV.");
+        const result : number = (val as NumberV).getVal();
+        assert.check(result === 2, "It did not return 2 as expected. It returned " + result);
     });
 
     it('should fail if assigning to a constant', function () : void {
@@ -1836,9 +2013,9 @@ describe('AssignLabel', function () : void {
       assert.check(vm.isDone(), "VMS is not done.");
       assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
       const value : Value = vm.getVal(emptyList);
-      assert.check(value instanceof StringV, "The value is not a StringV.");
-      const result : string = (value as StringV).getVal();
-      assert.check(result === "10", "It did not return 10 as expected. It returned " + result); 
+      assert.check(value instanceof NumberV, "The value is not a NumberV.");
+      const result : number = (value as NumberV).getVal();
+      assert.check(result === 10, "It did not return 10 as expected. It returned " + result); 
     });
 
     it('should fail to assign to field if object does contain that field', function(): void {
@@ -1902,9 +2079,9 @@ describe('AssignLabel', function () : void {
       assert.check(vm.isDone(), "VMS is not done.");
       assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
       const value : Value = vm.getVal(emptyList);
-      assert.check(value instanceof StringV, "The value is not a StringV.");
-      const result : string = (value as StringV).getVal();
-      assert.check(result === "666", "It did not return 666 as expected. It returned " + result);
+      assert.check(value instanceof NumberV, "The value is not a NumberV.");
+      const result : number = (value as NumberV).getVal();
+      assert.check(result === 666, "It did not return 666 as expected. It returned " + result);
     });
 });
 
@@ -2068,9 +2245,9 @@ describe('WhileLabel', function () : void {
         assert.check(vm.isDone(), "VMS is not done.");
         assert.check(vm.isMapped(emptyList), "The empty list is not mapped.");
         const val : Value = vm.getVal(emptyList);
-        assert.check(val instanceof StringV, "The value is not a StringV.");
-        const result : string = (val as StringV).getVal();
-        assert.check(result === "false", "It did not return false as expected. It returned " + result);
+        assert.check(val instanceof BoolV, "The value is not a BoolV.");
+        const result : boolean = (val as BoolV).getVal();
+        assert.check(result === false, "It did not return false as expected. It returned " + result);
 
     }) ;
 
