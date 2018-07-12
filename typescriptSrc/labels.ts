@@ -790,12 +790,11 @@ module labels {
         constructor( val : string, open : boolean) { super(val, open) ; }
 
         public open() : Option<Label> {
-            return some( new BooleanLiteralLabel( this._val, true ) ) ;
+            return none() ;
         }
 
         public changeString (newString : string) : Option<Label> {
-                const newLabel = new BooleanLiteralLabel(newString, false);
-                return new Some(newLabel);
+                return none() ;
         }
 
         public isValid( children : Array<PNode> )  : boolean {

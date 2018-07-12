@@ -1324,8 +1324,8 @@ describe('len built in', function(): void {
     }
     assert.check(!vm.hasError());
     const val = vm.getFinalValue();
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "2");
+    assert.check(val instanceof NumberV);
+    assert.check((val as NumberV).getVal() === 2);
   });
 });
 
@@ -1360,8 +1360,8 @@ describe('pop built in', function(): void {
     }
     assert.check(!vm.hasError());
     const val = vm.getFinalValue();
-    assert.check(val instanceof StringV);
-    assert.check((val as StringV).getVal() === "2");
+    assert.check(val instanceof NumberV);
+    assert.check((val as NumberV).getVal() === 2);
   });
 });
 
@@ -1442,7 +1442,7 @@ describe('IfLabel', function () : void{
         //it should fail here
         vm.advance();
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "Condition is neither true nor false.", vm.getError() ) ;
+        assert.checkEqual( "Guard is neither true nor false.", vm.getError() ) ;
     });
 
     it('should evaluate to a NumberV equaling 5 when true', function() : void {

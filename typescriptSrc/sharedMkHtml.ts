@@ -24,6 +24,12 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
+    export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
+    export const FALSEMARK = "\u2718" ; // HEAVY BALLOT X
+    export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
+    export const LAMBDAMARK = "\u03BB" ;
+    export const NULLMARK = "\u23da" ; // EARTH GROUND
+
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
         const children = new Array<JQuery>() ;
@@ -387,7 +393,7 @@ module sharedMkHtml
             {
 
                 result  = $(document.createElement("div")) ;
-                result.addClass( "stringLiteral" ) ;
+                result.addClass( "literal" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "click" ) ;
@@ -417,7 +423,7 @@ module sharedMkHtml
                 if (! node.label().isOpen() )
                 {
                     result  = $(document.createElement("div")) ;
-                    result.addClass( "numberLiteral" ) ;
+                    result.addClass( "literal" ) ;
                     result.addClass( "H" ) ;
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
@@ -428,6 +434,27 @@ module sharedMkHtml
                 {
                     result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
                 }
+            }
+            break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "literal" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                let mark : string ;
+                let colorClass : string ;
+                if( node.label().getVal() === "true" ) {
+                    mark = TRUEMARK ;
+                    colorClass = "greenText" ; }
+                else {
+                    mark = FALSEMARK ;
+                    colorClass = "redText" ; }
+                result.text( mark ) ;
+                result.addClass( colorClass ) ;
             }
             break ;
             case labels.NoTypeLabel.kindConst :

@@ -181,25 +181,17 @@ module interpreter {
         if (vm.isChildMapped(0)) {
             //if it is, get the result of the condition node
             if( ! vm.getChildVal(0).isBoolV() ) {
-                vm.reportError( "Condition is neither true nor false." );
+                vm.reportError( "Guard is neither true nor false." );
                 return ; }
             const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
-            let choiceNode = -1;
-            if (result === true) {
-                choiceNode = 1;
-            }
-            else if (result === false) {
-                choiceNode = 2;
-            } else {
-                vm.reportError("Condition is neither true nor false.") ;
-                return ; }
-
-            assert.check(choiceNode === 1 || choiceNode === 2, );
+            const choiceNode = result ? 1 : 2 ;
             if (!vm.isChildMapped(choiceNode)) {
+                // More work to do on child. Recurse
                 vm.pushPending(choiceNode);
                 vm.getInterpreter().select(vm);
             }
             else {
+                // The If node is ripe.
                 vm.setReady(true);
             }
         }
@@ -224,17 +216,13 @@ module interpreter {
             }
             const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
             //check if true or false, if true, check select the body
-            if (result === true) {
+            if (result) {
                 vm.pushPending(1);
                 vm.getInterpreter().select(vm);
             }
             //otherwise, if it is false, set this node to ready
-            else if (result === false){
-                vm.setReady(true);
-            }
-            //otherwise, report an error!
             else {
-                vm.reportError( "Guard is neither true nor false!" ) ;
+                vm.setReady(true);
             }
         }
         //if it isn't selected, select the guard node
@@ -264,7 +252,6 @@ module interpreter {
               vm.setReady(true);
             }         
         }
-
         else if (varNode.label().kind() === labels.DotLabel.kindConst) {
             const path = vm.getPending();
             const pathToObject = path.cat(collections.list<number>(0,0));
@@ -305,28 +292,16 @@ module interpreter {
 
     function booleanLiteralStepper( vm: VMS ) : void {
         const label = vm.getPendingNode().label() ;
+        assert.check( label.kind() === labels.BooleanLiteralLabel.kindConst ) ;
         const str = label.getVal();
-        let result;
-        if ( result === undefined ) {
-            if(label.kind() === labels.BooleanLiteralLabel.kindConst) {
-                if ( str == "true") {
-                    result  = BoolV.trueValue ;
-                }
-                else {
-                    result = BoolV.falseValue ;
-                }
-                vm.finishStep( result ) ;
-                return;
-            }
-        }
-        vm.finishStep( result );
+        const result = str==="true" ? BoolV.trueValue : BoolV.falseValue ;
+        vm.finishStep( result ) ;
     }
     
     function stringLiteralStepper( vm : VMS ) : void {
         const label = vm.getPendingNode().label() ;
         const str = label.getVal() ;
         let result = theStringCache[ str ] ;
-        let boolResult;
         if( result === undefined ) {
             // Normally steppers and selectors should make no changes to anything
             // other than the vms. This is so that undo and redo work.
@@ -338,19 +313,19 @@ module interpreter {
 
     function numberLiteralStepper( vm : VMS ) : void {
         const label  = vm.getPendingNode().label() ;
-        let str = label.getVal() ;
-        var regexp = /(\d+(\.\d+)?)/g ;
+        const str = label.getVal() ;
+        // TODO use the proper parser.
+        const regexp = /(\d+(\.\d+)?)/g ;
         if( regexp.test(str) ) {
             const num = Number(str) ;
             let result = theNumberCache[ num ] ; 
             if(result === undefined) {
-            result = theNumberCache[ num ] = new NumberV( num ) ;
+                result = theNumberCache[ num ] = new NumberV( num ) ;
             }
-        vm.finishStep( result ) ;
+            vm.finishStep( result ) ;
         }
         else {
             vm.reportError("Not a valid number.") ;
-            return ;
         }
     }
  
@@ -558,11 +533,11 @@ module interpreter {
     }
 
     function ifStepper(vm : VMS) : void {
-        assert.checkPrecondition(vm.isChildMapped(0), "Condition is not ready.");
-        assert.checkPrecondition(vm.getChildVal(0).isBoolV(), "Condition is not a BoolV.");
+        assert.checkPrecondition(vm.isChildMapped(0), "Guard is not ready.");
+        assert.checkPrecondition(vm.getChildVal(0).isBoolV(), "Guard is not a BoolV.");
         const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
-        assert.checkPrecondition(result === true || result === false, "Condition is neither true nor false.");
         const choice = result === true ? 1 : 2;
+        assert.checkPrecondition(vm.isChildMapped(choice), "'If' not ripe.");
         vm.finishStep(vm.getChildVal(choice));
     }
 

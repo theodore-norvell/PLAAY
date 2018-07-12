@@ -315,13 +315,13 @@ module treeManager {
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkTrueBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkFalseBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }

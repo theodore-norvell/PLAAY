@@ -326,6 +326,7 @@ module world {
             }
 
             function notEqualStep(vm : VMS, args : Array<Value>) : void {
+                // TODO Eliminate redundancy with EqualStep.
                 let bool : boolean;
                 if (argsAreStrings(args)) {
                     bool = true ;
@@ -390,7 +391,7 @@ module world {
                     result = result && vals[i];
                 }
                 return !result || vals[vals.length -1];             
-            }
+            } ;
             const impliesStep = impliesStepperFactory(impliesCallback);          
             const implies = new BuiltInV(impliesStep);
             const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
@@ -405,49 +406,29 @@ module world {
                 if (!(bool instanceof BoolV)) {
                     vm.reportError("not only works with boolean values.");
                     return;
-                  }
+                }
                 const result = BoolV.getVal(!bool);
                 vm.finishStep(result);
-
             }
 
-            function lenStep(vms: VMS, args: Array<Value>) : void  {
-              if (args.length !== 1) {
-                vms.reportError("len expects 1 argument, of type object.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("len only works with object values.");
-                return;
-              }
-              const len = obj.numFields();
-              const val = new StringV(len+"");
-              vms.finishStep(val);
+            function lenStep(vm: VMS, args: Array<Value>) : void  {
+                if (args.length !== 1) {
+                    vm.reportError("len expects 1 argument, of type object.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("len only works with object values.");
+                    return;
+                }
+                const count = obj.numFields();
+                const val = new NumberV(count);
+                vm.finishStep(val);
             }
 
             const len = new BuiltInV(lenStep);
             const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
             this.addField(lenf);
-
-            function booleanStep(vm : VMS, args: Array<Value>) : void {
-                if (args.length !== 1) {
-                    vm.reportError("booleanStep expects 1 argument of type BoolV.");
-                    return;
-                  }
-
-                  const bool = args[0];
-                  if(!(bool instanceof BoolV)) {
-                      vm.reportError("Boolean constant should be of type BoolV.");
-                      return;
-                  }
-                  if(bool.getVal() === true) {
-                      vm.finishStep(BoolV.trueValue);
-                  }
-                  else {
-                      vm.finishStep(BoolV.falseValue);
-                  }
-            }
 
             const trueConstant = BoolV.trueValue;
             const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
@@ -457,21 +438,21 @@ module world {
             const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
             this.addField(falseConstantf);
 
-            function pushStep(vms: VMS, args: Array<Value>) {
-              if (args.length !== 2) {
-                vms.reportError("push expects 2 arguments, an object and a value to be pushed.");
-                return;
-              }
-              const obj = args[0];
-              if (!(obj instanceof ObjectV)) {
-                vms.reportError("First argument should be an object value.");
-                return;
-              }
-              const val = args[1];
-              console.log(obj.numFields()+"");
-              const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
-              obj.addField(field);
-              vms.finishStep(DoneV.theDoneValue);
+            function pushStep(vm: VMS, args: Array<Value>) : void {
+                if (args.length !== 2) {
+                    vm.reportError("push expects 2 arguments, an object and a value to be pushed.");
+                    return;
+                }
+                const obj = args[0];
+                if (!(obj instanceof ObjectV)) {
+                    vm.reportError("First argument should be an object value.");
+                    return;
+                }
+                const val = args[1];
+                console.log(obj.numFields()+"");
+                const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
+                obj.addField(field);
+                vm.finishStep(DoneV.theDoneValue);
             }
 
             const push = new BuiltInV(pushStep);
