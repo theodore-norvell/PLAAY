@@ -34,7 +34,7 @@ module interpreter {
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
-    import DoneV = valueTypes.DoneV ;
+    import TupleV = valueTypes.TupleV ;
     import Field = valueTypes.Field;
     import NonEmptyVarStack = vms.NonEmptyVarStack;
 
@@ -90,6 +90,10 @@ module interpreter {
     
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
+
+    theSelectorRegistry[ labels.TupleLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.TupleLabel.kindConst ] = tupleStepper ;
+
 
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
@@ -422,7 +426,7 @@ module interpreter {
             // Set it to the value of the last child node if there is one and pop the stack frame.
             const numberOfChildren : number = vm.getPendingNode().count();
             const value : Value = (numberOfChildren === 0
-                                   ? DoneV.theDoneValue
+                                   ? TupleV.theDoneValue
                                    : vm.getChildVal( numberOfChildren - 1) ) ;
             vm.finishStep( value );
             vm.getEval().popFromVarStack() ; }
@@ -508,8 +512,24 @@ module interpreter {
           return;
         }
       }
+      else if( object instanceof TupleV) {
+          if( field instanceof NumberV) {
+              const index : number = field.converToNumber();
+              if( index < 0 || index > object.numFields() - 1 ) {
+                vm.reportError("Invalid index value: "+index);
+              }
+              else {
+                  const val = object.getValueByIndex(index);
+                  vm.finishStep(val);
+              }
+          }
+          else {
+              vm.reportError("The operand of the index operator must be a number.");
+              return;
+          }
+      }
       else {
-        vm.reportError("The index operator may only be applied to objects.");
+        vm.reportError("The index operator may only be applied to objects and tuples.");
         return;
       }
     }
@@ -532,6 +552,22 @@ module interpreter {
         }
     }
 
+    function tupleStepper( vm:VMS) : void{
+        const node = vm.getPendingNode() ;
+        const length = node.count() ;
+        if( length === 1) {
+            const val = vm.getChildVal(0) ;
+            vm.finishStep(val);
+        } else {
+            const vals = new Array<Value>();
+            for(let i = 0; i < length ; ++i) {
+                const val = vm.getChildVal(i);
+                vals.push(val);
+            }
+            const tuple = TupleV.createTuple(vals);
+            vm.finishStep(tuple); }
+    }
+
     function ifStepper(vm : VMS) : void {
         assert.checkPrecondition(vm.isChildMapped(0), "Guard is not ready.");
         assert.checkPrecondition(vm.getChildVal(0).isBoolV(), "Guard is not a BoolV.");
@@ -547,7 +583,7 @@ module interpreter {
             vm.finishStep(vm.getChildVal(1));
         }
         else {
-            vm.finishStep( DoneV.theDoneValue ) ;
+            vm.finishStep( TupleV.theDoneValue ) ;
         }
     }
 
@@ -607,7 +643,7 @@ module interpreter {
         const value : Value = vm.getChildVal(1);
         // TODO Check that the value is assignable to the field.
         field.setValue( value ) ;
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function variableStepper(vm : VMS) : void {
@@ -643,7 +679,7 @@ module interpreter {
             // TODO Check that the value is assignable to the field.
             field.setValue( value ) ;
         } 
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function placeHolderStepper(vm : VMS) : void {

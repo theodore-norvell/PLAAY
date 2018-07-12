@@ -679,7 +679,7 @@ module vms{
         isStringV : () => boolean ;
         isNullV : () => boolean ;
         isObjectV : () => boolean ;
-        isDoneV : () => boolean ;
+        isTupleV : () => boolean ;
         isNumberV : () => boolean ;
         isBoolV : () => boolean ;
     }

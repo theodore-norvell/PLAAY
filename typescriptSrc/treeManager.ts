@@ -84,6 +84,8 @@ module treeManager {
                     return this.makeLambdaNode(selection);
                 case "type":
                     return this.makeNoTypeNode(selection);
+                case "tuple":
+                    return this.makeTupleNode(selection);
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
@@ -166,6 +168,15 @@ module treeManager {
             const dotNode = labels.mkDot( "", true, left ) ;
 
             const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
+        private makeTupleNode(selection:Selection) : Option<Selection> {
+                                    
+            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
+            const template = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
 

@@ -111,7 +111,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -172,7 +172,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -232,7 +232,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -318,7 +318,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -375,7 +375,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -414,7 +414,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -437,8 +437,34 @@ module valueTypes {
         public static  readonly theNullValue = new NullV() ;
     }
 
-    /** The Done value. Used to indicate completion of a command. */
-    export class DoneV implements Value {
+    /** The Tuple value */
+    export class TupleV implements Value {
+
+        private readonly values : Array<Value>;
+
+        private constructor(vals : Array<Value>) {
+            if(vals.length > 0 ) {
+                this.values = vals.slice(0,vals.length);
+            }
+            else {
+                this.values = vals.slice(0,vals.length);
+                return TupleV.theDoneValue;
+            }
+        }
+
+        public static createTuple(vals : Array<Value>) : TupleV {
+            assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
+            return new TupleV(vals); 
+        }
+
+        public numFields():number {
+            return this.values.length;
+        } 
+
+        public getValueByIndex(index : number) : Value {
+            return this.values[index];
+        }
+  
         public isClosureV() : boolean {
             return false;
         }
@@ -459,7 +485,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return true;
         }
 
@@ -475,11 +501,7 @@ module valueTypes {
             return "done" ;
         }
 
-        private constructor() {
-
-        }
-        
-        public static  readonly theDoneValue = new DoneV() ;
+        public static  readonly theDoneValue = new TupleV(new Array<Value>(0)) ;
     }
 
     /** A built in function. */
@@ -510,7 +532,7 @@ module valueTypes {
             return false;
         }
 
-        public isDoneV() : boolean {
+        public isTupleV() : boolean {
             return false;
         }
 

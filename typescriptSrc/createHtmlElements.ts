@@ -93,6 +93,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "lambda", palette, LAMBDAMARK);
 		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
 		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
+		createTexted("div", "leftSideButton paletteItem", "tuple", palette, "( )");
 		createTexted("div", "leftSideButton paletteItem", "trueliteral", palette, TRUEMARK);
 		createTexted("div", "leftSideButton paletteItem", "falseliteral", palette, FALSEMARK);
 

@@ -816,6 +816,44 @@ module labels {
     }
     pnode.registry[ BooleanLiteralLabel.kindConst ] = BooleanLiteralLabel ;
 
+    /** Tuple label. */
+    export class TupleLabel extends ExprLabel {
+        
+        public static readonly kindConst : string = "TupleLabel" ;
+
+        private constructor(val: string, open : boolean) {
+            super();
+        } 
+
+        public static readonly theTupleLabel : TupleLabel = new TupleLabel("",true);
+
+        public isValid(children: Array<PNode>): boolean {
+            return children.every( (c:PNode) => c.isExprNode()) ;
+        }
+
+        public toString():string {
+            return "tuple" ;
+        }
+
+        public hasVerticalLayout() : boolean {return false;}
+    
+        public hasDropZonesAt(start : number): boolean { return true; }
+
+        public toJSON(): object {
+            return { kind: TupleLabel.kindConst };
+        }
+
+        public static fromJSON( json : object ) : TupleLabel {
+            return TupleLabel.theTupleLabel ;
+        }
+
+        public kind(): string {
+            return TupleLabel.kindConst;
+        }
+        
+    }
+    pnode.registry[ TupleLabel.kindConst ] = TupleLabel ;
+
     /** Null literals. */
     export class NullLiteralLabel extends ExprLabel {
         
@@ -943,6 +981,10 @@ module labels {
     export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
         assert.check( child.isExprNode() ) ;
         return make( new DotLabel( val, open), [child] ) ;
+    }
+
+    export function mkTuple( children : Array<PNode>) : PNode {
+        return make(TupleLabel.theTupleLabel,children);
     }
         
 }

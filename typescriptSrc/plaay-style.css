@@ -653,6 +653,17 @@ div.dot {
     min-height: 1em ;
 }
 
+div.tuple {
+    border:thin solid rgb(135,206,250) ; /* Blue */
+    border-radius: 5px ;
+    color:rgb(135,206,250) ; /* Blue */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
+}
+
 div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;
