@@ -653,30 +653,24 @@ div.dot {
     min-height: 1em ;
 }
 
+div.tuple {
+    border:thin solid rgb(135,206,250) ; /* Blue */
+    border-radius: 5px ;
+    color:rgb(135,206,250) ; /* Blue */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
+    min-width: 1ex ;
+    min-height: 1em ;
+}
 
-div.stringLiteral{
+div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;
     font-family:"Lucida Console", monospace;
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
-    min-width: 1ex ;
-    min-height: 1em ;
-    max-width: 200px ;
-    white-space: pre-wrap ;
-    word-wrap: break-word ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
-div.numberLiteral{
-    border: thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-family:"Lucida Console", monospace;
-    font-weight: normal ;
-    font-size: medium ;
-    color: rgb(244, 140, 0) ; /* Orange */
     min-width: 1ex ;
     min-height: 1em ;
     max-width: 200px ;
@@ -697,6 +691,14 @@ div.nullLiteral {
     vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
+}
+
+div.redText {
+    color:rgb(200,0,0);
+}
+
+div.greenText {
+    color:rgb(0,200,0);
 }
 
 div.inmap{

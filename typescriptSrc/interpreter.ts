@@ -29,10 +29,12 @@ module interpreter {
     import VMS = vms.VMS;
     import BuiltInV = valueTypes.BuiltInV ;
     import StringV = valueTypes.StringV ;
+    import NumberV = valueTypes.NumberV ;
+    import BoolV = valueTypes.BoolV ;
     import ObjectV = valueTypes.ObjectV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
-    import DoneV = valueTypes.DoneV ;
+    import TupleV = valueTypes.TupleV ;
     import Field = valueTypes.Field;
     import NonEmptyVarStack = vms.NonEmptyVarStack;
 
@@ -78,16 +80,20 @@ module interpreter {
 
     // Constants
     theSelectorRegistry[ labels.BooleanLiteralLabel.kindConst ] = alwaysSelector ;
-    theStepperRegistry[ labels.BooleanLiteralLabel.kindConst ] = stringLiteralStepper ;
+    theStepperRegistry[ labels.BooleanLiteralLabel.kindConst ] = booleanLiteralStepper ;
 
     theSelectorRegistry[ labels.NullLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.NullLiteralLabel.kindConst ] = nullLiteralStepper ;
 
     theSelectorRegistry[ labels.NumberLiteralLabel.kindConst ] = alwaysSelector ;
-    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = stringLiteralStepper ;
+    theStepperRegistry[ labels.NumberLiteralLabel.kindConst ] = numberLiteralStepper ;
     
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
+
+    theSelectorRegistry[ labels.TupleLabel.kindConst ] = leftToRightSelector ;
+    theStepperRegistry[ labels.TupleLabel.kindConst ] = tupleStepper ;
+
 
     // Functions and calls
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
@@ -178,26 +184,18 @@ module interpreter {
         //check if the condition node is mapped
         if (vm.isChildMapped(0)) {
             //if it is, get the result of the condition node
-            if( ! vm.getChildVal(0).isStringV() ) {
-                vm.reportError( "Condition is not a StringV." );
+            if( ! vm.getChildVal(0).isBoolV() ) {
+                vm.reportError( "Guard is neither true nor false." );
                 return ; }
-            const result : string = (vm.getChildVal(0) as StringV).getVal();
-            let choiceNode = -1;
-            if (result === "true") {
-                choiceNode = 1;
-            }
-            else if (result === "false") {
-                choiceNode = 2;
-            } else {
-                vm.reportError("Condition is neither true nor false.") ;
-                return ; }
-
-            assert.check(choiceNode === 1 || choiceNode === 2, );
+            const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
+            const choiceNode = result ? 1 : 2 ;
             if (!vm.isChildMapped(choiceNode)) {
+                // More work to do on child. Recurse
                 vm.pushPending(choiceNode);
                 vm.getInterpreter().select(vm);
             }
             else {
+                // The If node is ripe.
                 vm.setReady(true);
             }
         }
@@ -216,23 +214,19 @@ module interpreter {
         }
         //check if the guard node is mapped
         if (vm.isChildMapped(0)) {
-            if( ! vm.getChildVal(0).isStringV() ) {
-                vm.reportError("Guard is not a StringV") ;
+            if( ! vm.getChildVal(0).isBoolV() ) {
+                vm.reportError("Guard is neither true nor false!") ;
                 return ;
             }
-            const result : string = (vm.getChildVal(0) as StringV).getVal();
+            const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
             //check if true or false, if true, check select the body
-            if (result === "true") {
+            if (result) {
                 vm.pushPending(1);
                 vm.getInterpreter().select(vm);
             }
             //otherwise, if it is false, set this node to ready
-            else if (result === "false"){
-                vm.setReady(true);
-            }
-            //otherwise, report an error!
             else {
-                vm.reportError( "Guard is neither true nor false!" ) ;
+                vm.setReady(true);
             }
         }
         //if it isn't selected, select the guard node
@@ -262,6 +256,17 @@ module interpreter {
               vm.setReady(true);
             }         
         }
+        else if (varNode.label().kind() === labels.DotLabel.kindConst) {
+            const path = vm.getPending();
+            const pathToObject = path.cat(collections.list<number>(0,0));
+            if(!vm.isMapped(pathToObject)) {
+                vm.pushPending(0);
+                vm.getInterpreter().select(vm);
+            }
+            else {
+                vm.setReady(true);
+            }             
+        }
         else {
             vm.setReady(true);
         }
@@ -284,9 +289,19 @@ module interpreter {
     // Steppers
 
     interface StringCache { [key:string] : StringV ; }
-
+    interface NumberCache { [key:number] : NumberV ; }
+    
     const theStringCache : StringCache = {} ;
+    const theNumberCache : NumberCache = {} ;
 
+    function booleanLiteralStepper( vm: VMS ) : void {
+        const label = vm.getPendingNode().label() ;
+        assert.check( label.kind() === labels.BooleanLiteralLabel.kindConst ) ;
+        const str = label.getVal();
+        const result = str==="true" ? BoolV.trueValue : BoolV.falseValue ;
+        vm.finishStep( result ) ;
+    }
+    
     function stringLiteralStepper( vm : VMS ) : void {
         const label = vm.getPendingNode().label() ;
         const str = label.getVal() ;
@@ -300,6 +315,24 @@ module interpreter {
         vm.finishStep( result ) ;
     }
 
+    function numberLiteralStepper( vm : VMS ) : void {
+        const label  = vm.getPendingNode().label() ;
+        const str = label.getVal() ;
+        // TODO use the proper parser.
+        const regexp = /(\d+(\.\d+)?)/g ;
+        if( regexp.test(str) ) {
+            const num = Number(str) ;
+            let result = theNumberCache[ num ] ; 
+            if(result === undefined) {
+                result = theNumberCache[ num ] = new NumberV( num ) ;
+            }
+            vm.finishStep( result ) ;
+        }
+        else {
+            vm.reportError("Not a valid number.") ;
+        }
+    }
+ 
     function nullLiteralStepper( vm : VMS ) : void {
         vm.finishStep( NullV.theNullValue ) ;
     }
@@ -353,31 +386,34 @@ module interpreter {
             stepper(vm, args);
         } 
         else if (functionValue instanceof ClosureV) {
-            const lambda = functionValue.getLambdaNode();
-            const paramlist = lambda.child(0);
-            processAndPushArgs(args, paramlist, lambda.child(2), vm);
+            callClosure(args, functionValue, vm);
         } 
         else {
             vm.reportError("Attempt to call a value that is neither a closure nor a built-in function.");
         } 
     }
 
-    function processAndPushArgs(args: Value[], paramlist: PNode, root: PNode, vm: VMS) : void {
-      if(args.length !== paramlist.children(0, paramlist.count()).length) {
-        vm.reportError("Number of arguments for lambda does not match parameter list.");
-        return;
-      }
-      const manager = vm.getTransactionManager();
-      const stackFrame = new ObjectV(manager);
-      for (let i = 0; i < args.length; i++) {
-        const varName = paramlist.child(i).child(0).label().getVal();
-        const val = args[i];
-        //TODO: check that the types of val and vardecl are the same
-        const field = new Field(varName, val, Type.ANY, true, true, manager);
-        field.setIsDeclared();
-        stackFrame.addField(field);
-      }
-      vm.pushEvaluation(root, new NonEmptyVarStack(stackFrame, vm.getStack()));
+    function callClosure(args: Value[], closure: ClosureV, vm: VMS) : void {
+        const lambda = closure.getLambdaNode();
+        const paramlist = lambda.child(0);
+        const returnType = lambda.child(1) ;
+        const body = lambda.child(2) ;
+        const context = closure.getContext() ;
+        if(args.length !== paramlist.children(0, paramlist.count()).length) {
+            vm.reportError("Number of arguments for lambda does not match parameter list.");
+            return;
+        }
+        const manager = vm.getTransactionManager();
+        const stackFrame = new ObjectV(manager);
+        for (let i = 0; i < args.length; i++) {
+            const varName = paramlist.child(i).child(0).label().getVal();
+            const val = args[i];
+            //TODO: check that the types of val and vardecl are the same
+            const field = new Field(varName, val, Type.ANY, true, true, manager);
+            field.setIsDeclared();
+            stackFrame.addField(field);
+        }
+        vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
     }
 
     function exprSeqStepper(vm : VMS) : void {
@@ -390,7 +426,7 @@ module interpreter {
             // Set it to the value of the last child node if there is one and pop the stack frame.
             const numberOfChildren : number = vm.getPendingNode().count();
             const value : Value = (numberOfChildren === 0
-                                   ? DoneV.theDoneValue
+                                   ? TupleV.theDoneValue
                                    : vm.getChildVal( numberOfChildren - 1) ) ;
             vm.finishStep( value );
             vm.getEval().popFromVarStack() ; }
@@ -476,8 +512,24 @@ module interpreter {
           return;
         }
       }
+      else if( object instanceof TupleV) {
+          if( field instanceof NumberV) {
+              const index : number = field.converToNumber();
+              if( index < 0 || index > object.numFields() - 1 ) {
+                vm.reportError("Invalid index value: "+index);
+              }
+              else {
+                  const val = object.getValueByIndex(index);
+                  vm.finishStep(val);
+              }
+          }
+          else {
+              vm.reportError("The operand of the index operator must be a number.");
+              return;
+          }
+      }
       else {
-        vm.reportError("The index operator may only be applied to objects.");
+        vm.reportError("The index operator may only be applied to objects and tuples.");
         return;
       }
     }
@@ -500,12 +552,28 @@ module interpreter {
         }
     }
 
+    function tupleStepper( vm:VMS) : void{
+        const node = vm.getPendingNode() ;
+        const length = node.count() ;
+        if( length === 1) {
+            const val = vm.getChildVal(0) ;
+            vm.finishStep(val);
+        } else {
+            const vals = new Array<Value>();
+            for(let i = 0; i < length ; ++i) {
+                const val = vm.getChildVal(i);
+                vals.push(val);
+            }
+            const tuple = TupleV.createTuple(vals);
+            vm.finishStep(tuple); }
+    }
+
     function ifStepper(vm : VMS) : void {
-        assert.checkPrecondition(vm.isChildMapped(0), "Condition is not ready.");
-        assert.checkPrecondition(vm.getChildVal(0).isStringV(), "Condition is not a StringV.");
-        const result : string = (vm.getChildVal(0) as StringV).getVal();
-        assert.checkPrecondition(result === "true" || result === "false", "Condition is neither true nor false.");
-        const choice = result === "true" ? 1 : 2;
+        assert.checkPrecondition(vm.isChildMapped(0), "Guard is not ready.");
+        assert.checkPrecondition(vm.getChildVal(0).isBoolV(), "Guard is not a BoolV.");
+        const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
+        const choice = result === true ? 1 : 2;
+        assert.checkPrecondition(vm.isChildMapped(choice), "'If' not ripe.");
         vm.finishStep(vm.getChildVal(choice));
     }
 
@@ -515,7 +583,7 @@ module interpreter {
             vm.finishStep(vm.getChildVal(1));
         }
         else {
-            vm.finishStep( DoneV.theDoneValue ) ;
+            vm.finishStep( TupleV.theDoneValue ) ;
         }
     }
 
@@ -575,7 +643,7 @@ module interpreter {
         const value : Value = vm.getChildVal(1);
         // TODO Check that the value is assignable to the field.
         field.setValue( value ) ;
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function variableStepper(vm : VMS) : void {
@@ -611,7 +679,7 @@ module interpreter {
             // TODO Check that the value is assignable to the field.
             field.setValue( value ) ;
         } 
-        vm.finishStep( DoneV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue ) ;
     }
 
     function placeHolderStepper(vm : VMS) : void {

@@ -84,6 +84,8 @@ module treeManager {
                     return this.makeLambdaNode(selection);
                 case "type":
                     return this.makeNoTypeNode(selection);
+                case "tuple":
+                    return this.makeTupleNode(selection);
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
@@ -128,7 +130,7 @@ module treeManager {
 
         //objects
         private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
-            const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
+            const objectnode = labels.mkObject([]);
             const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
@@ -166,6 +168,15 @@ module treeManager {
             const dotNode = labels.mkDot( "", true, left ) ;
 
             const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
+        private makeTupleNode(selection:Selection) : Option<Selection> {
+                                    
+            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
+            const template = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
 
@@ -315,13 +326,13 @@ module treeManager {
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkTrueBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkFalseBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }

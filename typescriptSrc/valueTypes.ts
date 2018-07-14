@@ -103,7 +103,15 @@ module valueTypes {
             return true;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -119,6 +127,129 @@ module valueTypes {
             return '"' +this.contents+ '"' ;
         }
     }
+
+    /** A number value. */
+    export class NumberV implements Value {
+        private readonly contents : number;
+
+        constructor(val : number) {
+            this.contents = val;
+        }
+
+        public getVal() : number {
+            return this.contents;
+        }
+
+        public canConvertToNumber() :boolean {
+           let val = this.getVal();
+           return /^([0-9, ]+(\.[0-9, ]*)?|\.[0-9, ]+)$/.test(val.toString()) ;
+        }
+
+        public converToNumber() : number {
+            let num = this.getVal();
+            assert.check( ! isNaN( num ) ) ;
+            return num ;
+        }
+        
+
+        public isNumberV() : boolean {
+            return true;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
+        }
+    }
+
+    /** A boolean value. */
+    export class BoolV implements Value {
+        private readonly contents : boolean;
+        public static trueValue : BoolV = new BoolV(true);
+        public static falseValue : BoolV = new BoolV(false);
+
+        private constructor(val : boolean) {
+            this.contents = val;    
+        }
+
+        public static getVal(val : boolean) : BoolV {
+            if ( val ) {
+                return this.trueValue;
+            }
+            else {
+                return this.falseValue;
+            }
+        }
+
+        public getVal() : boolean {
+            return this.contents;
+        }
+
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return true;
+        }
+
+        public isClosureV() : boolean {
+            return false;
+        }
+
+        public isBuiltInV() : boolean {
+            return false;
+        }
+
+        public isStringV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
+            return false;
+        }
+
+        public isObjectV() : boolean {
+            return false;
+        }
+
+        public isNullV() : boolean {
+            return false;
+        }
+
+        public toString() : string {
+            return this.contents.toString() ;
+        }
+    }
+
+
 
     /** An object. Objects are used both to represent stack frames and objects created from classes. */
     export class ObjectV implements ObjectI {
@@ -179,7 +310,15 @@ module valueTypes {
             return false ;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -228,7 +367,15 @@ module valueTypes {
             return false ;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -259,7 +406,15 @@ module valueTypes {
             return false ;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return false;
         }
 
@@ -275,11 +430,41 @@ module valueTypes {
             return "null" ;
         }
 
+        private constructor() {
+
+        }
+
         public static  readonly theNullValue = new NullV() ;
     }
 
-    /** The Done value. Used to indicate completion of a command. */
-    export class DoneV implements Value {
+    /** The Tuple value */
+    export class TupleV implements Value {
+
+        private readonly values : Array<Value>;
+
+        private constructor(vals : Array<Value>) {
+            if(vals.length > 0 ) {
+                this.values = vals.slice(0,vals.length);
+            }
+            else {
+                this.values = vals.slice(0,vals.length);
+                return TupleV.theDoneValue;
+            }
+        }
+
+        public static createTuple(vals : Array<Value>) : TupleV {
+            assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
+            return new TupleV(vals); 
+        }
+
+        public numFields():number {
+            return this.values.length;
+        } 
+
+        public getValueByIndex(index : number) : Value {
+            return this.values[index];
+        }
+  
         public isClosureV() : boolean {
             return false;
         }
@@ -292,7 +477,15 @@ module valueTypes {
             return false ;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+        
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return true;
         }
 
@@ -307,9 +500,8 @@ module valueTypes {
         public toString() : string {
             return "done" ;
         }
-        
 
-        public static  readonly theDoneValue = new DoneV() ;
+        public static  readonly theDoneValue = new TupleV(new Array<Value>(0)) ;
     }
 
     /** A built in function. */
@@ -332,7 +524,15 @@ module valueTypes {
             return false ;
         }
 
-        public isDoneV() : boolean {
+        public isNumberV() : boolean {
+            return false;
+        }
+
+        public isBoolV() : boolean {
+            return false;
+        }
+
+        public isTupleV() : boolean {
             return false;
         }
 
