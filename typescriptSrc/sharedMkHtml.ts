@@ -30,6 +30,19 @@ module sharedMkHtml
     export const LAMBDAMARK = "\u03BB" ;
     export const NULLMARK = "\u23da" ; // EARTH GROUND
 
+    export const BOOLEANTYPE = "\uD835\uDD39";
+    export const STRINGTYPE = "\uD835\uDD4A";
+    export const NUMBERTYPE = "\u211A";
+    export const INTEGERTYPE = "\u2124";
+    export const NATTYPE = "\u2115";
+    export const TOPTYPE = "\u22A4";
+    export const BOTTOMTYPE = "\u22A5";
+    export const FUNCTIONTYPE = "\u2192";
+    export const JOINTYPE = "\u007C";
+    export const MEETTYPE = "\u0026";
+
+
+
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
         const children = new Array<JQuery>() ;

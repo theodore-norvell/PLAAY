@@ -13,6 +13,19 @@ module createHtmlElements {
 	import WHILEMARK = sharedMkHtml.WHILEMARK ;
 	import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
 	import NULLMARK = sharedMkHtml.NULLMARK ;
+
+	import BOOLEANTYPE = sharedMkHtml.BOOLEANTYPE;
+	import STRINGTYPE = sharedMkHtml.STRINGTYPE;
+	import NUMBERTYPE = sharedMkHtml.NUMBERTYPE;
+	import INTEGERTYPE = sharedMkHtml.INTEGERTYPE;
+	import NATTYPE = sharedMkHtml.NATTYPE;
+	import TOPTYPE = sharedMkHtml.TOPTYPE;
+	import BOTTOMTYPE = sharedMkHtml.BOTTOMTYPE;
+	import FUNCTIONTYPE = sharedMkHtml.FUNCTIONTYPE;
+	import JOINTYPE = sharedMkHtml.JOINTYPE;
+	import MEETTYPE = sharedMkHtml.MEETTYPE;
+
+
 	
 	export function createHtmls() : void {
 
@@ -54,16 +67,20 @@ module createHtmlElements {
 		//    contentArea
 		//        editor
 		//            editorLeftSideArea
-		//                pallette
-		//                    pallette items
+		//                palletteArea
+		//                    pallette items  type items
 		//                buttonArea
 		//                    buttons for editing
 		//            container
 		const editorDiv = create("div", "tab", "editor", contentArea ) ;
 		create("div", "leftSideArea", "editorLeftSideArea", editorDiv);
 		const editorLeftSideArea = $("#editorLeftSideArea");
-		create("div", "palette", "palette", editorLeftSideArea);
+		create("div","paletteArea","paletteArea",editorLeftSideArea);
+		const paletteArea = $('#paletteArea');
+		create("div", "palette", "palette", paletteArea);
 		const palette = $("#palette");
+		create("div","typePalette","typePalette",paletteArea);
+		const typePalette = $('#typePalette');
 		create("div", "buttonArea", "editorButtonArea", editorLeftSideArea);
 		const buttonArea = $("#editorButtonArea");
 
@@ -96,6 +113,19 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "tuple", palette, "( )");
 		createTexted("div", "leftSideButton paletteItem", "trueliteral", palette, TRUEMARK);
 		createTexted("div", "leftSideButton paletteItem", "falseliteral", palette, FALSEMARK);
+
+		// type palette items
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,BOOLEANTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,STRINGTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,NUMBERTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,INTEGERTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,NATTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,TOPTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,BOTTOMTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,FUNCTIONTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,JOINTYPE);
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,MEETTYPE);
+
 
 		// The container for the tree.
 		create("div", "container", "container", editorDiv);
