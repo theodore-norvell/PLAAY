@@ -33,7 +33,7 @@ import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
 import { mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq, mkLambda, mkNoExpNd,
-         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkVar, mkVarDecl } from '../labels';
+         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkTuple, mkVar, mkVarDecl } from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
@@ -48,6 +48,21 @@ function makeStdVMS( root : PNode ) : VMS {
   const wlds : Array<ObjectV> = new Array();
   wlds.push(wld);
   return new VMS( root, wlds, interp, manager ) ;
+}
+
+function getResult( root : PNode ) : Value {
+    const vm = makeStdVMS(root);
+    while( vm.canAdvance() ) { vm.advance(); }
+    if( vm.hasError() ) {
+        assert.check( false, "Unexpected Error: " + vm.getError() ) ; }
+    return vm.getFinalValue() ;
+}
+
+function expectError( root : PNode, message : string ) : void {
+    const vm = makeStdVMS(root);
+    while( vm.canAdvance() ) { vm.advance(); }
+    assert.check( vm.hasError(), "Expected error, but got none." ) ;
+    assert.checkEqual( message, vm.getError() ) ;
 }
 
 describe( 'StringLiteralLabel', function() : void {
@@ -1168,19 +1183,340 @@ describe ('Call node', function(): void {
             message );
     });
 
+    // loc f := lambda con x -> x
+    const dec_f = mkVarDecl(
+                    mkVar("f"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList([mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]),
+                              mkNoTypeNd(),
+                              mkExprSeq([mkVar("x")]) )) ;
+    // loc g := lambda con x con y -> x+y
+    const dec_g = mkVarDecl(
+                    mkVar("g"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList(
+                                [mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()),
+                                 mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
+                              mkNoTypeNd(),
+                              mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])])) );
+    // loc h := lambda -> 42
+    const dec_h = mkVarDecl(
+                    mkVar("h"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList(
+                                [mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()),
+                                 mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
+                              mkNoTypeNd(),
+                              mkExprSeq([ mkNumberLiteral("42") ])) );
+
+    it( "call(f ()) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"), mkTuple([]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 0 ) ;
+    } ) ;
+
+    it( "call(f) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 0 ) ;
+    } ) ;
+
+    it( "callVar[f]( () ) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [mkTuple([])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 0 ) ;
+    } ) ;
+
+    it( "callVar[f]() should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 0 ) ;
+    } ) ;
+
+    it( "call(f (1)) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"),
+                                         mkTuple([mkNumberLiteral("1")]) ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "call(f 1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"), mkNumberLiteral("1"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "callVar[f](1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f",
+                                              [mkTuple([mkNumberLiteral("1")])] ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "callVar[f](1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [mkNumberLiteral("1")])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "call(f (3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall( mkVar("f"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 2 ) ;
+    } ) ;
+
+    it( "callWorld[f]((3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld( "f",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 2 ) ;
+    } ) ;
+
+    it( "call(f,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall( mkVar("f"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 2 ) ;
+    } ) ;
+
+    it( "callVar[f](3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld( "f",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5")])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).numFields() === 2 ) ;
+    } ) ;
+
+
+    it( "call(g ()) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"), mkTuple([]))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"))] ) ;
+        const result = getResult( root ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callWorld[g](()) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [mkTuple([])])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callWorld[g]() should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g (1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"),
+                                         mkTuple([mkNumberLiteral("1")]) )] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g 1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"), mkNumberLiteral("1"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callVar[g]((1)) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g",
+                                              [mkTuple([mkNumberLiteral("1")])  ])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callVar[g](1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [mkNumberLiteral("1")])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g (3,5)) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall( mkVar("g"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "callWorld[g]((3,5)) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld( "g",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "call(g,3,5) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall( mkVar("g"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "callWorld(g,3,5) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld( "g",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5") ] ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "call(h ()) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"), mkTuple([]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "call(h) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "callVar[h](()) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [mkTuple([])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "callVar[h]() should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "call(h (1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkTuple([mkNumberLiteral("1")]) )] ) ;
+        const result = getResult( root ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h 1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"), mkNumberLiteral("1"))] ) ;
+        const result = getResult( root ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callVar[h]((1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h",
+                                              [mkTuple([mkNumberLiteral("1")]) ])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+    it( "callVar[h](1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [mkNumberLiteral("1")])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h (3,5)) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callVar[h]((3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld( "h",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callWorld(h,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld( "h",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5")] ) ] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+
     it('should report an error if the number of arguments does not match the number of parameters', function() : void {
         const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
         const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
         const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
         const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
         const root = mkCall(lambda, mkNumberLiteral("234"), mkNumberLiteral("432")) ;
+        // root is
+        //   call( lambda(paramlist( varDecl(var[y], noType, noExp))
+        //                noType,
+        //                var[x]))
         const vm = makeStdVMS(root);
         while( vm.canAdvance() ) {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
         assert.checkEqual(
-            "Number of arguments for lambda does not match parameter list.",
+            "Number of arguments for call does not match parameter list.",
             message );
     });
 });
