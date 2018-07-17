@@ -399,35 +399,21 @@ module interpreter {
         const returnType = lambda.child(1) ;
         const body = lambda.child(2) ;
         const context = closure.getContext() ;
-        if(args.length === 1 && args[0].isTupleV()) {
-            args = (args[0] as TupleV).getVal();
+        if(args.length !== paramlist.children(0, paramlist.count()).length) {
+            vm.reportError("Number of arguments for lambda does not match parameter list.");
+            return;
         }
         const manager = vm.getTransactionManager();
         const stackFrame = new ObjectV(manager);
-        if(paramlist.children(0, paramlist.count()).length === 1 && args.length !== 1) {
-            const tuple : TupleV = TupleV.createTuple(args);
-            const varName = paramlist.child(0).child(0).label().getVal();
-            const field = new Field(varName,tuple,Type.ANY,true,true,manager);
+        for (let i = 0; i < args.length; i++) {
+            const varName = paramlist.child(i).child(0).label().getVal();
+            const val = args[i];
+            //TODO: check that the types of val and vardecl are the same
+            const field = new Field(varName, val, Type.ANY, true, true, manager);
             field.setIsDeclared();
             stackFrame.addField(field);
-            vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
         }
-        else {
-            if(args.length !== paramlist.children(0, paramlist.count()).length) {
-                vm.reportError("Number of arguments for lambda does not match parameter list.");
-                return;
-            }
-            for (let i = 0; i < args.length; i++) {
-                const varName = paramlist.child(i).child(0).label().getVal();
-                const val = args[i];
-                //TODO: check that the types of val and vardecl are the same
-                const field = new Field(varName, val, Type.ANY, true, true, manager);
-                field.setIsDeclared();
-                stackFrame.addField(field);
-            }
-            
-            vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
-        }
+        vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
     }
 
     function exprSeqStepper(vm : VMS) : void {

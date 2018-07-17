@@ -453,6 +453,7 @@ module valueTypes {
         }
 
         public static createTuple(vals : Array<Value>) : TupleV {
+            assert.checkPrecondition(vals.length !== 1,"Cannot create tuple with one element.");
             return new TupleV(vals); 
         }
 
