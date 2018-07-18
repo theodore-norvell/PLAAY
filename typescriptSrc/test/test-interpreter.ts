@@ -1227,7 +1227,7 @@ describe ('Call node', function(): void {
                                   mkCall(mkVar("f"), mkTuple([]))] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 0 ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
     } ) ;
 
     it( "call(f) should result in ()", function() : void {
@@ -1235,7 +1235,7 @@ describe ('Call node', function(): void {
                                   mkCall(mkVar("f"))] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 0 ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
     } ) ;
 
     it( "callVar[f]( () ) should result in ()", function() : void {
@@ -1243,7 +1243,7 @@ describe ('Call node', function(): void {
                                   mkCallWorld("f", [mkTuple([])])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 0 ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
     } ) ;
 
     it( "callVar[f]() should result in ()", function() : void {
@@ -1251,7 +1251,7 @@ describe ('Call node', function(): void {
                                   mkCallWorld("f", [])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 0 ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
     } ) ;
 
     it( "call(f (1)) should result in 1", function() : void {
@@ -1295,7 +1295,7 @@ describe ('Call node', function(): void {
                                                    mkNumberLiteral("5")]))] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 2 ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
     } ) ;
 
     it( "callWorld[f]((3,5)) should result in (3,5)", function() : void {
@@ -1305,7 +1305,7 @@ describe ('Call node', function(): void {
                                                          mkNumberLiteral("5")])])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 2 ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
     } ) ;
 
     it( "call(f,3,5) should result in (3,5)", function() : void {
@@ -1315,7 +1315,7 @@ describe ('Call node', function(): void {
                                           mkNumberLiteral("5"))] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 2 ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
     } ) ;
 
     it( "callVar[f](3,5) should result in (3,5)", function() : void {
@@ -1325,7 +1325,7 @@ describe ('Call node', function(): void {
                                                 mkNumberLiteral("5")])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
-        assert.check( (result as TupleV).numFields() === 2 ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
     } ) ;
 
 
@@ -2734,10 +2734,10 @@ describe('TupleLable', function () : void {
             assert.check( vm.isMapped( emptyList ) ) ;
             const val = vm.getVal( emptyList ) ;
             assert.check( val instanceof TupleV ) ;            
-            const val1 : Value = (val as TupleV).getValueByIndex(0);
+            const val1 : Value = (val as TupleV).getItemByIndex(0);
             assert.check( val1 instanceof NumberV );
             const val1Result : number = (val1 as NumberV).getVal();
-            const val2 : Value = (val as TupleV).getValueByIndex(1);
+            const val2 : Value = (val as TupleV).getItemByIndex(1);
             assert.check( val2 instanceof StringV );
             const val2Result : string = (val2 as StringV).getVal();            
             assert.check( val1Result === 10 );

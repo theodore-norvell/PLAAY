@@ -322,13 +322,13 @@ module world {
                 else if ( argsAreTuples(args)) {
                     bool = true;
                     for (let i=0; i < args.length - 1; i++) {
-                        if((args[i] as TupleV).numFields() !== (args[i+1] as TupleV).numFields()) {
+                        if((args[i] as TupleV).itemCount() !== (args[i+1] as TupleV).itemCount()) {
                             bool = false;
                             break;
                         }
 
-                        for( let j=0; j < (args[i] as TupleV).numFields() ; j++ ) {
-                            if((args[i] as TupleV).getValueByIndex(j) !== (args[i+1] as TupleV).getValueByIndex(j)) {
+                        for( let j=0; j < (args[i] as TupleV).itemCount() ; j++ ) {
+                            if((args[i] as TupleV).getItemByIndex(j) !== (args[i+1] as TupleV).getItemByIndex(j)) {
                                 bool = false;
                             }
                         }
@@ -374,13 +374,13 @@ module world {
                 else if ( argsAreTuples(args)) {
                     bool = true;
                     for (let i=0; i < args.length - 1; i++) {
-                        if((args[i] as TupleV).numFields() === (args[i+1] as TupleV).numFields()) {
+                        if((args[i] as TupleV).itemCount() === (args[i+1] as TupleV).itemCount()) {
                             bool = false;
                             break;
                         }
 
-                        for( let j=0; j < (args[i] as TupleV).numFields() ; j++ ) {
-                            if((args[i] as TupleV).getValueByIndex(j) === (args[i+1] as TupleV).getValueByIndex(j)) {
+                        for( let j=0; j < (args[i] as TupleV).itemCount() ; j++ ) {
+                            if((args[i] as TupleV).getItemByIndex(j) === (args[i+1] as TupleV).getItemByIndex(j)) {
                                 bool = false;
                             }
                         }

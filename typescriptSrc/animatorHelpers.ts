@@ -84,18 +84,14 @@ module animatorHelpers
         const padding : number = 15;
         
         if (stk.notEmpty()){
-                const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
-                const varstackSize : number = vars.getAllFrames().length;
-                const frameArray : ObjectI[] = vars.getAllFrames();
-                
-                for (let k = 0; k < varstackSize - 1 && k < 10; k++){
-                    const obj : ObjectI = frameArray[k];
-                    if(k !== 0)
-                    {
-                        y += padding;
-                    }
-                    y += drawObject(obj, el, y).bbox().height;
-                }
+            const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
+            const varstackSize : number = vars.getAllFrames().length;
+            const frameArray : ObjectI[] = vars.getAllFrames();
+            
+            for (let k = 0; k < varstackSize && k < 10; k++){
+                if(k !== 0) { y += padding; }
+                y += drawObject(frameArray[k], el, y).bbox().height;
+            }
         }
     }
 
@@ -109,9 +105,9 @@ module animatorHelpers
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
             const name : svg.Text = subGroup.text("  " + field.getName());
-            const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field.getValue(), drawNestedObjects);
-            makeObjectFieldSVG(subGroup, name, value);
+            const el : svg.G = subGroup.group();
+            buildSVGForMappedNode(el, field.getValue(), drawNestedObjects);
+            makeObjectFieldSVG(subGroup, name, el);
                           
             subGroup.dmove(10, y + 5);
             y += subGroup.bbox().height + 5;
@@ -128,33 +124,33 @@ module animatorHelpers
         return border;
     }
 
-    function drawTuple(tuple : TupleV, element : svg.Container, x : number, drawNestedTuples : boolean = true) : svg.Rect
+    function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
-        const padding : number = 15;
+        const textStyle = "font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;" ;
         const result : svg.G = element.group();
         const leftBracketText : svg.Text= element.text( "(");
-        leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+        leftBracketText.style( textStyle );
         leftBracketText.fill(LIGHT_BLUE.toString());
         result.add(leftBracketText.dmove(element.bbox().width ,0)); 
         x+= 20;
-        const numFields : number = tuple.numFields();
-        for (let j = 0; j < numFields; j++){
-            const field : Value = tuple.getValueByIndex(j);
+        const itemCount : number = tuple.itemCount();
+        for (let j = 0; j < itemCount; j++){
+            const value : Value = tuple.getItemByIndex(j);
             const subGroup : svg.G = result.group();            
-            const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field, true);              
+            const el : svg.G = subGroup.group();
+            buildSVGForMappedNode(el, value, true);              
             subGroup.dmove(x + 5,0);  
             x += subGroup.bbox().width + 5;
-            if(j !== numFields - 1) {
+            if(j !== itemCount - 1) {
                 const comma : svg.Text= element.text( ",");
-                comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                comma.style( textStyle );
                 comma.fill(LIGHT_BLUE.toString());
                 result.add(comma.dmove(x+5,0));
                 x += 10;
             }
         }
         const rightBracketText : svg.Text= element.text( ")");
-        rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+        rightBracketText.style( textStyle );
         rightBracketText.fill(LIGHT_BLUE.toString());
         result.add(rightBracketText.dmove(element.bbox().width+5 ,0));
         let border;
@@ -184,23 +180,23 @@ module animatorHelpers
         valueBox.dmove(x, 0);
     }
 
-    function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
-    {
-        const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(2);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
-    }
-
-    //I assume element is a child of parent
+    /** Translate a tree of nodes into SVG
+     * 
+     * @param node -- The tree 
+     * @param element -- An SVG group into which the tree is drawn
+     * @param parent -- The parent of element
+     * @param shouldHighlight -- Should the tree be high-lighted. 
+     * @param myPath -- The path for the tree relative to the root of the Evaluation
+     * @param valueMap -- A map from value
+     * @param isError 
+     * @param error 
+     */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
                       valueMap : ValueMap | null, isError : boolean, error : string) : void
     {
         if(valueMap !== null && valueMap.isMapped(myPath))
         {
-            buildSVGForMappedNode(element, parent, valueMap.get(myPath));
+            buildSVGForMappedNode(element, valueMap.get(myPath), true);
             return;
         }
 
@@ -778,7 +774,7 @@ module animatorHelpers
         }
     }
 
-    function buildSVGForMappedNode(element : svg.G, parent : svg.Container, value : Value, drawNestedObjects : boolean = true) : void
+    function buildSVGForMappedNode(element : svg.G, value : Value, drawNestedObjects : boolean) : void
     {
         if(value.isNullV())
         {
@@ -791,14 +787,11 @@ module animatorHelpers
                 const text : svg.Text = element.text( "()" );
                 makeDoneSVG(element,text);
                 return;
-            }                
-                
-            if(drawNestedObjects)
-            {
-                const tup : TupleV = value as TupleV;
-                drawTuple(tup,element,0,false);
-                return;            
             }
+            
+            const tup : TupleV = value as TupleV;
+            drawTuple(tup,element,0);
+
             return;
         } 
         if(value.isStringV())
@@ -839,16 +832,21 @@ module animatorHelpers
         }
         if(value.isObjectV())
         {
+            // If we haven't already decided to put this object in the 
+            // objectsToDraw area and drawNestedObjects is false, we abbreviate it
+            // with just a box drawn in place.
             if(!drawNestedObjects && !objectsToDraw.includes(value as ObjectV))
             {
                 const text : svg.Text = element.text("Object");
                 makeObjectSVG(element, text);
                 return;
             }
+            // Otherwise ensure the object will be drawn in the objects area
             if(!objectsToDraw.includes(value as ObjectV))
             {
                 objectsToDraw.push(value as ObjectV);
             }
+            // And draw an object from this spot to that drawing.
             const arrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
             if(!arrowStartPoints.has(value as ObjectV))
             {
@@ -875,11 +873,9 @@ module animatorHelpers
             //main code or stack.
             const originalLength = objectsToDraw.length;
             for (let k = 0; k < objectsToDraw.length; k++){
+                if(k !== 0) { y += padding; }
+
                 const obj : ObjectI = objectsToDraw[k];
-                if(k !== 0)
-                {
-                    y += padding;
-                }
                 const drawNestedObjects : boolean = (k < originalLength);
                 const objectGroup : svg.Rect = drawObject(obj, element, y, drawNestedObjects);
                 drawnObjectsMap.set(obj, objectGroup);

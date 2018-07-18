@@ -525,11 +525,11 @@ module interpreter {
       else if( object instanceof TupleV) {
           if( field instanceof NumberV) {
               const index : number = field.converToNumber();
-              if( index < 0 || index > object.numFields() - 1 ) {
+              if( index < 0 || index > object.itemCount() - 1 ) {
                 vm.reportError("Invalid index value: "+index);
               }
               else {
-                  const val = object.getValueByIndex(index);
+                  const val = object.getItemByIndex(index);
                   vm.finishStep(val);
               }
           }
