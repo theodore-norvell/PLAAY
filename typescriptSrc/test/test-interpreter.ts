@@ -282,29 +282,17 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 });
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
-  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-  const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
-  const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
-  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-  const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
-  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
-  const vm = makeStdVMS(root);
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
+    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
 
-  it('should evaluate to a NumberV equaling 8', function() : void {
-      let firstEvalDone: boolean = false;
-      let evalDone: boolean = false;
-      while (!evalDone) {
-        vm.advance();
-        if (vm.isDone()) {
-            if (firstEvalDone) {
-                evalDone = true; }
-        else {
-            firstEvalDone = true; } }
-      }
-      assert.check(vm.isMapped(emptyList));
-      const val = vm.getVal(emptyList);
-      assert.check(val instanceof NumberV);
-      assert.check((val as NumberV).getVal() === 8 );
+    it('should evaluate to a NumberV equaling 8', function() : void {
+        const val = getResult(root) ;
+        assert.check(val instanceof NumberV);
+        assert.check((val as NumberV).getVal() === 8 );
   });
 });
 
