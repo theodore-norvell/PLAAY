@@ -1,15 +1,13 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
-/// <reference path="assert.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
-import pnodeEdits = require('./pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
@@ -26,8 +24,6 @@ module animatorHelpers
     import some = collections.some;
     import none = collections.none;
     // path is an alias for list<number>
-    const path : (  ...args : Array<number> ) => List<number> = list;
-    import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
     import ObjectV = valueTypes.ObjectV;
     import StringV = valueTypes.StringV;
@@ -58,21 +54,11 @@ module animatorHelpers
     let arrowStartPoints : Map<ObjectI, Array<svg.Rect>> = new Map<ObjectI, Array<svg.Rect>>();
     let drawnObjectsMap : Map<ObjectI, svg.Rect> = new Map<ObjectI, svg.Rect>();
 
-    let tuplesToDraw : Array<TupleV> = new Array<TupleV>();
-    let drawnTuplesMap : Map<TupleV, svg.Rect> = new Map<TupleV, svg.Rect>();
-
-
     export function clearObjectDrawingInfo() : void
     {
         objectsToDraw = new Array<ObjectV>();
         arrowStartPoints = new Map<ObjectV, Array<svg.Rect>>();
         drawnObjectsMap = new Map<ObjectI, svg.Rect>();
-    }
-
-    export function clearTupleDrawingInfo() : void
-    {
-        tuplesToDraw = new Array<TupleV>();
-        drawnTuplesMap = new Map<TupleV, svg.Rect>();
     }
 
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
@@ -815,11 +801,6 @@ module animatorHelpers
                 drawTuple(tup,element,0,false);
                 return;            
             }
-           
-            if(!tuplesToDraw.includes(value as TupleV))
-            {
-                tuplesToDraw.push(value as TupleV);
-            }
             return;
         } 
         if(value.isStringV())
@@ -906,22 +887,6 @@ module animatorHelpers
                 drawnObjectsMap.set(obj, objectGroup);
                 y += objectGroup.bbox().height;
             }
-        }
-        return;
-    }
-
-    export function buildTupleArea(element : svg.G) : void
-    {
-        let x = 0;
-        const padding : number = 15;
-        
-        if (tuplesToDraw.length !== 0)
-        {                             
-            const drawNesteTuples : boolean = (1 < tuplesToDraw.length);
-            const tupleGroup : svg.Rect = drawTuple(tuplesToDraw[tuplesToDraw.length -1], element, x, !drawNesteTuples);                
-            drawnTuplesMap.set(tuplesToDraw[tuplesToDraw.length -1], tupleGroup);
-            x += tupleGroup.bbox().width;
-            
         }
         return;
     }

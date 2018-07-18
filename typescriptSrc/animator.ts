@@ -38,7 +38,6 @@ module animator
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
     import buildStack = animatorHelpers.buildStack;
     import buildObjectArea = animatorHelpers.buildObjectArea;
-    import buildTupleArea = animatorHelpers.buildTupleArea;
     import drawArrows = animatorHelpers.drawArrows;
     import List = collections.List;
     import cons = collections.cons;
@@ -90,7 +89,6 @@ module animator
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
         animatorHelpers.clearObjectDrawingInfo() ;
-        animatorHelpers.clearTupleDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
@@ -196,7 +194,6 @@ module animator
             error = evaluationMgr.getVMS().getError();
         }
         animatorHelpers.clearObjectDrawingInfo();
-        animatorHelpers.clearTupleDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
@@ -206,7 +203,6 @@ module animator
                           errorPath);
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         buildObjectArea(objectArea);
-        buildTupleArea(tupleArea);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
         const objectAreaBBox : svg.BBox = objectArea.bbox();
