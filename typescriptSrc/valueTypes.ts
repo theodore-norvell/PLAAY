@@ -465,8 +465,8 @@ module valueTypes {
             return this.values[index];
         }
 
-        public getVal() : Value[] {
-            return this.values;
+        public getItems() : Value[] {
+            return this.values.slice() ;
         }
   
         public isClosureV() : boolean {
