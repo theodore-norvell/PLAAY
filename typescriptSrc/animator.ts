@@ -206,9 +206,7 @@ module animator
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
         const objectAreaBBox : svg.BBox = objectArea.bbox();
-        const tupleAreaBBox : svg.BBox = tupleArea.bbox();
         let objectAreaOffset : number = 400;
-        let tupleAreaOffset : number = 400;
         let stackOffset : number = 800;
         let neededHeight : number = 100;
 
@@ -217,11 +215,6 @@ module animator
             objectAreaOffset = animationBBox.width + 100;
         }
         objectArea.dmove(objectAreaOffset, 0);
-
-        if (tupleAreaOffset < animationBBox.width) {
-            tupleAreaOffset = animationBBox.width + 100;
-        }
-        tupleArea.dmove(tupleAreaOffset,0);
 
         //keep stack spacing consistent unless animation too large
         if (stackOffset < objectAreaBBox.width + animationBBox.width){
@@ -243,7 +236,7 @@ module animator
         {
             neededHeight = objectAreaBBox.height;
         }
-        animatorArea.size(animationBBox.width + objectAreaBBox.width + objectAreaOffset + tupleAreaBBox.width + tupleAreaOffset + stackBBox.width + stackOffset, neededHeight + 100);
+        animatorArea.size(animationBBox.width + objectAreaBBox.width + objectAreaOffset + stackBBox.width + stackOffset, neededHeight + 100);
     }
 }
 

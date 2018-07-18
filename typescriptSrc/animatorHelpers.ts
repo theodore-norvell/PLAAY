@@ -89,14 +89,12 @@ module animatorHelpers
                 const frameArray : ObjectI[] = vars.getAllFrames();
                 
                 for (let k = 0; k < varstackSize - 1 && k < 10; k++){
-                    const obj : Value = frameArray[k];
+                    const obj : ObjectI = frameArray[k];
                     if(k !== 0)
                     {
                         y += padding;
                     }
-                    if(obj.isObjectV()) {
-                        y += drawObject(obj as ObjectI, el, y).bbox().height;
-                    }
+                    y += drawObject(obj, el, y).bbox().height;
                 }
         }
     }
