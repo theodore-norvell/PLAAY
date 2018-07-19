@@ -41,8 +41,6 @@ module sharedMkHtml
     export const JOINTYPE = "\u007C";
     export const MEETTYPE = "\u0026";
 
-
-
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
         const children = new Array<JQuery>() ;
@@ -534,6 +532,154 @@ module sharedMkHtml
                 }
                 const closePar : JQuery = $( document.createElement("div") ).text(")") ;
                 result.append( closePar ) ; 
+            }
+            case labels.PrimitiveTypesLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const label = node.label() as labels.PrimitiveTypesLabel;
+                switch(label.type) {
+                    case "stringType" :
+                        result.html(STRINGTYPE);
+                        break;
+                    case "numberType" :
+                        result.html(NUMBERTYPE);
+                        break;
+                    case "booleanType" :
+                        result.html(BOOLEANTYPE);
+                        break;
+                    case "nullType" :
+                        result.html(NULLMARK);
+                        break;
+                    case "integerType" :
+                        result.html(INTEGERTYPE);
+                        break;
+                    case "natType" :
+                        result.html(NATTYPE);
+                        break
+                    case "topType" :
+                        result.html(TOPTYPE);
+                        break;
+                    case "bottomType" :
+                        result.html(BOTTOMTYPE);
+                        break;
+                    default :
+                        result = assert.unreachable("Unknown primitive type in buildHTML.");
+                }
+            }
+            break;
+            case labels.TupleTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                result.append( openPar ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        result.append( comma ) ; }
+                }
+                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                result.append( closePar ) ; 
+            }
+            break;
+            case labels.FunctionTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                const arrow : JQuery = $( document.createElement("div") );
+                arrow.text(FUNCTIONTYPE);
+
+                result.append(children[0]);
+                result.append(arrow);
+                result.append(children[1]);
+                
+            }
+            break;
+            case labels.LocationTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                const arrow : JQuery = $( document.createElement("div") );
+                arrow.text(FUNCTIONTYPE);
+
+                result.append(children[0]);
+                result.append(arrow);
+                result.append(children[1]);
+            }
+            break;
+            case labels.FieldTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                const colon : JQuery = $( document.createElement("div") );
+                colon.text(":");
+
+                result.append(children[0]);
+                result.append(colon);
+                result.append(children[1]);
+                
+            }
+            break;
+            case labels.JoinTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const pipe : JQuery = $( document.createElement("div") ).text(JOINTYPE) ;
+                        result.append( pipe ) ; }
+                }
+
+            }
+            break;
+            case labels.MeetTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const amp : JQuery = $( document.createElement("div") ).text(MEETTYPE) ;
+                        result.append( amp ) ; }
+                }
             }
             break;
             default:

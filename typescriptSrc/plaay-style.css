@@ -704,6 +704,19 @@ div.tuple {
     min-height: 1em ;
 }
 
+div.types {
+    border:thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
 div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;

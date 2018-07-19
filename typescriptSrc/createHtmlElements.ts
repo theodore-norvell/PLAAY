@@ -116,15 +116,19 @@ module createHtmlElements {
 
 		// type palette items
 		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,BOOLEANTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,STRINGTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,NUMBERTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,INTEGERTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,NATTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,TOPTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,BOTTOMTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,FUNCTIONTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,JOINTYPE);
-		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,MEETTYPE);
+		createTexted("div","leftSideButton paletteItem","stringType",typePalette,STRINGTYPE);
+		createTexted("div","leftSideButton paletteItem","numberType",typePalette,NUMBERTYPE);
+		createTexted("div","leftSideButton paletteItem","integerType",typePalette,INTEGERTYPE);
+		createTexted("div","leftSideButton paletteItem","natType",typePalette,NATTYPE);
+		createTexted("div","leftSideButton paletteItem","nullType",typePalette,NULLMARK);
+		createTexted("div","leftSideButton paletteItem","topType",typePalette,TOPTYPE);
+		createTexted("div","leftSideButton paletteItem","bottomType",typePalette,BOTTOMTYPE);
+		createTexted("div","leftSideButton paletteItem","tupleType",typePalette,"( )");
+		createTexted("div","leftSideButton paletteItem","locationType",typePalette,"loc");
+		createTexted("div","leftSideButton paletteItem","fieldType",typePalette,":");
+		createTexted("div","leftSideButton paletteItem","functionType",typePalette,FUNCTIONTYPE);
+		createTexted("div","leftSideButton paletteItem","joinType",typePalette,JOINTYPE);
+		createTexted("div","leftSideButton paletteItem","meetType",typePalette,MEETTYPE);
 
 
 		// The container for the tree.

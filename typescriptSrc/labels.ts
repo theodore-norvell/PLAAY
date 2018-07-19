@@ -5,6 +5,7 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
+import { Type } from './vms';
 
 /** The labels module contains the various label classes that define the different
  * kinds of PNode.
@@ -916,6 +917,178 @@ module labels {
     }
     pnode.registry[ CallLabel.kindConst ] = CallLabel ;
 
+    export class PrimitiveTypesLabel extends TypeLabel {
+
+        public static readonly kindConst : string = "PrimitiveTypesLabel" ;
+        public readonly type : string;
+
+        public isValid(children:Array<PNode>) : boolean {
+           return children.length === 0 && (["stringType","numberType","booleanType","nullType","integerType","natType","topType","bottomType"].indexOf(this.type) > -1);
+        }
+
+        constructor(typeName : string) {
+            super();
+            this.type = typeName;
+        }
+
+        public kind() : string { return PrimitiveTypesLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind : PrimitiveTypesLabel.kindConst, type : this.type} ;
+        }
+
+        public static fromJSON( json : object ) : PrimitiveTypesLabel {
+            return new PrimitiveTypesLabel( json["type"] ) ; }
+
+    }
+    pnode.registry[PrimitiveTypesLabel.kindConst] = PrimitiveTypesLabel;
+
+    export class TupleTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "TupleTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+        }
+
+        private constructor(val: string, open : boolean) {
+            super();
+        } 
+
+        public static readonly theTupleTypeLabel : TupleTypeLabel = new TupleTypeLabel("",true);
+
+        public kind() : string { return TupleTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: TupleTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : TupleTypeLabel {
+            return this.theTupleTypeLabel; }        
+    }
+    pnode.registry[TupleTypeLabel.kindConst] = TupleTypeLabel;
+
+    export class LocationTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "LocationTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.length === 1 && ( children[0].isTypeNode() || children[0].isPlaceHolder() ) ;
+        }
+
+        private constructor() {
+            super();
+        }  
+
+        public static readonly theLocationTypeLabel : LocationTypeLabel = new LocationTypeLabel();
+
+        public kind() : string { return LocationTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: LocationTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : LocationTypeLabel {
+            return this.theLocationTypeLabel ; } 
+    }
+    pnode.registry[LocationTypeLabel.kindConst] = LocationTypeLabel;
+
+    export class FunctionTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "FunctionTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.length === 2 && ( children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode()) ) ;
+        }
+
+        private constructor() {
+            super();
+        }  
+
+        public static readonly theFunctionTypeLabel : FunctionTypeLabel = new FunctionTypeLabel();
+
+        public kind() : string { return FunctionTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: FunctionTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : FunctionTypeLabel {
+            return this.theFunctionTypeLabel ; } 
+    }
+    pnode.registry[FunctionTypeLabel.kindConst] = FunctionTypeLabel;
+
+    export class FieldTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "FieldTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            if( children.length !== 2) return false ;
+            if( ! (children[0].isPlaceHolder || children[0].isVarDeclNode() )) return false ;
+            if( ! (children[1].isPlaceHolder || children[1].isTypeNode() ) ) return false ;
+            return true;
+        }
+
+        public constructor() {
+            super();
+        }  
+
+        public kind() : string { return FieldTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: FieldTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : FieldTypeLabel {
+            return new FieldTypeLabel( ) ; } 
+    }
+    pnode.registry[FieldTypeLabel.kindConst] = FieldTypeLabel;
+
+    export class MeetTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "MeetTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.length >= 2 && children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+        }
+
+        private constructor() {
+            super();
+        }  
+
+        public static readonly theMeetTypeLabel : MeetTypeLabel = new MeetTypeLabel();
+
+        public kind() : string { return MeetTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: MeetTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : MeetTypeLabel {
+            return this.theMeetTypeLabel ; } 
+    }
+    pnode.registry[MeetTypeLabel.kindConst] = MeetTypeLabel;
+
+    export class JoinTypeLabel extends TypeLabel {
+        public static readonly kindConst : string = "JoinTypeLabel" ;
+
+        public isValid(children:Array<PNode>) : boolean {
+            return children.length >= 2 && children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+        }
+
+        private constructor() {
+            super();
+        }  
+
+        public static readonly theJoinTypeLabel : JoinTypeLabel = new JoinTypeLabel();
+
+        public kind() : string { return JoinTypeLabel.kindConst ; }
+
+        public toJSON() : object {
+            return { kind: JoinTypeLabel.kindConst } ;
+        }
+
+        public static fromJSON( json : object ) : JoinTypeLabel {
+            return this.theJoinTypeLabel; } 
+    }
+    pnode.registry[JoinTypeLabel.kindConst] = JoinTypeLabel;
+
+
     export function mkExprPH():PNode {
         return  make(ExprPHLabel.theExprPHLabel, []); }
 
@@ -986,7 +1159,35 @@ module labels {
     export function mkTuple( children : Array<PNode>) : PNode {
         return make(TupleLabel.theTupleLabel,children);
     }
+
+    // type labels
+    export function mkPrimitiveTypeLabel(type:string) : PNode {
+        return make( new PrimitiveTypesLabel(type),[]);
+    }
+
+    export function mkTupleType( children: Array<PNode> ) : PNode {
+        return make( TupleTypeLabel.theTupleTypeLabel,children) ;
+    }
+
+    export function mkFunctionType( param:PNode, type: PNode) : PNode {
+        return make ( FunctionTypeLabel.theFunctionTypeLabel,[param,type]);
+    }
+
+    export function mkLocationType( child : PNode) :PNode {
+        return make ( LocationTypeLabel.theLocationTypeLabel,[child] )
+    }
+
+    export function mkFieldType( children: Array<PNode> ) : PNode {
+        return make( new FieldTypeLabel(),children);
+    }
+
+    export function mkJoinType( children : Array<PNode> ) : PNode {
+        return make( JoinTypeLabel.theJoinTypeLabel,children);
+    }
+
+    export function mkMeetType( children : Array<PNode> ) : PNode {
+        return make( MeetTypeLabel.theMeetTypeLabel,children);
+    }
         
 }
-
 export = labels ;
