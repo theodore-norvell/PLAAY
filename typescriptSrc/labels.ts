@@ -5,7 +5,6 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
-import { Type } from './vms';
 
 /** The labels module contains the various label classes that define the different
  * kinds of PNode.
@@ -201,7 +200,8 @@ module labels {
         public isValid( children : Array<PNode> ) : boolean {
             if( children.length !== 3) return false ;
             if( ! (children[0].label() instanceof VariableLabel) ) return false ;
-            if( ! children[1].isTypeNode()) return false ;
+            if( ! ( children[1].isTypeNode()
+                  || children[1].label() instanceof NoTypeLabel) ) return false ;
             if( ! ( children[2].isExprNode()
                   || children[2].label() instanceof NoExprLabel) ) return false ;
             return true;
@@ -395,7 +395,8 @@ module labels {
         public isValid( children : Array<PNode> ) : boolean {
              if( children.length !== 3 ) return false ;
              if ( ! (children[0].label() instanceof ParameterListLabel) ) return false ;
-             if( ! children[1].isTypeNode() ) return false ;
+             if( ! ( children[1].isTypeNode()
+                   || children[1].label() instanceof NoTypeLabel) ) return false ;
              if( ! children[2].isExprSeqNode() ) return false ;
              return true;
          }
@@ -681,7 +682,7 @@ module labels {
     pnode.registry[ DotLabel.kindConst ] = DotLabel ;
 
     /** An indication that an optional type label is not there. */
-    export class NoTypeLabel extends TypeLabel {
+    export class NoTypeLabel extends AbstractLabel {
         // TODO: Should this really extend TypeLabel?
         
         public static readonly kindConst : string = "NoTypeLabel" ;
@@ -923,7 +924,8 @@ module labels {
         public readonly type : string;
 
         public isValid(children:Array<PNode>) : boolean {
-           return children.length === 0 && (["stringType","numberType","booleanType","nullType","integerType","natType","topType","bottomType"].indexOf(this.type) > -1);
+           return children.length === 0
+               && (["stringType","numberType","booleanType","nullType","integerType","natType","topType","bottomType"].indexOf(this.type) > -1);
         }
 
         constructor(typeName : string) {
@@ -947,7 +949,8 @@ module labels {
         public static readonly kindConst : string = "TupleTypeLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+            return children.every( (c:PNode) =>
+                c.label() instanceof ExprPHLabel || c.isTypeNode() );
         }
 
         private constructor(val: string, open : boolean) {
@@ -957,6 +960,8 @@ module labels {
         public static readonly theTupleTypeLabel : TupleTypeLabel = new TupleTypeLabel("",true);
 
         public kind() : string { return TupleTypeLabel.kindConst ; }
+
+        public hasDropZonesAt( i : number ) : boolean { return true ; }
 
         public toJSON() : object {
             return { kind: TupleTypeLabel.kindConst } ;
@@ -971,7 +976,9 @@ module labels {
         public static readonly kindConst : string = "LocationTypeLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.length === 1 && ( children[0].isTypeNode() || children[0].isPlaceHolder() ) ;
+            return children.length === 1
+                && ( children[0].isTypeNode() 
+                     || children[0].label() instanceof ExprPHLabel ) ;
         }
 
         private constructor() {
@@ -995,7 +1002,9 @@ module labels {
         public static readonly kindConst : string = "FunctionTypeLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.length === 2 && ( children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode()) ) ;
+            return children.length === 2
+                && ( children.every( (c:PNode) =>
+                        c.label() instanceof ExprPHLabel || c.isTypeNode()) ) ;
         }
 
         private constructor() {
@@ -1020,8 +1029,10 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             if( children.length !== 2) return false ;
-            if( ! (children[0].isPlaceHolder || children[0].isVarDeclNode() )) return false ;
-            if( ! (children[1].isPlaceHolder || children[1].isTypeNode() ) ) return false ;
+            if( ! ( children[0].label() instanceof ExprPHLabel
+                    || children[0].label() instanceof VariableLabel )) return false ;
+            if( ! ( children[1].label() instanceof ExprPHLabel
+                    || children[1].isTypeNode() ) ) return false ;
             return true;
         }
 
@@ -1044,7 +1055,9 @@ module labels {
         public static readonly kindConst : string = "MeetTypeLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.length >= 2 && children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+            return children.length >= 2
+                && children.every( (c:PNode) =>
+                        c.label() instanceof ExprPHLabel || c.isTypeNode() );
         }
 
         private constructor() {
@@ -1054,6 +1067,8 @@ module labels {
         public static readonly theMeetTypeLabel : MeetTypeLabel = new MeetTypeLabel();
 
         public kind() : string { return MeetTypeLabel.kindConst ; }
+
+        public hasDropZonesAt( i : number ) : boolean { return true ; }
 
         public toJSON() : object {
             return { kind: MeetTypeLabel.kindConst } ;
@@ -1068,7 +1083,9 @@ module labels {
         public static readonly kindConst : string = "JoinTypeLabel" ;
 
         public isValid(children:Array<PNode>) : boolean {
-            return children.length >= 2 && children.every( (c:PNode) => c.isPlaceHolder() || c.isTypeNode() );
+            return children.length >= 2
+                && children.every( (c:PNode) =>
+                    c.label() instanceof ExprPHLabel || c.isTypeNode() );
         }
 
         private constructor() {
@@ -1078,6 +1095,8 @@ module labels {
         public static readonly theJoinTypeLabel : JoinTypeLabel = new JoinTypeLabel();
 
         public kind() : string { return JoinTypeLabel.kindConst ; }
+
+        public hasDropZonesAt( i : number ) : boolean { return true ; }
 
         public toJSON() : object {
             return { kind: JoinTypeLabel.kindConst } ;

@@ -533,6 +533,7 @@ module sharedMkHtml
                 const closePar : JQuery = $( document.createElement("div") ).text(")") ;
                 result.append( closePar ) ; 
             }
+            break ;
             case labels.PrimitiveTypesLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
@@ -559,7 +560,7 @@ module sharedMkHtml
                         break;
                     case "natType" :
                         result.html(NATTYPE);
-                        break
+                        break ;
                     case "topType" :
                         result.html(TOPTYPE);
                         break;

@@ -210,9 +210,7 @@ module treeManager {
             const tupleType = labels.mkTupleType([labels.mkExprPH()]);
             const template0 = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( tupleType, list<number>(), 0, 1 ) ;
-            const edit0 = replaceOrEngulfTemplateEdit( template0 ) ;
-            const edit1 = replaceOrEngulfTemplateEdit( template1);
-            const edit = edits.alt([edit0,edit1]);
+            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
             return edit.applyEdit(selection);
         }
 
@@ -378,8 +376,12 @@ module treeManager {
 
         private makeNumberLiteralNode(selection:Selection, text : string = "123") : Option<Selection> {
             const literalnode = labels.mkNumberLiteral(text);
-            const typenode = labels.mkPrimitiveTypeLabel("numberType");
             const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
+            const typenode = text === "0"
+                             ? labels.mkPrimitiveTypeLabel("natType")
+                             : text === "1"
+                               ? labels.mkPrimitiveTypeLabel("integerType")
+                               : labels.mkPrimitiveTypeLabel("numberType") ;
             const edit1 = pnodeEdits.insertChildrenEdit([typenode]);
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
@@ -434,14 +436,14 @@ module treeManager {
         private makeJoinTypeNode(selection:Selection) : Option<Selection> {
             const typeNode = labels.mkJoinType([labels.mkExprPH(),labels.mkExprPH()]);
             const template = new Selection(typeNode,list<number>(),0,1);
-            const edit = replaceOrEngulfTemplateEdit( template)
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection); 
         }
 
         private makeMeetTypeNode(selection:Selection) : Option<Selection> {
             const typeNode = labels.mkMeetType([labels.mkExprPH(),labels.mkExprPH()]);
             const template = new Selection(typeNode,list<number>(),0,1);
-            const edit = replaceOrEngulfTemplateEdit( template)
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection); 
         }
 
