@@ -5,23 +5,41 @@
 <body>
     <h1>Keyboard commands:</h1>
     <p><i>On Macs and ipads, the <b>cmd</b> key can be used in place of the <b>ctrl</b> key.</i></p>
-    <p>The following keyboard commands can be used for creating code:</p>
+    <p>The following keyboard commands can be used for creating <b>declarations</b>:</p>
     <ul>
-        <li><b>;</b> will create a location declaration.</li>
-        <li><b>,</b> will create a constant declaration.</li>
-        <li><b>:</b> will create an assignment expression.</li>
+        <li><b>;</b> will create a location declaration. It will also convert a constant declaration to a location declaration.</li>
+        <li><b>,</b> will create a constant declaration. It will also convert a location declaration to a constant declaration.</li>
+    </ul>
+    <p>The following keyboard commands can be used for creating <b>expressions</b>:</p>
+    <ul>
+        <li><b>:</b> will insert an assignment expression.</li>
         <li><b>&quot;</b> will create a string literal expression.</li>
-        <li><b>?</b> will create an alternation (if) expression.</li>
-        <li><b>@</b> will create a while-loop expression.</li>
-        <li><b>\</b> will create a lambda expression.</li>
-        <li><b>_</b> will create an application expression</li>
-        <li><b>0-9</b> will create a numeric literal expression starting with that number. Works with the numpad as well.</li>
-        <li><b>a-z and a-z</b> will create a variable expression starting with that character.</li>
+        <li><b>?</b> will insert an alternation (if) expression.</li>
+        <li><b>@</b> will insert a while-loop expression.</li>
+        <li><b>\</b> will insert a lambda expression.</li>
+        <li><b>_</b> will insert an application expression</li>
+        <li><b>0-9</b> will insert a numeric literal expression starting with that number. Works with the numpad as well.</li>
+        <li><b>a-z and a-z</b> will insert a variable expression starting with that character.</li>
         <li><b>+, -, *, /, &lt;, &gt;, % and =</b> will create the appropriate call expression. Also works with shift+= for + and shift+8 for *.</li>
-        <li><b>`</b> will create a call expression.</li>
-        <li><b>$</b> will create an object literal expression.</li>
-        <li><b>[</b> will create an accessor expression.</li>
-        <li><b>`</b> will create a call expression.</li>
+        <li><b>`</b> will insert a call expression.</li>
+        <li><b>$</b> will insert an object literal expression.</li>
+        <li><b>(</b> will insert a tuple expression.</li>
+        <li><b>[</b> will insert an accessor expression.</li>
+        <li><b>`</b> will insert a call expression.</li>
+    </ul>
+    <p>The following keyboard commands can be used for creating <b>types</b>:</p>
+    <ul>
+        <li><b>&quot;</b> will insert the string type.</li>
+        <li><b>?</b> will insert the boolean type.</li>
+        <li><b>\</b> will insert the function type.</li>
+        <li><b>0</b> will insert the natural number type.</li>
+        <li><b>1</b> will insert the integer type.</li>
+        <li><b>2-9</b> will insert the number type.</li>
+        <li><b>;</b> will insert a location type.</li>
+        <li><b>:</b> will insert a field type.</li>
+        <li><b>(</b> will insert a tuple type.</li>
+        <li><b>&amp;</b> will insert a meet type.</li>
+        <li><b>|</b> will insert a join type.</li>
     </ul>
     <p><b>Arrow keys and the tab key</b> to navigate your code.</p>
     <p><b>Arrow keys while shift key is depressed</b> to expand or contract the selection.</p>
