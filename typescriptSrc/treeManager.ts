@@ -205,9 +205,9 @@ module treeManager {
         }
 
         private makeTupleNode(selection:Selection) : Option<Selection> {
-                                    
-            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
-            const tupleType = labels.mkTupleType([labels.mkExprPH()]);
+            const ph = labels.mkExprPH() ;
+            const tuplenode = labels.mkTuple([ph,ph]);
+            const tupleType = labels.mkTupleType([ph,ph]);
             const template0 = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( tupleType, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
@@ -218,10 +218,9 @@ module treeManager {
         private makeIfNode(selection:Selection) : Option<Selection> {
 
             const guard = labels.mkExprPH();
-            const thn = labels.mkExprSeq([]);
-            const els = labels.mkExprSeq([]);
+            const emptSeq = labels.mkExprSeq([]);
 
-            const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
+            const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, emptSeq, emptSeq]);
 
             // console.log( "makeIfNode: Making template") ;
             const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
@@ -366,9 +365,8 @@ module treeManager {
 
         private makeStringLiteralNode(selection:Selection, text : string = "hello") : Option<Selection> {
             const literalnode = labels.mkStringLiteral(text);
-            const typenode = labels.mkPrimitiveTypeLabel("stringType");
             const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
-            const edit1 = pnodeEdits.insertChildrenEdit([typenode]);
+            const edit1 = this.insertPrimitiveTypeEdit("stringType");
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
 
@@ -377,12 +375,8 @@ module treeManager {
         private makeNumberLiteralNode(selection:Selection, text : string = "123") : Option<Selection> {
             const literalnode = labels.mkNumberLiteral(text);
             const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
-            const typenode = text === "0"
-                             ? labels.mkPrimitiveTypeLabel("natType")
-                             : text === "1"
-                               ? labels.mkPrimitiveTypeLabel("integerType")
-                               : labels.mkPrimitiveTypeLabel("numberType") ;
-            const edit1 = pnodeEdits.insertChildrenEdit([typenode]);
+            const str = text === "0" ? "natType" : text === "1"  ? "integerType" : "numberType" ;
+            const edit1 = this.insertPrimitiveTypeEdit( str ) ;
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
 
@@ -390,8 +384,7 @@ module treeManager {
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkTrueBooleanLiteral() ;
-            const typeNode = labels.mkPrimitiveTypeLabel("booleanType");
-            const edit0 = pnodeEdits.insertChildrenEdit([typeNode]);
+            const edit0 = this.insertPrimitiveTypeEdit("booleanType");
             const edit1 = pnodeEdits.insertChildrenEdit([literalnode]);
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
@@ -399,8 +392,7 @@ module treeManager {
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkFalseBooleanLiteral() ;
-            const typeNode = labels.mkPrimitiveTypeLabel("booleanType");
-            const edit0 = pnodeEdits.insertChildrenEdit([typeNode]);
+            const edit0 = this.insertPrimitiveTypeEdit("booleanType");
             const edit1 = pnodeEdits.insertChildrenEdit([literalnode]);
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
@@ -409,18 +401,20 @@ module treeManager {
         private makeNullLiteralNode(selection:Selection, isTypeNode:boolean) : Option<Selection> {
             const opt = pnode.tryMake(labels.NullLiteralLabel.theNullLiteralLabel, []);
             const literalnode = opt.first() ;
-            const typenode = labels.mkPrimitiveTypeLabel("nullType");
             const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
-            const edit1 = pnodeEdits.insertChildrenEdit([typenode]);
+            const edit1 = this.insertPrimitiveTypeEdit("nullType");
             const edit = edits.alt([edit0,edit1]);
             return edit.applyEdit(selection);
             
         }
+        private insertPrimitiveTypeEdit( type : string ) : Edit<Selection> {
+            const typeNode = labels.mkPrimitiveTypeLabel(type);
+            return edits.compose( pnodeEdits.insertChildrenEdit([typeNode]),
+                                  edits.optionally(pnodeEdits.tabForwardEdit)) ;
+        }
 
         private makePrimitiveTypeNode(selection:Selection, type : string) : Option<Selection> {
-            const typeNode = labels.mkPrimitiveTypeLabel(type);
-            const edit = pnodeEdits.insertChildrenEdit([typeNode]);
-            return edit.applyEdit(selection);
+            return this.insertPrimitiveTypeEdit(type).applyEdit(selection);
         }
 
         private makeFieldTypeNode(selection:Selection) : Option<Selection> {
