@@ -204,9 +204,13 @@ module animatorHelpers
      * @param optError -- An optional error string.
      * 
      * By the end of the execution of buildSVG, the rendering of the node is added to the parent group
-     * and the element has been removed.
+     * and the element has been removed.  (In at least one case the rendering is element and so it is not
+     * removed from parent and nothing is added.  The first example below illustrates this. The second
+     * example illustrates the typical case where element is moved under a new group and the new group is added.)
      * <p>
-     * For example consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and e1 have already been rendered as
+     * The rendering should have its upper left corner near the origin, but that corner may be above or to the right.
+     * <p>
+     * Example 0: consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and e1 have already been rendered as
      * svg elements s0 and s1. The bounding boxes of s0 and s1 should have their upper left corner near (0,0).
      * (It seems to me that these corners should be exactly at (0,0), but the way the code is written they could be
      * slightly above or to the left of the origin.  This explains the various fixups to push elements right or down!)
@@ -224,7 +228,7 @@ module animatorHelpers
      * On exit from the routine, we have exactly the same picture; s0 and s1 have been moved to the right if
       they are left of the origin.  s1 will have been moved down below s0.
      * <p>
-     * A more interesting example is Call( e0, e0 ) where again e0 and e1 have been rendered as s0 and s1.
+     * Example 1: A more interesting example is Call( e0, e0 ) where again e0 and e1 have been rendered as s0 and s1.
      * The initial picture is as above. The final picture looks like this
      * <pre>
      *           parent
@@ -235,9 +239,11 @@ module animatorHelpers
      *     /   \
      *    s0    s1
      * </pre>
-     * where group is a new group and brect is a new rectangle. s0 and s1 will have been moved.
-     * <p> In the last example if shouldHighLight were true, there would be an additional rectagle
-     * added to the group, liek this
+     * where group is a new group and brect is a new rectangle displaying the border.
+     * s0 and s1 will have been moved appropriately.
+     * <p>
+     * Example 2: In Example 1, if shouldHighLight were true, there would be an additional rectagle
+     * added to the group, like this
      * <pre>
      *             parent
      *            /      \
@@ -247,6 +253,22 @@ module animatorHelpers
      *     /   \
      *    s0    s1
      * </pre>
+     * where hrect is the higlighting rectangle.
+     * <p>
+     * Example 3: If in addition there was an error on this call we would end up in this situation
+     * 
+     * <pre>
+     *             parent
+     *            /      \
+     *         group     others
+     *         /  |  \
+     *  element brect hrect
+     *  / |  | \
+     * s0 s1 t  r
+     * </pre>
+     * where t is a text element and r is a rectangle that supplies a border to the error message.
+     * (I'm not sure why t and r are added to element rather than group. However since brect and hrect
+     * are added first, they are positioned as if t and r weren't there, so it works out looking ok.)
      */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
                       optError : Option<string>) : void
@@ -609,9 +631,7 @@ module animatorHelpers
                 rightBracketText.fill(MAUVE);
                 rightBracketText.dmove(x, -5);
 
-                
                 makeSimpleBorder(element, MAUVE);
-
             }
             break ;
             case labels.DotLabel.kindConst :
@@ -628,7 +648,6 @@ module animatorHelpers
                 x += dotText.bbox().width + padding;
                 
                 makeSimpleBorder(element, MAUVE);
-
             }
             break;
             case labels.LambdaLabel.kindConst :
@@ -814,6 +833,9 @@ module animatorHelpers
         optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
+    /**
+     * @param element is an intially empty group that will be contain the SVG rendering of the value.
+     */
     function buildSVGForMappedNode(element : svg.G, value : Value, drawNestedObjects : boolean) : void
     {
         if(value.isNullV())
