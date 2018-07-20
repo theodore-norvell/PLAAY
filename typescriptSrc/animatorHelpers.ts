@@ -61,15 +61,26 @@ module animatorHelpers
         drawnObjectsMap = new Map<ObjectI, svg.Rect>();
     }
 
+    /**
+     * 
+     * @param node A tree node to render.
+     * @param el A container to render the tree into.
+     * @param currentPath The path to the current node relative to the root of an Evaluation.
+     * @param pathToHighlight The path of the node to highlight relative to the root of an Evaluation.
+     *                        If there is no highlight, list( -1 ) can be used.
+     * @param valueMap A value map from the same Evaluation.
+     * @param error  An error message.
+     * @param errorPath The node that the message applies to. If there is no error, list( -1 ) can be used.
+     */
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
-                                     valueMap : ValueMap | null, error : string, errorPath : List<number>) : void
+                                     valueMap : ValueMap, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes or errors from being drawn.
+        if(!valueMap.isMapped(currentPath) ) //prevent children of mapped nodes from being drawn.
         {
             for(let i = 0; i < node.count(); i++)
             {
-                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap, error, errorPath);
+                traverseAndBuild(node.child(i), children, currentPath.cat( list(i) ), pathToHighlight, valueMap, error, errorPath);
             }
         }
         const highlightMe : boolean = currentPath.equals(pathToHighlight);
@@ -183,13 +194,15 @@ module animatorHelpers
     /** Translate a tree of nodes into SVG
      * 
      * @param node -- The tree 
-     * @param element -- An SVG group into which the tree is drawn
-     * @param parent -- The parent of element
+     * @param element -- An SVG group initially containing the renderings of the children of the node.
+     * @param parent -- The parent of the element, at least initially.
      * @param shouldHighlight -- Should the tree be high-lighted. 
      * @param myPath -- The path for the tree relative to the root of the Evaluation
      * @param valueMap -- A map from value
      * @param isError 
      * @param error 
+     * By the end of the execution of buildSVG, the rendering of the node is added to the parent group
+     * and the rendering of the node's children are have been removed.
      */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
                       valueMap : ValueMap | null, isError : boolean, error : string) : void
