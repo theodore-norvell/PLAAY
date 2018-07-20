@@ -76,16 +76,19 @@ module animatorHelpers
                                      valueMap : ValueMap, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if(!valueMap.isMapped(currentPath) ) //prevent children of mapped nodes from being drawn.
+        if(valueMap.isMapped(currentPath) ) 
         {
+            buildSVGForMappedNode(children, valueMap.get(currentPath), true);
+        }
+        else {
             for(let i = 0; i < node.count(); i++)
             {
                 traverseAndBuild(node.child(i), children, currentPath.cat( list(i) ), pathToHighlight, valueMap, error, errorPath);
             }
+            const highlightMe : boolean = currentPath.equals(pathToHighlight);
+            const optError : Option<string> = currentPath.equals(errorPath) ? some(error) : none() ;
+            buildSVG(node, children, el, highlightMe, currentPath, optError);
         }
-        const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        const isError : boolean = currentPath.equals(errorPath);
-        buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
     }
 
     export function buildStack(stk : vms.EvalStack, el : svg.Container) : void
@@ -193,26 +196,61 @@ module animatorHelpers
 
     /** Translate a tree of nodes into SVG
      * 
-     * @param node -- The tree 
+     * @param node -- The tree to be rendered
      * @param element -- An SVG group initially containing the renderings of the children of the node.
-     * @param parent -- The parent of the element, at least initially.
+     * @param parent -- A container that initially contains element and maybe other things.
      * @param shouldHighlight -- Should the tree be high-lighted. 
      * @param myPath -- The path for the tree relative to the root of the Evaluation
-     * @param valueMap -- A map from value
-     * @param isError 
-     * @param error 
+     * @param optError -- An optional error string.
+     * 
      * By the end of the execution of buildSVG, the rendering of the node is added to the parent group
-     * and the rendering of the node's children are have been removed.
+     * and the element has been removed.
+     * <p>
+     * For example consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and e1 have already been rendered as
+     * svg elements s0 and s1. The bounding boxes of s0 and s1 should have their upper left corner near (0,0).
+     * (It seems to me that these corners should be exactly at (0,0), but the way the code is written they could be
+     * slightly above or to the left of the origin.  This explains the various fixups to push elements right or down!)
+     * When this routine starts we have
+     * <pre>
+     *           parent
+     *          /      \
+     *       element  others
+     *         /   \
+     *        s0    s1
+     * </pre>
+     * The other children of parent (shown as 'others' in the diagram) will typically be the rederings of
+     * the node's left siblings in the tree.
+     * <p>
+     * On exit from the routine, we have exactly the same picture; s0 and s1 have been moved to the right if
+      they are left of the origin.  s1 will have been moved down below s0.
+     * <p>
+     * A more interesting example is Call( e0, e0 ) where again e0 and e1 have been rendered as s0 and s1.
+     * The initial picture is as above. The final picture looks like this
+     * <pre>
+     *           parent
+     *          /      \
+     *       group  others
+     *         / \
+     *    element brect
+     *     /   \
+     *    s0    s1
+     * </pre>
+     * where group is a new group and brect is a new rectangle. s0 and s1 will have been moved.
+     * <p> In the last example if shouldHighLight were true, there would be an additional rectagle
+     * added to the group, liek this
+     * <pre>
+     *             parent
+     *            /      \
+     *         group     others
+     *         /  |  \
+     *  element brect hrect
+     *     /   \
+     *    s0    s1
+     * </pre>
      */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
-                      valueMap : ValueMap | null, isError : boolean, error : string) : void
+                      optError : Option<string>) : void
     {
-        if(valueMap !== null && valueMap.isMapped(myPath))
-        {
-            buildSVGForMappedNode(element, valueMap.get(myPath), true);
-            return;
-        }
-
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
@@ -773,18 +811,7 @@ module animatorHelpers
         {
             highlightThis(drawHighlightOn);
         }
-        if(isError)
-        {
-            if(error === "")
-            {
-                error = "Unknown error";
-            }
-            const elementBBox : svg.BBox = element.bbox();
-            const text : svg.Text = element.text( "Error: " + error );
-            text.dy(elementBBox.height + 15);
-            makeErrorSVG(element, text);
-            return;
-        }
+        optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
     function buildSVGForMappedNode(element : svg.G, value : Value, drawNestedObjects : boolean) : void
@@ -1094,9 +1121,12 @@ module animatorHelpers
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
-    //I assume textElement is already contained within base.
-    function makeErrorSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeErrorSVG(base : svg.Container, errString : string) : void
     {
+        if(errString === "") { errString = "Unknown error"; }
+        const elementBBox : svg.BBox = base.bbox();
+        const textElement : svg.Text = base.text( "Error: " + errString );
+        textElement.dy(elementBBox.height + 15);
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
@@ -1252,11 +1282,10 @@ module animatorHelpers
     function highlightThis(el : svg.Container) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width+2, bounds.height+2);
+        const outline : svg.Rect = el.rect(bounds.width, bounds.height);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({color: WHITE, opacity: 0.4});
-        outline.stroke({color: WHITE, opacity: 0, width: 1.5});
     }
 }
 
