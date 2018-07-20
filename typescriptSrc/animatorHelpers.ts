@@ -140,6 +140,7 @@ module animatorHelpers
 
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
+        // TODO.  Share this code with the code for drawing tuple nodes.
         const textStyle = "font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;" ;
         const result : svg.G = element.group();
         const leftBracketText : svg.Text= element.text( "(");
