@@ -600,7 +600,7 @@ module sharedMkHtml
             case labels.FunctionTypeLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "types" ) ;
+                result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 
@@ -616,7 +616,7 @@ module sharedMkHtml
             case labels.LocationTypeLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "types" ) ;
+                result.addClass( "locationType" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 
@@ -647,7 +647,7 @@ module sharedMkHtml
             case labels.JoinTypeLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "types" ) ;
+                result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 
@@ -667,7 +667,7 @@ module sharedMkHtml
             case labels.MeetTypeLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "types" ) ;
+                result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 

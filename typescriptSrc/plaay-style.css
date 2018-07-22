@@ -703,7 +703,7 @@ div.tuple {
 }
 
 div.types {
-    border:thin solid rgb(242, 231, 21);
+    border:none;
     border-radius: 5px ;
     font-size: large ;
     font-family:"Lucida Console", Monospace;
@@ -713,6 +713,35 @@ div.types {
     vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
+}
+
+div.typesBorder {
+    border :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.locationType {
+    border-left :thin solid rgb(242, 231, 21);
+    border-right :thin solid rgb(242, 231, 21);
+    border-bottom :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+    
 }
 
 div.literal {
