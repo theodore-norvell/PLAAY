@@ -720,16 +720,10 @@ module vms{
         setValue : ( value : Value ) => void ;
     }
 
-
     // TODO replace this with a proper system of types.
-    export enum Type {
-        NOTYPE,
-        STRING,
-        BOOL,
-        NUMBER,
-        ANY,
-        METHOD,
-        NULL
+    export class Type {
+        private constructor() {} 
+        public static readonly ANY = new Type() ;
     }
 }
 export = vms;

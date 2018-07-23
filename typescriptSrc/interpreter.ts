@@ -711,9 +711,9 @@ module interpreter {
             let locn : LocationV ;
             if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
                 const value : Value = vm.getChildVal(2);
-                locn = new LocationV( Type.NOTYPE, btMan, value ) ;
+                locn = new LocationV( Type.ANY, btMan, value ) ;
             } else {
-                locn = new LocationV( Type.NOTYPE, btMan) ; }
+                locn = new LocationV( Type.ANY, btMan) ; }
             field.setValue( locn ) ;
         }
         vm.finishStep( TupleV.theDoneValue ) ;
