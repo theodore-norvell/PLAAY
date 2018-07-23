@@ -1,4 +1,4 @@
-/**
+ /**
  * Created by Ryne on 24/02/2016.
  */
 
@@ -681,6 +681,7 @@ module vms{
         isStringV : () => boolean ;
         isNullV : () => boolean ;
         isObjectV : () => boolean ;
+        isLocationV : () => boolean ;
         isTupleV : () => boolean ;
         isNumberV : () => boolean ;
         isBoolV : () => boolean ;
@@ -693,6 +694,7 @@ module vms{
         NULL,
         TUPLE,
         OBJECT,
+        LOCATION,
         BUILTIN,
         CLOSURE }
 

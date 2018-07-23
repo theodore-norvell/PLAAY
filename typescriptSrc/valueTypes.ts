@@ -101,6 +101,10 @@ module valueTypes {
             return this.getKind() === ValueKind.OBJECT ;
         }
 
+        public isLocationV() : boolean {
+            return this.getKind() === ValueKind.OBJECT ;
+        }
+
         public isNullV() : boolean {
             return this.getKind() === ValueKind.NULL ;
         }
@@ -243,6 +247,34 @@ module valueTypes {
 
         public toString() : string {
             return "object" ;
+        }
+    }
+
+    /** Locations represent locations in the store
+     * that can have their values changed.
+     */
+    export class LocationV extends AbstractValue {
+
+        private readonly value : TVar<Option<Value>>;
+        private readonly type : Type;
+
+        constructor(type : Type, manager : TransactionManager, value? : Value) {
+            super() ;
+            if( value === undefined ) {
+                this.value = new TVar<Option<Value>>( none(), manager ) ; }
+            else {
+                this.value = new TVar<Option<Value>>( some( value), manager ) ; }
+            this.type = type;
+        }
+
+        public getKind() : ValueKind { return ValueKind.LOCATION ; }
+
+        public getValue() : Option<Value> {
+            return this.value.get() ;
+        }
+        
+        public setValue( value : Value ) : void {
+            this.value.set( some( value ) ) ;
         }
     }
 

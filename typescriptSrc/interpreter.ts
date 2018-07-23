@@ -33,6 +33,7 @@ module interpreter {
     import NumberV = valueTypes.NumberV ;
     import BoolV = valueTypes.BoolV ;
     import ObjectV = valueTypes.ObjectV ;
+    import LocationV = valueTypes.LocationV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
     import TupleV = valueTypes.TupleV ;
@@ -413,12 +414,20 @@ module interpreter {
         const manager = vm.getTransactionManager();
         const stackFrame = new ObjectV(manager);
         for (let i = 0; i < args.length; i++) {
-            const varName = paramlist.child(i).child(0).label().getVal();
-            const val = args[i];
+            const varDeclNode = paramlist.child(i) ;
+            const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
+            const varName = varDeclNode.child(0).label().getVal();
             //TODO: Correctly set the type of the field.
-            //TODO: check that the types of val and vardecl are the same
-            //TODO: Deal with location parameters by creating a location.
-            const field = new Field(varName, Type.ANY, manager, val);
+            let ty = Type.ANY ;
+            let val = args[i];
+            //TODO: check that ty.contains( val ) 
+            if( ! isCon ) {
+                // Location parameters need a location created
+                // for them.
+                val = new LocationV( ty, manager, val ) ;
+                // TODO ty = new LocationType( ty ) 
+            }
+            const field = new Field(varName, ty, manager, val);
             stackFrame.addField(field);
         }
         vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
@@ -476,8 +485,6 @@ module interpreter {
       for( let i=0; i < sz ; ++i ) {
           const childNode = node.child(i) ;
           if( childNode.label() instanceof labels.VarDeclLabel ) {
-              const varDeclLabel = childNode.label() as labels.VarDeclLabel ;
-              const isConstant = varDeclLabel.declaresConstant() ;
               const firstChild = childNode.child(0) ;
               assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
               const varLabel = firstChild.label() as labels.VariableLabel ;
@@ -675,25 +682,39 @@ module interpreter {
     }
 
     function varDeclStepper(vm : VMS) : void {
+        const varDeclNode = vm.getPendingNode() ;
+        assert.checkPrecondition( varDeclNode instanceof labels.VarDeclLabel ) ;
+        const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
+
         const variableNode : PNode = vm.getPendingNode().child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        
         const variableName : string = variableNode.label().getVal();
+        
         const variableStack : VarStack = vm.getStack();
         assert.check( variableStack.hasField(variableName) ) ;
         const field = variableStack.getField(variableName) ;
         assert.check( field.getValue().isEmpty() ) ;
 
         const initializerNode : PNode = vm.getPendingNode().child(2) ;
-        if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
-            const value : Value = vm.getChildVal(2);
-            // TODO Check that the value is assignable to the field.
-            field.setValue( value ) ;
+        if(  isCon ) {
+            // Constant fields
+            if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
+                const value : Value = vm.getChildVal(2);
+                // TODO Check that the value is assignable to the field.
+                field.setValue( value ) ;
+            } else {
+                vm.reportError( "Variable must be iniitalized.") ;
+            }
         } else {
-            // This is not terribly satisfactory, but we have
-            // have to assign something.
-            // For con nodes, the initialization should be non-optional.
-            field.setValue( NullV.theNullValue ) ;
+            // Location fields
+            const btMan = vm.getTransactionManager() ;
+            let locn : LocationV ;
+            if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
+                const value : Value = vm.getChildVal(2);
+                locn = new LocationV( Type.NOTYPE, btMan, value ) ;
+            } else {
+                locn = new LocationV( Type.NOTYPE, btMan) ; }
+            field.setValue( locn ) ;
         }
         vm.finishStep( TupleV.theDoneValue ) ;
     }
