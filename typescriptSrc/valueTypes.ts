@@ -338,12 +338,16 @@ module valueTypes {
             else { return new TupleV(vals) ; }
         }
 
-        public numFields():number {
+        public itemCount():number {
             return this.values.length;
         } 
 
-        public getValueByIndex(index : number) : Value {
+        public getItemByIndex(index : number) : Value {
             return this.values[index];
+        }
+
+        public getItems() : Value[] {
+            return this.values.slice() ;
         }
 
         public getKind() : ValueKind { return ValueKind.TUPLE ; }

@@ -38,10 +38,9 @@ module animator
     import traverseAndBuild = animatorHelpers.traverseAndBuild;
     import buildStack = animatorHelpers.buildStack;
     import buildObjectArea = animatorHelpers.buildObjectArea;
-    import buildTupleArea = animatorHelpers.buildTupleArea;
     import drawArrows = animatorHelpers.drawArrows;
     import List = collections.List;
-    import cons = collections.cons;
+    import list = collections.list;
     import nil = collections.nil;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
@@ -90,14 +89,13 @@ module animator
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
         animatorHelpers.clearObjectDrawingInfo() ;
-        animatorHelpers.clearTupleDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
-                          cons(-1, nil()),
-                          null,
+                          list(-1),
+                          evaluationMgr.getVMS().getValMap(),
                           "",
-                          cons(-1, nil()));
+                          list(-1));
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
@@ -174,20 +172,19 @@ module animator
         const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
         const objectArea : svg.G = animatorArea.group();
-        const tupleArea : svg.G = animatorArea.group();
         const stack : svg.G = animatorArea.group();
         const arrowGroup : svg.G = animatorArea.group();
 
         let toHighlight : List<number>;
         let error : string = "";
-        let errorPath : List<number> = cons(-1, nil());
+        let errorPath : List<number> = list(-1);
         if (evaluationMgr.getVMS().isReady() ) 
         {
             toHighlight = evaluationMgr.getVMS().getPending();
         }
         else
         {
-            toHighlight = cons(-1, nil());
+            toHighlight = list(-1);
         }
         
         if(evaluationMgr.getVMS().hasError())
@@ -196,7 +193,6 @@ module animator
             error = evaluationMgr.getVMS().getError();
         }
         animatorHelpers.clearObjectDrawingInfo();
-        animatorHelpers.clearTupleDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
@@ -206,13 +202,10 @@ module animator
                           errorPath);
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         buildObjectArea(objectArea);
-        buildTupleArea(tupleArea);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
         const objectAreaBBox : svg.BBox = objectArea.bbox();
-        const tupleAreaBBox : svg.BBox = tupleArea.bbox();
         let objectAreaOffset : number = 400;
-        let tupleAreaOffset : number = 400;
         let stackOffset : number = 800;
         let neededHeight : number = 100;
 
@@ -221,11 +214,6 @@ module animator
             objectAreaOffset = animationBBox.width + 100;
         }
         objectArea.dmove(objectAreaOffset, 0);
-
-        if (tupleAreaOffset < animationBBox.width) {
-            tupleAreaOffset = animationBBox.width + 100;
-        }
-        tupleArea.dmove(tupleAreaOffset,0);
 
         //keep stack spacing consistent unless animation too large
         if (stackOffset < objectAreaBBox.width + animationBBox.width){
@@ -247,7 +235,7 @@ module animator
         {
             neededHeight = objectAreaBBox.height;
         }
-        animatorArea.size(animationBBox.width + objectAreaBBox.width + objectAreaOffset + tupleAreaBBox.width + tupleAreaOffset + stackBBox.width + stackOffset, neededHeight + 100);
+        animatorArea.size(animationBBox.width + objectAreaBBox.width + objectAreaOffset + stackBBox.width + stackOffset, neededHeight + 100);
     }
 }
 

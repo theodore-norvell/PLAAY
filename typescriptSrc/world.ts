@@ -103,19 +103,18 @@ module world {
       return (val as BoolV).getVal() === true ? true : false;
     }
 
-    function arithmeticStepperFactory( callback: (leftOperand: number, rightOperand: number) => number )
+    function arithmeticStepperFactory(
+        callback: (leftOperand: number, rightOperand: number) => number,
+        defaultResult : number )
              : (vms: VMS, args: Array<Value>) => void {
         return function(vm: VMS, args: Array<Value>) : void {
-          const vals : Array<number>= [] ;
+          const numbers : Array<number>= [] ;
           let ok = true ;
-          if (args.length === 0) {
-              vm.reportError("0 arguments passed in.") ;
-          }
           for( let i=0 ; i < args.length ; ++i ) {
               if( args[i].isNumberV() ) {
                   const num = args[i] as NumberV;
                   if( num.canConvertToNumber() ) {
-                    vals.push( num.converToNumber() ) ; 
+                    numbers.push( num.converToNumber() ) ; 
                   }
                   else {
                       vm.reportError("The "+nth(i+1)+" argument is not a number.") ;
@@ -127,7 +126,11 @@ module world {
                   ok = false ; } }
           
           if( ok ) {
-              const result = vals.reduce(callback);              
+              const result = numbers.length===0
+                             ? defaultResult
+                             : numbers.length===1
+                               ? callback( defaultResult, numbers[0] )
+                               : numbers.reduce( callback ) ;
               const val = new NumberV( result ) ;
               vm.finishStep(val);
           }
@@ -165,7 +168,9 @@ module world {
       } ;
     }
 
-    function logicalStepperFactory( callback: (leftOperand: boolean, rightOperand: boolean) => boolean)
+    function logicalStepperFactory(
+        callback: (leftOperand: boolean, rightOperand: boolean) => boolean,
+        initialValue : boolean )
              : (vms: VMS, args: Array<Value>) => void {
       return function andstep( vm : VMS, args : Array<Value> ) : void {
         const vals : Array<boolean>= [] ;
@@ -179,7 +184,7 @@ module world {
             }
         }
         if(ok) {
-            const result = vals.reduce(callback);
+            const result = vals.reduce(callback, initialValue);
             const val : BoolV = BoolV.getVal(result);          
             vm.finishStep(val);
         }
@@ -221,28 +226,29 @@ module world {
             //console.log("World's fields array is length: " + this.fields.length);
 
             const addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; } ;
-            const addstep = arithmeticStepperFactory(addCallback);
+            const addstep = arithmeticStepperFactory(addCallback, 0);
             const plus = new BuiltInV(addstep);
             const addf = new Field("+", Type.ANY, manager, plus );
             this.addField(addf);
 
             const subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; } ;
-            const substep = arithmeticStepperFactory(subCallback);
+            const substep = arithmeticStepperFactory(subCallback, 0);
             const sub = new BuiltInV(substep);
             const subf = new Field("-", Type.ANY, manager, sub);
             this.addField(subf);
 
             const multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } ;
-            const multstep = arithmeticStepperFactory(multCallback);
+            const multstep = arithmeticStepperFactory(multCallback, 1);
             const mult = new BuiltInV(multstep);
             const multf = new Field("*", Type.ANY, manager, mult);
             this.addField(multf);
 
             const divCallback = (dividend: number, divisor: number) : number => {
-              assert.check(divisor !== 0, "Division by zero is not allowed");
-              return dividend/divisor;
+                // In case of division by 0 we get + or - ininity.
+                // Except 0/0 gives NaN
+                return dividend/divisor;
             } ;
-            const divstep = arithmeticStepperFactory(divCallback);
+            const divstep = arithmeticStepperFactory(divCallback, 1);
             const div = new BuiltInV(divstep);
             const divf = new Field("/", Type.ANY, manager, div);
             this.addField(divf);
@@ -316,13 +322,13 @@ module world {
                 else if ( argsAreTuples(args)) {
                     bool = true;
                     for (let i=0; i < args.length - 1; i++) {
-                        if((args[i] as TupleV).numFields() !== (args[i+1] as TupleV).numFields()) {
+                        if((args[i] as TupleV).itemCount() !== (args[i+1] as TupleV).itemCount()) {
                             bool = false;
                             break;
                         }
 
-                        for( let j=0; j < (args[i] as TupleV).numFields() ; j++ ) {
-                            if((args[i] as TupleV).getValueByIndex(j) !== (args[i+1] as TupleV).getValueByIndex(j)) {
+                        for( let j=0; j < (args[i] as TupleV).itemCount() ; j++ ) {
+                            if((args[i] as TupleV).getItemByIndex(j) !== (args[i+1] as TupleV).getItemByIndex(j)) {
                                 bool = false;
                             }
                         }
@@ -368,13 +374,13 @@ module world {
                 else if ( argsAreTuples(args)) {
                     bool = true;
                     for (let i=0; i < args.length - 1; i++) {
-                        if((args[i] as TupleV).numFields() === (args[i+1] as TupleV).numFields()) {
+                        if((args[i] as TupleV).itemCount() === (args[i+1] as TupleV).itemCount()) {
                             bool = false;
                             break;
                         }
 
-                        for( let j=0; j < (args[i] as TupleV).numFields() ; j++ ) {
-                            if((args[i] as TupleV).getValueByIndex(j) === (args[i+1] as TupleV).getValueByIndex(j)) {
+                        for( let j=0; j < (args[i] as TupleV).itemCount() ; j++ ) {
+                            if((args[i] as TupleV).getItemByIndex(j) === (args[i+1] as TupleV).getItemByIndex(j)) {
                                 bool = false;
                             }
                         }
@@ -408,13 +414,13 @@ module world {
             this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
-            const andstep = logicalStepperFactory(andCallback);
+            const andstep = logicalStepperFactory(andCallback, true);
             const and = new BuiltInV(andstep);
             const andf = new Field("and", Type.ANY, manager, and);
             this.addField(andf);
 
             const orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; } ;
-            const orstep = logicalStepperFactory(orCallback);
+            const orstep = logicalStepperFactory(orCallback, false);
             const or = new BuiltInV(orstep);
             const orf = new Field("or", Type.ANY, manager, or);
             this.addField(orf);
@@ -499,18 +505,18 @@ module world {
 
             function popStep(vm: VMS, args: Array<Value>) : void {
                 if (args.length !== 1) {
-                vm.reportError("pop expects 1 arguments of type object.");
-                return;
+                    vm.reportError("pop expects 1 arguments of type object.");
+                    return;
                 }
                 const obj = args[0];
                 if (!(obj instanceof ObjectV)) {
-                vm.reportError("pop argument should be an object value.");
-                return;
+                    vm.reportError("pop argument should be an object value.");
+                    return;
                 }
-                const length = obj.numFields();
-                if (!obj.hasField((length-1)+"")) {
-                vm.reportError("Cannot perform pop on " + obj.toString());
-                return;
+                const len = obj.numFields();
+                if (!obj.hasField((len-1)+"")) {
+                    vm.reportError("Cannot perform pop on " + obj.toString());
+                    return;
                 }
                 obj.popField();
                 vm.finishStep(TupleV.theDoneValue);
