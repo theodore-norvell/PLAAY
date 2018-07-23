@@ -228,19 +228,19 @@ module world {
             const addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; } ;
             const addstep = arithmeticStepperFactory(addCallback, 0);
             const plus = new BuiltInV(addstep);
-            const addf = new Field("+", Type.ANY, manager, plus );
+            const addf = new Field("+", Type.TOP, manager, plus );
             this.addField(addf);
 
             const subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; } ;
             const substep = arithmeticStepperFactory(subCallback, 0);
             const sub = new BuiltInV(substep);
-            const subf = new Field("-", Type.ANY, manager, sub);
+            const subf = new Field("-", Type.TOP, manager, sub);
             this.addField(subf);
 
             const multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } ;
             const multstep = arithmeticStepperFactory(multCallback, 1);
             const mult = new BuiltInV(multstep);
-            const multf = new Field("*", Type.ANY, manager, mult);
+            const multf = new Field("*", Type.TOP, manager, mult);
             this.addField(multf);
 
             const divCallback = (dividend: number, divisor: number) : number => {
@@ -250,7 +250,7 @@ module world {
             } ;
             const divstep = arithmeticStepperFactory(divCallback, 1);
             const div = new BuiltInV(divstep);
-            const divf = new Field("/", Type.ANY, manager, div);
+            const divf = new Field("/", Type.TOP, manager, div);
             this.addField(divf);
 
             const greaterthanCallback = (vals: Array<number>): boolean => {
@@ -262,7 +262,7 @@ module world {
             } ;
             const greaterthanstep = comparatorStepperFactory(greaterthanCallback);
             const greaterthan = new BuiltInV(greaterthanstep);
-            const greaterf = new Field(">", Type.ANY, manager, greaterthan);
+            const greaterf = new Field(">", Type.TOP, manager, greaterthan);
             this.addField(greaterf);
 
             const greaterthanequalCallback = (vals: Array<number>): boolean => {
@@ -274,7 +274,7 @@ module world {
             } ;
             const greaterthanequalstep = comparatorStepperFactory(greaterthanequalCallback);
             const greaterthanequal = new BuiltInV(greaterthanequalstep);
-            const greaterequalf = new Field(">=", Type.ANY, manager, greaterthanequal);
+            const greaterequalf = new Field(">=", Type.TOP, manager, greaterthanequal);
             this.addField(greaterequalf);
 
             const lessthanCallback = (vals: Array<number>): boolean => {
@@ -286,7 +286,7 @@ module world {
             } ;
             const lessthanstep = comparatorStepperFactory(lessthanCallback);
             const lessthan = new BuiltInV(lessthanstep);
-            const lessf = new Field("<", Type.ANY, manager, lessthan);
+            const lessf = new Field("<", Type.TOP, manager, lessthan);
             this.addField(lessf);
 
             const lessthanequalCallback = (vals: Array<number>): boolean => {
@@ -298,7 +298,7 @@ module world {
             } ;
             const lessthanequalstep = comparatorStepperFactory(lessthanequalCallback);
             const lessequalthan = new BuiltInV(lessthanequalstep);
-            const lessequalf = new Field("<=", Type.ANY, manager, lessequalthan);
+            const lessequalf = new Field("<=", Type.TOP, manager, lessequalthan);
             this.addField(lessequalf);
 
             function equalstep(vm : VMS, args : Array<Value>) : void {
@@ -406,27 +406,27 @@ module world {
 
             
             const equal = new BuiltInV(equalstep);
-            const equalf = new Field("=", Type.ANY, manager, equal);
+            const equalf = new Field("=", Type.TOP, manager, equal);
             this.addField(equalf);
 
             const notequal = new BuiltInV(notEqualStep);
-            const notequalf = new Field("/=", Type.ANY, manager, notequal);
+            const notequalf = new Field("/=", Type.TOP, manager, notequal);
             this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
             const andstep = logicalStepperFactory(andCallback, true);
             const and = new BuiltInV(andstep);
-            const andf = new Field("and", Type.ANY, manager, and);
+            const andf = new Field("and", Type.TOP, manager, and);
             this.addField(andf);
 
             const orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; } ;
             const orstep = logicalStepperFactory(orCallback, false);
             const or = new BuiltInV(orstep);
-            const orf = new Field("or", Type.ANY, manager, or);
+            const orf = new Field("or", Type.TOP, manager, or);
             this.addField(orf);
 
             const not = new BuiltInV(notStep);
-            const notf = new Field("not", Type.ANY, manager, not );
+            const notf = new Field("not", Type.TOP, manager, not );
             this.addField(notf);
             
             const impliesCallback = ( vals : Array<boolean>):boolean => {
@@ -438,7 +438,7 @@ module world {
             } ;
             const impliesStep = impliesStepperFactory(impliesCallback);          
             const implies = new BuiltInV(impliesStep);
-            const impliesf = new Field("implies", Type.ANY, manager, implies);
+            const impliesf = new Field("implies", Type.TOP, manager, implies);
             this.addField(impliesf);
 
             function notStep(vm : VMS, args : Array<Value>) : void {
@@ -471,15 +471,15 @@ module world {
             }
 
             const len = new BuiltInV(lenStep);
-            const lenf = new Field("len", Type.ANY, manager, len);
+            const lenf = new Field("len", Type.TOP, manager, len);
             this.addField(lenf);
 
             const trueConstant = BoolV.trueValue;
-            const trueConstantf = new Field("true", Type.ANY, manager, trueConstant);
+            const trueConstantf = new Field("true", Type.TOP, manager, trueConstant);
             this.addField(trueConstantf);
 
             const falseConstant = BoolV.falseValue;
-            const falseConstantf = new Field("false", Type.ANY, manager, falseConstant);
+            const falseConstantf = new Field("false", Type.TOP, manager, falseConstant);
             this.addField(falseConstantf);
 
             function pushStep(vm: VMS, args: Array<Value>) : void {
@@ -494,13 +494,13 @@ module world {
                 }
                 const val = args[1];
                 console.log(obj.numFields()+"");
-                const field = new Field(obj.numFields()+"", Type.ANY, manager, val);
+                const field = new Field(obj.numFields()+"", Type.TOP, manager, val);
                 obj.addField(field);
                 vm.finishStep(TupleV.theDoneValue);
             }
 
             const push = new BuiltInV(pushStep);
-            const pushf = new Field("push", Type.ANY, manager, push);
+            const pushf = new Field("push", Type.TOP, manager, push);
             this.addField(pushf);
 
             function popStep(vm: VMS, args: Array<Value>) : void {
@@ -523,7 +523,7 @@ module world {
             }
 
             const pop = new BuiltInV(popStep);
-            const popf = new Field("pop", Type.ANY, manager, pop);
+            const popf = new Field("pop", Type.TOP, manager, pop);
             this.addField(popf);
         }
     }
@@ -543,7 +543,7 @@ module world {
                         tw.forward( n ) ;
                         vm.finishStep( done ) ; } } ;
             const forwardValue = new BuiltInV( forwardStepper ) ;
-            const forwardField = new Field("forward", Type.ANY, tMan, forwardValue) ;
+            const forwardField = new Field("forward", Type.TOP, tMan, forwardValue) ;
             this.addField( forwardField ) ;
 
 
@@ -554,7 +554,7 @@ module world {
                     tw.right( n ) ;
                     vm.finishStep( done ) ; } } ;
             const rightValue = new BuiltInV( rightStepper ) ;
-            const rightField = new Field("right", Type.ANY, tMan, rightValue) ;
+            const rightField = new Field("right", Type.TOP, tMan, rightValue) ;
             this.addField( rightField ) ;
 
 
@@ -565,7 +565,7 @@ module world {
                     tw.left( n ) ;
                     vm.finishStep( done ) ; } } ;
             const leftValue = new BuiltInV( leftStepper ) ;
-            const leftField = new Field("left", Type.ANY, tMan, leftValue) ;
+            const leftField = new Field("left", Type.TOP, tMan, leftValue) ;
             this.addField( leftField ) ;
 
 
@@ -574,7 +574,7 @@ module world {
                     tw.penUp( ) ;
                     vm.finishStep( done ) ; } } ;
             const penUpValue = new BuiltInV( penUpStepper ) ;
-            const penUpField = new Field("penUp", Type.ANY, tMan, penUpValue) ;
+            const penUpField = new Field("penUp", Type.TOP, tMan, penUpValue) ;
             this.addField( penUpField ) ;
 
 
@@ -583,7 +583,7 @@ module world {
                     tw.penDown( ) ;
                     vm.finishStep( done ) ; } } ;
             const penDownValue = new BuiltInV( penDownStepper ) ;
-            const penDownField = new Field("penDown", Type.ANY, tMan, penDownValue) ;
+            const penDownField = new Field("penDown", Type.TOP, tMan, penDownValue) ;
             this.addField( penDownField ) ;
 
 
@@ -592,7 +592,7 @@ module world {
                     tw.hide( ) ;
                     vm.finishStep( done ) ; } } ;
             const hideValue = new BuiltInV( hideStepper ) ;
-            const hideField = new Field("hide", Type.ANY, tMan, hideValue) ;
+            const hideField = new Field("hide", Type.TOP, tMan, hideValue) ;
             this.addField( hideField ) ;
 
 
@@ -601,7 +601,7 @@ module world {
                     tw.show( ) ;
                     vm.finishStep( done ) ; } } ;
             const showValue = new BuiltInV( showStepper ) ;
-            const showField = new Field("show", Type.ANY, tMan, showValue) ;
+            const showField = new Field("show", Type.TOP, tMan, showValue) ;
             this.addField( showField ) ;
 
 
@@ -610,7 +610,7 @@ module world {
                     tw.clear( ) ;
                     vm.finishStep( done ) ; } } ;
             const clearValue = new BuiltInV( clearStepper ) ;
-            const clearField = new Field("clear", Type.ANY, tMan, clearValue) ;
+            const clearField = new Field("clear", Type.TOP, tMan, clearValue) ;
             this.addField( clearField ) ;
 
             const setBackgroundStepper = (vm : VMS, args : Array<Value> ) : void => {
@@ -622,7 +622,7 @@ module world {
                     tw.setBackground( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
-            const setBackgroundField = new Field("setBackground", Type.ANY, tMan, setBackgroundValue) ;
+            const setBackgroundField = new Field("setBackground", Type.TOP, tMan, setBackgroundValue) ;
             this.addField( setBackgroundField ) ;
 
             const setTurtleColorStepper = (vm : VMS, args : Array<Value> ) : void => {
@@ -634,7 +634,7 @@ module world {
                     tw.setTurtleColor( r,g,b ) ;
                     vm.finishStep( done ) ; } } ;
             const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;
-            const setTurtleField = new Field("setTurtleColor", Type.ANY, tMan, setTurtleColorValue) ;
+            const setTurtleField = new Field("setTurtleColor", Type.TOP, tMan, setTurtleColorValue) ;
             this.addField( setTurtleField ) ;
         }
     }

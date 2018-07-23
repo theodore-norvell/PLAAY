@@ -42,7 +42,7 @@ describe( 'Variable Stack ', function() : void {
     it('Should be able to look up values', function() : void {
 
         const str = new valueTypes.StringV("");
-        const f : Field = new Field("abc", Type.ANY, manager, str);
+        const f : Field = new Field("abc", Type.TOP, manager, str);
         const obj : ObjectV = new ObjectV(manager ) ;
         obj.addField( f ) ;
         const yStack = new NonEmptyVarStack( obj, xStack) ;

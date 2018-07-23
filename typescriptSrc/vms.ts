@@ -723,7 +723,7 @@ module vms{
     // TODO replace this with a proper system of types.
     export class Type {
         private constructor() {} 
-        public static readonly ANY = new Type() ;
+        public static readonly TOP = new Type() ;
     }
 }
 export = vms;

@@ -428,7 +428,7 @@ module interpreter {
             const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
             const varName = varDeclNode.child(0).label().getVal();
             //TODO: Correctly set the type of the field.
-            let ty = Type.ANY ;
+            let ty = Type.TOP ;
             let val = args[i];
             //TODO: check that ty.contains( val ) 
             if( ! isCon ) {
@@ -479,7 +479,7 @@ module interpreter {
         for(let i = 0; i < sz ; ++i) {
             const val = vm.getChildVal(i);
             const name : string = i+"";
-            const field = new Field(name, Type.ANY, manager, val);
+            const field = new Field(name, Type.TOP, manager, val);
             array.addField(field) ;
         }
         vm.finishStep(array);
@@ -499,7 +499,7 @@ module interpreter {
               assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
               const varLabel = firstChild.label() as labels.VariableLabel ;
               const name : string = varLabel.getVal() ;
-              const type : Type = Type.ANY ; // TODO compute the type from the 2nd child of the childNode
+              const type : Type = Type.TOP ; // TODO compute the type from the 2nd child of the childNode
               const field = new Field( name, type, manager ) ;
               if( names.some( (v : string) => v===name ) ) {
                   vm.reportError( "Variable '" +name+ "' is declared twice." ) ;
@@ -721,9 +721,9 @@ module interpreter {
             let locn : LocationV ;
             if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
                 const value : Value = vm.getChildVal(2);
-                locn = new LocationV( Type.ANY, btMan, value ) ;
+                locn = new LocationV( Type.TOP, btMan, value ) ;
             } else {
-                locn = new LocationV( Type.ANY, btMan) ; }
+                locn = new LocationV( Type.TOP, btMan) ; }
             field.setValue( locn ) ;
         }
         vm.finishStep( TupleV.theDoneValue ) ;
