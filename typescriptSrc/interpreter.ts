@@ -683,7 +683,7 @@ module interpreter {
 
     function varDeclStepper(vm : VMS) : void {
         const varDeclNode = vm.getPendingNode() ;
-        assert.checkPrecondition( varDeclNode instanceof labels.VarDeclLabel ) ;
+        assert.checkPrecondition( varDeclNode.label() instanceof labels.VarDeclLabel ) ;
         const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
 
         const variableNode : PNode = vm.getPendingNode().child(0);
