@@ -1251,13 +1251,22 @@ module animatorHelpers
 
     function makeLocationBorderSVG(base : svg.Container, el : svg.Element) : void
     {
-        const VPADDING = 4 ;
-        const HPADDING = 4 ;
+        const r = 4 ; // Radius
+        const VPADDING = 2*r ;
+        const HPADDING = 2*r ;
         const bounds : svg.BBox = el.bbox();
         el.dmove( -bounds.x+HPADDING, -bounds.y+VPADDING ) ;
         const w = Math.max( bounds.width, 10 ) + 2*HPADDING ;
-        const h = Math.max( bounds.height, 20 ) + 2*VPADDING ;
-        const outline : svg.Path = base.path("M0 0 L0 " +h+ " L" +w+ " " +h+ " L" +w+ " 0");
+        const h = Math.max( bounds.height, 10 ) + 2*VPADDING ;
+        const path = "M0 0" +
+                   " A" +r+ " " +r+ " 0 0 1 " +r+ " " +r+
+                   " V" +(h-r)+
+                   " A" +r+ " " +r+ " 0 0 0 " +(2*r)+ " " +h+
+                   " H" +(w-2*r)+
+                   " A" +r+ " " +r+ " 0 0 0 " +(w-r)+ " " +(h-r)+
+                   " V" +r+
+                   " A" +r+ " " +r+ " 0 0 1" +w+ " 0" ; 
+        const outline : svg.Path = base.path( path );
         outline.fill( {opacity: 0} ) ;
         outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
