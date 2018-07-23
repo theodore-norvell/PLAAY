@@ -31,6 +31,7 @@ module animatorHelpers
     import Value = vms.Value;
     import ObjectI = vms.ObjectI;
     import TupleV = valueTypes.TupleV;
+    import LocationV = valueTypes.LocationV;
 
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
     import TRUEMARK  = sharedMkHtml.TRUEMARK ;
@@ -140,6 +141,21 @@ module animatorHelpers
             border = element.rect(0,0);
         }
         return border;
+    }
+
+    function drawLocation(loc : LocationV, element : svg.Container, x : number) : void
+    {
+        // TODO. Ensure that each location is drawn only once.
+        const opt = loc.getValue() ;           
+        const el : svg.G = element.group();
+        opt.choose(
+            (val : Value) => {
+
+                buildSVGForMappedNode(el, val, true);  
+            },
+            () => {}
+        ) ;
+        makeLocationBorderSVG(element, el);
     }
 
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
@@ -862,6 +878,12 @@ module animatorHelpers
 
             return;
         } 
+        if( value.isLocationV() ) {
+            const loc = value as LocationV ;
+            drawLocation(loc,element,0) ;
+
+            return ;
+        }
         if(value.isStringV())
         {
             makeStringLiteralSVG(element, (value as StringV).getVal() );
@@ -1225,6 +1247,19 @@ module animatorHelpers
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
         return outline;
+    }
+
+    function makeLocationBorderSVG(base : svg.Container, el : svg.Element) : void
+    {
+        const VPADDING = 4 ;
+        const HPADDING = 4 ;
+        const bounds : svg.BBox = el.bbox();
+        el.dmove( -bounds.x+HPADDING, -bounds.y+VPADDING ) ;
+        const w = Math.max( bounds.width, 10 ) + 2*HPADDING ;
+        const h = Math.max( bounds.height, 20 ) + 2*VPADDING ;
+        const outline : svg.Path = base.path("M0 0 L0 " +h+ " L" +w+ " " +h+ " L" +w+ " 0");
+        outline.fill( {opacity: 0} ) ;
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
     }
 
     //I assume textElement is already contained within base.

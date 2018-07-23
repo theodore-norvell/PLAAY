@@ -102,7 +102,7 @@ module valueTypes {
         }
 
         public isLocationV() : boolean {
-            return this.getKind() === ValueKind.OBJECT ;
+            return this.getKind() === ValueKind.LOCATION ;
         }
 
         public isNullV() : boolean {
