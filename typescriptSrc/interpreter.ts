@@ -381,6 +381,9 @@ module interpreter {
     }
 
     function completeCall( vm : VMS, functionValue : Value, args : Array<Value> ) : void {
+        if( args.length === 1 && args[0] instanceof TupleV ) {
+            args = (args[0] as TupleV).getItems() ;
+        }
         if (functionValue instanceof BuiltInV) {
             const stepper = functionValue.getStepper();
             stepper(vm, args);
@@ -399,9 +402,16 @@ module interpreter {
         const returnType = lambda.child(1) ;
         const body = lambda.child(2) ;
         const context = closure.getContext() ;
-        if(args.length !== paramlist.children(0, paramlist.count()).length) {
-            vm.reportError("Number of arguments for lambda does not match parameter list.");
+        // Check for the wrong number of arguments.
+        // This only applies if the number of parameters is not 1.
+        if(args.length !== paramlist.count() && paramlist.count() !== 1 ) {
+            vm.reportError("Call has the wrong number of arguments: expected " +paramlist.count()+ ".");
             return;
+        }
+        // If the number of parameters is 1, but the number of arguments is not, 
+        // then make a tuple.
+        if( args.length !== 1 && paramlist.count() === 1) {
+            args = [ TupleV.createTuple( args ) ] ;
         }
         const manager = vm.getTransactionManager();
         const stackFrame = new ObjectV(manager);
@@ -515,11 +525,11 @@ module interpreter {
       else if( object instanceof TupleV) {
           if( field instanceof NumberV) {
               const index : number = field.converToNumber();
-              if( index < 0 || index > object.numFields() - 1 ) {
+              if( index < 0 || index > object.itemCount() - 1 ) {
                 vm.reportError("Invalid index value: "+index);
               }
               else {
-                  const val = object.getValueByIndex(index);
+                  const val = object.getItemByIndex(index);
                   vm.finishStep(val);
               }
           }
