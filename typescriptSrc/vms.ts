@@ -255,6 +255,9 @@ module vms{
         }
     }
 
+    export enum Context {
+        L, R
+    }
     /** An evaluation is the state of evaluation of one PLAAY expression.
      * Typically it will  be the evaluatio of one method body.
      * See the run-time model documentation for details.
@@ -263,6 +266,7 @@ module vms{
         private readonly root : TVar<PNode>;
         private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
+        private readonly context : TVar<Context> ;
         private readonly ready : TVar<boolean>;
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
@@ -271,6 +275,7 @@ module vms{
             const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
+            this.context = new TVar<Context>( Context.R, manager ) ;
             this.ready = new TVar<boolean>(false, manager);
             this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
@@ -294,6 +299,12 @@ module vms{
             this.ready.set(newReady) ;
         }
 
+        public LContext() : void { this.context.set( Context.L ) ; }
+        
+        public RContext() : void { this.context.set( Context.R ) ; }
+
+        public isRContext() : boolean { return this.context.get() === Context.R ; }
+        
         public getStack() : VarStack {
             return this.varStack.get() ;
         }
