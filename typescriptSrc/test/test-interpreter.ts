@@ -28,6 +28,7 @@ import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NumberV = valueTypes.NumberV;
+import LocationV = valueTypes.LocationV;
 import BoolV = valueTypes.BoolV;
 import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
@@ -228,6 +229,9 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
     const root = mkExprSeq([lambdaDecl, callWorld]);
+    // {  var f : := \ -> { 42 }
+    //    callWorld[f]()
+    // }
     const vm = makeStdVMS(root);
     
     it('should evaluate to a NumberV equaling 42', function() : void {
@@ -1565,7 +1569,7 @@ describe('ObjectLiteralLabel', function(): void {
     it('should evaluate to an ObjectV with 2 fields', function () : void {
       const rootLabel = new labels.ObjectLiteralLabel();
       const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-      const field2 = labels.mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field2 = labels.mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
       const root = new PNode(rootLabel, [field1, field2]);
       const vm = makeStdVMS( root )  ;
       while (vm.canAdvance()) {
@@ -1575,8 +1579,16 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue().first() as NumberV).getVal() === 3) ;
-      assert.check(((val as ObjectV).getField("y").getValue().first() as NumberV).getVal() === 5) ;
+
+      assert.check((val as ObjectV).getField("x").getValue().first() instanceof LocationV) ;
+      const locX = (val as ObjectV).getField("x").getValue().first() as LocationV ;
+      assert.check( locX.getValue().first() instanceof NumberV )  ;
+      const numberVX = locX.getValue().first() as NumberV ;
+      assert.check( numberVX.getVal() === 3) ;
+      
+      assert.check((val as ObjectV).getField("y").getValue().first() instanceof NumberV) ;
+      const numberVY = (val as ObjectV).getField("y").getValue().first() as NumberV ;
+      assert.check( numberVY.getVal() === 5) ;
   });
 });
 
@@ -1629,7 +1641,7 @@ describe('AccessorLabel', function(): void {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
-        assert.checkEqual( "The operand of the index operator must be a string.", message );
+        assert.checkEqual( "The operand of the index operator must be a string or number.", message );
     });
 });
 
@@ -1684,9 +1696,18 @@ describe('ArrayLiteralLabel', function(): void {
       assert.check(!vm.hasError());
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
-      assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("0").getValue().first() as NumberV).getVal() === 12345);
-      assert.check(((val as ObjectV).getField("1").getValue().first() as NumberV).getVal() === 67890);
+
+      assert.check((val as ObjectV).getField("0").getValue().first() instanceof LocationV) ;
+      const loc0 = (val as ObjectV).getField("0").getValue().first() as LocationV ;
+      assert.check( loc0.getValue().first() instanceof NumberV )  ;
+      const numberV0 = loc0.getValue().first() as NumberV ;
+      assert.check( numberV0.getVal() === 12345 ) ;
+
+      assert.check((val as ObjectV).getField("1").getValue().first() instanceof LocationV) ;
+      const loc1 = (val as ObjectV).getField("1").getValue().first() as LocationV ;
+      assert.check( loc1.getValue().first() instanceof NumberV )  ;
+      const numberV1 = loc1.getValue().first() as NumberV ;
+      assert.check( numberV1.getVal() === 67890 ) ;
   });
 });
 
@@ -2122,8 +2143,10 @@ describe('VarDeclLabel', function () : void {
         const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
         assert.check( ! f.getValue().isEmpty() ) ;
-        assert.check( f.getValue().first() instanceof NumberV ) ;
-        assert.check( (f.getValue().first() as NumberV ).getVal() === 5 ) ;
+        assert.check( f.getValue().first() instanceof LocationV ) ;
+        const loc = f.getValue().first() as LocationV;
+        assert.check( ! loc.getValue().isEmpty() ) ;
+        assert.check( loc.getValue().first() instanceof NumberV ) ;
 
         // step the expr seq node
         selectAndStep( vm ) ;
@@ -2193,7 +2216,10 @@ describe('VarDeclLabel', function () : void {
         // Step the variable declaration node
         vm.advance() ;
         assert.check( ! field.getValue().isEmpty() ) ;
-        assert.check( field.getValue().first().isNullV() ) ;
+        assert.check( field.getValue().first() instanceof LocationV ) ;
+        const loc = field.getValue().first() as  LocationV ;
+        assert.check( loc.getValue().isEmpty() ) ;
+        
         assert.check( vm.isMapped( list(0) ) ) ;
         assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
