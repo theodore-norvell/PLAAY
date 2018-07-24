@@ -469,8 +469,9 @@ module interpreter {
         const sz = node.count() ;
         for(let i = 0; i < sz ; ++i) {
             const val = vm.getChildVal(i);
+            const loc = new LocationV(Type.TOP, manager, val ) ;
             const name : string = i+"";
-            const field = new Field(name, Type.TOP, manager, val);
+            const field = new Field(name, Type.TOP, manager, loc);
             array.addField(field) ;
         }
         vm.finishStep(array, false);
@@ -510,9 +511,14 @@ module interpreter {
       const node = vm.getPendingNode();
       const object = vm.getChildVal(0);
       const field = vm.getChildVal(1);
-      if (object instanceof ObjectV) {
-        if (field instanceof StringV) {
-          const fieldName = field.getVal();
+      if (object instanceof ObjectV ) {
+        if (field.isStringV() || field.isNumberV() ) {
+          let fieldName : string ;
+          if( field.isNumberV() ) {
+            fieldName = (field as NumberV).getVal() + "" ;
+          } else {
+              fieldName = (field as StringV).getVal() ;
+          }
           if (object.hasField(fieldName)) {
             const opt = object.getField(fieldName).getValue();
             if( opt.isEmpty() ) {
@@ -527,7 +533,7 @@ module interpreter {
           }
         } 
         else {
-          vm.reportError("The operand of the index operator must be a string.");
+          vm.reportError("The operand of the index operator must be a string or number.");
           return;
         }
       }
