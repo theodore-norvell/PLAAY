@@ -1616,7 +1616,7 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to non-object', function(): void {
@@ -1669,7 +1669,7 @@ describe('DotLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to a non-object', function(): void {
@@ -2219,7 +2219,7 @@ describe('VarDeclLabel', function () : void {
         assert.check( field.getValue().first() instanceof LocationV ) ;
         const loc = field.getValue().first() as  LocationV ;
         assert.check( loc.getValue().isEmpty() ) ;
-        
+
         assert.check( vm.isMapped( list(0) ) ) ;
         assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
@@ -2293,24 +2293,18 @@ describe('AssignLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
         const root : PNode = mkAssign( variableNode, valueNode );
+        //   a := 5
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select valueNode
+        //select LHS
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
 
-        //step valueNode
+        //step LHS
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root(this should fail)
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
         assert.check( vm.hasError() ) ;
         assert.checkEqual( "No variable named 'a' is in scope.", vm.getError() ) ;
 
@@ -2358,7 +2352,7 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "The variable named 'a' is a constant and may not be assigned.", vm.getError() ) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError() ) ;
     });
 
     it('should fail when trying to assign to a variable not yet declared', function () : void {
@@ -2396,10 +2390,13 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "Attempting to assign to something that isn't a variable.", vm.getError()) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError()) ;
     });
 
     it('should assign to the field of an object', function(): void {
+      // ExprSeq( varDelc[loc]( var(obj) noType objectLiteral(varDelc[loc](var(x) noType numberLiteral(5)))
+      //          assign( accessor( var[obj], stringLiteral[x]), 10)
+      //          accessor( var[obj], stringLiteral[x] ) )
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
@@ -2409,6 +2406,7 @@ describe('AssignLabel', function () : void {
       const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
+
 
       //run the test until the top evaluation is done or there is an error
       while( vm.canAdvance() && ! vm.isDone() ) {
@@ -2628,7 +2626,7 @@ describe('WhileLabel', function () : void {
 
         //run the test.  We expect to select  and step the following nodes.
         const nodes = [root, trueNode, varDeclNode,
-                       guardNode, bodyNode, falseNode, assignNode, bodyNode,
+                       guardNode, bodyNode, guardNode, falseNode, assignNode, bodyNode,
                        guardNode, whileNode,
                        guardNode, root ] ;
         

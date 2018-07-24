@@ -135,10 +135,10 @@ module interpreter {
     theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
     theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
 
-    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelectorSameContext;
+    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelectorRContext;
     theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
 
-    theSelectorRegistry[labels.DotLabel.kindConst] = leftToRightSelectorSameContext;
+    theSelectorRegistry[labels.DotLabel.kindConst] = leftToRightSelectorRContext;
     theStepperRegistry[labels.DotLabel.kindConst] = dotStepper;
 
     theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelectorRContext;
@@ -536,7 +536,7 @@ module interpreter {
             vm.finishStep(opt.first(), true);
           }
           else {
-            vm.reportError("No field named '" + fieldName +"'.") ;
+            vm.reportError("Object has no field named '" + fieldName +"'.") ;
             return;
           }
         } 
@@ -582,7 +582,7 @@ module interpreter {
                 vm.finishStep( opt.first(), true );
             }
             else {
-                vm.reportError("No field named '" + name + "'.");
+                vm.reportError("Object has no field named '" + name + "'.");
             }
         } else {
             vm.reportError( "The dot operator may only be applied to objects." );
@@ -635,7 +635,7 @@ module interpreter {
             loc.setValue( rhs ) ;
         }
         else {
-            vm.reportError( "The left side of a assignment should be a location." ) ;
+            vm.reportError( "The left operand of an assignment should be a location." ) ;
             return ; 
         }
         vm.finishStep( TupleV.theDoneValue, false ) ;
