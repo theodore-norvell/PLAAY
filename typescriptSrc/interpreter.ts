@@ -419,7 +419,7 @@ module interpreter {
             const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
             const varName = varDeclNode.child(0).label().getVal();
             //TODO: Correctly set the type of the field.
-            let ty = Type.TOP ;
+            const ty = Type.TOP ;
             let val = args[i];
             //TODO: check that ty.contains( val ) 
             if( ! isCon ) {

@@ -252,7 +252,7 @@ module vms{
 
         private setResult(value : Value ) : void {
             assert.check(this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value, true, this ) ;
+            this.evalStack.top().finishStep( value, false, this ) ;
         }
 
         public reportError( message : string ) : void {
@@ -428,6 +428,13 @@ module vms{
             this.extraInformationMap.put( p, v ) ; 
         }
 
+        /** Complete the step by mapping the value to the pending node and
+         * then setting pending to point to the root.
+         * @param value -- The value the pending node should be mapped to
+         * @param fetch -- Whether the value should be fetched from if it is a
+         * location and the current context is R.
+         * @param vm  -- Virtual machine for error reporting.
+         */
         public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
