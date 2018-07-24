@@ -218,6 +218,7 @@ html, body
     top: 0px ;
     bottom: 0px ;
     width: auto ;
+    height: 70%;
     margin: auto;
     background-color: #262626;
 
@@ -257,7 +258,8 @@ html, body
     width: auto;
     margin: 1em 1em 1em 1em ;
     background-color:#a6a6a6 ;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .typePalette
@@ -266,15 +268,19 @@ html, body
     width:  auto;
     margin: 1em 1em 1em 1em ;
     background-color:#a6a6a6 ;
-    overflow: auto;    
+    overflow-y: auto; 
+    overflow-x: hidden;   
 }
 
 .buttonArea
 {
     flex: 1 1 auto ;
     width: auto;
+    height: 25%;
     margin: 1em 1em 1em 1em ;
     background-color: #a6a6a6 ;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .leftSideButton
