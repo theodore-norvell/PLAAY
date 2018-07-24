@@ -276,15 +276,6 @@ module treeManager {
                 varNode = declNode.child(0) ;
                 typeNode = declNode.child(1) ;
                 initNode = declNode.child(2) ;
-            } // If the selection parent is a declNode, try changing it.
-            else if( selection.parent().isVarDeclNode() ) {
-                const declNode = selection.parent() ;
-                varNode = declNode.child(0) ;
-                typeNode = declNode.child(1) ;
-                initNode = declNode.child(2) ;
-                // Try going up.
-                const upEdit = pnodeEdits.moveFocusUpEdit ;
-                upEdit.applyEdit(selection).map( s => selection=s ) ;
             } // Otherwise try making a new node.
             else {
                 varNode = labels.mkVar("");
@@ -295,26 +286,19 @@ module treeManager {
             const vardeclnode = isConstant
                  ? labels.mkConstDecl( varNode, typeNode, initNode ) 
                  : labels.mkVarDecl( varNode, typeNode, initNode );
+
+            const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
+            const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
+            const templates = [template0, template1] ;
             
             if(!isConstant) {
                 const exprPH = labels.mkExprPH();
-                const typePH = labels.mkLocationType(exprPH);
-                const templateType = new Selection( typePH,list<number>(),0,1);
-                const edit0 = replaceOrEngulfTemplateEdit(templateType);
+                const locationTypeNode = labels.mkLocationType(exprPH);
+                const templateType = new Selection( locationTypeNode,list<number>(),0,1);
+                templates.push( templateType ) ; }
 
-                const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-                const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
-                const edit1 = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
-                const edit = edits.alt([edit0,edit1]);
-                return edit.applyEdit(selection);
-            }
-            else {
-                const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-                const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
-                const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
-                return edit.applyEdit(selection);
-            }
-    
+            const edit = replaceOrEngulfTemplateEdit( templates  ) ;
+            return edit.applyEdit(selection);
         }
 
         private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {
