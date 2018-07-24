@@ -253,7 +253,7 @@ module valueTypes {
     /** Locations represent locations in the store
      * that can have their values changed.
      */
-    export class LocationV extends AbstractValue {
+    export class LocationV extends AbstractValue implements vms.Location {
 
         private readonly value : TVar<Option<Value>>;
         private readonly type : Type;

@@ -132,7 +132,7 @@ module world {
                                ? callback( defaultResult, numbers[0] )
                                : numbers.reduce( callback ) ;
               const val = new NumberV( result ) ;
-              vm.finishStep(val);
+              vm.finishStep(val, false);
           }
         } ;
     }
@@ -163,7 +163,7 @@ module world {
         if( ok ) {
             const result = callback(vals);            
             const val : BoolV = BoolV.getVal(result);
-            vm.finishStep( val ) ;
+            vm.finishStep( val, false ) ;
         }
       } ;
     }
@@ -186,7 +186,7 @@ module world {
         if(ok) {
             const result = vals.reduce(callback, initialValue);
             const val : BoolV = BoolV.getVal(result);          
-            vm.finishStep(val);
+            vm.finishStep(val, false);
         }
       } ;
     }
@@ -199,7 +199,7 @@ module world {
                      let ok = true;
                      if(args.length === 0) {
                         const val : BoolV = BoolV.getVal(!ok);
-                        vm.finishStep(val);
+                        vm.finishStep(val, false);
                         return;            
                      }
                      for(let i=0; i< args.length; ++i) {
@@ -214,7 +214,7 @@ module world {
                      if(ok) {
                          const result = callback(vals);
                          const val : BoolV = BoolV.getVal(result);                         
-                         vm.finishStep(val);
+                         vm.finishStep(val, false);
                      }
                  } ;
              }
@@ -349,7 +349,7 @@ module world {
                     }
                 }                
                 const val : BoolV = BoolV.getVal(bool) ;
-                vm.finishStep( val ) ;  
+                vm.finishStep( val, false ) ;  
             }
 
             function notEqualStep(vm : VMS, args : Array<Value>) : void {
@@ -401,7 +401,7 @@ module world {
                     }
                 }
                 const val : BoolV = BoolV.getVal(bool);
-                vm.finishStep( val ) ;  
+                vm.finishStep( val, false ) ;  
             }
 
             
@@ -452,7 +452,7 @@ module world {
                     return;
                 }
                 const result = BoolV.getVal(!bool);
-                vm.finishStep(result);
+                vm.finishStep(result, false);
             }
 
             function lenStep(vm: VMS, args: Array<Value>) : void  {
@@ -467,7 +467,7 @@ module world {
                 }
                 const count = obj.numFields();
                 const val = new NumberV(count);
-                vm.finishStep(val);
+                vm.finishStep(val, false);
             }
 
             const len = new BuiltInV(lenStep);
@@ -496,7 +496,7 @@ module world {
                 console.log(obj.numFields()+"");
                 const field = new Field(obj.numFields()+"", Type.TOP, manager, val);
                 obj.addField(field);
-                vm.finishStep(TupleV.theDoneValue);
+                vm.finishStep(TupleV.theDoneValue, false);
             }
 
             const push = new BuiltInV(pushStep);
@@ -519,7 +519,7 @@ module world {
                     return;
                 }
                 obj.popField();
-                vm.finishStep(TupleV.theDoneValue);
+                vm.finishStep(TupleV.theDoneValue, false);
             }
 
             const pop = new BuiltInV(popStep);
@@ -541,7 +541,7 @@ module world {
                         && checkArgsAreNumbers(0, 1, args, vm ) ) {
                         const n : number = (args[0] as NumberV).converToNumber() ;
                         tw.forward( n ) ;
-                        vm.finishStep( done ) ; } } ;
+                        vm.finishStep( done, false ) ; } } ;
             const forwardValue = new BuiltInV( forwardStepper ) ;
             const forwardField = new Field("forward", Type.TOP, tMan, forwardValue) ;
             this.addField( forwardField ) ;
@@ -552,7 +552,7 @@ module world {
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
                     const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.right( n ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const rightValue = new BuiltInV( rightStepper ) ;
             const rightField = new Field("right", Type.TOP, tMan, rightValue) ;
             this.addField( rightField ) ;
@@ -563,7 +563,7 @@ module world {
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
                     const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.left( n ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done , false) ; } } ;
             const leftValue = new BuiltInV( leftStepper ) ;
             const leftField = new Field("left", Type.TOP, tMan, leftValue) ;
             this.addField( leftField ) ;
@@ -572,7 +572,7 @@ module world {
             const penUpStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.penUp( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const penUpValue = new BuiltInV( penUpStepper ) ;
             const penUpField = new Field("penUp", Type.TOP, tMan, penUpValue) ;
             this.addField( penUpField ) ;
@@ -581,7 +581,7 @@ module world {
             const penDownStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.penDown( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const penDownValue = new BuiltInV( penDownStepper ) ;
             const penDownField = new Field("penDown", Type.TOP, tMan, penDownValue) ;
             this.addField( penDownField ) ;
@@ -590,7 +590,7 @@ module world {
             const hideStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.hide( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const hideValue = new BuiltInV( hideStepper ) ;
             const hideField = new Field("hide", Type.TOP, tMan, hideValue) ;
             this.addField( hideField ) ;
@@ -599,7 +599,7 @@ module world {
             const showStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.show( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const showValue = new BuiltInV( showStepper ) ;
             const showField = new Field("show", Type.TOP, tMan, showValue) ;
             this.addField( showField ) ;
@@ -608,7 +608,7 @@ module world {
             const clearStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.clear( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const clearValue = new BuiltInV( clearStepper ) ;
             const clearField = new Field("clear", Type.TOP, tMan, clearValue) ;
             this.addField( clearField ) ;
@@ -620,7 +620,7 @@ module world {
                     const g : number = (args[1] as NumberV).converToNumber() ;
                     const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setBackground( r,g,b ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
             const setBackgroundField = new Field("setBackground", Type.TOP, tMan, setBackgroundValue) ;
             this.addField( setBackgroundField ) ;
@@ -632,7 +632,7 @@ module world {
                     const g : number = (args[1] as NumberV).converToNumber() ;
                     const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setTurtleColor( r,g,b ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;
             const setTurtleField = new Field("setTurtleColor", Type.TOP, tMan, setTurtleColorValue) ;
             this.addField( setTurtleField ) ;

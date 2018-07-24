@@ -141,6 +141,21 @@ module vms{
             this.evalStack.top().popPending( ) ;
         }
 
+        public rContext() : void {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            this.evalStack.top().rContext() ;
+        }
+
+        public lContext() : void {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            this.evalStack.top().lContext() ;
+        }
+
+        public isRContext() : boolean {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().isRContext() ;
+        }
+
         public getValMap() : ValueMap {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getValMap() ;
@@ -200,9 +215,9 @@ module vms{
             return this.evalStack;
         }
 
-        public finishStep( value : Value ) : void {
+        public finishStep( value : Value, fetch : boolean ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value ) ;
+            this.evalStack.top().finishStep( value, fetch, this ) ;
         }
 
         public getFinalValue( ) : Value {
@@ -237,7 +252,7 @@ module vms{
 
         private setResult(value : Value ) : void {
             assert.check(this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value ) ;
+            this.evalStack.top().finishStep( value, true, this ) ;
         }
 
         public reportError( message : string ) : void {
@@ -299,9 +314,9 @@ module vms{
             this.ready.set(newReady) ;
         }
 
-        public LContext() : void { this.context.set( Context.L ) ; }
+        public lContext() : void { this.context.set( Context.L ) ; }
         
-        public RContext() : void { this.context.set( Context.R ) ; }
+        public rContext() : void { this.context.set( Context.R ) ; }
 
         public isRContext() : boolean { return this.context.get() === Context.R ; }
         
@@ -348,6 +363,7 @@ module vms{
                 this.pending.set( null ) ;
             } else {
                 this.pending.set( collections.nil<number>() ) ; }
+            this.rContext() ;
         }
 
         public scrub( path : List<number> ) : void {
@@ -412,9 +428,18 @@ module vms{
             this.extraInformationMap.put( p, v ) ; 
         }
 
-        public finishStep( value : Value ) : void {
+        public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
+            if( fetch && value.isLocationV() && this.isRContext() ) {
+                const loc = value as Location ;
+                const opt = loc.getValue() ;
+                if( opt.isEmpty() ) {
+                    vm.reportError( "The location has no value." ) ;
+                    return ;
+                }
+                value = opt.first() ;
+            }
             const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
             this.popPending() ;
@@ -696,6 +721,10 @@ module vms{
         isTupleV : () => boolean ;
         isNumberV : () => boolean ;
         isBoolV : () => boolean ;
+    }
+
+    export interface Location extends Value {
+        getValue : () => Option<Value> ;
     }
 
     export enum ValueKind {
