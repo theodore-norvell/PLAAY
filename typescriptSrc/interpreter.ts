@@ -359,7 +359,15 @@ module interpreter {
                 vm.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
                 return ;
             }
-            const functionValue = opt.first() ;
+            let functionValue = opt.first() ;
+            if( functionValue instanceof LocationV ) {
+                const valOpt = functionValue.getValue() ;
+                if( valOpt.isEmpty() ) {
+                    vm.reportError( "The location has no value." ) ;
+                    return ;
+                }
+                functionValue = valOpt.first() ;
+            }
             const args : Array<Value> = [];
             for (let i = 0; i < node.count(); i++) {
                 args.push(vm.getChildVal(i)); }
