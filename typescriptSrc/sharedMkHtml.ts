@@ -620,12 +620,7 @@ module sharedMkHtml
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 
-                const arrow : JQuery = $( document.createElement("div") );
-                arrow.text(FUNCTIONTYPE);
-
-                result.append(children[0]);
-                result.append(arrow);
-                result.append(children[1]);
+                result.html("loc");
             }
             break;
             case labels.FieldTypeLabel.kindConst :
