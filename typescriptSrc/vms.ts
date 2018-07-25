@@ -238,7 +238,7 @@ module vms{
             if( ev.isDone() ) {
                 const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
-                this.setResult( value ) ;
+                this.finishStep( value, true ) ;
             }
             else{
                 ev.advance( this.interpreter, this);
@@ -248,11 +248,6 @@ module vms{
         public pushEvaluation(root: PNode, varStack: VarStack) : void {
           const evaluation = new Evaluation(root, varStack, this);
           this.evalStack.push(evaluation);
-        }
-
-        private setResult(value : Value ) : void {
-            assert.check(this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value, false, this ) ;
         }
 
         public reportError( message : string ) : void {
