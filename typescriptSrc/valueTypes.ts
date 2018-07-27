@@ -11,6 +11,7 @@ import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
+import types = require('./types');
 
 /** Value types provides classes that represent the values of Plaay programs
  * at runtime.
@@ -24,7 +25,7 @@ module valueTypes {
     import ClosureI = vms.ClosureI ;
     import ObjectI = vms.ObjectI ;
     import FieldI = vms.FieldI ;
-    import Type = vms.Type ;
+    import Type = types.TypeKind;
     import VMS = vms.VMS;
     import TVar = backtracking.TVar ;
     import TArray = backtracking.TArray ;

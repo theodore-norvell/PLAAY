@@ -11,6 +11,7 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import types = require('./types');
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -21,6 +22,7 @@ module vms{
     import TVar = backtracking.TVar;
     import TArray = backtracking.TArray;
     import TransactionManager = backtracking.TransactionManager;
+    import Type = types.TypeKind;
 
     import List = collections.List ;
     import nil = collections.nil ;
@@ -709,15 +711,5 @@ module vms{
         setIsDeclared : () => void ;
     }
 
-
-    export enum Type {
-        NOTYPE,
-        STRING,
-        BOOL,
-        NUMBER,
-        ANY,
-        METHOD,
-        NULL
-    }
 }
 export = vms;
