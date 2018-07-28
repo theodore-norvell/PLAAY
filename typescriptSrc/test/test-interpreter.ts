@@ -28,6 +28,7 @@ import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NumberV = valueTypes.NumberV;
+import LocationV = valueTypes.LocationV;
 import BoolV = valueTypes.BoolV;
 import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
@@ -228,6 +229,9 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
     const root = mkExprSeq([lambdaDecl, callWorld]);
+    // {  var f : := \ -> { 42 }
+    //    callWorld[f]()
+    // }
     const vm = makeStdVMS(root);
     
     it('should evaluate to a NumberV equaling 42', function() : void {
@@ -1565,7 +1569,7 @@ describe('ObjectLiteralLabel', function(): void {
     it('should evaluate to an ObjectV with 2 fields', function () : void {
       const rootLabel = new labels.ObjectLiteralLabel();
       const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-      const field2 = labels.mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field2 = labels.mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
       const root = new PNode(rootLabel, [field1, field2]);
       const vm = makeStdVMS( root )  ;
       while (vm.canAdvance()) {
@@ -1575,8 +1579,16 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue() as NumberV).getVal() === 3) ;
-      assert.check(((val as ObjectV).getField("y").getValue() as NumberV).getVal() === 5) ;
+
+      assert.check((val as ObjectV).getField("x").getValue().first() instanceof LocationV) ;
+      const locX = (val as ObjectV).getField("x").getValue().first() as LocationV ;
+      assert.check( locX.getValue().first() instanceof NumberV )  ;
+      const numberVX = locX.getValue().first() as NumberV ;
+      assert.check( numberVX.getVal() === 3) ;
+      
+      assert.check((val as ObjectV).getField("y").getValue().first() instanceof NumberV) ;
+      const numberVY = (val as ObjectV).getField("y").getValue().first() as NumberV ;
+      assert.check( numberVY.getVal() === 5) ;
   });
 });
 
@@ -1604,7 +1616,7 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to non-object', function(): void {
@@ -1629,7 +1641,7 @@ describe('AccessorLabel', function(): void {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
-        assert.checkEqual( "The operand of the index operator must be a string.", message );
+        assert.checkEqual( "The operand of the index operator must be a string or number.", message );
     });
 });
 
@@ -1657,7 +1669,7 @@ describe('DotLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to a non-object', function(): void {
@@ -1684,9 +1696,18 @@ describe('ArrayLiteralLabel', function(): void {
       assert.check(!vm.hasError());
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
-      assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("0").getValue() as NumberV).getVal() === 12345);
-      assert.check(((val as ObjectV).getField("1").getValue() as NumberV).getVal() === 67890);
+
+      assert.check((val as ObjectV).getField("0").getValue().first() instanceof LocationV) ;
+      const loc0 = (val as ObjectV).getField("0").getValue().first() as LocationV ;
+      assert.check( loc0.getValue().first() instanceof NumberV )  ;
+      const numberV0 = loc0.getValue().first() as NumberV ;
+      assert.check( numberV0.getVal() === 12345 ) ;
+
+      assert.check((val as ObjectV).getField("1").getValue().first() instanceof LocationV) ;
+      const loc1 = (val as ObjectV).getField("1").getValue().first() as LocationV ;
+      assert.check( loc1.getValue().first() instanceof NumberV )  ;
+      const numberV1 = loc1.getValue().first() as NumberV ;
+      assert.check( numberV1.getVal() === 67890 ) ;
   });
 });
 
@@ -2110,7 +2131,7 @@ describe('VarDeclLabel', function () : void {
         
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
-        assert.check( f.getIsDeclared() === false ) ;
+        assert.check( f.getValue().isEmpty() ) ;
 
         // step the mumber literal node
         selectAndStep( vm ) ;
@@ -2121,9 +2142,11 @@ describe('VarDeclLabel', function () : void {
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
-        assert.check( f.getIsDeclared() === true ) ;
-        assert.check( f.getValue() instanceof NumberV ) ;
-        assert.check( (f.getValue() as NumberV ).getVal() === 5 ) ;
+        assert.check( ! f.getValue().isEmpty() ) ;
+        assert.check( f.getValue().first() instanceof LocationV ) ;
+        const loc = f.getValue().first() as LocationV;
+        assert.check( ! loc.getValue().isEmpty() ) ;
+        assert.check( loc.getValue().first() instanceof NumberV ) ;
 
         // step the expr seq node
         selectAndStep( vm ) ;
@@ -2186,14 +2209,17 @@ describe('VarDeclLabel', function () : void {
         // Step the expr seq node
         vm.advance() ;
         const field = vm.getStack().getField( "a" ) ;
-        assert.check( ! field.getIsDeclared() ) ;
+        assert.check( field.getValue().isEmpty() ) ;
         assert.check( ! vm.isMapped( list(0) ) ) ;
         // Select the variable declaration node
         vm.advance() ;
         // Step the variable declaration node
         vm.advance() ;
-        assert.check( field.getIsDeclared() ) ;
-        assert.check( field.getValue().isNullV() ) ;
+        assert.check( ! field.getValue().isEmpty() ) ;
+        assert.check( field.getValue().first() instanceof LocationV ) ;
+        const loc = field.getValue().first() as  LocationV ;
+        assert.check( loc.getValue().isEmpty() ) ;
+
         assert.check( vm.isMapped( list(0) ) ) ;
         assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
@@ -2267,24 +2293,18 @@ describe('AssignLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
         const root : PNode = mkAssign( variableNode, valueNode );
+        //   a := 5
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select valueNode
+        //select LHS
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
 
-        //step valueNode
+        //step LHS
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root(this should fail)
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
         assert.check( vm.hasError() ) ;
         assert.checkEqual( "No variable named 'a' is in scope.", vm.getError() ) ;
 
@@ -2332,7 +2352,7 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "The variable named 'a' is a constant and may not be assigned.", vm.getError() ) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError() ) ;
     });
 
     it('should fail when trying to assign to a variable not yet declared', function () : void {
@@ -2370,10 +2390,13 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "Attempting to assign to something that isn't a variable.", vm.getError()) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError()) ;
     });
 
     it('should assign to the field of an object', function(): void {
+      // ExprSeq( varDelc[loc]( var(obj) noType objectLiteral(varDelc[loc](var(x) noType numberLiteral(5)))
+      //          assign( accessor( var[obj], stringLiteral[x]), 10)
+      //          accessor( var[obj], stringLiteral[x] ) )
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
@@ -2383,6 +2406,7 @@ describe('AssignLabel', function () : void {
       const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
+
 
       //run the test until the top evaluation is done or there is an error
       while( vm.canAdvance() && ! vm.isDone() ) {
@@ -2602,7 +2626,7 @@ describe('WhileLabel', function () : void {
 
         //run the test.  We expect to select  and step the following nodes.
         const nodes = [root, trueNode, varDeclNode,
-                       guardNode, bodyNode, falseNode, assignNode, bodyNode,
+                       guardNode, bodyNode, guardNode, falseNode, assignNode, bodyNode,
                        guardNode, whileNode,
                        guardNode, root ] ;
         

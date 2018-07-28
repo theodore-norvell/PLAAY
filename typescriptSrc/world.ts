@@ -132,7 +132,7 @@ module world {
                                ? callback( defaultResult, numbers[0] )
                                : numbers.reduce( callback ) ;
               const val = new NumberV( result ) ;
-              vm.finishStep(val);
+              vm.finishStep(val, false);
           }
         } ;
     }
@@ -141,12 +141,12 @@ module world {
       return function(vm : VMS, args : Array<Value>) : void {
         const vals : Array<number>= [] ;
         let ok = true ;
-        if (args.length == 0) {
+        if (args.length === 0) {
             vm.reportError("0 arguments passed in.") ;
         }
         for( let i=0 ; i < args.length ; ++i ) {
             if( args[i].isNumberV() ) {
-                let num = args[i] as NumberV;
+                const num = args[i] as NumberV;
                 if( num.canConvertToNumber() ) {
                     vals.push( num.converToNumber() ) ; 
                 }
@@ -163,7 +163,7 @@ module world {
         if( ok ) {
             const result = callback(vals);            
             const val : BoolV = BoolV.getVal(result);
-            vm.finishStep( val ) ;
+            vm.finishStep( val, false ) ;
         }
       } ;
     }
@@ -186,7 +186,7 @@ module world {
         if(ok) {
             const result = vals.reduce(callback, initialValue);
             const val : BoolV = BoolV.getVal(result);          
-            vm.finishStep(val);
+            vm.finishStep(val, false);
         }
       } ;
     }
@@ -199,7 +199,7 @@ module world {
                      let ok = true;
                      if(args.length === 0) {
                         const val : BoolV = BoolV.getVal(!ok);
-                        vm.finishStep(val);
+                        vm.finishStep(val, false);
                         return;            
                      }
                      for(let i=0; i< args.length; ++i) {
@@ -214,9 +214,9 @@ module world {
                      if(ok) {
                          const result = callback(vals);
                          const val : BoolV = BoolV.getVal(result);                         
-                         vm.finishStep(val);
+                         vm.finishStep(val, false);
                      }
-                 }
+                 } ;
              }
 
     export class World extends ObjectV {
@@ -228,19 +228,19 @@ module world {
             const addCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand + rightOperand; } ;
             const addstep = arithmeticStepperFactory(addCallback, 0);
             const plus = new BuiltInV(addstep);
-            const addf = new Field("+", plus, Type.METHOD, true, true, manager);
+            const addf = new Field("+", Type.TOP, manager, plus );
             this.addField(addf);
 
             const subCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand - rightOperand; } ;
             const substep = arithmeticStepperFactory(subCallback, 0);
             const sub = new BuiltInV(substep);
-            const subf = new Field("-", sub, Type.NUMBER, true, true, manager);
+            const subf = new Field("-", Type.TOP, manager, sub);
             this.addField(subf);
 
             const multCallback = (leftOperand: number, rightOperand: number): number => { return leftOperand * rightOperand; } ;
             const multstep = arithmeticStepperFactory(multCallback, 1);
             const mult = new BuiltInV(multstep);
-            const multf = new Field("*", mult, Type.NUMBER, true, true, manager);
+            const multf = new Field("*", Type.TOP, manager, mult);
             this.addField(multf);
 
             const divCallback = (dividend: number, divisor: number) : number => {
@@ -250,7 +250,7 @@ module world {
             } ;
             const divstep = arithmeticStepperFactory(divCallback, 1);
             const div = new BuiltInV(divstep);
-            const divf = new Field("/", div, Type.NUMBER, true, true, manager);
+            const divf = new Field("/", Type.TOP, manager, div);
             this.addField(divf);
 
             const greaterthanCallback = (vals: Array<number>): boolean => {
@@ -262,7 +262,7 @@ module world {
             } ;
             const greaterthanstep = comparatorStepperFactory(greaterthanCallback);
             const greaterthan = new BuiltInV(greaterthanstep);
-            const greaterf = new Field(">", greaterthan, Type.BOOL, true, true, manager);
+            const greaterf = new Field(">", Type.TOP, manager, greaterthan);
             this.addField(greaterf);
 
             const greaterthanequalCallback = (vals: Array<number>): boolean => {
@@ -274,7 +274,7 @@ module world {
             } ;
             const greaterthanequalstep = comparatorStepperFactory(greaterthanequalCallback);
             const greaterthanequal = new BuiltInV(greaterthanequalstep);
-            const greaterequalf = new Field(">=", greaterthanequal, Type.BOOL, true, true, manager);
+            const greaterequalf = new Field(">=", Type.TOP, manager, greaterthanequal);
             this.addField(greaterequalf);
 
             const lessthanCallback = (vals: Array<number>): boolean => {
@@ -286,7 +286,7 @@ module world {
             } ;
             const lessthanstep = comparatorStepperFactory(lessthanCallback);
             const lessthan = new BuiltInV(lessthanstep);
-            const lessf = new Field("<", lessthan, Type.BOOL, true, true, manager);
+            const lessf = new Field("<", Type.TOP, manager, lessthan);
             this.addField(lessf);
 
             const lessthanequalCallback = (vals: Array<number>): boolean => {
@@ -298,7 +298,7 @@ module world {
             } ;
             const lessthanequalstep = comparatorStepperFactory(lessthanequalCallback);
             const lessequalthan = new BuiltInV(lessthanequalstep);
-            const lessequalf = new Field("<=", lessequalthan, Type.BOOL, true, true, manager);
+            const lessequalf = new Field("<=", Type.TOP, manager, lessequalthan);
             this.addField(lessequalf);
 
             function equalstep(vm : VMS, args : Array<Value>) : void {
@@ -349,7 +349,7 @@ module world {
                     }
                 }                
                 const val : BoolV = BoolV.getVal(bool) ;
-                vm.finishStep( val ) ;  
+                vm.finishStep( val, false ) ;  
             }
 
             function notEqualStep(vm : VMS, args : Array<Value>) : void {
@@ -401,32 +401,32 @@ module world {
                     }
                 }
                 const val : BoolV = BoolV.getVal(bool);
-                vm.finishStep( val ) ;  
+                vm.finishStep( val, false ) ;  
             }
 
             
             const equal = new BuiltInV(equalstep);
-            const equalf = new Field("=", equal, Type.BOOL, true, true, manager);
+            const equalf = new Field("=", Type.TOP, manager, equal);
             this.addField(equalf);
 
             const notequal = new BuiltInV(notEqualStep);
-            const notequalf = new Field("/=",notequal, Type.BOOL, true,true, manager);
+            const notequalf = new Field("/=", Type.TOP, manager, notequal);
             this.addField(notequalf);
 
             const andCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand && rightOperand; } ;
             const andstep = logicalStepperFactory(andCallback, true);
             const and = new BuiltInV(andstep);
-            const andf = new Field("and", and, Type.BOOL, true, true, manager);
+            const andf = new Field("and", Type.TOP, manager, and);
             this.addField(andf);
 
             const orCallback = (leftOperand: boolean, rightOperand: boolean): boolean => { return leftOperand || rightOperand; } ;
             const orstep = logicalStepperFactory(orCallback, false);
             const or = new BuiltInV(orstep);
-            const orf = new Field("or", or, Type.BOOL, true, true, manager);
+            const orf = new Field("or", Type.TOP, manager, or);
             this.addField(orf);
 
             const not = new BuiltInV(notStep);
-            const notf = new Field("not",not,Type.BOOL,true,true,manager);
+            const notf = new Field("not", Type.TOP, manager, not );
             this.addField(notf);
             
             const impliesCallback = ( vals : Array<boolean>):boolean => {
@@ -438,7 +438,7 @@ module world {
             } ;
             const impliesStep = impliesStepperFactory(impliesCallback);          
             const implies = new BuiltInV(impliesStep);
-            const impliesf = new Field("implies",implies,Type.BOOL,true,true,manager);
+            const impliesf = new Field("implies", Type.TOP, manager, implies);
             this.addField(impliesf);
 
             function notStep(vm : VMS, args : Array<Value>) : void {
@@ -452,7 +452,7 @@ module world {
                     return;
                 }
                 const result = BoolV.getVal(!bool);
-                vm.finishStep(result);
+                vm.finishStep(result, false);
             }
 
             function lenStep(vm: VMS, args: Array<Value>) : void  {
@@ -467,19 +467,19 @@ module world {
                 }
                 const count = obj.numFields();
                 const val = new NumberV(count);
-                vm.finishStep(val);
+                vm.finishStep(val, false);
             }
 
             const len = new BuiltInV(lenStep);
-            const lenf = new Field("len", len, Type.NUMBER, true, true, manager);
+            const lenf = new Field("len", Type.TOP, manager, len);
             this.addField(lenf);
 
             const trueConstant = BoolV.trueValue;
-            const trueConstantf = new Field("true",trueConstant,Type.BOOL,true,true,manager);
+            const trueConstantf = new Field("true", Type.TOP, manager, trueConstant);
             this.addField(trueConstantf);
 
             const falseConstant = BoolV.falseValue;
-            const falseConstantf = new Field("false",falseConstant,Type.BOOL,true,true,manager);
+            const falseConstantf = new Field("false", Type.TOP, manager, falseConstant);
             this.addField(falseConstantf);
 
             function pushStep(vm: VMS, args: Array<Value>) : void {
@@ -494,36 +494,36 @@ module world {
                 }
                 const val = args[1];
                 console.log(obj.numFields()+"");
-                const field = new Field(obj.numFields()+"", val, Type.NOTYPE, false, false, manager);
+                const field = new Field(obj.numFields()+"", Type.TOP, manager, val);
                 obj.addField(field);
-                vm.finishStep(TupleV.theDoneValue);
+                vm.finishStep(TupleV.theDoneValue, false);
             }
 
             const push = new BuiltInV(pushStep);
-            const pushf = new Field("push", push, Type.NOTYPE, true, true, manager);
+            const pushf = new Field("push", Type.TOP, manager, push);
             this.addField(pushf);
 
-            function popStep(vms: VMS, args: Array<Value>) {
+            function popStep(vm: VMS, args: Array<Value>) : void {
                 if (args.length !== 1) {
-                    vms.reportError("pop expects 1 arguments of type object.");
+                    vm.reportError("pop expects 1 arguments of type object.");
                     return;
                 }
                 const obj = args[0];
                 if (!(obj instanceof ObjectV)) {
-                    vms.reportError("pop argument should be an object value.");
+                    vm.reportError("pop argument should be an object value.");
                     return;
                 }
                 const len = obj.numFields();
                 if (!obj.hasField((len-1)+"")) {
-                    vms.reportError("Cannot perform pop on " + obj.toString());
+                    vm.reportError("Cannot perform pop on " + obj.toString());
                     return;
                 }
                 obj.popField();
-                vms.finishStep(TupleV.theDoneValue);
+                vm.finishStep(TupleV.theDoneValue, false);
             }
 
             const pop = new BuiltInV(popStep);
-            const popf = new Field("pop", pop, Type.NOTYPE, false, false, manager);
+            const popf = new Field("pop", Type.TOP, manager, pop);
             this.addField(popf);
         }
     }
@@ -541,9 +541,9 @@ module world {
                         && checkArgsAreNumbers(0, 1, args, vm ) ) {
                         const n : number = (args[0] as NumberV).converToNumber() ;
                         tw.forward( n ) ;
-                        vm.finishStep( done ) ; } } ;
+                        vm.finishStep( done, false ) ; } } ;
             const forwardValue = new BuiltInV( forwardStepper ) ;
-            const forwardField = new Field("forward", forwardValue, Type.METHOD, true, true, tMan) ;
+            const forwardField = new Field("forward", Type.TOP, tMan, forwardValue) ;
             this.addField( forwardField ) ;
 
 
@@ -552,9 +552,9 @@ module world {
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
                     const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.right( n ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const rightValue = new BuiltInV( rightStepper ) ;
-            const rightField = new Field("right", rightValue, Type.METHOD, true, true, tMan) ;
+            const rightField = new Field("right", Type.TOP, tMan, rightValue) ;
             this.addField( rightField ) ;
 
 
@@ -563,54 +563,54 @@ module world {
                     && checkArgsAreNumbers(0, 1, args, vm ) ) {
                     const n : number = (args[0] as NumberV).converToNumber() ;
                     tw.left( n ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done , false) ; } } ;
             const leftValue = new BuiltInV( leftStepper ) ;
-            const leftField = new Field("left", leftValue, Type.METHOD, true, true, tMan) ;
+            const leftField = new Field("left", Type.TOP, tMan, leftValue) ;
             this.addField( leftField ) ;
 
 
             const penUpStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.penUp( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const penUpValue = new BuiltInV( penUpStepper ) ;
-            const penUpField = new Field("penUp", penUpValue, Type.METHOD, true, true, tMan) ;
+            const penUpField = new Field("penUp", Type.TOP, tMan, penUpValue) ;
             this.addField( penUpField ) ;
 
 
             const penDownStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.penDown( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const penDownValue = new BuiltInV( penDownStepper ) ;
-            const penDownField = new Field("penDown", penDownValue, Type.METHOD, true, true, tMan) ;
+            const penDownField = new Field("penDown", Type.TOP, tMan, penDownValue) ;
             this.addField( penDownField ) ;
 
 
             const hideStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.hide( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const hideValue = new BuiltInV( hideStepper ) ;
-            const hideField = new Field("hide", hideValue, Type.METHOD, true, true, tMan) ;
+            const hideField = new Field("hide", Type.TOP, tMan, hideValue) ;
             this.addField( hideField ) ;
 
 
             const showStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.show( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const showValue = new BuiltInV( showStepper ) ;
-            const showField = new Field("show", showValue, Type.METHOD, true, true, tMan) ;
+            const showField = new Field("show", Type.TOP, tMan, showValue) ;
             this.addField( showField ) ;
 
 
             const clearStepper = (vm : VMS, args : Array<Value> ) : void => {
                 if( checkNumberOfArgs( 0, 0, args, vm ) ) {
                     tw.clear( ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const clearValue = new BuiltInV( clearStepper ) ;
-            const clearField = new Field("clear", clearValue, Type.METHOD, true, true, tMan) ;
+            const clearField = new Field("clear", Type.TOP, tMan, clearValue) ;
             this.addField( clearField ) ;
 
             const setBackgroundStepper = (vm : VMS, args : Array<Value> ) : void => {
@@ -620,9 +620,9 @@ module world {
                     const g : number = (args[1] as NumberV).converToNumber() ;
                     const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setBackground( r,g,b ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const setBackgroundValue = new BuiltInV( setBackgroundStepper ) ;
-            const setBackgroundField = new Field("setBackground", setBackgroundValue, Type.METHOD, true, true, tMan) ;
+            const setBackgroundField = new Field("setBackground", Type.TOP, tMan, setBackgroundValue) ;
             this.addField( setBackgroundField ) ;
 
             const setTurtleColorStepper = (vm : VMS, args : Array<Value> ) : void => {
@@ -632,9 +632,9 @@ module world {
                     const g : number = (args[1] as NumberV).converToNumber() ;
                     const b : number = (args[2] as NumberV).converToNumber() ;
                     tw.setTurtleColor( r,g,b ) ;
-                    vm.finishStep( done ) ; } } ;
+                    vm.finishStep( done, false ) ; } } ;
             const setTurtleColorValue = new BuiltInV( setTurtleColorStepper ) ;
-            const setTurtleField = new Field("setTurtleColor", setTurtleColorValue, Type.METHOD, true, true, tMan) ;
+            const setTurtleField = new Field("setTurtleColor", Type.TOP, tMan, setTurtleColorValue) ;
             this.addField( setTurtleField ) ;
         }
     }
