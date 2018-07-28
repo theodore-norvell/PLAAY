@@ -19,11 +19,12 @@ module types {
         NUMBER,
         INT,
         NAT,
-        NULL,
-        NOTYPE
+        NULL
     }
 
     export interface Type {
+
+        getKind : () => TypeKind;
 
         isBottomT : () => boolean;
         isTopT : () => boolean;
@@ -42,11 +43,8 @@ module types {
     }
 
     abstract class AbstractType implements Type {
-        
-        public abstract getKind() : TypeKind;    
 
-        // Review: Do we need this?
-        public abstract isValid(children : Array<Type>) : boolean;
+        public abstract getKind() : TypeKind;
 
         constructor() {}
 
@@ -114,10 +112,6 @@ module types {
             return TypeKind.BOTTOM;
         }
 
-        public isValid(children : Array<Type>) {
-            return children.length === 0;
-        }
-
         private constructor() {
             super();
         }
@@ -127,22 +121,28 @@ module types {
 
     export class JoinType extends AbstractType {
 
+        private readonly children : [Type,Type] ;
+
         public getKind() : TypeKind {
             return TypeKind.JOIN;
         }
 
-        public isValid(children : Array<Type>) {
-            return children.length === 2 ;
-        }
-
-        private constructor() {
+        private constructor(left : Type, right : Type) {
             super();
+            this.children = [left,right];
         }
 
-        public static readonly theJoinType : JoinType = new JoinType();
+        public static CreateJoinType(left:Type, right:Type) {
+            return new JoinType(left,right);
+        }
+
+        public getChild(i:number) : Type {
+            assert.checkPrecondition(i === 0  || i === 1);
+            return this.children[i];
+        }
     }
 
-    abstract class TypeTerms extends AbstractType {
+    abstract class TypeTerm extends AbstractType {
 
         constructor() {
             super();
@@ -150,14 +150,10 @@ module types {
 
     }
 
-    export class TopType extends TypeTerms {
+    export class TopType extends TypeTerm {
 
         public getKind() : TypeKind {
             return TypeKind.TOP;
-        }
-
-        public isValid(children : Array<Type>) {
-            return children.length === 0;
         }
 
         private constructor() {
@@ -168,36 +164,31 @@ module types {
 
     }
 
-    export class MeetType extends TypeTerms {
+    export class MeetType extends TypeTerm {
 
-        private readonly typeTerms : Array<TypeTerms>;
+        private readonly children :[TypeTerm,TypeTerm];
 
         public getKind() : TypeKind {
             return TypeKind.MEET;
         }
 
-        public isValid(children:Array<TypeTerms>) {
-            return children.length === 2
+        private constructor(left:TypeTerm, right:TypeTerm)  {
+            super();
+            this.children = [left,right];
         }
 
-        private constructor(children:Array<TypeTerms>)  {
-            if(children.length === 2) {
-                super();
-                this.typeTerms = children.slice();
-            }
-            else {
-                this.typeTerms = [];
-                assert.failedPrecondition( "MeetType can accept only two TypeTerms." );
-            }
+        public static createMeetType(left:TypeTerm, right:TypeTerm) {
+            return new MeetType(left,right);
         }
 
-        public static createMeetType(children:Array<TypeTerms>) {
-            return new MeetType(children);
+        public getChild(i:number) : TypeTerm {
+            assert.checkPrecondition(i === 0 || i === 1);
+            return this.children[i];
         }
 
     }
 
-    abstract class TypeFactor extends TypeTerms {
+    abstract class TypeFactor extends TypeTerm {
 
         public abstract getLength() : number;
 
@@ -206,30 +197,25 @@ module types {
         }
     }
 
-    export class PrimitiveType extends TypeFactor {
+    abstract class PrimitiveType extends TypeFactor {
 
-        private readonly kind : TypeKind ;
-
-        public getKind() : TypeKind {
-            return this.kind;
-        }
+        public static readonly boolType : TypeKind = TypeKind.BOOL;
+        public static readonly stringType : TypeKind = TypeKind.STRING;
+        public static readonly numberType : TypeKind = TypeKind.NUMBER;
+        public static readonly intType : TypeKind = TypeKind.INT;
+        public static readonly natType : TypeKind = TypeKind.NAT;
+        public static readonly nullType : TypeKind = TypeKind.NAT;
 
         public getLength() : number {
             return 1;
         }
 
-        public isValid(children:Array<TypeFactor>) : boolean {
-            return children.length === 0 && (["BOOL","STRING","NUMBER","INT","NAT","NULL"].indexOf(this.kind.toString()) > -1)
-        }
+        public abstract  getKind() : TypeKind
 
         private constructor(type:TypeKind) {
             super();
-            this.kind = type;
         }
 
-        public static CreatePrimitiveType(type:TypeKind) {
-            return new PrimitiveType(type);
-        } 
     }
 
     export class TupleType extends TypeFactor {
@@ -241,11 +227,7 @@ module types {
         }
 
         public getLength() : number {
-            return this.types.length
-        }
-
-        public isValid() : boolean {
-            return this.types.length === 0 || this.types.length > 1;
+            return this.types.length;
         }
 
         private constructor(types:Array<Type>) {
@@ -267,14 +249,11 @@ module types {
 
         public getKind() : TypeKind {
             return TypeKind.FUNCTION;
+
         }
 
         public getLength() : number {
             return 1;
-        }
-
-        public isValid(children:Array<Type>) : boolean {
-            return children.length === 2;
         }
 
         private constructor(valueT:Type, returnT:Type) {
@@ -287,11 +266,20 @@ module types {
             return new FunctionType(valueT,returnT);
         }
 
+        public getSource() : Type {
+            return this.valueType;
+        }
+
+        public getTarget() : Type {
+            return this.returnType;
+        }
+
     }
 
     export class FieldType extends TypeFactor {
 
         private readonly type : Type;
+        private readonly identifier : string;
 
         public getKind() : TypeKind {
             return TypeKind.FIELD;
@@ -301,17 +289,22 @@ module types {
             return 1;
         }
 
-        public isValid(children : Array<Type>) : boolean {
-            return children.length === 1;
-        }
-
-        private constructor(type:Type) {
+        private constructor(type:Type, identifier : string) {
             super();
             this.type = type;
+            this.identifier = identifier;
         }
 
-        public static  CreateFieldType(type:Type) {
-            return new FieldType(type);
+        public static  CreateFieldType(type:Type,identifier:string) {
+            return new FieldType(type,identifier);
+        }
+
+        public getId() : string {
+            return this.identifier;
+        }
+
+        public getType() : Type {
+            return this.type;
         }
     } 
     
@@ -325,10 +318,6 @@ module types {
 
         public getLength() : number {
             return 1;
-        }
-
-        public isValid(children:Array<Type>) : boolean {
-            return children.length === 1;
         }
 
         private constructor(type:Type)  {
