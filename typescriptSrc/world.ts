@@ -16,6 +16,7 @@ import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
+import types = require('./types');
 
 /** This module contains code for the standard library.
  * 
@@ -34,7 +35,7 @@ module world {
     import NumberV = valueTypes.NumberV;
     import BoolV = valueTypes.BoolV;
     import TupleV = valueTypes.TupleV;
-    import Type = vms.Type;
+    import Type = types.TypeKind;
     import VMS = vms.VMS;
     import EvalStack = vms.EvalStack;
     import Evaluation = vms.Evaluation;

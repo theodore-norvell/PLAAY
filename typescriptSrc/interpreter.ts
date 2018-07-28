@@ -13,6 +13,7 @@ import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import valueTypes = require('./valueTypes') ;
 import vms = require('./vms') ;
+import types = require('./types') ;
 import world = require('./world') ;
 
 /** The interpreter module includes the various stepper and selector functions that
@@ -24,7 +25,7 @@ module interpreter {
     import Option = collections.Option ;
     import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
-    import Type = vms.Type ;
+    import Type = types.TypeKind ;
     import Value = vms.Value ;
     import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
