@@ -21,6 +21,7 @@ import world = require('./world') ;
  */
 module interpreter {
 
+    import Option = collections.Option ;
     import Evaluation = vms.Evaluation;
     import PNode = pnode.PNode;
     import Type = vms.Type ;
@@ -32,6 +33,7 @@ module interpreter {
     import NumberV = valueTypes.NumberV ;
     import BoolV = valueTypes.BoolV ;
     import ObjectV = valueTypes.ObjectV ;
+    import LocationV = valueTypes.LocationV ;
     import ClosureV = valueTypes.ClosureV ;
     import NullV = valueTypes.NullV ;
     import TupleV = valueTypes.TupleV ;
@@ -70,6 +72,10 @@ module interpreter {
     
     type Selector = ( vms : VMS ) => void ;
 
+    const leftToRightSelectorSameContext = leftToRightSelector( false ) ;
+
+    const leftToRightSelectorRContext = leftToRightSelector( true ) ;
+
     interface StepperRegistry { [key:string] : Stepper ; }
 
     const theStepperRegistry : StepperRegistry = {} ;
@@ -91,7 +97,7 @@ module interpreter {
     theSelectorRegistry[ labels.StringLiteralLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[ labels.StringLiteralLabel.kindConst ] = stringLiteralStepper ;
 
-    theSelectorRegistry[ labels.TupleLabel.kindConst ] = leftToRightSelector ;
+    theSelectorRegistry[ labels.TupleLabel.kindConst ] = leftToRightSelectorSameContext ;
     theStepperRegistry[ labels.TupleLabel.kindConst ] = tupleStepper ;
 
 
@@ -99,10 +105,10 @@ module interpreter {
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
 
-    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelector ;
+    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelectorRContext ;
     theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
 
-    theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelector ;
+    theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelectorRContext ;
     theStepperRegistry[labels.CallLabel.kindConst] = callStepper;
 
     // Control Labels
@@ -129,13 +135,13 @@ module interpreter {
     theSelectorRegistry[labels.ObjectLiteralLabel.kindConst] = exprSeqSelector;
     theStepperRegistry[labels.ObjectLiteralLabel.kindConst] = objectStepper;
 
-    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelector;
+    theSelectorRegistry[labels.AccessorLabel.kindConst] = leftToRightSelectorRContext;
     theStepperRegistry[labels.AccessorLabel.kindConst] = accessorStepper;
 
-    theSelectorRegistry[labels.DotLabel.kindConst] = leftToRightSelector;
+    theSelectorRegistry[labels.DotLabel.kindConst] = leftToRightSelectorRContext;
     theStepperRegistry[labels.DotLabel.kindConst] = dotStepper;
 
-    theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelector;
+    theSelectorRegistry[labels.ArrayLiteralLabel.kindConst] = leftToRightSelectorRContext;
     theStepperRegistry[labels.ArrayLiteralLabel.kindConst] = arrayStepper;
 
     // Placeholders
@@ -148,23 +154,26 @@ module interpreter {
         vm.setReady( true ) ;
     }
 
-    function leftToRightSelector( vm : VMS ) : void {
-        const node = vm.getPendingNode() ;
-        const sz = node.count() ;
-        let i = 0 ; 
-        for( ; i < sz ; ++i ) {
-            if( ! vm.isChildMapped(i) ) break ;
-        }
-        if( i===sz) {
-            // All children have been evaluated.
-            // So we pick the pending.
-            vm.setReady( true ) ; }
-        else {
-            // Child i has not been evaluated.
-            // recursively select from that child.
-            vm.pushPending( i ) ;
-            vm.getInterpreter().select( vm ) ;
-        }
+    function leftToRightSelector( rContext: boolean ) : Selector {
+        return function ( vm : VMS ) : void {
+                    const node = vm.getPendingNode() ;
+                    const sz = node.count() ;
+                    let i = 0 ; 
+                    for( ; i < sz ; ++i ) {
+                        if( ! vm.isChildMapped(i) ) break ;
+                    }
+                    if( i===sz) {
+                        // All children have been evaluated.
+                        // So we pick the pending.
+                        vm.setReady( true ) ; }
+                    else {
+                        // Child i has not been evaluated.
+                        // recursively select from that child.
+                        vm.pushPending( i ) ;
+                        if( rContext ) vm.rContext() ;
+                        vm.getInterpreter().select( vm ) ;
+                    }
+                } ;
     }
 
     function exprSeqSelector(vm : VMS) : void {
@@ -176,7 +185,7 @@ module interpreter {
             // Must previsit.
             vm.setReady( true ) ; }
         else {
-            leftToRightSelector( vm ) ;
+            leftToRightSelectorSameContext( vm ) ;
         }
     }
 
@@ -202,6 +211,7 @@ module interpreter {
 
         else {
             vm.pushPending(0);
+            vm.rContext() ;
             vm.getInterpreter().select(vm);
         }
 
@@ -232,40 +242,22 @@ module interpreter {
         //if it isn't selected, select the guard node
         else {
             vm.pushPending(0);
+            vm.rContext() ;
             vm.getInterpreter().select(vm);
         }
     }
 
     function assignSelector(vm : VMS) : void {
-        const varNode : PNode = vm.getPendingNode().child(0);
-        if (!vm.isChildMapped(1)) {
-            vm.pushPending(1);
+
+        if (!vm.isChildMapped(0)) {
+            vm.pushPending(0);
+            vm.lContext() ;
             vm.getInterpreter().select(vm);
         }
-        // when assigning to field of an object
-        else if (varNode.label().kind() === labels.AccessorLabel.kindConst) {
-            // check if children of accessor have been evaluated
-            const path = vm.getPending();
-            const pathToObject = path.cat(collections.list<number>(0,0));
-            const pathToField = path.cat(collections.list<number>(0,1));
-            if (!vm.isMapped(pathToObject) || !vm.isMapped(pathToField)) {
-              vm.pushPending(0);
-              vm.getInterpreter().select(vm);
-            } 
-            else {
-              vm.setReady(true);
-            }         
-        }
-        else if (varNode.label().kind() === labels.DotLabel.kindConst) {
-            const path = vm.getPending();
-            const pathToObject = path.cat(collections.list<number>(0,0));
-            if(!vm.isMapped(pathToObject)) {
-                vm.pushPending(0);
-                vm.getInterpreter().select(vm);
-            }
-            else {
-                vm.setReady(true);
-            }             
+        else if (!vm.isChildMapped(1)) {
+            vm.pushPending(1);
+            vm.rContext() ;
+            vm.getInterpreter().select(vm);
         }
         else {
             vm.setReady(true);
@@ -279,6 +271,7 @@ module interpreter {
         if ( ! (initializerNode.label() instanceof labels.NoExprLabel )
          &&  !vm.isChildMapped(2) ) {
             vm.pushPending(2);
+            vm.rContext() ;
             vm.getInterpreter().select(vm);
         }
         else {
@@ -299,7 +292,7 @@ module interpreter {
         assert.check( label.kind() === labels.BooleanLiteralLabel.kindConst ) ;
         const str = label.getVal();
         const result = str==="true" ? BoolV.trueValue : BoolV.falseValue ;
-        vm.finishStep( result ) ;
+        vm.finishStep( result, false ) ;
     }
     
     function stringLiteralStepper( vm : VMS ) : void {
@@ -312,7 +305,7 @@ module interpreter {
             // Here we make a harmeless exception by updating the cache.
             result = theStringCache[ str ] = new StringV( str ) ;
         }
-        vm.finishStep( result ) ;
+        vm.finishStep( result, false ) ;
     }
 
     function numberLiteralStepper( vm : VMS ) : void {
@@ -326,7 +319,7 @@ module interpreter {
             if(result === undefined) {
                 result = theNumberCache[ num ] = new NumberV( num ) ;
             }
-            vm.finishStep( result ) ;
+            vm.finishStep( result, false ) ;
         }
         else {
             vm.reportError("Not a valid number.") ;
@@ -334,7 +327,7 @@ module interpreter {
     }
  
     function nullLiteralStepper( vm : VMS ) : void {
-        vm.finishStep( NullV.theNullValue ) ;
+        vm.finishStep( NullV.theNullValue, false ) ;
     }
 
     function lambdaStepper(vm: VMS) : void {
@@ -353,21 +346,35 @@ module interpreter {
           }
         }
         const closure = new ClosureV(node, vm.getStack());
-        vm.finishStep(closure);
+        vm.finishStep(closure, false);
     }
 
     function callWorldStepper( vm : VMS ) : void {
         const node = vm.getPendingNode();
-        const fieldName = node.label().getVal();
-        if (vm.getStack().hasField(fieldName)) {
-            const functionValue : Value = vm.getStack().getField(fieldName).getValue();
+        const variableName = node.label().getVal();
+        if (vm.getStack().hasField(variableName)) {
+            const opt : Option<Value>
+                = vm.getStack().getField(variableName).getValue();
+            if( opt.isEmpty() ) {
+                vm.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
+                return ;
+            }
+            let functionValue = opt.first() ;
+            if( functionValue instanceof LocationV ) {
+                const valOpt = functionValue.getValue() ;
+                if( valOpt.isEmpty() ) {
+                    vm.reportError( "The location has no value." ) ;
+                    return ;
+                }
+                functionValue = valOpt.first() ;
+            }
             const args : Array<Value> = [];
             for (let i = 0; i < node.count(); i++) {
                 args.push(vm.getChildVal(i)); }
             completeCall( vm, functionValue, args ) ;
         } 
         else {
-            vm.reportError("No variable named '" + fieldName + "' is in scope.");
+            vm.reportError("No variable named '" + variableName + "' is in scope.");
         } 
     }
 
@@ -381,6 +388,9 @@ module interpreter {
     }
 
     function completeCall( vm : VMS, functionValue : Value, args : Array<Value> ) : void {
+        if( args.length === 1 && args[0] instanceof TupleV ) {
+            args = (args[0] as TupleV).getItems() ;
+        }
         if (functionValue instanceof BuiltInV) {
             const stepper = functionValue.getStepper();
             stepper(vm, args);
@@ -399,35 +409,37 @@ module interpreter {
         const returnType = lambda.child(1) ;
         const body = lambda.child(2) ;
         const context = closure.getContext() ;
-        if(args.length === 1 && args[0].isTupleV()) {
-            args = (args[0] as TupleV).getVal();
+        // Check for the wrong number of arguments.
+        // This only applies if the number of parameters is not 1.
+        if(args.length !== paramlist.count() && paramlist.count() !== 1 ) {
+            vm.reportError("Call has the wrong number of arguments: expected " +paramlist.count()+ ".");
+            return;
+        }
+        // If the number of parameters is 1, but the number of arguments is not, 
+        // then make a tuple.
+        if( args.length !== 1 && paramlist.count() === 1) {
+            args = [ TupleV.createTuple( args ) ] ;
         }
         const manager = vm.getTransactionManager();
         const stackFrame = new ObjectV(manager);
-        if(paramlist.children(0, paramlist.count()).length === 1 && args.length !== 1) {
-            const tuple : TupleV = TupleV.createTuple(args);
-            const varName = paramlist.child(0).child(0).label().getVal();
-            const field = new Field(varName,tuple,Type.ANY,true,true,manager);
-            field.setIsDeclared();
+        for (let i = 0; i < args.length; i++) {
+            const varDeclNode = paramlist.child(i) ;
+            const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
+            const varName = varDeclNode.child(0).label().getVal();
+            //TODO: Correctly set the type of the field.
+            const ty = Type.TOP ;
+            let val = args[i];
+            //TODO: check that ty.contains( val ) 
+            if( ! isCon ) {
+                // Location parameters need a location created
+                // for them.
+                val = new LocationV( ty, manager, val ) ;
+                // TODO ty = new LocationType( ty ) 
+            }
+            const field = new Field(varName, ty, manager, val);
             stackFrame.addField(field);
-            vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
         }
-        else {
-            if(args.length !== paramlist.children(0, paramlist.count()).length) {
-                vm.reportError("Number of arguments for lambda does not match parameter list.");
-                return;
-            }
-            for (let i = 0; i < args.length; i++) {
-                const varName = paramlist.child(i).child(0).label().getVal();
-                const val = args[i];
-                //TODO: check that the types of val and vardecl are the same
-                const field = new Field(varName, val, Type.ANY, true, true, manager);
-                field.setIsDeclared();
-                stackFrame.addField(field);
-            }
-            
-            vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
-        }
+        vm.pushEvaluation(body, new NonEmptyVarStack(stackFrame, context));
     }
 
     function exprSeqStepper(vm : VMS) : void {
@@ -442,7 +454,7 @@ module interpreter {
             const value : Value = (numberOfChildren === 0
                                    ? TupleV.theDoneValue
                                    : vm.getChildVal( numberOfChildren - 1) ) ;
-            vm.finishStep( value );
+            vm.finishStep( value, false );
             vm.getEval().popFromVarStack() ; }
     }
 
@@ -454,7 +466,7 @@ module interpreter {
       else {
           // Postvisit.
           const value = (vm.getStack() as NonEmptyVarStack).getTop();
-          vm.finishStep( value );
+          vm.finishStep( value, false );
           vm.getEval().popFromVarStack() ; }
     }
 
@@ -465,12 +477,12 @@ module interpreter {
         const sz = node.count() ;
         for(let i = 0; i < sz ; ++i) {
             const val = vm.getChildVal(i);
+            const loc = new LocationV(Type.TOP, manager, val ) ;
             const name : string = i+"";
-            const type : Type = Type.NOTYPE ;
-            const field = new Field(name, val, type, false, true, manager);
+            const field = new Field(name, Type.TOP, manager, loc);
             array.addField(field) ;
         }
-        vm.finishStep(array);
+        vm.finishStep(array, false);
     }
 
     function previsitNode(vm: VMS) : void {
@@ -483,14 +495,12 @@ module interpreter {
       for( let i=0; i < sz ; ++i ) {
           const childNode = node.child(i) ;
           if( childNode.label() instanceof labels.VarDeclLabel ) {
-              const varDeclLabel = childNode.label() as labels.VarDeclLabel ;
-              const isConstant = varDeclLabel.declaresConstant() ;
               const firstChild = childNode.child(0) ;
               assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
               const varLabel = firstChild.label() as labels.VariableLabel ;
               const name : string = varLabel.getVal() ;
-              const type : Type = Type.NOTYPE ; // TODO compute the type from the 2nd child of the childNode
-              const field = new Field( name, NullV.theNullValue, type, isConstant, false, manager ) ;
+              const type : Type = Type.TOP ; // TODO compute the type from the 2nd child of the childNode
+              const field = new Field( name, type, manager ) ;
               if( names.some( (v : string) => v===name ) ) {
                   vm.reportError( "Variable '" +name+ "' is declared twice." ) ;
                   return ;
@@ -509,32 +519,41 @@ module interpreter {
       const node = vm.getPendingNode();
       const object = vm.getChildVal(0);
       const field = vm.getChildVal(1);
-      if (object instanceof ObjectV) {
-        if (field instanceof StringV) {
-          const fieldName = field.getVal();
+      if (object instanceof ObjectV ) {
+        if (field.isStringV() || field.isNumberV() ) {
+          let fieldName : string ;
+          if( field.isNumberV() ) {
+            fieldName = (field as NumberV).getVal() + "" ;
+          } else {
+              fieldName = (field as StringV).getVal() ;
+          }
           if (object.hasField(fieldName)) {
-            const val = object.getField(fieldName).getValue();
-            vm.finishStep(val);
+            const opt = object.getField(fieldName).getValue();
+            if( opt.isEmpty() ) {
+                vm.reportError( "The field named '" + fieldName + "' has not yet been declared.") ;
+                return ;
+            }
+            vm.finishStep(opt.first(), true);
           }
           else {
-            vm.reportError("No field named '" + fieldName +"'.") ;
+            vm.reportError("Object has no field named '" + fieldName +"'.") ;
             return;
           }
         } 
         else {
-          vm.reportError("The operand of the index operator must be a string.");
+          vm.reportError("The operand of the index operator must be a string or number.");
           return;
         }
       }
       else if( object instanceof TupleV) {
           if( field instanceof NumberV) {
               const index : number = field.converToNumber();
-              if( index < 0 || index > object.numFields() - 1 ) {
+              if( index < 0 || index > object.itemCount() - 1 ) {
                 vm.reportError("Invalid index value: "+index);
               }
               else {
-                  const val = object.getValueByIndex(index);
-                  vm.finishStep(val);
+                  const val = object.getItemByIndex(index);
+                  vm.finishStep(val, true);
               }
           }
           else {
@@ -555,11 +574,15 @@ module interpreter {
         const name : string = node.label().getVal() ;
         if(object instanceof ObjectV) {
             if(object.hasField(name)) {
-                const val = object.getField(name).getValue();
-                vm.finishStep(val);
+                const opt = object.getField(name).getValue();
+                if( opt.isEmpty() ) {
+                    vm.reportError( "The field named '" + name + "' has not yet been declared.") ;
+                    return ;
+                }
+                vm.finishStep( opt.first(), true );
             }
             else {
-                vm.reportError("No field named '" + name + "'.");
+                vm.reportError("Object has no field named '" + name + "'.");
             }
         } else {
             vm.reportError( "The dot operator may only be applied to objects." );
@@ -571,7 +594,7 @@ module interpreter {
         const length = node.count() ;
         if( length === 1) {
             const val = vm.getChildVal(0) ;
-            vm.finishStep(val);
+            vm.finishStep(val, false);
         } else {
             const vals = new Array<Value>();
             for(let i = 0; i < length ; ++i) {
@@ -579,7 +602,7 @@ module interpreter {
                 vals.push(val);
             }
             const tuple = TupleV.createTuple(vals);
-            vm.finishStep(tuple); }
+            vm.finishStep(tuple, false); }
     }
 
     function ifStepper(vm : VMS) : void {
@@ -588,76 +611,34 @@ module interpreter {
         const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
         const choice = result === true ? 1 : 2;
         assert.checkPrecondition(vm.isChildMapped(choice), "'If' not ripe.");
-        vm.finishStep(vm.getChildVal(choice));
+        vm.finishStep(vm.getChildVal(choice), false);
     }
 
     function whileStepper(vm : VMS) : void {
         //use the value of the body if it is mapped, otherwise use null
         if (vm.isChildMapped(1)) {
-            vm.finishStep(vm.getChildVal(1));
+            vm.finishStep(vm.getChildVal(1), false);
         }
         else {
-            vm.finishStep( TupleV.theDoneValue ) ;
+            vm.finishStep( TupleV.theDoneValue, false ) ;
         }
     }
 
     function assignStepper(vm : VMS) : void {
         const assignNode : PNode = vm.getPendingNode();
-        const variableNode : PNode = assignNode.child(0);
-        let field : vms.FieldI ;
-        let fieldName : string ;
-        //Handle the case when we are assigning to a field of an object
-        if (variableNode.label().kind() === labels.AccessorLabel.kindConst
-           || variableNode.label().kind() === labels.DotLabel.kindConst) {
-            const path = vm.getPending();
-            const pathToObject = path.cat(collections.list<number>(0,0));
-            const object = vm.getVal(pathToObject);
-            if (!(object instanceof ObjectV)) {
-                vm.reportError("First operand is not an object value.");
-                return;
-            }
-            if( variableNode.label().kind() === labels.AccessorLabel.kindConst ) {
-                const pathToField = path.cat(collections.list<number>(0,1));
-                const fieldValue = vm.getVal(pathToField);
-                if (!(fieldValue instanceof StringV)) {
-                vm.reportError("Fields of object must be identified with a string value.");
-                return;
-                }
-                fieldName = fieldValue.getVal() ;
-            } else {
-                fieldName = variableNode.label().getVal() ;
-            }
-            if (!object.hasField(fieldName)) {
-                vm.reportError("Object has no field named '" + fieldName +"'.");
-                return;
-            }
-            field = object.getField(fieldName) ;
+        const lhs : Value = vm.getChildVal(0) ;
+        const rhs : Value = vm.getChildVal(1) ;
+        // TODO Assignments to tuples.
+        if( lhs.isLocationV() ) {
+            const loc = lhs as LocationV ;
+            // TODO. Check that loc.getType().contains( rhs ) l
+            loc.setValue( rhs ) ;
         }
-        //Handle the case when assigning to a variable
         else {
-            if( variableNode.label().kind() !== labels.VariableLabel.kindConst ) {
-                vm.reportError("Attempting to assign to something that isn't a variable.");
-                return ; }
-            fieldName = variableNode.label().getVal();
-            const variableStack : VarStack = vm.getStack();
-            if( ! variableStack.hasField(fieldName) ) {
-                vm.reportError( "No variable named '" + fieldName + "' is in scope." ) ;
-                return ;
-            }
-            field = variableStack.getField(fieldName) ;
+            vm.reportError( "The left operand of an assignment should be a location." ) ;
+            return ; 
         }
-        if( ! field.getIsDeclared() ) {
-            vm.reportError( "The variable named '" + fieldName + "' has not been declared yet." ) ;
-            return ;
-        }
-        if( field.getIsConstant() ) {
-            vm.reportError( "The variable named '" + fieldName + "' is a constant and may not be assigned." ) ;
-            return ;
-        }
-        const value : Value = vm.getChildVal(1);
-        // TODO Check that the value is assignable to the field.
-        field.setValue( value ) ;
-        vm.finishStep( TupleV.theDoneValue ) ;
+        vm.finishStep( TupleV.theDoneValue, false ) ;
     }
 
     function variableStepper(vm : VMS) : void {
@@ -669,31 +650,50 @@ module interpreter {
             return ;
         }
         const field = variableStack.getField(variableName) ;
-        if( ! field.getIsDeclared() ) {
+        const optVal = field.getValue() ;
+        if( optVal.isEmpty() ) {
             vm.reportError( "The variable named '" + variableName + "' has not been declared yet." ) ;
             return ;
         }
-        vm.finishStep(field.getValue());
+        vm.finishStep( optVal.first(), true );
     }
 
     function varDeclStepper(vm : VMS) : void {
+        const varDeclNode = vm.getPendingNode() ;
+        assert.checkPrecondition( varDeclNode.label() instanceof labels.VarDeclLabel ) ;
+        const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
+
         const variableNode : PNode = vm.getPendingNode().child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        
         const variableName : string = variableNode.label().getVal();
+        
         const variableStack : VarStack = vm.getStack();
         assert.check( variableStack.hasField(variableName) ) ;
         const field = variableStack.getField(variableName) ;
-        assert.check( ! field.getIsDeclared() ) ;
-        field.setIsDeclared() ;
+        assert.check( field.getValue().isEmpty() ) ;
 
         const initializerNode : PNode = vm.getPendingNode().child(2) ;
-        if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
-            const value : Value = vm.getChildVal(2);
-            // TODO Check that the value is assignable to the field.
-            field.setValue( value ) ;
-        } 
-        vm.finishStep( TupleV.theDoneValue ) ;
+        if(  isCon ) {
+            // Constant fields
+            if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
+                const value : Value = vm.getChildVal(2);
+                // TODO Check that the value is assignable to the field.
+                field.setValue( value ) ;
+            } else {
+                vm.reportError( "Variable must be iniitalized.") ;
+            }
+        } else {
+            // Location fields
+            const btMan = vm.getTransactionManager() ;
+            let locn : LocationV ;
+            if( !(initializerNode.label() instanceof labels.NoExprLabel) ) {
+                const value : Value = vm.getChildVal(2);
+                locn = new LocationV( Type.TOP, btMan, value ) ;
+            } else {
+                locn = new LocationV( Type.TOP, btMan) ; }
+            field.setValue( locn ) ;
+        }
+        vm.finishStep( TupleV.theDoneValue, false ) ;
     }
 
     function placeHolderStepper(vm : VMS) : void {

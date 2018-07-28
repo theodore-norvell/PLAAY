@@ -28,12 +28,13 @@ import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
 import StringV = valueTypes.StringV;
 import NumberV = valueTypes.NumberV;
+import LocationV = valueTypes.LocationV;
 import BoolV = valueTypes.BoolV;
 import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
 import { mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq, mkLambda, mkNoExpNd,
-         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkVar, mkVarDecl } from '../labels';
+         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkTuple, mkVar, mkVarDecl } from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
@@ -42,12 +43,35 @@ const emptyList = collections.nil<number>() ;
 const list = collections.list ;
 const interp = interpreter.getInterpreter() ;
 
+
+
+const zero = labels.mkNumberLiteral("0");
+const two = labels.mkNumberLiteral("2");  
+const three = labels.mkNumberLiteral("3");
+const five = labels.mkNumberLiteral("5");
+const nine = labels.mkNumberLiteral("9");
+
 function makeStdVMS( root : PNode ) : VMS {
   const manager = new TransactionManager() ;
   const wld = new World(manager);
   const wlds : Array<ObjectV> = new Array();
   wlds.push(wld);
   return new VMS( root, wlds, interp, manager ) ;
+}
+
+function getResult( root : PNode ) : Value {
+    const vm = makeStdVMS(root);
+    while( vm.canAdvance() ) { vm.advance(); }
+    if( vm.hasError() ) {
+        assert.check( false, "Unexpected Error: " + vm.getError() ) ; }
+    return vm.getFinalValue() ;
+}
+
+function expectError( root : PNode, message : string ) : void {
+    const vm = makeStdVMS(root);
+    while( vm.canAdvance() ) { vm.advance(); }
+    assert.check( vm.hasError(), "Expected error, but got none." ) ;
+    assert.checkEqual( message, vm.getError() ) ;
 }
 
 describe( 'StringLiteralLabel', function() : void {
@@ -205,6 +229,9 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
     const root = mkExprSeq([lambdaDecl, callWorld]);
+    // {  var f : := \ -> { 42 }
+    //    callWorld[f]()
+    // }
     const vm = makeStdVMS(root);
     
     it('should evaluate to a NumberV equaling 42', function() : void {
@@ -259,29 +286,17 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 });
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
-  const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-  const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
-  const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
-  const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-  const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
-  const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
-  const vm = makeStdVMS(root);
+    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
+    const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
+    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
 
-  it('should evaluate to a NumberV equaling 8', function() : void {
-      let firstEvalDone: boolean = false;
-      let evalDone: boolean = false;
-      while (!evalDone) {
-        vm.advance();
-        if (vm.isDone()) {
-            if (firstEvalDone) {
-                evalDone = true; }
-        else {
-            firstEvalDone = true; } }
-      }
-      assert.check(vm.isMapped(emptyList));
-      const val = vm.getVal(emptyList);
-      assert.check(val instanceof NumberV);
-      assert.check((val as NumberV).getVal() === 8 );
+    it('should evaluate to a NumberV equaling 8', function() : void {
+        const val = getResult(root) ;
+        assert.check(val instanceof NumberV);
+        assert.check((val as NumberV).getVal() === 8 );
   });
 });
 
@@ -315,119 +330,138 @@ describe( 'CallWorldLabel - addition', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - subtraction', function() : void {
-  const rootlabel = new labels.CallWorldLabel("-", false);
   const op1 = labels.mkNumberLiteral("5");
   const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
-  const vm = makeStdVMS( root )  ;
+  const op3 = labels.mkNumberLiteral("7");
 
-  it('should evaluate to a NumberV equaling 2', function() : void {
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( vm.isDone() ) ;
-      assert.check( vm.isMapped( emptyList ) ) ;
-      const val = vm.getVal( emptyList ) ;
+
+  it('callWorld["-"]() should equal 0', function() : void {
+    const root = mkCallWorld("-", []) ;
+    const val = getResult( root ) ;
+    assert.check( val instanceof NumberV ) ;
+    assert.check( (val as NumberV).getVal() === 0 );
+  } );
+
+
+  it('callWorld["-"](5) should equal 5', function() : void {
+    const root = mkCallWorld("-", [op1]) ;
+    const val = getResult( root ) ;
+    assert.check( val instanceof NumberV ) ;
+    assert.check( (val as NumberV).getVal() === -5 );
+  } );
+
+  it('callWorld["-"](5, 3) should equal 2', function() : void {
+      const root = mkCallWorld("-", [op1, op2]) ;
+      const val = getResult( root ) ;
       assert.check( val instanceof NumberV ) ;
       assert.check( (val as NumberV).getVal() === 2 );
+  } );
+
+  it('callWorld["-"](5, 3, 7 ) should equal -5', function() : void {
+      const root = mkCallWorld("-", [op1, op2, op3]) ;
+      const val = getResult( root ) ;
+      assert.check( val instanceof NumberV ) ;
+      assert.check( (val as NumberV).getVal() === -5 );
   } );
 } ) ;
 
 describe( 'CallWorldLabel - multiplication', function() : void {
-  const rootlabel = new labels.CallWorldLabel("*", false);
-  const op1 = labels.mkNumberLiteral("5");
-  const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
-  const vm = makeStdVMS( root )  ;
 
-  it('should evaluate to a NumberV equaling 15', function() : void {
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( vm.isDone() ) ;
-      assert.check( vm.isMapped( emptyList ) ) ;
-      const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof NumberV ) ;
-      assert.check( (val as NumberV).getVal() === 15);
-  } );
+
+    it('*() should give 1', function() : void {
+        const root = mkCallWorld("*", [] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1);
+    } );
+
+    it('*(two) should give 2', function() : void {
+        const root = mkCallWorld("*", [two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 2);
+    } );
+
+    it('nine * three should give 27', function() : void {
+        const root = mkCallWorld("*", [nine, three] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 27);
+    } );
+
+    it('* nine three two should give 54', function() : void {
+        const root = mkCallWorld("*", [nine, three, two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 54);
+    } );
+
 } ) ;
 
 describe( 'CallWorldLabel - division', function() : void {
-  const rootlabel = new labels.CallWorldLabel("/", false);
-  const op1 = labels.mkNumberLiteral("9");
-  const op2 = labels.mkNumberLiteral("3");
-  const root = new PNode(rootlabel, [op1, op2]);
-  const manager = new TransactionManager() ;
-  const wld = new World(manager);
-  const wlds : Array<ObjectV> = new Array();
-  wlds.push(wld);
-  const vm = new VMS( root, wlds, interp, manager ) ;
 
-  it('should evaluate to a NumberV equaling 3', function() : void {
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( vm.isDone() ) ;
-      assert.check( vm.isMapped( emptyList ) ) ;
-      const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof NumberV ) ;
-      assert.check( (val as NumberV).getVal() === 3);
-  } );
-} ) ;
+    it('/() should give 1', function() : void {
+        const root = mkCallWorld("/", [] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1);
+    } );
 
-describe( 'CallWorldLabel - division', function() : void {
-  const rootlabel = new labels.CallWorldLabel("/", false);
-  const op1 = labels.mkNumberLiteral("5");
-  const op2 = labels.mkNumberLiteral("2");
-  const root = new PNode(rootlabel, [op1, op2]);
-  const vm = makeStdVMS( root )  ;
+    it('/ two should give 0.5', function() : void {
+        const root = mkCallWorld("/", [two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 0.5);
+    } );
 
-  it('should evaluate to a NumberV equaling 2.5', function() : void {
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( ! vm.isReady() ) ;
-      vm.advance() ;
-      assert.check(  vm.isReady() ) ;
-      vm.advance() ;
-      assert.check( vm.isDone() ) ;
-      assert.check( vm.isMapped( emptyList ) ) ;
-      const val = vm.getVal( emptyList ) ;
-      assert.check( val instanceof NumberV ) ;
-      assert.check( (val as NumberV).getVal() === 2.5);
-  } );
+    it('nine / three should give 3', function() : void {
+        const root = mkCallWorld("/", [nine, three] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 3);
+    } );
+
+    it('five / two should give 2.5', function() : void {
+        const root = mkCallWorld("/", [five, two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 2.5);
+    } );
+
+    it('/ nine three two should give 1.5', function() : void {
+        const root = mkCallWorld("/", [nine, three, two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1.5);
+    } );
+
+    it('/ zero should give +infinity', function() : void {
+        const root = mkCallWorld("/", [zero] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1/0);
+    } );
+
+    it('two / zero should give +infinity', function() : void {
+        const root = mkCallWorld("/", [two, zero] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1/0);
+    } );
+
+    it('/(2,0,5) should give +infinity', function() : void {
+        const root = mkCallWorld("/", [two, zero, five] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.check( (val as NumberV).getVal() === 1/0);
+    } );
+
+    it('zero / two should give zero', function() : void {
+        const root = mkCallWorld("/", [zero, two] ) ;
+        const val = getResult( root ) ;
+        assert.check( val instanceof NumberV ) ;
+        assert.checkEqual( 0.0, (val as NumberV).getVal() );
+    } );
 } ) ;
 
 describe( 'CallWorldLabel - greater than', function() : void {
@@ -758,7 +792,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       assert.check( val1 instanceof BoolV ) ;
       assert.check( val2 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === (val2 as BoolV).getVal() === true);
-    })
+    }) ;
 });
 
 /* Test for (true = x) = (x = true) = false for any x not true */
@@ -796,7 +830,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       const val1 = vm.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === false);
-    })
+    }) ;
 });
 
 /* Test for (false = x) = (x = false) = false for any x not false */
@@ -834,7 +868,7 @@ describe( 'CallWorldLabel - equal', function() : void {
       const val1 = vm.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
       assert.check( (val1 as BoolV).getVal()  === false);
-    })
+    }) ;
 });
 
 describe( 'CallWorldLabel - equal', function() : void {
@@ -1071,7 +1105,7 @@ describe( 'CallWorldLabel - implies', function() : void {
     } );
   } ) ;
 
-  describe( 'CallWorldLabel - implies', function() : void {
+describe( 'CallWorldLabel - implies', function() : void {
     const rootlabel = new labels.CallWorldLabel("implies", false);
     const op1 = labels.mkTrueBooleanLiteral();
     const op2 = labels.mkTrueBooleanLiteral();
@@ -1168,28 +1202,374 @@ describe ('Call node', function(): void {
             message );
     });
 
-    it('should report an error if the number of arguments does not match the number of parameters', function() : void {
-        const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
-        const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-        const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
-        const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
-        const root = mkCall(lambda, mkNumberLiteral("234"), mkNumberLiteral("432")) ;
-        const vm = makeStdVMS(root);
-        while( vm.canAdvance() ) {
-            vm.advance(); }
-        assert.check( vm.hasError() );
-        const message = vm.getError() ;
-        assert.checkEqual(
-            "Number of arguments for lambda does not match parameter list.",
-            message );
-    });
+    // loc f := lambda con x -> x
+    const dec_f = mkVarDecl(
+                    mkVar("f"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList([mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]),
+                              mkNoTypeNd(),
+                              mkExprSeq([mkVar("x")]) )) ;
+    // loc g := lambda con x con y -> x+y
+    const dec_g = mkVarDecl(
+                    mkVar("g"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList(
+                                [mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()),
+                                 mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
+                              mkNoTypeNd(),
+                              mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])])) );
+    // loc h := lambda -> 42
+    const dec_h = mkVarDecl(
+                    mkVar("h"),
+                    mkNoTypeNd(),
+                    mkLambda( mkParameterList([]),
+                              mkNoTypeNd(),
+                              mkExprSeq([ mkNumberLiteral("42") ])) );
+
+    it( "call(f ()) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"), mkTuple([]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
+    } ) ;
+
+    it( "call(f) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
+    } ) ;
+
+    it( "callVar[f]( () ) should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [mkTuple([])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
+    } ) ;
+
+    it( "callVar[f]() should result in ()", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 0 ) ;
+    } ) ;
+
+    it( "call(f (1)) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"),
+                                         mkTuple([mkNumberLiteral("1")]) ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "call(f 1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall(mkVar("f"), mkNumberLiteral("1"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "callVar[f](1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f",
+                                              [mkTuple([mkNumberLiteral("1")])] ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "callVar[f](1) should result in 1", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld("f", [mkNumberLiteral("1")])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 1 ) ;
+    } ) ;
+
+    it( "call(f (3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall( mkVar("f"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
+    } ) ;
+
+    it( "callWorld[f]((3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld( "f",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
+    } ) ;
+
+    it( "call(f,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCall( mkVar("f"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
+    } ) ;
+
+    it( "callVar[f](3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_f,
+                                  mkCallWorld( "f",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5")])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof TupleV ) ;
+        assert.check( (result as TupleV).itemCount() === 2 ) ;
+    } ) ;
+
+
+    it( "call(g ()) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"), mkTuple([]))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callWorld[g](()) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [mkTuple([])])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callWorld[g]() should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g (1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"),
+                                         mkTuple([mkNumberLiteral("1")]) )] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g 1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall(mkVar("g"), mkNumberLiteral("1"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callVar[g]((1)) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g",
+                                              [mkTuple([mkNumberLiteral("1")])  ])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "callVar[g](1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld("g", [mkNumberLiteral("1")])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
+    } ) ;
+
+    it( "call(g (3,5)) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall( mkVar("g"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "callWorld[g]((3,5)) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld( "g",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "call(g,3,5) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCall( mkVar("g"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "callWorld(g,3,5) should result in 8", function() : void {
+        const root = mkExprSeq( [ dec_g,
+                                  mkCallWorld( "g",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5") ] ) ] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 8 ) ;
+    } ) ;
+
+    it( "call(h ()) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"), mkTuple([]))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "call(h) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"))] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "callVar[h](()) should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [mkTuple([])])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "callVar[h]() should result in 42", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [])] ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( "call(h (1)) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkTuple([mkNumberLiteral("1")]) )] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h 1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall(mkVar("h"), mkNumberLiteral("1"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callVar[h]((1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h",
+                                              [mkTuple([mkNumberLiteral("1")]) ])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+    it( "callVar[h](1) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld("h", [mkNumberLiteral("1")])] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h (3,5)) should result in an error", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkTuple([mkNumberLiteral("3"),
+                                                   mkNumberLiteral("5")]))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callVar[h]((3,5)) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld( "h",
+                                               [mkTuple([mkNumberLiteral("3"),
+                                                         mkNumberLiteral("5")])])] ) ;
+        
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "call(h,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCall( mkVar("h"),
+                                          mkNumberLiteral("3"),
+                                          mkNumberLiteral("5"))] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
+
+    it( "callWorld(h,3,5) should result in (3,5)", function() : void {
+        const root = mkExprSeq( [ dec_h,
+                                  mkCallWorld( "h",
+                                               [mkNumberLiteral("3"),
+                                                mkNumberLiteral("5")] ) ] ) ;
+        expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
+    } ) ;
 });
+
+describe('Calls to built-ins with tuples as arguments', function() : void {
+    it( 'call should work with a 0 tuple', function() : void {
+        const root = mkCall(mkVar("+"), mkTuple([]) ) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 0 ) ;
+    } ) ;
+
+
+    it( 'call should work with a so-called 1-tuple', function() : void {
+        const root = mkCall(mkVar("+"), mkTuple([mkNumberLiteral("42")])) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+    it( 'call should work with a 3-tuple', function() : void {
+        const root = mkCall(mkVar("+"), mkTuple([mkNumberLiteral("42"),
+                                                 mkNumberLiteral("7"),
+                                                 mkNumberLiteral("21") ])) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 70 ) ;
+    } ) ;
+
+    it( 'callWorld should work with a 0 tuple', function() : void {
+        const root = mkCallWorld("+", [ mkTuple([])]) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 0 ) ;
+    } ) ;
+
+
+    it( 'callWorld should work with a so-called 1-tuple', function() : void {
+        const root = mkCallWorld("+", [ mkTuple([mkNumberLiteral("42")])]) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 42 ) ;
+    } ) ;
+
+
+    it( 'callWorld should work with a 3-tuple', function() : void {
+        const root = mkCallWorld("+", [ mkTuple([mkNumberLiteral("42"),
+                                                 mkNumberLiteral("7"),
+                                                 mkNumberLiteral("21")])]) ;
+        const result = getResult( root ) ;
+        assert.check( result instanceof NumberV ) ;
+        assert.check( (result as NumberV).getVal() === 70 ) ;
+    } ) ;
+}) ;
 
 describe('ObjectLiteralLabel', function(): void {
     it('should evaluate to an ObjectV with 2 fields', function () : void {
       const rootLabel = new labels.ObjectLiteralLabel();
       const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-      const field2 = labels.mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field2 = labels.mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
       const root = new PNode(rootLabel, [field1, field2]);
       const vm = makeStdVMS( root )  ;
       while (vm.canAdvance()) {
@@ -1199,8 +1579,16 @@ describe('ObjectLiteralLabel', function(): void {
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
       assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("x").getValue() as NumberV).getVal() === 3) ;
-      assert.check(((val as ObjectV).getField("y").getValue() as NumberV).getVal() === 5) ;
+
+      assert.check((val as ObjectV).getField("x").getValue().first() instanceof LocationV) ;
+      const locX = (val as ObjectV).getField("x").getValue().first() as LocationV ;
+      assert.check( locX.getValue().first() instanceof NumberV )  ;
+      const numberVX = locX.getValue().first() as NumberV ;
+      assert.check( numberVX.getVal() === 3) ;
+      
+      assert.check((val as ObjectV).getField("y").getValue().first() instanceof NumberV) ;
+      const numberVY = (val as ObjectV).getField("y").getValue().first() as NumberV ;
+      assert.check( numberVY.getVal() === 5) ;
   });
 });
 
@@ -1228,7 +1616,7 @@ describe('AccessorLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to non-object', function(): void {
@@ -1253,7 +1641,7 @@ describe('AccessorLabel', function(): void {
             vm.advance(); }
         assert.check( vm.hasError() );
         const message = vm.getError() ;
-        assert.checkEqual( "The operand of the index operator must be a string.", message );
+        assert.checkEqual( "The operand of the index operator must be a string or number.", message );
     });
 });
 
@@ -1281,7 +1669,7 @@ describe('DotLabel', function(): void {
         vm.advance(); }
       assert.check( vm.hasError() );
       const message = vm.getError() ;
-      assert.checkEqual( "No field named 'y'.", message );
+      assert.checkEqual( "Object has no field named 'y'.", message );
     });
 
     it('should report an error when applied to a non-object', function(): void {
@@ -1308,9 +1696,18 @@ describe('ArrayLiteralLabel', function(): void {
       assert.check(!vm.hasError());
       const val = vm.getFinalValue();
       assert.check(val instanceof ObjectV);
-      assert.check((val as ObjectV).numFields() === 2);
-      assert.check(((val as ObjectV).getField("0").getValue() as NumberV).getVal() === 12345);
-      assert.check(((val as ObjectV).getField("1").getValue() as NumberV).getVal() === 67890);
+
+      assert.check((val as ObjectV).getField("0").getValue().first() instanceof LocationV) ;
+      const loc0 = (val as ObjectV).getField("0").getValue().first() as LocationV ;
+      assert.check( loc0.getValue().first() instanceof NumberV )  ;
+      const numberV0 = loc0.getValue().first() as NumberV ;
+      assert.check( numberV0.getVal() === 12345 ) ;
+
+      assert.check((val as ObjectV).getField("1").getValue().first() instanceof LocationV) ;
+      const loc1 = (val as ObjectV).getField("1").getValue().first() as LocationV ;
+      assert.check( loc1.getValue().first() instanceof NumberV )  ;
+      const numberV1 = loc1.getValue().first() as NumberV ;
+      assert.check( numberV1.getVal() === 67890 ) ;
   });
 });
 
@@ -1734,7 +2131,7 @@ describe('VarDeclLabel', function () : void {
         
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
-        assert.check( f.getIsDeclared() === false ) ;
+        assert.check( f.getValue().isEmpty() ) ;
 
         // step the mumber literal node
         selectAndStep( vm ) ;
@@ -1745,9 +2142,11 @@ describe('VarDeclLabel', function () : void {
         assert.check( vm.getEval().getStack().hasField( "a" ) ) ;
         const f1 : vms.FieldI = vm.getEval().getStack().getField( "a" ) ;
         assert.check( f === f1 ) ;
-        assert.check( f.getIsDeclared() === true ) ;
-        assert.check( f.getValue() instanceof NumberV ) ;
-        assert.check( (f.getValue() as NumberV ).getVal() === 5 ) ;
+        assert.check( ! f.getValue().isEmpty() ) ;
+        assert.check( f.getValue().first() instanceof LocationV ) ;
+        const loc = f.getValue().first() as LocationV;
+        assert.check( ! loc.getValue().isEmpty() ) ;
+        assert.check( loc.getValue().first() instanceof NumberV ) ;
 
         // step the expr seq node
         selectAndStep( vm ) ;
@@ -1810,14 +2209,17 @@ describe('VarDeclLabel', function () : void {
         // Step the expr seq node
         vm.advance() ;
         const field = vm.getStack().getField( "a" ) ;
-        assert.check( ! field.getIsDeclared() ) ;
+        assert.check( field.getValue().isEmpty() ) ;
         assert.check( ! vm.isMapped( list(0) ) ) ;
         // Select the variable declaration node
         vm.advance() ;
         // Step the variable declaration node
         vm.advance() ;
-        assert.check( field.getIsDeclared() ) ;
-        assert.check( field.getValue().isNullV() ) ;
+        assert.check( ! field.getValue().isEmpty() ) ;
+        assert.check( field.getValue().first() instanceof LocationV ) ;
+        const loc = field.getValue().first() as  LocationV ;
+        assert.check( loc.getValue().isEmpty() ) ;
+
         assert.check( vm.isMapped( list(0) ) ) ;
         assert.check( vm.getVal( list(0) ).isTupleV() ) ;
         // Select and step the expr seq node again.
@@ -1891,24 +2293,18 @@ describe('AssignLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
         const root : PNode = mkAssign( variableNode, valueNode );
+        //   a := 5
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select valueNode
+        //select LHS
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
 
-        //step valueNode
+        //step LHS
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
-        //select root
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step root(this should fail)
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
         assert.check( vm.hasError() ) ;
         assert.checkEqual( "No variable named 'a' is in scope.", vm.getError() ) ;
 
@@ -1956,7 +2352,7 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "The variable named 'a' is a constant and may not be assigned.", vm.getError() ) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError() ) ;
     });
 
     it('should fail when trying to assign to a variable not yet declared', function () : void {
@@ -1994,10 +2390,13 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "Attempting to assign to something that isn't a variable.", vm.getError()) ;
+        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError()) ;
     });
 
     it('should assign to the field of an object', function(): void {
+      // ExprSeq( varDelc[loc]( var(obj) noType objectLiteral(varDelc[loc](var(x) noType numberLiteral(5)))
+      //          assign( accessor( var[obj], stringLiteral[x]), 10)
+      //          accessor( var[obj], stringLiteral[x] ) )
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
@@ -2007,6 +2406,7 @@ describe('AssignLabel', function () : void {
       const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
+
 
       //run the test until the top evaluation is done or there is an error
       while( vm.canAdvance() && ! vm.isDone() ) {
@@ -2226,7 +2626,7 @@ describe('WhileLabel', function () : void {
 
         //run the test.  We expect to select  and step the following nodes.
         const nodes = [root, trueNode, varDeclNode,
-                       guardNode, bodyNode, falseNode, assignNode, bodyNode,
+                       guardNode, bodyNode, guardNode, falseNode, assignNode, bodyNode,
                        guardNode, whileNode,
                        guardNode, root ] ;
         
@@ -2358,10 +2758,10 @@ describe('TupleLable', function () : void {
             assert.check( vm.isMapped( emptyList ) ) ;
             const val = vm.getVal( emptyList ) ;
             assert.check( val instanceof TupleV ) ;            
-            const val1 : Value = (val as TupleV).getValueByIndex(0);
+            const val1 : Value = (val as TupleV).getItemByIndex(0);
             assert.check( val1 instanceof NumberV );
             const val1Result : number = (val1 as NumberV).getVal();
-            const val2 : Value = (val as TupleV).getValueByIndex(1);
+            const val2 : Value = (val as TupleV).getItemByIndex(1);
             assert.check( val2 instanceof StringV );
             const val2Result : string = (val2 as StringV).getVal();            
             assert.check( val1Result === 10 );
