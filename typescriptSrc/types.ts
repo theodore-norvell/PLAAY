@@ -2,6 +2,8 @@
 
 
 import assert = require( './assert' ) ;
+import { PNode } from './pnode';
+import labels  = require('./labels') ;
 
 module types {
 
@@ -197,23 +199,28 @@ module types {
         }
     }
 
-    abstract class PrimitiveType extends TypeFactor {
+    export class PrimitiveType extends TypeFactor {
 
-        public static readonly boolType : TypeKind = TypeKind.BOOL;
-        public static readonly stringType : TypeKind = TypeKind.STRING;
-        public static readonly numberType : TypeKind = TypeKind.NUMBER;
-        public static readonly intType : TypeKind = TypeKind.INT;
-        public static readonly natType : TypeKind = TypeKind.NAT;
-        public static readonly nullType : TypeKind = TypeKind.NAT;
+        public static readonly boolType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly stringType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly numberType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly intType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly natType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly nullType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+
+        public readonly kind : TypeKind;
 
         public getLength() : number {
             return 1;
         }
 
-        public abstract  getKind() : TypeKind
+        public getKind() : TypeKind {
+            return this.kind;
+        }
 
         private constructor(type:TypeKind) {
             super();
+            this.kind = type;
         }
 
     }
@@ -329,5 +336,75 @@ module types {
             return new LocationType(type);
         }
     }
+
+    function CreateType(node:PNode) : Type {
+        
+        const kind : string = node.label().kind();
+        switch(kind) {
+
+            //Primitive types
+            case labels.PrimitiveTypesLabel.kindConst :
+                const primitiveKind : string = (node.label() as labels.PrimitiveTypesLabel).type;
+                switch(primitiveKind) {
+
+                    case "stringType" :
+                        return PrimitiveType.stringType;
+                    case "numberType" :
+                        return PrimitiveType.numberType;                        
+                    case "booleanType" :
+                        return PrimitiveType.boolType;                        
+                    case "nullType" :
+                        return PrimitiveType.nullType;                        
+                    case "integerType" :
+                        return PrimitiveType.intType;                        
+                    case "natType" :
+                        return PrimitiveType.natType;                        
+                    case "topType" :
+                        return TopType.theTopType;                        
+                    case "bottomType" :
+                        return BottomType.theBottomType;                        
+                    default :
+                        assert.failedPrecondition( "Unknown primitive type in CreateType ");
+                }
+
+            case labels.LocationTypeLabel.kindConst  : {
+                const child = node.child(0);
+                const type = CreateType(child);
+                return LocationType.CreateLocationType(type);
+            }
+
+            case labels.FieldTypeLabel.kindConst : {
+                const identifier = node.child(0).label().getVal(); 
+                const typeNode = node.child(1);
+                const type = CreateType(typeNode);
+                return FieldType.CreateFieldType(type,identifier);
+            }
+
+            case labels.FunctionTypeLabel.kindConst : {
+                const valueType = CreateType(node.child(0));
+                const returnType =  CreateType(node.child(1));
+                return FunctionType.CreateFunctionType(valueType,returnType);
+            }
+
+            case  labels.TupleTypeLabel.kindConst : {
+                const children = node.children();
+                let types : Type[] = [] ;
+                for(let i=0; i<children.length; i++ ) {
+                    types.push(CreateType(children[i]));
+                }
+                return TupleType.CreateTupleType(types);
+            }
+
+            case labels.NoTypeLabel.kindConst : {
+                return TopType.theTopType;
+            }
+
+            default :
+                assert.failedPrecondition("Unknown type node in CreateType");
+            
+        }
+        return PrimitiveType.nullType;
+    }
+
 }
 export = types;
