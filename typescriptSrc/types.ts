@@ -2,7 +2,7 @@
 
 
 import assert = require( './assert' ) ;
-import { PNode } from './pnode';
+import { PNode, make } from './pnode';
 import labels  = require('./labels') ;
 
 module types {
@@ -337,7 +337,7 @@ module types {
         }
     }
 
-    function CreateType(node:PNode) : Type {
+    export function CreateType(node:PNode) : Type {
         
         const kind : string = node.label().kind();
         switch(kind) {
@@ -395,15 +395,44 @@ module types {
                 return TupleType.CreateTupleType(types);
             }
 
+            case labels.JoinTypeLabel.kindConst : {
+                const childTypes = node.children().map(CreateType);
+                return childTypes.reduce(JoinType.CreateJoinType);
+            }
+
+            case labels.MeetTypeLabel.kindConst : {
+                const childTypes = node.children().map(CreateType);
+                return childTypes.reduce(makeMeet);
+            }
+
             case labels.NoTypeLabel.kindConst : {
                 return TopType.theTopType;
             }
 
             default :
                 assert.failedPrecondition("Unknown type node in CreateType");
-            
         }
-        return PrimitiveType.nullType;
+        return PrimitiveType.nullType; // Review: Should return something else
+    }
+
+    function makeMeet(left:Type, right:Type) : Type {
+        if( left instanceof TypeTerm) {
+            if( right instanceof TypeTerm) {
+                return MeetType.createMeetType(left,right);
+            }
+            else if( right.isBottomT() ) {
+                return BottomType.theBottomType;
+            }
+            else {
+                return JoinType.CreateJoinType(makeMeet(left,(right as JoinType).getChild(0)), makeMeet(left, (right as JoinType).getChild(1))); 
+            }
+        }
+        else if( left.isBottomT() ) {
+            return BottomType.theBottomType;
+        }
+        else {
+            return JoinType.CreateJoinType( makeMeet((left as JoinType).getChild(0),right), makeMeet((left as JoinType).getChild(1),right));
+        }
     }
 
 }
