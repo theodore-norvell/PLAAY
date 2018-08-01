@@ -4,6 +4,7 @@
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
+/// <reference path="sharedMkHtml.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
@@ -11,6 +12,9 @@ import edits = require('./edits');
 import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
+import sharedMkHtml = require( './sharedMkHtml') ;
+import { CallWorldLabel } from './labels';
+import { mkExprPH } from './labels';
 
 /** The treemanager provides to the UI an interface for editing a tree.
  */
@@ -348,8 +352,26 @@ module treeManager {
         }
 
         public changeNodeString(selection:Selection, newString:string) : Option<Selection> {
-            const edit = new pnodeEdits.ChangeLabelEdit(newString);
-            return edit.applyEdit(selection);
+            // First change the label
+            const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
+            // Next, if the newString is an infix operator and the node is a callVar
+            // and it has no children, ...
+            const test = edits.testEdit<Selection>(
+                (s:Selection) => {
+                    const nodes = s.selectedNodes() ;
+                    if( nodes.length === 0 ) return false ;
+                    const p = nodes[0] ;
+                    return sharedMkHtml.stringIsInfixOperator( newString )
+                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.count() === 0 ; } ) ;
+            // ... then add two placeholders as children and select callVar node.
+            const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
+            const edit = edits.compose( changeLabel,
+                                        edits.optionally( edits.compose( test,
+                                                                         pnodeEdits.rightEdit,
+                                                                         addPlaceholders,
+                                                                         pnodeEdits.selectParentEdit ) ) ) ;
+            return edit.applyEdit(selection) ;
         }
 
         public selectAll( selection:Selection ) : Option<Selection> {

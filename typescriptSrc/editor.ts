@@ -350,34 +350,45 @@ module editor {
         }
     }
 
+    function updateLabelHelper( element: HTMLElement ) : Option<Selection> {
+        console.log( ">>updateLabelHelper") ;
+        const text = $(element).val();
+        const optLocationOfTarget : Option<Selection>
+            = sharedMkHtml.getPathToNode(currentSelection.root(), $(element) )  ;
+        console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
+        const result = optLocationOfTarget.bind(
+            locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
+        console.log( "<< updateLabelHelper " + result.toString() ) ;
+        return result ;
+    }
+
     
     const updateLabelHandler = function (this : HTMLElement, e : Event ) : void {
             console.log( ">>updateLabelHandler") ;
-            const text = $(this).val();
-            const optLocationOfTarget : Option<Selection>
-                = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
-            console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
-            const opt = optLocationOfTarget.bind(
-                locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
-            console.log( "  opt is " + opt) ;
-            opt.map( sel => update(sel) );
+            const opt = updateLabelHelper( this ) ;
+            opt.map( sel0 => treeMgr.moveTabForward( sel0 )
+                             .map( (sel1 : Selection) => update( sel1 ) ) ) ;
             console.log( "<< updateLabelHandler") ; } ;
 
     const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             if (e.keyCode === 13 || e.keyCode === 9) {
                 console.log( ">>input keydown handler") ;
-                updateLabelHandler.call( this, e ) ;
-                if( !e.shiftKey && e.keyCode === 9)
-                {
-                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ;
-                }
-                else if( e.shiftKey && e.which === 9 ) // shift+tab
-                {
-                    treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
-                             update( sel ) ) ;
-                }
+                const opt = updateLabelHelper( this ) ;
+                opt.map( (sel0 : Selection) => {
+                    if( !e.shiftKey && e.keyCode === 9)
+                    {
+                        treeMgr.moveTabForward( sel0 ).map( (sel1 : Selection) =>
+                                update( sel1 ) ) ;
+                    }
+                    else if( e.shiftKey && e.which === 9 ) // shift+tab
+                    {
+                        treeMgr.moveTabBack( sel0 ).map( (sel1 : Selection) =>
+                                    update( sel1 ) ) ;
+                    } 
+                    else {
+                        update( sel0 ) ;
+                    } } ) ;
                 // TODO: It would be nice to have special handling of
                 //   up and down arrows (for example). However that
                 //   requires handling of the event before it gets
