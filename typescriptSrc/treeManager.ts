@@ -353,24 +353,43 @@ module treeManager {
 
         public changeNodeString(selection:Selection, newString:string) : Option<Selection> {
             // First change the label
+            const oldLabelEmpty = selection.size() === 1
+                               && selection.selectedNodes()[0].label().getVal() === "" ;
             const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
             // Next, if the newString is an infix operator and the node is a callVar
             // and it has no children, ...
-            const test = edits.testEdit<Selection>(
+            const test0 = edits.testEdit<Selection>(
                 (s:Selection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
                     const p = nodes[0] ;
-                    return sharedMkHtml.stringIsInfixOperator( newString )
+                    return oldLabelEmpty
+                          && sharedMkHtml.stringIsInfixOperator( newString )
                           && p.label().kind() === CallWorldLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add two placeholders as children and select callVar node.
             const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
+            const test1 = edits.testEdit<Selection>(
+                (s:Selection) => {
+                    const nodes = s.selectedNodes() ;
+                    if( nodes.length === 0 ) return false ;
+                    const p = nodes[0] ;
+                    return oldLabelEmpty
+                          && ! sharedMkHtml.stringIsInfixOperator( newString )
+                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.count() === 0 ; } ) ;
+            const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
             const edit = edits.compose( changeLabel,
-                                        edits.optionally( edits.compose( test,
-                                                                         pnodeEdits.rightEdit,
-                                                                         addPlaceholders,
-                                                                         pnodeEdits.selectParentEdit ) ) ) ;
+                                        edits.alt( [edits.compose( test0,
+                                                                   pnodeEdits.rightEdit,
+                                                                   addPlaceholders,
+                                                                   pnodeEdits.selectParentEdit ),
+                                                    edits.compose( test1,
+                                                                   pnodeEdits.rightEdit,
+                                                                   add1Placeholder,
+                                                                   pnodeEdits.selectParentEdit ),
+                                                    edits.id()
+                                        ]) ) ;
             return edit.applyEdit(selection) ;
         }
 
