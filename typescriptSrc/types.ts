@@ -201,12 +201,12 @@ module types {
 
     export class PrimitiveType extends TypeFactor {
 
-        public static readonly boolType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly boolType : PrimitiveType = new PrimitiveType(TypeKind.BOOL);
         public static readonly stringType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
-        public static readonly numberType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
-        public static readonly intType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
-        public static readonly natType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
-        public static readonly nullType : PrimitiveType = new PrimitiveType(TypeKind.STRING);
+        public static readonly numberType : PrimitiveType = new PrimitiveType(TypeKind.NUMBER);
+        public static readonly intType : PrimitiveType = new PrimitiveType(TypeKind.INT);
+        public static readonly natType : PrimitiveType = new PrimitiveType(TypeKind.NAT);
+        public static readonly nullType : PrimitiveType = new PrimitiveType(TypeKind.NULL);
 
         public readonly kind : TypeKind;
 
