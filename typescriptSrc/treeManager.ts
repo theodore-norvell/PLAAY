@@ -351,7 +351,7 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        public changeNodeString(selection:Selection, newString:string) : Option<Selection> {
+        public changeNodeString(selection:Selection, newString:string, tabDirection : number ) : Option<Selection> {
             // First change the label
             const oldLabelEmpty = selection.size() === 1
                                && selection.selectedNodes()[0].label().getVal() === "" ;
@@ -383,6 +383,12 @@ module treeManager {
             // ... then add one placeholder.
             // Othewise leave it alone.
             const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
+            // Finally we do an optional tab left or right or neither.
+            const tab = tabDirection < 0
+                      ? edits.optionally(pnodeEdits.tabBackEdit)
+                      : tabDirection > 0
+                      ? edits.optionally(pnodeEdits.tabForwardEdit)
+                      : edits.id<Selection>() ;
             const edit = edits.compose( changeLabel,
                                         edits.alt( [edits.compose( test0,
                                                                    pnodeEdits.rightEdit,
@@ -393,7 +399,8 @@ module treeManager {
                                                                    add1Placeholder,
                                                                    pnodeEdits.selectParentEdit ),
                                                     edits.id()
-                                        ]) ) ;
+                                        ]),
+                                        tab ) ;
             return edit.applyEdit(selection) ;
         }
 
