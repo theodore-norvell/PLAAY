@@ -64,8 +64,10 @@ module treeManager {
                 //variables & variable manipulation
                 case "var":
                     return this.makeVarNode(selection);
-                case "vardecl":
-                    return this.makeVarDeclNode(selection);
+                case "locdecl":
+                    return this.makeVarDeclNode(selection, false);
+                case "condecl":
+                    return this.makeVarDeclNode(selection, true);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
@@ -82,6 +84,8 @@ module treeManager {
                     return this.makeLambdaNode(selection);
                 case "type":
                     return this.makeNoTypeNode(selection);
+                case "tuple":
+                    return this.makeTupleNode(selection);
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
@@ -126,7 +130,7 @@ module treeManager {
 
         //objects
         private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
-            const objectnode = pnode.make(labels.ObjectLiteralLabel.theObjectLiteralLabel, []);
+            const objectnode = labels.mkObject([]);
             const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
@@ -164,6 +168,15 @@ module treeManager {
             const dotNode = labels.mkDot( "", true, left ) ;
 
             const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
+            const edit = replaceOrEngulfTemplateEdit( template ) ;
+            return edit.applyEdit(selection);
+
+        }
+
+        private makeTupleNode(selection:Selection) : Option<Selection> {
+                                    
+            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
+            const template = new Selection( tuplenode, list<number>(), 0, 1 ) ;
             const edit = replaceOrEngulfTemplateEdit( template ) ;
             return edit.applyEdit(selection);
 
@@ -214,19 +227,41 @@ module treeManager {
 
         }
 
-        private makeVarDeclNode(selection:Selection) : Option<Selection> {
+        private makeVarDeclNode(selection:Selection, isConstant : boolean ) : Option<Selection> {
+            let varNode : PNode ;
+            let typeNode : PNode ;
+            let initNode : PNode ;
+            // If the selection is a declNode, try changing it.
+            if( selection.size() === 1
+            && selection.selectedNodes()[0].isVarDeclNode() ) {
+                const declNode = selection.selectedNodes()[0] ;
+                varNode = declNode.child(0) ;
+                typeNode = declNode.child(1) ;
+                initNode = declNode.child(2) ;
+            } // If the selection parent is a declNode, try changing it.
+            else if( selection.parent().isVarDeclNode() ) {
+                const declNode = selection.parent() ;
+                varNode = declNode.child(0) ;
+                typeNode = declNode.child(1) ;
+                initNode = declNode.child(2) ;
+                // Try going up.
+                const upEdit = pnodeEdits.moveFocusUpEdit ;
+                upEdit.applyEdit(selection).map( s => selection=s ) ;
+            } // Otherwise try making a new node.
+            else {
+                varNode = labels.mkVar("");
+                typeNode = labels.mkNoTypeNd();
+                initNode = labels.mkNoExpNd();
+            }
 
-            const varNode = labels.mkVar("");
-            const noTypeNode = labels.mkNoTypeNd();
-            const initExp = labels.mkNoExpNd();
-
-            const vardeclnode = labels.mkVarDecl( varNode, noTypeNode, initExp ) ;
+            const vardeclnode = isConstant
+                 ? labels.mkConstDecl( varNode, typeNode, initNode ) 
+                 : labels.mkVarDecl( varNode, typeNode, initNode );
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
             const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             return edit.applyEdit(selection);
-
         }
 
         private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {
@@ -291,13 +326,13 @@ module treeManager {
         }
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkTrueBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
         private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
-            const literalnode = labels.mkNoTypeNd() ;
+            const literalnode = labels.mkFalseBooleanLiteral() ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
@@ -383,7 +418,7 @@ module treeManager {
 
         public delete(selection:Selection) : Option<Selection> {
             const nodes : Array<PNode> = selection.selectedNodes() ;
-            if(nodes.length == 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
+            if(nodes.length === 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
                 return this.otherDeleteEdit.applyEdit( selection ) ; }
             else {
                 return this.deleteEdit.applyEdit(selection); }

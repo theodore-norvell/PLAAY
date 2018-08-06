@@ -24,6 +24,12 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
+    export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
+    export const FALSEMARK = "\u2718" ; // HEAVY BALLOT X
+    export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
+    export const LAMBDAMARK = "\u03BB" ;
+    export const NULLMARK = "\u23da" ; // EARTH GROUND
+
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
         const children = new Array<JQuery>() ;
@@ -386,20 +392,29 @@ module sharedMkHtml
             case labels.StringLiteralLabel.kindConst :
             {
 
-                if (! node.label().isOpen() )
+                result  = $(document.createElement("div")) ;
+                result.addClass( "literal" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                const leftDoubleQuotationMark = "\u201C" ;
+                const openQuote : JQuery = $( document.createElement("span") ).text(leftDoubleQuotationMark) ;
+                result.append(openQuote) ;
+                if ( node.label().isOpen() )
                 {
-                    result  = $(document.createElement("div")) ;
-                    result.addClass( "stringLiteral" ) ;
-                    result.addClass( "H" ) ;
-                    result.addClass( "droppable" ) ;
-                    result.addClass( "click" ) ;
-                    result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const textField = makeTextInputElement( node, ["input"], collections.none() ) ;
+                    result.append(textField) ;
                 }
                 else
                 {
-                    result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                    const str = node.label().getVal() ;
+                    const textEl = $( document.createElement("span") ).text( str ) ;
+                    result.append(textEl) ;
                 }
+                const rightDoubleQuotationMark = "\u201D" ;
+                const closeQuote : JQuery = $( document.createElement("span") ).text(rightDoubleQuotationMark) ;
+                result.append(closeQuote) ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
@@ -408,7 +423,7 @@ module sharedMkHtml
                 if (! node.label().isOpen() )
                 {
                     result  = $(document.createElement("div")) ;
-                    result.addClass( "numberLiteral" ) ;
+                    result.addClass( "literal" ) ;
                     result.addClass( "H" ) ;
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
@@ -419,6 +434,27 @@ module sharedMkHtml
                 {
                     result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
                 }
+            }
+            break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "literal" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                let mark : string ;
+                let colorClass : string ;
+                if( node.label().getVal() === "true" ) {
+                    mark = TRUEMARK ;
+                    colorClass = "greenText" ; }
+                else {
+                    mark = FALSEMARK ;
+                    colorClass = "redText" ; }
+                result.text( mark ) ;
+                result.addClass( colorClass ) ;
             }
             break ;
             case labels.NoTypeLabel.kindConst :
@@ -441,9 +477,10 @@ module sharedMkHtml
             break ;
             case labels.VarDeclLabel.kindConst :
             {
-
+                const label = node.label() as labels.VarDeclLabel ;
+                const isConst = label.declaresConstant() ;
                 result  = $(document.createElement("div")) ;
-                result.addClass( "vardecl" ) ; // Need a better class for this, I think.
+                result.addClass( isConst ? "condecl" : "locdecl" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
@@ -461,6 +498,31 @@ module sharedMkHtml
                 result.append(children[2]);
             }
             break ;
+            case labels.TupleLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "tuple" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                result.append( openPar ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        result.append( comma ) ; }
+                }
+                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                result.append( closePar ) ; 
+            }
+            break;
             default:
             {
                 result = assert.unreachable( "Unknown label in buildHTML.") ;
@@ -519,18 +581,15 @@ module sharedMkHtml
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-            let text = node.label().getVal() ;
-            text = text.replace( /&/g, "&amp;" ) ;
-            text = text.replace( /"/g, "&quot;") ;
-
+            const str = node.label().getVal() ;
             const element : JQuery = $(document.createElement("input"));
             for( let i=0 ; i < classes.length ; ++i ) {
                 element.addClass( classes[i] ) ; }
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
-            element.attr("value", text) ;
+            element.attr("value", str) ;
             // Give the element focus and move the caret to the end of the text.
-            const len = text.length ;
+            const len = str.length ;
             setSelection(element, len, len) ;
             return element ;
     }

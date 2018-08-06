@@ -6,7 +6,7 @@
   "scripts": {
     "pretest": "tsc",
     "test": "mocha",
-    "preinstall": "tsc && browserify --debug -o plaay.js -s main main.js",
+    "preinstall": "tsc && browserify -o plaay.js -s main main.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
     "lint": "tslint --project tsconfig.json"
   },

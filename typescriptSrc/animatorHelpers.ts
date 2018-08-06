@@ -1,15 +1,13 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
-/// <reference path="assert.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
-import pnodeEdits = require('./pnodeEdits');
 import sharedMkHtml = require('./sharedMkHtml');
 import valueTypes = require('./valueTypes');
 import vms = require('./vms');
@@ -26,14 +24,21 @@ module animatorHelpers
     import some = collections.some;
     import none = collections.none;
     // path is an alias for list<number>
-    const path : (  ...args : Array<number> ) => List<number> = list;
-    import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
+    import ObjectV = valueTypes.ObjectV;
+    import StringV = valueTypes.StringV;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
-    import ObjectV = valueTypes.ObjectV;
     import ObjectI = vms.ObjectI;
+    import TupleV = valueTypes.TupleV;
+    import LocationV = valueTypes.LocationV;
+
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
+    import TRUEMARK  = sharedMkHtml.TRUEMARK ;
+    import FALSEMARK = sharedMkHtml.FALSEMARK ;
+    import WHILEMARK = sharedMkHtml.WHILEMARK ;
+    import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
+    import NULLMARK = sharedMkHtml.NULLMARK ;
 
     const MAUVE : string = "rgb(190, 133, 197)";
     const ORANGE : string = "rgb(244, 140, 0)";
@@ -42,9 +47,12 @@ module animatorHelpers
     const WHITE : string = "rgb(255, 255, 255)";
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
+    const GREEN : string = "rgb(0,200,0)";
 
-    let objectsToDraw : Array<ObjectV> = new Array<ObjectV>();
-    let arrowStartPoints : Map<ObjectV, Array<svg.Rect>> = new Map<ObjectV, Array<svg.Rect>>();
+    
+
+    let objectsToDraw : Array<ObjectI> = new Array<ObjectI>();
+    let arrowStartPoints : Map<ObjectI, Array<svg.Rect>> = new Map<ObjectI, Array<svg.Rect>>();
     let drawnObjectsMap : Map<ObjectI, svg.Rect> = new Map<ObjectI, svg.Rect>();
 
     export function clearObjectDrawingInfo() : void
@@ -54,46 +62,57 @@ module animatorHelpers
         drawnObjectsMap = new Map<ObjectI, svg.Rect>();
     }
 
+    /**
+     * 
+     * @param node A tree node to render.
+     * @param el A container to render the tree into.
+     * @param currentPath The path to the current node relative to the root of an Evaluation.
+     * @param pathToHighlight The path of the node to highlight relative to the root of an Evaluation.
+     *                        If there is no highlight, list( -1 ) can be used.
+     * @param valueMap A value map from the same Evaluation.
+     * @param error  An error message.
+     * @param errorPath The node that the message applies to. If there is no error, list( -1 ) can be used.
+     */
     export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
-                                     valueMap : ValueMap | null, error : string, errorPath : List<number>) : void
+                                     valueMap : ValueMap, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
-        if(valueMap === null || (valueMap !== null && !valueMap.isMapped(currentPath))) //prevent children of mapped nodes or errors from being drawn.
+        if(valueMap.isMapped(currentPath) ) 
         {
+            buildSVGForMappedNode(children, valueMap.get(currentPath), true);
+        }
+        else {
             for(let i = 0; i < node.count(); i++)
             {
-                traverseAndBuild(node.child(i), children, currentPath.cat(Cons<number>(i, Nil<number>())), pathToHighlight, valueMap, error, errorPath);
+                traverseAndBuild(node.child(i), children, currentPath.cat( list(i) ), pathToHighlight, valueMap, error, errorPath);
             }
+            const highlightMe : boolean = currentPath.equals(pathToHighlight);
+            const optError : Option<string> = currentPath.equals(errorPath) ? some(error) : none() ;
+            buildSVG(node, children, el, highlightMe, currentPath, optError);
         }
-        const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        const isError : boolean = currentPath.equals(errorPath);
-        buildSVG(node, children, el, highlightMe, currentPath, valueMap, isError, error);
     }
 
     export function buildStack(stk : vms.EvalStack, el : svg.Container) : void
     {
         //const stkGroup : svg.G = el.group().attr('preserveAspectRatio', 'xMaxYMin meet');
         let y = 0;
-        let padding : number = 15;
+        const padding : number = 15;
         
         if (stk.notEmpty()){
-                let vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
-                let varstackSize : number = vars.getAllFrames().length;
-                let frameArray : ObjectI[] = vars.getAllFrames();
-                
-                for (let k = 0; k < varstackSize - 1 && k < 10; k++){
-                    const obj : ObjectI = frameArray[k];
-                    if(k !== 0)
-                    {
-                        y += padding;
-                    }
-                    y += drawObject(obj, el, y).bbox().height;
-                }
+            const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
+            const varstackSize : number = vars.getAllFrames().length;
+            const frameArray : ObjectI[] = vars.getAllFrames();
+            
+            for (let k = 0; k < varstackSize && k < 10; k++){
+                if(k !== 0) { y += padding; }
+                y += drawObject(frameArray[k], el, y).bbox().height;
+            }
         }
     }
 
     function drawObject(object : ObjectI, element : svg.Container, y : number, drawNestedObjects : boolean = true) : svg.Rect
     {
+        
         const padding : number = 15;
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
@@ -101,13 +120,74 @@ module animatorHelpers
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
             const name : svg.Text = subGroup.text("  " + field.getName());
-            const value : svg.G = subGroup.group();
-            buildSVGForMappedNode(value, subGroup, field.getValue(), drawNestedObjects);
-            makeObjectFieldSVG(subGroup, name, value);
+            const el : svg.G = subGroup.group();
+            const optVal = field.getValue() ;
+            if( optVal.isEmpty() ) {
+                // Field not initialized. Do nothing.
+            } else {
+                buildSVGForMappedNode(el, optVal.first(), drawNestedObjects); }
+            makeObjectFieldSVG(subGroup, name, el);
                           
             subGroup.dmove(10, y + 5);
             y += subGroup.bbox().height + 5;
         }
+        let border;
+        if(result.children().length !== 0)
+        {
+            border = makeObjectBorderSVG(element, result);
+        }
+        else
+        {
+            border = element.rect(0,0);
+        }
+        return border;
+    }
+
+    function drawLocation(loc : LocationV, element : svg.Container, x : number) : void
+    {
+        // TODO. Ensure that each location is drawn only once.
+        const opt = loc.getValue() ;           
+        const el : svg.G = element.group();
+        opt.choose(
+            (val : Value) => {
+
+                buildSVGForMappedNode(el, val, true);  
+            },
+            () => {}
+        ) ;
+        makeLocationBorderSVG(element, el);
+    }
+
+    function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
+    {
+        // TODO.  Share this code with the code for drawing tuple nodes.
+        const textStyle = "font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;" ;
+        const result : svg.G = element.group();
+        const leftBracketText : svg.Text= element.text( "(");
+        leftBracketText.style( textStyle );
+        leftBracketText.fill(LIGHT_BLUE.toString());
+        result.add(leftBracketText.dmove(element.bbox().width ,0)); 
+        x+= 20;
+        const itemCount : number = tuple.itemCount();
+        for (let j = 0; j < itemCount; j++){
+            const value : Value = tuple.getItemByIndex(j);
+            const subGroup : svg.G = result.group();            
+            const el : svg.G = subGroup.group();
+            buildSVGForMappedNode(el, value, true);              
+            subGroup.dmove(x + 5,0);  
+            x += subGroup.bbox().width + 5;
+            if(j !== itemCount - 1) {
+                const comma : svg.Text= element.text( ",");
+                comma.style( textStyle );
+                comma.fill(LIGHT_BLUE.toString());
+                result.add(comma.dmove(x+5,0));
+                x += 10;
+            }
+        }
+        const rightBracketText : svg.Text= element.text( ")");
+        rightBracketText.style( textStyle );
+        rightBracketText.fill(LIGHT_BLUE.toString());
+        result.add(rightBracketText.dmove(element.bbox().width+5 ,0));
         let border;
         if(result.children().length !== 0)
         {
@@ -135,26 +215,85 @@ module animatorHelpers
         valueBox.dmove(x, 0);
     }
 
-    function makeStackFrameElement(base : svg.Container, el : svg.Element) : void
-    {
-        const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 8, bounds.height + 8);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(2);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
-    }
-
-    //I assume element is a child of parent
+    /** Translate a tree of nodes into SVG
+     * 
+     * @param node -- The tree to be rendered
+     * @param element -- An SVG group initially containing the renderings of the children of the node.
+     * @param parent -- A container that initially contains element and maybe other things.
+     * @param shouldHighlight -- Should the tree be high-lighted. 
+     * @param myPath -- The path for the tree relative to the root of the Evaluation
+     * @param optError -- An optional error string.
+     * 
+     * By the end of the execution of buildSVG, the rendering of the node is added to the parent group
+     * and the element has been removed.  (In at least one case the rendering is element and so it is not
+     * removed from parent and nothing is added.  The first example below illustrates this. The second
+     * example illustrates the typical case where element is moved under a new group and the new group is added.)
+     * <p>
+     * The rendering should have its upper left corner near the origin, but that corner may be above or to the right.
+     * <p>
+     * Example 0: consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and e1 have already been rendered as
+     * svg elements s0 and s1. The bounding boxes of s0 and s1 should have their upper left corner near (0,0).
+     * (It seems to me that these corners should be exactly at (0,0), but the way the code is written they could be
+     * slightly above or to the left of the origin.  This explains the various fixups to push elements right or down!)
+     * When this routine starts we have
+     * <pre>
+     *           parent
+     *          /      \
+     *       element  others
+     *         /   \
+     *        s0    s1
+     * </pre>
+     * The other children of parent (shown as 'others' in the diagram) will typically be the rederings of
+     * the node's left siblings in the tree.
+     * <p>
+     * On exit from the routine, we have exactly the same picture; s0 and s1 have been moved to the right if
+      they are left of the origin.  s1 will have been moved down below s0.
+     * <p>
+     * Example 1: A more interesting example is Call( e0, e0 ) where again e0 and e1 have been rendered as s0 and s1.
+     * The initial picture is as above. The final picture looks like this
+     * <pre>
+     *           parent
+     *          /      \
+     *       group  others
+     *         / \
+     *    element brect
+     *     /   \
+     *    s0    s1
+     * </pre>
+     * where group is a new group and brect is a new rectangle displaying the border.
+     * s0 and s1 will have been moved appropriately.
+     * <p>
+     * Example 2: In Example 1, if shouldHighLight were true, there would be an additional rectagle
+     * added to the group, like this
+     * <pre>
+     *             parent
+     *            /      \
+     *         group     others
+     *         /  |  \
+     *  element brect hrect
+     *     /   \
+     *    s0    s1
+     * </pre>
+     * where hrect is the higlighting rectangle.
+     * <p>
+     * Example 3: If in addition there was an error on this call we would end up in this situation
+     * 
+     * <pre>
+     *             parent
+     *            /      \
+     *         group     others
+     *         /  |  \
+     *  element brect hrect
+     *  / |  | \
+     * s0 s1 t  r
+     * </pre>
+     * where t is a text element and r is a rectangle that supplies a border to the error message.
+     * (I'm not sure why t and r are added to element rather than group. However since brect and hrect
+     * are added first, they are positioned as if t and r weren't there, so it works out looking ok.)
+     */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
-                      valueMap : ValueMap | null, isError : boolean, error : string) : void
+                      optError : Option<string>) : void
     {
-        if(valueMap !== null && valueMap.isMapped(myPath))
-        {
-            buildSVGForMappedNode(element, parent, valueMap.get(myPath));
-            return;
-        }
-
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
@@ -284,7 +423,7 @@ module animatorHelpers
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
-                const textElement = guardBox.text("\u27F3").dmove(0, -5);
+                const textElement = guardBox.text(WHILEMARK).dmove(0, -5);
                 guardBox.add( childArray[0].dmove(30, 5) ) ;
                 const childBBox : svg.BBox = childArray[0].bbox();
                 if(childBBox.y < 5)
@@ -510,14 +649,28 @@ module animatorHelpers
 
                 const rightBracketText : svg.Text = element.text("]");
                 rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
-                rightBracketText.fill(MAUVE.toString());
+                rightBracketText.fill(MAUVE);
                 rightBracketText.dmove(x, -5);
 
-                
-                makeAccessorLabelBorder(element);
-
+                makeSimpleBorder(element, MAUVE);
             }
             break ;
+            case labels.DotLabel.kindConst :
+            {
+                const childArray = element.children();
+                const padding: number = 10;
+                let x : number = 0;
+
+                x += childArray[0].bbox().width + padding;
+                const dotText : svg.Text= element.text( "." + node.label().getVal() );
+                dotText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                dotText.fill(MAUVE.toString());
+                dotText.dmove(x,-5);
+                x += dotText.bbox().width + padding;
+                
+                makeSimpleBorder(element, MAUVE);
+            }
+            break;
             case labels.LambdaLabel.kindConst :
             {
 
@@ -530,7 +683,7 @@ module animatorHelpers
                 // guardBox.addClass( "whileGuardBox") ;
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
-                const textElement = lambdahead.text("\u03BB");
+                const textElement = lambdahead.text(LAMBDAMARK);
                 lambdahead.add( childArray[0].dmove(20, 10) ) ;
                 y += childArray[0].bbox().height + padding;
                 if(y === padding) {y += padding;} //i.e. there are no arguments. This prevents the type from overlapping with the lambda symbol.
@@ -571,8 +724,7 @@ module animatorHelpers
             break ;
             case labels.StringLiteralLabel.kindConst :
             {
-                const text : svg.Text = element.text( node.label().getVal() );
-                makeStringLiteralSVG(element, text);
+                makeStringLiteralSVG(element, node.label().getVal());
                 // result.addClass( "stringLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
@@ -585,6 +737,55 @@ module animatorHelpers
                 // result.addClass( "H" ) ;
             }
             break ;
+            case labels.TupleLabel.kindConst :
+            {
+                const childArray = element.children();
+                let seqBoxX : number = 0;
+                const padding : number = 15;
+                const seqBox :  svg.G = element.group().dmove(20, 0) ;
+                const leftBracketText : svg.Text= element.text( "(");
+                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.fill(LIGHT_BLUE.toString());
+                seqBox.add( leftBracketText.dmove(-20,0) );
+
+                const len = findWidthOfLargestChild(childArray)+padding;
+    
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    if( i !== childArray.length - 1) {
+                        const comma : svg.Text= element.text( ",");
+                        comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        comma.fill(LIGHT_BLUE.toString());
+                        seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
+                    }                    
+                    seqBoxX += childArray[i].bbox().width + 25;
+                    
+                }
+                if(seqBoxX === 0)
+                {
+                    seqBox.rect(10,10).opacity(0);
+                }
+                const rightBracketText : svg.Text= element.text( ")");
+                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.fill(LIGHT_BLUE.toString());
+                seqBox.add( rightBracketText.dmove(seqBoxX -20,0) );
+
+                makeSimpleBorder(element, LIGHT_BLUE,10);
+            }
+            break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+                if(node.label().getVal() === "true") {
+                    const text : svg.Text = element.text( TRUEMARK );
+                    makeBooleanLiteralSVG(element,text,true);
+                }
+                else {
+                    const text : svg.Text = element.text( FALSEMARK );
+                    makeBooleanLiteralSVG(element,text,false);
+                }
+            }
+            break;
             case labels.NoTypeLabel.kindConst :
             {
                 makeNoTypeLabelSVG(element);
@@ -607,7 +808,9 @@ module animatorHelpers
                 const padding : number = 10;
                 let x : number = 0;
 
-                const delta : svg.Text = element.text("\u03B4");
+                const label = node.label() as labels.VarDeclLabel ;
+                const isConst = label.declaresConstant() ;
+                const delta : svg.Text = element.text(isConst ? "con" : "loc");
                 delta.fill(GHOSTWHITE);
                 delta.dmove(0, -5); //testing
 
@@ -633,7 +836,7 @@ module animatorHelpers
                     childArray[2].dx(-childBBox.x);
                 }
 
-                makeVarDeclBorderSVG(element);
+                makeSimpleBorder(element, GHOSTWHITE );
 
                 // result.addClass( "vardecl" ) ;
                 // result.addClass( "H" ) ;;
@@ -648,38 +851,62 @@ module animatorHelpers
         {
             highlightThis(drawHighlightOn);
         }
-        if(isError)
-        {
-            if(error === "")
-            {
-                error = "Unknown error";
-            }
-            const elementBBox : svg.BBox = element.bbox();
-            const text : svg.Text = element.text( "Error: " + error );
-            text.dy(elementBBox.height + 15);
-            makeErrorSVG(element, text);
-            return;
-        }
+        optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
-    function buildSVGForMappedNode(element : svg.G, parent : svg.Container, value : Value, drawNestedObjects : boolean = true) : void
+    /**
+     * @param element is an intially empty group that will be contain the SVG rendering of the value.
+     */
+    function buildSVGForMappedNode(element : svg.G, value : Value, drawNestedObjects : boolean) : void
     {
         if(value.isNullV())
         {
             makeNullLiteralSVG(element);
             return;
         }
-        if(value.isDoneV())
+        if(value.isTupleV())
         {
-            // const text : svg.Text = element.text( "Done" );
-            // makeDoneSVG(element, text);
+            if( (value as TupleV) === TupleV.theDoneValue ) {
+                // TODO get rid of this case.
+                const text : svg.Text = element.text( "()" );
+                makeDoneSVG(element,text);
+                return;
+            }
+            
+            const tup : TupleV = value as TupleV;
+            drawTuple(tup,element,0);
+
             return;
+        } 
+        if( value.isLocationV() ) {
+            const loc = value as LocationV ;
+            drawLocation(loc,element,0) ;
+
+            return ;
         }
         if(value.isStringV())
         {
-            const text : svg.Text = element.text( value.toString() );
-            makeStringLiteralSVG(element, text);
+            makeStringLiteralSVG(element, (value as StringV).getVal() );
             return;
+        }
+        if(value.isNumberV())
+        {
+            // TODO. Use the correct unparsing routine.
+            const num : svg.Text = element.text ( value.toString() );
+            makeNumberLiteralSVG(element, num);
+            return;
+        }
+        if(value.isBoolV())
+        {
+            if(value === valueTypes.BoolV.trueValue) {
+                const bool : svg.Text = element.text( TRUEMARK );
+                makeBooleanLiteralSVG(element,bool,true);
+            }
+            else {
+                const bool : svg.Text = element.text( FALSEMARK );
+                makeBooleanLiteralSVG(element,bool,false);
+            }  
+            return;          
         }
         if(value.isClosureV())
         {
@@ -695,16 +922,21 @@ module animatorHelpers
         }
         if(value.isObjectV())
         {
+            // If we haven't already decided to put this object in the 
+            // objectsToDraw area and drawNestedObjects is false, we abbreviate it
+            // with just a box drawn in place.
             if(!drawNestedObjects && !objectsToDraw.includes(value as ObjectV))
             {
                 const text : svg.Text = element.text("Object");
                 makeObjectSVG(element, text);
                 return;
             }
+            // Otherwise ensure the object will be drawn in the objects area
             if(!objectsToDraw.includes(value as ObjectV))
             {
                 objectsToDraw.push(value as ObjectV);
             }
+            // And draw an object from this spot to that drawing.
             const arrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
             if(!arrowStartPoints.has(value as ObjectV))
             {
@@ -731,11 +963,9 @@ module animatorHelpers
             //main code or stack.
             const originalLength = objectsToDraw.length;
             for (let k = 0; k < objectsToDraw.length; k++){
+                if(k !== 0) { y += padding; }
+
                 const obj : ObjectI = objectsToDraw[k];
-                if(k !== 0)
-                {
-                    y += padding;
-                }
                 const drawNestedObjects : boolean = (k < originalLength);
                 const objectGroup : svg.Rect = drawObject(obj, element, y, drawNestedObjects);
                 drawnObjectsMap.set(obj, objectGroup);
@@ -776,7 +1006,7 @@ module animatorHelpers
                     const arrow : svg.Path = element.path(arrowPathString);
                     arrow.stroke({color: WHITE, opacity: 1, width: 1.5});
                     arrow.fill({opacity : 0});
-                    arrow.marker("end", 10, 7, function(add){
+                    arrow.marker("end", 10, 7, function(add : svg.Marker) : void {
                         add.polygon("0,0 10,3.5 0,7");
                         add.fill(WHITE);
                     });
@@ -906,10 +1136,31 @@ module animatorHelpers
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
+
+    function makeBooleanLiteralSVG(base : svg.Container, textElement : svg.Text, isTrue : boolean) : void 
+    {
+        if(isTrue) {
+            textElement.fill(GREEN);
+        }
+        else {
+            textElement.fill(RED);
+        }
+
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5 , bounds.height +5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
+    }
     
     //I assume textElement is already contained within base.
-    function makeStringLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
     {
+        const leftDoubleQuotationMark = "\u201C" ;
+        const rightDoubleQuotationMark = "\u201D" ;
+        const textElement : svg.Text = base.text( leftDoubleQuotationMark + str + rightDoubleQuotationMark );
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
@@ -920,9 +1171,12 @@ module animatorHelpers
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
-    //I assume textElement is already contained within base.
-    function makeErrorSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeErrorSVG(base : svg.Container, errString : string) : void
     {
+        if(errString === "") { errString = "Unknown error"; }
+        const elementBBox : svg.BBox = base.bbox();
+        const textElement : svg.Text = base.text( "Error: " + errString );
+        textElement.dy(elementBBox.height + 15);
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
         const bounds : svg.BBox = textElement.bbox();
@@ -935,7 +1189,7 @@ module animatorHelpers
 
     function makeNullLiteralSVG(base : svg.Container) : void
     {
-        const textElement : svg.Text = base.text( "\u23da" ) ;  // The Ground symbol. I hope.
+        const textElement : svg.Text = base.text( NULLMARK ) ;  // The Ground symbol. I hope.
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
         textElement.fill(WHITE);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
@@ -957,24 +1211,15 @@ module animatorHelpers
         outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
-    function makeAccessorLabelBorder(el : svg.Container) : void
+    function makeSimpleBorder(el : svg.Container, color : string, margin : number = 0 ) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
+        const boundsWidth = bounds.width + margin;
+        const outline : svg.Rect = el.rect(boundsWidth, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE.toString(), opacity: 1, width: 1.5});
-    }
-    
-    function makeVarDeclBorderSVG(el : svg.Container) : void
-    {
-        const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
+        outline.stroke({color: color, opacity: 1, width: 1.5});
     }
 
     function makeNoTypeLabelSVG(el: svg.Container) : void
@@ -1002,7 +1247,29 @@ module animatorHelpers
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
         return outline;
-}
+    }
+
+    function makeLocationBorderSVG(base : svg.Container, el : svg.Element) : void
+    {
+        const r = 4 ; // Radius
+        const VPADDING = 2*r ;
+        const HPADDING = 2*r ;
+        const bounds : svg.BBox = el.bbox();
+        el.dmove( -bounds.x+HPADDING, -bounds.y+VPADDING ) ;
+        const w = Math.max( bounds.width, 10 ) + 2*HPADDING ;
+        const h = Math.max( bounds.height, 10 ) + 2*VPADDING ;
+        const path = "M0 0" +
+                   " A" +r+ " " +r+ " 0 0 1 " +r+ " " +r+
+                   " V" +(h-r)+
+                   " A" +r+ " " +r+ " 0 0 0 " +(2*r)+ " " +h+
+                   " H" +(w-2*r)+
+                   " A" +r+ " " +r+ " 0 0 0 " +(w-r)+ " " +(h-r)+
+                   " V" +r+
+                   " A" +r+ " " +r+ " 0 0 1" +w+ " 0" ; 
+        const outline : svg.Path = base.path( path );
+        outline.fill( {opacity: 0} ) ;
+        outline.stroke({color: LIGHT_BLUE.toString(), opacity: 1, width: 1.5});
+    }
 
     //I assume textElement is already contained within base.
     function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
@@ -1043,6 +1310,9 @@ module animatorHelpers
         outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
     }
 
+    
+
+    
     //I assume textElement is already contained within base.
     function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
     {
@@ -1084,11 +1354,10 @@ module animatorHelpers
     function highlightThis(el : svg.Container) : void
     {
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        const outline : svg.Rect = el.rect(bounds.width, bounds.height);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: WHITE, opacity: 1, width: 1.5});
+        outline.fill({color: WHITE, opacity: 0.4});
     }
 }
 
