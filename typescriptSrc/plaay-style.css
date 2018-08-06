@@ -127,6 +127,7 @@ html, body
 .barButtons
 {
     float: left;
+    border: 1px solid #cccccc;
 }
 .barButtons:hover
 {
@@ -256,6 +257,11 @@ html, body
     margin: 2px 5px ;
     color: white ;
     background-color: black ;
+    border: 1px solid #a6a6a6 ;
+}
+.leftSideButton:hover
+{
+    border: 1px solid black;
 }
 
 .paletteItem 
@@ -266,6 +272,11 @@ html, body
     background-color: black;
     box-shadow: 0px 0px 3px;
     color: rgb(190, 133, 197);
+    border: 1px solid rgb(190, 133, 197);
+}
+.paletteItem:hover
+{
+    border: 1px solid black;
 }
 
 div.stack
