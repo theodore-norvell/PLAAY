@@ -4,6 +4,7 @@
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
+/// <reference path="sharedMkHtml.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
@@ -11,6 +12,9 @@ import edits = require('./edits');
 import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
+import sharedMkHtml = require( './sharedMkHtml') ;
+import { CallWorldLabel } from './labels';
+import { mkExprPH } from './labels';
 
 /** The treemanager provides to the UI an interface for editing a tree.
  */
@@ -347,9 +351,57 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        public changeNodeString(selection:Selection, newString:string) : Option<Selection> {
-            const edit = new pnodeEdits.ChangeLabelEdit(newString);
-            return edit.applyEdit(selection);
+        public changeNodeString(selection:Selection, newString:string, tabDirection : number ) : Option<Selection> {
+            // First change the label
+            const oldLabelEmpty = selection.size() === 1
+                               && selection.selectedNodes()[0].label().getVal() === "" ;
+            const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
+            // Next, if the newString is an infix operator, the node is a callVar
+            // with no children, and the old string was empty ...
+            const test0 = edits.testEdit<Selection>(
+                (s:Selection) => {
+                    const nodes = s.selectedNodes() ;
+                    if( nodes.length === 0 ) return false ;
+                    const p = nodes[0] ;
+                    return oldLabelEmpty
+                          && sharedMkHtml.stringIsInfixOperator( newString )
+                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.count() === 0 ; } ) ;
+            // ... then add two placeholders as children and select callVar node.
+            const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
+            // Otherwise if the new string is not an infix operator, the node is a callVar
+            // with no children, and the old string was empty ...
+            const test1 = edits.testEdit<Selection>(
+                (s:Selection) => {
+                    const nodes = s.selectedNodes() ;
+                    if( nodes.length === 0 ) return false ;
+                    const p = nodes[0] ;
+                    return oldLabelEmpty
+                          && ! sharedMkHtml.stringIsInfixOperator( newString )
+                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.count() === 0 ; } ) ;
+            // ... then add one placeholder.
+            // Othewise leave it alone.
+            const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
+            // Finally we do an optional tab left or right or neither.
+            const tab = tabDirection < 0
+                      ? edits.optionally(pnodeEdits.tabBackEdit)
+                      : tabDirection > 0
+                      ? edits.optionally(pnodeEdits.tabForwardEdit)
+                      : edits.id<Selection>() ;
+            const edit = edits.compose( changeLabel,
+                                        edits.alt( [edits.compose( test0,
+                                                                   pnodeEdits.rightEdit,
+                                                                   addPlaceholders,
+                                                                   pnodeEdits.selectParentEdit ),
+                                                    edits.compose( test1,
+                                                                   pnodeEdits.rightEdit,
+                                                                   add1Placeholder,
+                                                                   pnodeEdits.selectParentEdit ),
+                                                    edits.id()
+                                        ]),
+                                        tab ) ;
+            return edit.applyEdit(selection) ;
         }
 
         public selectAll( selection:Selection ) : Option<Selection> {
