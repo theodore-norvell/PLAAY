@@ -4,7 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -14,7 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
@@ -733,6 +733,9 @@ module editor {
             currentSelection = sel ;
             redostack.length = 0 ;
             generateHTMLSoon();
+            if (sessionStorage.length > 0) {
+                save();
+            }
     }
 
     export function getCurrentSelection() : Selection {
@@ -858,6 +861,24 @@ module editor {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
             function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
+    }
+
+    let saving : boolean = false;
+    function save() : void {
+        if (!saving) {
+            saving = true;
+            setTimeout(function () {
+                $.post('/update/',
+                    {
+                        identifier: sessionStorage.getItem("programId"),
+                        program: pnode.fromPNodeToJSON(currentSelection.root())
+                    },
+                    function () {
+                        saving = false;
+                    });
+            }, 15000);
+        }
+
     }
 }
 
