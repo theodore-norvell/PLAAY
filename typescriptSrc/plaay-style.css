@@ -120,7 +120,7 @@ html, body
     padding: 0 .5em 0 .5em;
     text-align: right;
     float: right;
-    display: inline-block;
+    display: block;
 }
 
 .barButtons

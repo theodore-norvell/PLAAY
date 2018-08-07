@@ -45,7 +45,8 @@ module world {
     function checkNumberOfArgs( min : number, max : number, args : Array<Value>, vm : VMS ) : boolean {
         if( args.length < min || args.length > max ) {
             if( min===max ) {
-                vm.reportError( "Expected " +min+ " arguments." ) ; }
+                const s = min===1 ? "" : "s" ;
+                vm.reportError( "Expected " +min+ " argument"+s+"." ) ; }
             else {
                 vm.reportError("Expected from " +min+ " to " +max+ " arguments." ) ; }
             return false ;
@@ -56,8 +57,8 @@ module world {
     function checkArgsAreNumbers( first : number, cap : number, args : Array<Value>, vm : VMS ) : boolean {
         for( let i = first ; i < cap && i < args.length ; ++i ) {
             const arg = args[i] ;
-            if( arg.isNumberV() ) {
-                vm.reportError( "Expected argument " +i+ " to be a number." ) ;
+            if( ! arg.isNumberV() ) {
+                vm.reportError( "Expected the "+nth(i+1)+" argument to be a number." ) ;
                 return false ; } }
         return true ;
     }
