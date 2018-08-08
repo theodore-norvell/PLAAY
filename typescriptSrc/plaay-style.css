@@ -531,7 +531,7 @@ div.expOp {
     border-radius: 5px ;
 }
 
-div.hCont, div.var, div.assign {
+div.hCont, div.var, div.assign, div.loc {
     border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
@@ -545,14 +545,6 @@ div.hCont, div.var, div.assign {
 
 div.locdecl:before {
     content: "loc" ;
-    display: inline ;
-    vertical-align: top ;
-    color: ghostwhite ;
-    font-size: large ;
-}
-
-div.condecl:before {
-    content: "con" ;
     display: inline ;
     vertical-align: top ;
     color: ghostwhite ;

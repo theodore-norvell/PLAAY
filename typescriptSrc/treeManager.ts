@@ -13,14 +13,13 @@ import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
 import sharedMkHtml = require( './sharedMkHtml') ;
-import { CallWorldLabel } from './labels';
-import { mkExprPH } from './labels';
 
 /** The treemanager provides to the UI an interface for editing a tree.
  */
 module treeManager {
 
-    import ExprSeqLabel = labels.ExprSeqLabel;
+    import CallWorldLabel = labels.CallWorldLabel ;
+    import mkExprPH = labels.mkExprPH ;
     import Selection = pnodeEdits.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
@@ -68,14 +67,14 @@ module treeManager {
                 //variables & variable manipulation
                 case "var":
                     return this.makeVarNode(selection);
-                case "locdecl":
-                    return this.makeVarDeclNode(selection, false);
                 case "condecl":
-                    return this.makeVarDeclNode(selection, true);
+                    return this.makeVarDeclNode(selection);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
                     return this.makeCallNode(selection);
+                case "loc":
+                    return this.makeLocNode(selection);
                 case "worldcall":
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
@@ -231,36 +230,21 @@ module treeManager {
 
         }
 
-        private makeVarDeclNode(selection:Selection, isConstant : boolean ) : Option<Selection> {
-            let varNode : PNode ;
-            let typeNode : PNode ;
-            let initNode : PNode ;
-            // If the selection is a declNode, try changing it.
-            if( selection.size() === 1
-            && selection.selectedNodes()[0].isVarDeclNode() ) {
-                const declNode = selection.selectedNodes()[0] ;
-                varNode = declNode.child(0) ;
-                typeNode = declNode.child(1) ;
-                initNode = declNode.child(2) ;
-            } // If the selection parent is a declNode, try changing it.
-            else if( selection.parent().isVarDeclNode() ) {
-                const declNode = selection.parent() ;
-                varNode = declNode.child(0) ;
-                typeNode = declNode.child(1) ;
-                initNode = declNode.child(2) ;
-                // Try going up.
-                const upEdit = pnodeEdits.moveFocusUpEdit ;
-                upEdit.applyEdit(selection).map( s => selection=s ) ;
-            } // Otherwise try making a new node.
-            else {
-                varNode = labels.mkVar("");
-                typeNode = labels.mkNoTypeNd();
-                initNode = labels.mkNoExpNd();
-            }
+        private makeLocNode( selection : Selection ) : Option<Selection> {
+            // We either make a new location operator or toggle a variable
+            // declaration between being loc or nonloc.
+            const template = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
+            const edit = edits.alt( [ pnodeEdits.toggleVarDecl, 
+                                      replaceOrEngulfTemplateEdit( template ) ] ) ;
+            return edit.applyEdit( selection ) ;
+        }
 
-            const vardeclnode = isConstant
-                 ? labels.mkConstDecl( varNode, typeNode, initNode ) 
-                 : labels.mkVarDecl( varNode, typeNode, initNode );
+        private makeVarDeclNode(selection:Selection ) : Option<Selection> {
+            const varNode : PNode = labels.mkVar("");
+            const typeNode : PNode = labels.mkNoTypeNd();
+            const initNode : PNode = labels.mkNoExpNd();
+
+            const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;

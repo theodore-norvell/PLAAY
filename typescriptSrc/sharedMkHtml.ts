@@ -212,6 +212,23 @@ module sharedMkHtml
                 }
             }
             break ;
+            case labels.LocLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "loc" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "op" );
+                opDiv.text( "loc" ) ;
+
+                result.append(opDiv);
+                result.append(children[0]);
+
+            }
+            break ;
             case labels.AssignLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
