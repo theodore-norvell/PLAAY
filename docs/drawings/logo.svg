@@ -29,7 +29,7 @@
      inkscape:cx="280.53925"
      inkscape:cy="998.13314"
      inkscape:document-units="mm"
-     inkscape:current-layer="layer2"
+     inkscape:current-layer="layer3"
      showgrid="false"
      showguides="false"
      inkscape:snap-grids="true"
@@ -50,15 +50,14 @@
         <dc:format>image/svg+xml</dc:format>
         <dc:type
            rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
-        <dc:title></dc:title>
+        <dc:title />
       </cc:Work>
     </rdf:RDF>
   </metadata>
   <g
      inkscape:groupmode="layer"
      id="layer3"
-     inkscape:label="Layer 3"
-     sodipodi:insensitive="true">
+     inkscape:label="Layer 3">
     <path
        style="fill:none;fill-rule:evenodd;stroke:#000000;stroke-width:0.26458332;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:0.26458332, 0.26458332;stroke-dashoffset:0;stroke-opacity:1"
        d="m 84.666666,39.031251 v 0 0"
@@ -70,7 +69,7 @@
        id="path4848"
        inkscape:connector-curvature="0" />
     <path
-       style="fill:#f1cc76;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       style="fill:#cccccc;fill-opacity:1;fill-rule:evenodd;stroke:#000000;stroke-width:1;stroke-linecap:butt;stroke-linejoin:miter;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
        d="m 34.395833,17.864583 v 23.8125 0 h 72.760417 v -23.8125 z"
        id="path4850"
        inkscape:connector-curvature="0"
@@ -142,7 +141,7 @@
            x="82"
            y="32.519684"
            style="font-style:normal;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:85.33333588px;font-family:'Arial Black';-inkscape-font-specification:'Arial Black, '" /></flowRegion><flowPara
-         id="flowPara3705"></flowPara></flowRoot>    <text
+         id="flowPara3705" /></flowRoot>    <text
        xml:space="preserve"
        style="font-style:italic;font-variant:normal;font-weight:normal;font-stretch:normal;font-size:3.17499995px;line-height:125%;font-family:'Times New Roman';-inkscape-font-specification:'Times New Roman, Italic';text-align:start;letter-spacing:0px;word-spacing:0px;writing-mode:lr-tb;text-anchor:start;fill:#000000;fill-opacity:1;stroke:none;stroke-width:0.26458332px;stroke-linecap:butt;stroke-linejoin:miter;stroke-opacity:1"
        x="32.053326"
