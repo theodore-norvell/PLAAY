@@ -131,24 +131,14 @@ module vms{
             return this.evalStack.top().getPendingNode() ;
         }
 
-        public pushPending( childNum : number ) : void {
+        public pushPending( childNum : number, context : Context ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().pushPending( childNum ) ;
+            this.evalStack.top().pushPending( childNum, context ) ;
         }
         
         public popPending( ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().popPending( ) ;
-        }
-
-        public rContext() : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().rContext() ;
-        }
-
-        public lContext() : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().lContext() ;
         }
 
         public isRContext() : boolean {
@@ -266,7 +256,7 @@ module vms{
     }
 
     export enum Context {
-        L, R
+        L, R, SAME
     }
     /** An evaluation is the state of evaluation of one PLAAY expression.
      * Typically it will  be the evaluatio of one method body.
@@ -309,9 +299,9 @@ module vms{
             this.ready.set(newReady) ;
         }
 
-        public lContext() : void { this.context.set( Context.L ) ; }
-        
-        public rContext() : void { this.context.set( Context.R ) ; }
+        public setContext( context : Context ) : void {
+            if( context !== Context.SAME ) {
+                this.context.set( context ) ; } }
 
         public isRContext() : boolean { return this.context.get() === Context.R ; }
         
@@ -345,8 +335,9 @@ module vms{
             return this.root.get().get(p) ;
         }
 
-        public pushPending( childNum : number ) : void {
+        public pushPending( childNum : number, context:Context ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
+            this.setContext( context ) ;
             const p = this.pending.get() as List<number> ;
             this.pending.set( p.cat( list( childNum ) ) ) ;
         }
@@ -358,7 +349,7 @@ module vms{
                 this.pending.set( null ) ;
             } else {
                 this.pending.set( collections.nil<number>() ) ; }
-            this.rContext() ;
+            this.setContext( Context.R ) ;
         }
 
         public scrub( path : List<number> ) : void {

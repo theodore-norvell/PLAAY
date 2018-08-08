@@ -520,6 +520,26 @@ module animatorHelpers
                 drawHighlightOn = makeCallBorderSVG(parent, element);
             }
             break ;
+            case labels.LocLabel.kindConst :
+            {
+                const child = element.children()[0];
+                const padding : number = 10;
+                let x : number = 0;
+
+                const opText : svg.Text = element.text("loc");
+                opText.fill(ORANGE);
+                opText.dmove(x, -5);
+                x += opText.bbox().width + padding;
+
+                child.dmove(x, 0);
+                const childBBox : svg.BBox = child.bbox();
+                if(childBBox.x < x)
+                {
+                    child.dx(-childBBox.x);
+                }
+                makeAssignLabelBorder(element);
+            }
+            break ;
             case labels.AssignLabel.kindConst :
             {
                 const childArray = element.children();
@@ -810,7 +830,7 @@ module animatorHelpers
 
                 const label = node.label() as labels.VarDeclLabel ;
                 const isConst = label.declaresConstant() ;
-                const delta : svg.Text = element.text(isConst ? "con" : "loc");
+                const delta : svg.Text = element.text(isConst ? "" : "loc");
                 delta.fill(GHOSTWHITE);
                 delta.dmove(0, -5); //testing
 
