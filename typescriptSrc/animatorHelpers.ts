@@ -49,6 +49,12 @@ module animatorHelpers
     const RED : string = "rgb(200, 0, 0)";
     const GREEN : string = "rgb(0,200,0)";
 
+    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: italic;  font-size: large;' ;
+    const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: upright; font-size: large;' ;
+    const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: upright; font-size: large;' ;
+    const literalStyle  = 'font-family: "Lucida Console", monospace;    font-weight: normal; font-style: upright; font-size: medium ;' ;
+    const errorStyle    = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: upright;  font-size: medium;' ;
+
     
 
     let objectsToDraw : Array<ObjectI> = new Array<ObjectI>();
@@ -120,6 +126,7 @@ module animatorHelpers
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
             const name : svg.Text = subGroup.text("  " + field.getName());
+            name.style( varStyle ) ;
             const el : svg.G = subGroup.group();
             const optVal = field.getValue() ;
             if( optVal.isEmpty() ) {
@@ -160,8 +167,6 @@ module animatorHelpers
 
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
-        // TODO.  Share this code with the code for drawing tuple nodes.
-        const textStyle = "font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;" ;
         const result : svg.G = element.group();
         const leftBracketText : svg.Text= element.text( "(");
         leftBracketText.style( textStyle );
@@ -654,7 +659,7 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const leftBracketText : svg.Text = element.text("[");
-                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.style( textBoldStyle );
                 leftBracketText.fill(MAUVE.toString());
                 leftBracketText.dmove(x, -5);
                 x += leftBracketText.bbox().width + padding;
@@ -668,7 +673,7 @@ module animatorHelpers
                 x += childBBox.width + padding;
 
                 const rightBracketText : svg.Text = element.text("]");
-                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.style( textBoldStyle );
                 rightBracketText.fill(MAUVE);
                 rightBracketText.dmove(x, -5);
 
@@ -683,7 +688,7 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const dotText : svg.Text= element.text( "." + node.label().getVal() );
-                dotText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                dotText.style( textBoldStyle );
                 dotText.fill(MAUVE.toString());
                 dotText.dmove(x,-5);
                 x += dotText.bbox().width + padding;
@@ -752,19 +757,20 @@ module animatorHelpers
             case labels.NumberLiteralLabel.kindConst :
             {
                 const text : svg.Text = element.text( node.label().getVal() );
-                makeNumberLiteralSVG(element, text);
+                makeSimpleValueSVG(element, text);
                 // result.addClass( "numberLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
             break ;
             case labels.TupleLabel.kindConst :
             {
+                // TODO Combine this code with the code for tuple values.
                 const childArray = element.children();
                 let seqBoxX : number = 0;
                 const padding : number = 15;
                 const seqBox :  svg.G = element.group().dmove(20, 0) ;
                 const leftBracketText : svg.Text= element.text( "(");
-                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.style( textBoldStyle );
                 leftBracketText.fill(LIGHT_BLUE.toString());
                 seqBox.add( leftBracketText.dmove(-20,0) );
 
@@ -775,19 +781,16 @@ module animatorHelpers
                     seqBox.add(childArray[i].dmove(seqBoxX, 0));
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
-                        comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        comma.style( textBoldStyle );
                         comma.fill(LIGHT_BLUE.toString());
                         seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
                     }                    
                     seqBoxX += childArray[i].bbox().width + 25;
                     
                 }
-                if(seqBoxX === 0)
-                {
-                    seqBox.rect(10,10).opacity(0);
-                }
+                if(seqBoxX === 0) { seqBoxX = 10 ; }
                 const rightBracketText : svg.Text= element.text( ")");
-                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.style( textBoldStyle );
                 rightBracketText.fill(LIGHT_BLUE.toString());
                 seqBox.add( rightBracketText.dmove(seqBoxX -20,0) );
 
@@ -885,14 +888,7 @@ module animatorHelpers
             return;
         }
         if(value.isTupleV())
-        {
-            if( (value as TupleV) === TupleV.theDoneValue ) {
-                // TODO get rid of this case.
-                const text : svg.Text = element.text( "()" );
-                makeDoneSVG(element,text);
-                return;
-            }
-            
+        {   
             const tup : TupleV = value as TupleV;
             drawTuple(tup,element,0);
 
@@ -913,7 +909,7 @@ module animatorHelpers
         {
             // TODO. Use the correct unparsing routine.
             const num : svg.Text = element.text ( value.toString() );
-            makeNumberLiteralSVG(element, num);
+            makeSimpleValueSVG(element, num);
             return;
         }
         if(value.isBoolV())
@@ -931,13 +927,13 @@ module animatorHelpers
         if(value.isClosureV())
         {
             const text : svg.Text = element.text("Closure");
-            makeClosureSVG(element, text);
+            makeSimpleValueSVG(element, text);
             return;
         }
         if(value.isBuiltInV())
         {
             const text : svg.Text = element.text("Built-in");
-            makeBuiltInSVG(element, text);
+            makeSimpleValueSVG(element, text);
             return;
         }
         if(value.isObjectV())
@@ -1045,7 +1041,7 @@ module animatorHelpers
         if(text !== null)
         {
             text.fill(colour); //It would throw an error unless I did this
-            text.style("font-size: large");
+            text.style( textBoldStyle );
         }
         const bounds = guardBox.bbox();
         const line = guardBox.line(bounds.x - 5, lineY, bounds.x + lineLength + 5, lineY);
@@ -1064,7 +1060,7 @@ module animatorHelpers
     function doCallWorldLabelStylingSVG(textElement : svg.Text) : void
     {
         textElement.fill(MAUVE);
-        textElement.style("font-family:'Times New Roman', Times,serif;font-weight: bold ;font-size: large ;");
+        textElement.style( varStyle );
     }
 
     function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : svg.G
@@ -1123,6 +1119,8 @@ module animatorHelpers
     function makeVariableLabelSVG(base : svg.Container, textElement : svg.Text) : void
     {
         textElement.fill(ORANGE);
+
+        textElement.style( varStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
@@ -1135,7 +1133,7 @@ module animatorHelpers
     {
         const textElement : svg.Text = base.text( "..." );
         textElement.fill(ORANGE);
-        textElement.style("font-weight: normal ;font-size: medium ;");
+        textElement.style( textStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
@@ -1144,17 +1142,26 @@ module animatorHelpers
         outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
+
     //I assume textElement is already contained within base.
-    function makeNumberLiteralSVG(base : svg.Container, textElement : svg.Text) : void
+    function makeSimpleValueSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(ORANGE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        textElement.fill(WHITE);
+        textElement.style( literalStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
+    }
+    
+    function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
+    {
+        const leftDoubleQuotationMark = "\u201C" ;
+        const rightDoubleQuotationMark = "\u201D" ;
+        const textElement : svg.Text = base.text( leftDoubleQuotationMark + str + rightDoubleQuotationMark );
+        makeSimpleValueSVG( base, textElement ) ;
     }
 
     function makeBooleanLiteralSVG(base : svg.Container, textElement : svg.Text, isTrue : boolean) : void 
@@ -1166,25 +1173,9 @@ module animatorHelpers
             textElement.fill(RED);
         }
 
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        textElement.style( literalStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5 , bounds.height +5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
-    }
-    
-    //I assume textElement is already contained within base.
-    function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
-    {
-        const leftDoubleQuotationMark = "\u201C" ;
-        const rightDoubleQuotationMark = "\u201D" ;
-        const textElement : svg.Text = base.text( leftDoubleQuotationMark + str + rightDoubleQuotationMark );
-        textElement.fill(WHITE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
@@ -1198,7 +1189,7 @@ module animatorHelpers
         const textElement : svg.Text = base.text( "Error: " + errString );
         textElement.dy(elementBBox.height + 15);
         textElement.fill(WHITE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        textElement.style( errorStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
@@ -1212,7 +1203,7 @@ module animatorHelpers
         const textElement : svg.Text = base.text( NULLMARK ) ;  // The Ground symbol. I hope.
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
         textElement.fill(WHITE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: x-large ;");
+        textElement.style( literalStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
@@ -1292,52 +1283,10 @@ module animatorHelpers
     }
 
     //I assume textElement is already contained within base.
-    function makeClosureSVG(base : svg.Container, textElement : svg.Text) : void
-    {
-        textElement.fill(ORANGE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
-    }
-
-    //I assume textElement is already contained within base.
-    function makeBuiltInSVG(base : svg.Container, textElement : svg.Text) : void
-    {
-        textElement.fill(ORANGE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
-    }
-
-    //I assume textElement is already contained within base.
     function makeObjectSVG(base : svg.Container, textElement : svg.Text) : void
     {
         textElement.fill(ORANGE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
-    }
-
-    
-
-    
-    //I assume textElement is already contained within base.
-    function makeDoneSVG(base : svg.Container, textElement : svg.Text) : void
-    {
-        textElement.fill(ORANGE);
-        textElement.style("font-family:'Lucida Console', monospace;font-weight: normal ;font-size: medium ;");
+        textElement.style( literalStyle );
         const bounds : svg.BBox = textElement.bbox();
         const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
