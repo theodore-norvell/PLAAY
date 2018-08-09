@@ -18,13 +18,17 @@ import sharedMkHtml = require( './sharedMkHtml') ;
  */
 module treeManager {
 
+    import alt = edits.alt ;
+    import compose = edits.compose ;
+    import id = edits.id ;
+    import optionally = edits.optionally ;
+    import testEdit = edits.testEdit ;
     import CallWorldLabel = labels.CallWorldLabel ;
     import mkExprPH = labels.mkExprPH ;
     import Selection = pnodeEdits.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
     import PNode = pnode.PNode;
-    import Edit = edits.Edit;
     import Option = collections.Option;
 
     export class TreeManager {
@@ -234,8 +238,11 @@ module treeManager {
             // We either make a new location operator or toggle a variable
             // declaration between being loc or nonloc.
             const template = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
-            const edit = edits.alt( [ pnodeEdits.toggleVarDecl, 
-                                      replaceOrEngulfTemplateEdit( template ) ] ) ;
+            const edit = alt( [ compose(pnodeEdits.toggleVarDecl, pnodeEdits.tabForwardEdit ),
+                                replaceOrEngulfTemplateEdit( template ),
+                                compose( pnodeEdits.moveOutNormal,
+                                         pnodeEdits.toggleVarDecl,
+                                         pnodeEdits.tabForwardEdit) ] ) ;
             return edit.applyEdit( selection ) ;
         }
 
@@ -342,7 +349,7 @@ module treeManager {
             const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test0 = edits.testEdit<Selection>(
+            const test0 = testEdit<Selection>(
                 (s:Selection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
@@ -355,7 +362,7 @@ module treeManager {
             const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
             // Otherwise if the new string is not an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test1 = edits.testEdit<Selection>(
+            const test1 = testEdit<Selection>(
                 (s:Selection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
@@ -369,22 +376,21 @@ module treeManager {
             const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
             // Finally we do an optional tab left or right or neither.
             const tab = tabDirection < 0
-                      ? edits.optionally(pnodeEdits.tabBackEdit)
+                      ? optionally(pnodeEdits.tabBackEdit)
                       : tabDirection > 0
-                      ? edits.optionally(pnodeEdits.tabForwardEdit)
-                      : edits.id<Selection>() ;
-            const edit = edits.compose( changeLabel,
-                                        edits.alt( [edits.compose( test0,
-                                                                   pnodeEdits.rightEdit,
-                                                                   addPlaceholders,
-                                                                   pnodeEdits.selectParentEdit ),
-                                                    edits.compose( test1,
-                                                                   pnodeEdits.rightEdit,
-                                                                   add1Placeholder,
-                                                                   pnodeEdits.selectParentEdit ),
-                                                    edits.id()
-                                        ]),
-                                        tab ) ;
+                      ? optionally(pnodeEdits.tabForwardEdit)
+                      : id<Selection>() ;
+            const edit = compose( changeLabel,
+                                  alt( [compose( test0,
+                                                 pnodeEdits.rightEdit,
+                                                 addPlaceholders,
+                                                 pnodeEdits.selectParentEdit ),
+                                        compose( test1,
+                                                 pnodeEdits.rightEdit,
+                                                 add1Placeholder,
+                                                 pnodeEdits.selectParentEdit ),
+                                        id()] ),
+                                  tab ) ;
             return edit.applyEdit(selection) ;
         }
 
