@@ -4,29 +4,42 @@
 </head>
 <body>
     <h1>Keyboard commands:</h1>
+    <p><b>Infix example:</b> <kbd>x enter : f o o enter * b a r enter space + 1 2 3 enter</kbd></p>
+    <p><b>Prefix example:</b> <kbd>: x tab + * f o o tab b a r tab tab 1 2 3 tab</kbd></p>
     <p><i>On Macs and ipads, the <b>cmd</b> key can be used in place of the <b>ctrl</b> key.</i></p>
-    <p>The following keyboard commands can be used for creating code:</p>
+    <p>Creating expressions</p>
     <ul>
-        <li><b>;</b> will create a location declaration.</li>
-        <li><b>,</b> will create a constant declaration.</li>
-        <li><b>:</b> will create an assignment expression.</li>
-        <li><b>&quot;</b> will create a string literal expression.</li>
-        <li><b>?</b> will create an alternation (if) expression.</li>
-        <li><b>@</b> will create a while-loop expression.</li>
-        <li><b>\</b> will create a lambda expression.</li>
-        <li><b>_</b> will create an application expression</li>
-        <li><b>0-9</b> will create a numeric literal expression starting with that number. Works with the numpad as well.</li>
-        <li><b>a-z and a-z</b> will create a variable expression starting with that character.</li>
-        <li><b>+, -, *, /, &lt;, &gt;, % and =</b> will create the appropriate call expression. Also works with shift+= for + and shift+8 for *.</li>
-        <li><b>`</b> will create a call expression.</li>
-        <li><b>$</b> will create an object literal expression.</li>
-        <li><b>[</b> will create an accessor expression.</li>
-        <li><b>`</b> will create a call expression.</li>
+        <li><kbd>0-9</kbd> will create a numeric literal expression starting with that digit. Works with the numpad as well.</li>
+        <li><kbd>a</kbd>-<kbd>z</kbd> and <kbd>A</kbd>-<kbd>Z</kbd>
+             will create a variable expression starting with that character.</li>
+        <li><kbd>&quot;</kbd> will create a string literal.</li>
+        <li><kbd>`</kbd> will create a call expression.</li>
+        <li><kbd>.</kbd> will create a selection expression.</li>
+        <li><em>For each of the above use <kbd>tab</kbd> or
+            <kbd>enter</kbd> to finish.</em></li>
+        <li><kbd>+</kbd>, <kbd>-</kbd>, <kbd>*</kbd>,
+            <kbd>/</kbd>, <kbd>&lt;</kbd>, <kbd>&gt;</kbd>,
+            <kbd>%</kbd>, <kbd>&amp;</kbd>, <kbd>|</kbd>, and <kbd>=</kbd>
+            will create the appropriate call expression.</li>
+        <li><kbd>?</kbd> will create an alternation (if) expression.</li>
+        <li><kbd>@</kbd> will create a while-loop expression.</li>
+        <li><kbd>\</kbd> will create a lambda expression.</li>
+        <li><kbd>_</kbd> will create an application expression</li>
+        <li><kbd>$</kbd> will create an object literal expression.</li>
+        <li><kbd>[</kbd> will create an index expression.</li>
+        <li><kbd>:</kbd> will create an assignment expression.</li>
+        <li><kbd>,</kbd> will create a variable declaration.</li>
+        <li><kbd>;</kbd> will create a loc expression.</li>
+        <li><kbd>;</kbd> will also turn plain variable declarations
+            into location variable declarations (or the opposite)
+            when the declaration is selected.</li>
     </ul>
-    <p><b>Arrow keys and the tab key</b> to navigate your code.</p>
-    <p><b>Arrow keys while shift key is depressed</b> to expand or contract the selection.</p>
+    <p><b>Arrow keys</b> to change the selection.</p>
+    <p><b>Shifted Arrow keys/b> to expand or contract the selection.</p>
     <p><b>Space bar</b> to expand the current selection outward.</p>
     <p><b>Enter</b> to edit the text associated with a node.</p>
+    <p><b>Tab key</b> to move the selection to the next insertion point.</p>
+    <p><b>Shifted tab key</b> to move the selection to the previous insertion point.</p>
     <p><b>ctrl+a</b> to select everything.</p>
     <p><b>ctrl+c</b> to add the current selection to trash.</p>
     <p><b>ctrl+x</b> to cut the current selection to trash.</p>
