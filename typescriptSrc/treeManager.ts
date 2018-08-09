@@ -117,9 +117,13 @@ module treeManager {
 
         private makeVarNode(selection:Selection, text : string = "") : Option<Selection> {
 
-            const varnode = labels.mkVar(text) ;
-            const edit = pnodeEdits.insertChildrenEdit( [varnode] ) ;
-            return edit.applyEdit(selection) ;
+            const varNode = labels.mkVar(text) ;
+            const typeNode : PNode = labels.mkNoTypeNd();
+            const initNode : PNode = labels.mkNoExpNd();
+            const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
+            const edit0 = pnodeEdits.insertChildrenEdit( [varNode] ) ;
+            const edit1 = pnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
+            return alt([edit0,edit1]).applyEdit(selection) ;
         }
 
         // While nodes
@@ -305,14 +309,14 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private makeStringLiteralNode(selection:Selection, text : string = "hello") : Option<Selection> {
+        private makeStringLiteralNode(selection:Selection, text : string = "") : Option<Selection> {
 
             const literalnode = labels.mkStringLiteral(text) ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeNumberLiteralNode(selection:Selection, text : string = "123") : Option<Selection> {
+        private makeNumberLiteralNode(selection:Selection, text : string = "0") : Option<Selection> {
 
             const literalnode = labels.mkNumberLiteral(text) ;
 
