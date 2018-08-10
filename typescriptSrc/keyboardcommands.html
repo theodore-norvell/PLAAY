@@ -1,15 +1,34 @@
 <html>
 <head>
     <title>Keyboard commands for PLAAY</title>
+    <style>
+        kbd {
+            padding: 1px ;
+            border: thin solid black ;
+            border-radius: 5px ;
+            color: white ;
+            background-color: darkslategray ;
+            font-family: "Lucida Console", monospace;
+            font-size: inherit ;
+            font-style: upright ;
+            font-weight: normal ;
+        }
+        li {
+            margin-top: 5px;
+        }
+        li:first-child {
+            margin-top: 0;
+        }
+    </style>
 </head>
 <body>
     <h1>Keyboard commands:</h1>
-    <p><b>Infix example:</b> <kbd>x enter : f o o enter * b a r enter space + 1 2 3 enter</kbd></p>
-    <p><b>Prefix example:</b> <kbd>: x tab + * f o o tab b a r tab tab 1 2 3 tab</kbd></p>
     <p><i>On Macs and ipads, the <b>cmd</b> key can be used in place of the <b>ctrl</b> key.</i></p>
-    <p>Creating expressions</p>
+    <h2>Creating expressions with the keyboard</h2>
+    <p><b>Infix/postfix example:</b> <kbd>x</kbd> <kbd>enter</kbd> <kbd>,</kbd> <kbd>tab</kbd> <kbd>2</kbd> <kbd>enter</kbd> <kbd>*</kbd> <kbd>y</kbd> <kbd>enter</kbd> <kbd>`</kbd> <kbd>f</kbd> <kbd>enter</kbd> <kbd>space</kbd> <kbd>+</kbd> <kbd>1</kbd> <kbd>tab</kbd></p>
+    <p><b>Prefix example:</b> <kbd>,</kbd> <kbd>x</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>+</kbd> <kbd>*</kbd> <kbd>2</kbd> <kbd>tab</kbd> <kbd>`</kbd> <kbd>f</kbd> <kbd>tab</kbd> <kbd>y</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>1</kbd> <kbd>tab</kbd> </p>
     <ul>
-        <li><kbd>0-9</kbd> will create a numeric literal expression starting with that digit. Works with the numpad as well.</li>
+        <li><kbd>0</kbd>-<kbd>9</kbd> will create a numeric literal expression starting with that digit. Works with the numpad as well.</li>
         <li><kbd>a</kbd>-<kbd>z</kbd> and <kbd>A</kbd>-<kbd>Z</kbd>
              will create a variable expression starting with that character.</li>
         <li><kbd>&quot;</kbd> will create a string literal.</li>
@@ -25,26 +44,41 @@
         <li><kbd>@</kbd> will create a while-loop expression.</li>
         <li><kbd>\</kbd> will create a lambda expression.</li>
         <li><kbd>_</kbd> will create an application expression</li>
+        <li><kbd>(</kbd> will create a tuple expression.</li>
         <li><kbd>$</kbd> will create an object literal expression.</li>
         <li><kbd>[</kbd> will create an index expression.</li>
         <li><kbd>:</kbd> will create an assignment expression.</li>
-        <li><kbd>,</kbd> will create a variable declaration.</li>
         <li><kbd>;</kbd> will create a loc expression.</li>
-        <li><kbd>;</kbd> will also turn plain variable declarations
+    </ul>
+    <h2>Creating declarations with the keyboard</h2>
+    <p><b>Variable declaration example:</b> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>,</kbd>
+    or <kbd>,</kbd> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>tab</kbd></p>
+    <p><b>Location variable declaration example:</b> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>,</kbd> <kbd>;</kbd>
+    or <kbd>,</kbd> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>;</kbd></p>
+    <p>For function parameters, the comma (<kbd>,</kbd>) is omitted.</p>
+    <ul>
+        <li><kbd>,</kbd> will create a variable declaration.</li>
+        <li><kbd>;</kbd> will turn plain variable declarations
             into location variable declarations (or the opposite)
             when the declaration is selected.</li>
     </ul>
-    <p><b>Arrow keys</b> to change the selection.</p>
-    <p><b>Shifted Arrow keys/b> to expand or contract the selection.</p>
-    <p><b>Space bar</b> to expand the current selection outward.</p>
-    <p><b>Enter</b> to edit the text associated with a node.</p>
-    <p><b>Tab key</b> to move the selection to the next insertion point.</p>
-    <p><b>Shifted tab key</b> to move the selection to the previous insertion point.</p>
-    <p><b>ctrl+a</b> to select everything.</p>
-    <p><b>ctrl+c</b> to add the current selection to trash.</p>
-    <p><b>ctrl+x</b> to cut the current selection to trash.</p>
-    <p><b>ctrl+v</b> to paste the top (most recently added) item from the trash.</p>
-    <p><b>ctrl+b</b> to swap the current selection with the top of the trash.
-    <p><b>crtl+0, ctrl+1, ..., ctrl+9</b> to paste an item from the trash. 0 will paste the top trash item. 1 will paste the second trash item, 2 the third item, and so on.</p>
+    <h2>Moving around with the keyboard</h2>
+    <ul>
+        <li><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd> <kbd>&uarr;</kbd> to change the selection.</li>
+        <li><kbd>shift</kbd>+ <kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd> <kbd>&uarr;</kbd> to expand or contract the selection.</li>
+        <li><kbd>space</kbd> to expand the current selection outward.</li>
+        <li><kbd>enter</kbd> to edit the text associated with the selection.</li>
+        <li><b><kbd>tab</kbd></b> to move the selection to the next dropzone or place-holder.</li>
+        <li><b><kbd>shift</kbd>+<kbd>tab</kbd></b> to move the selection to the previous insertion point.</li>
+        <li><b><kbd>ctrl</kbd>+<kbd>a</kbd></b> to select everything.</li>
+    </ul>
+    <h2>Other editing with the keyboard</h2>
+    <ul>
+        <li><b><kbd>ctrl</kbd>+<kbd>c</kbd></b> to add the current selection to trash.</li>
+        <li><b><kbd>ctrl</kbd>+<kbd>x</kbd></b> to cut the current selection to trash.</li>
+        <li><b><kbd>ctrl</kbd>+<kbd>v</kbd></b> to paste the top (most recently added) item from the trash.</li>
+        <li><b><kbd>ctrl</kbd>+<kbd>b</kbd></b> to swap the current selection with the top of the trash.</li>
+        <li><b><kbd>crtl</kbd>+<kbd>0</kbd>, <kbd>ctrl</kbd>+<kbd>1</kbd>, ..., <kbd>ctrl</kbd>+<kbd>9</kbd></b> to paste an item from the trash. 0 will paste the top trash item. 1 will paste the second trash item, 2 the third item, and so on.</li>
+    </ul>
 </body>
 </html>
