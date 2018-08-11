@@ -49,11 +49,11 @@ module animatorHelpers
     const RED : string = "rgb(200, 0, 0)";
     const GREEN : string = "rgb(0,200,0)";
 
-    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: italic;  font-size: large;' ;
-    const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: upright; font-size: large;' ;
-    const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: upright; font-size: large;' ;
-    const literalStyle  = 'font-family: "Lucida Console", monospace;    font-weight: normal; font-style: upright; font-size: medium ;' ;
-    const errorStyle    = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: upright;  font-size: medium;' ;
+    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: italic; font-size: large;' ;
+    const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
+    const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
+    const literalStyle  = 'font-family: "Lucida Console", monospace;    font-weight: normal; font-style: normal; font-size: medium ;' ;
+    const errorStyle    = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: medium;' ;
 
     
 
@@ -659,7 +659,7 @@ module animatorHelpers
 
                 x += childArray[0].bbox().width + padding;
                 const leftBracketText : svg.Text = element.text("[");
-                leftBracketText.style( textBoldStyle );
+                leftBracketText.style( textStyle );
                 leftBracketText.fill(MAUVE.toString());
                 leftBracketText.dmove(x, -5);
                 x += leftBracketText.bbox().width + padding;
@@ -673,27 +673,26 @@ module animatorHelpers
                 x += childBBox.width + padding;
 
                 const rightBracketText : svg.Text = element.text("]");
-                rightBracketText.style( textBoldStyle );
+                rightBracketText.style( textStyle );
                 rightBracketText.fill(MAUVE);
                 rightBracketText.dmove(x, -5);
 
-                makeSimpleBorder(element, MAUVE);
+                makeSimpleBorder(element, MAUVE, 10);
             }
             break ;
             case labels.DotLabel.kindConst :
             {
                 const childArray = element.children();
-                const padding: number = 10;
-                let x : number = 0;
-
+                const padding: number = 0;
+                let x : number = padding;
                 x += childArray[0].bbox().width + padding;
                 const dotText : svg.Text= element.text( "." + node.label().getVal() );
-                dotText.style( textBoldStyle );
-                dotText.fill(MAUVE.toString());
+                dotText.style( varStyle );
+                dotText.fill(MAUVE);
                 dotText.dmove(x,-5);
                 x += dotText.bbox().width + padding;
                 
-                makeSimpleBorder(element, MAUVE);
+                makeSimpleBorder(element, MAUVE, 10);
             }
             break;
             case labels.LambdaLabel.kindConst :
@@ -770,7 +769,7 @@ module animatorHelpers
                 const padding : number = 15;
                 const seqBox :  svg.G = element.group().dmove(20, 0) ;
                 const leftBracketText : svg.Text= element.text( "(");
-                leftBracketText.style( textBoldStyle );
+                leftBracketText.style( textStyle );
                 leftBracketText.fill(LIGHT_BLUE.toString());
                 seqBox.add( leftBracketText.dmove(-20,0) );
 
@@ -781,7 +780,7 @@ module animatorHelpers
                     seqBox.add(childArray[i].dmove(seqBoxX, 0));
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
-                        comma.style( textBoldStyle );
+                        comma.style( textStyle );
                         comma.fill(LIGHT_BLUE.toString());
                         seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
                     }                    
@@ -790,11 +789,11 @@ module animatorHelpers
                 }
                 if(seqBoxX === 0) { seqBoxX = 10 ; }
                 const rightBracketText : svg.Text= element.text( ")");
-                rightBracketText.style( textBoldStyle );
+                rightBracketText.style( textStyle );
                 rightBracketText.fill(LIGHT_BLUE.toString());
                 seqBox.add( rightBracketText.dmove(seqBoxX -20,0) );
 
-                makeSimpleBorder(element, LIGHT_BLUE,10);
+                makeSimpleBorder(element, LIGHT_BLUE, 10);
             }
             break ;
             case labels.BooleanLiteralLabel.kindConst :
@@ -835,7 +834,6 @@ module animatorHelpers
                 const isConst = label.declaresConstant() ;
                 const delta : svg.Text = element.text(isConst ? "" : "loc");
                 delta.fill(GHOSTWHITE);
-                delta.dmove(0, -5); //testing
 
                 x += delta.bbox().width + padding;
                 childArray[0].dmove(x, 0); 
@@ -859,7 +857,7 @@ module animatorHelpers
                     childArray[2].dx(-childBBox.x);
                 }
 
-                makeSimpleBorder(element, GHOSTWHITE );
+                makeSimpleBorder(element, GHOSTWHITE, 10 );
 
                 // result.addClass( "vardecl" ) ;
                 // result.addClass( "H" ) ;;

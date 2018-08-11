@@ -600,6 +600,10 @@ div.op {
     font-weight: normal ;
 }
 
+div.upright {
+    font-style: normal ;
+}
+
 div.objectGuardBox:before { content: "$" ;
     display: inline ;
     vertical-align: top ;
@@ -689,7 +693,7 @@ div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;
     font-family:"Lucida Console", monospace;
-    font-style: upright ;
+    font-style: normal ;
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
@@ -707,7 +711,7 @@ div.nullLiteral {
     border-radius: 5px ;
     font-size: x-large ;
     font-family:"Lucida Console", Monospace;
-    font-style: upright ;
+    font-style: normal ;
     font-weight:bold;
     text-align:center;
     color:rgb(255,255,255);

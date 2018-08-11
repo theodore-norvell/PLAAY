@@ -221,6 +221,7 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "upright" ) ;
                 opDiv.addClass( "op" );
                 opDiv.text( "loc" ) ;
 
@@ -238,6 +239,7 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "upright" );
                 opDiv.addClass( "op" );
                 opDiv.text( ":=" ) ;
 
@@ -316,10 +318,12 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 const leftBracket : JQuery = $( document.createElement("div") ) ;
+                leftBracket.addClass( "upright" );
                 leftBracket.addClass( "op" );
                 leftBracket.text( "[" ) ;
 
                 const rightBracket : JQuery = $( document.createElement("div") ) ;
+                rightBracket.addClass( "upright" );
                 rightBracket.addClass( "op" );
                 rightBracket.text( "]" ) ;
 
