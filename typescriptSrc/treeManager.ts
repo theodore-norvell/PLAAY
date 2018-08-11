@@ -13,19 +13,22 @@ import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
 import sharedMkHtml = require( './sharedMkHtml') ;
-import { CallWorldLabel } from './labels';
-import { mkExprPH } from './labels';
 
 /** The treemanager provides to the UI an interface for editing a tree.
  */
 module treeManager {
 
-    import ExprSeqLabel = labels.ExprSeqLabel;
+    import alt = edits.alt ;
+    import compose = edits.compose ;
+    import id = edits.id ;
+    import optionally = edits.optionally ;
+    import testEdit = edits.testEdit ;
+    import CallWorldLabel = labels.CallWorldLabel ;
+    import mkExprPH = labels.mkExprPH ;
     import Selection = pnodeEdits.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
     import PNode = pnode.PNode;
-    import Edit = edits.Edit;
     import Option = collections.Option;
 
     export class TreeManager {
@@ -68,14 +71,14 @@ module treeManager {
                 //variables & variable manipulation
                 case "var":
                     return this.makeVarNode(selection);
-                case "locdecl":
-                    return this.makeVarDeclNode(selection, false);
                 case "condecl":
-                    return this.makeVarDeclNode(selection, true);
+                    return this.makeVarDeclNode(selection);
                 case "assign":
                     return this.makeAssignNode(selection);
                 case "call":
                     return this.makeCallNode(selection);
+                case "loc":
+                    return this.makeLocNode(selection);
                 case "worldcall":
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
@@ -114,9 +117,13 @@ module treeManager {
 
         private makeVarNode(selection:Selection, text : string = "") : Option<Selection> {
 
-            const varnode = labels.mkVar(text) ;
-            const edit = pnodeEdits.insertChildrenEdit( [varnode] ) ;
-            return edit.applyEdit(selection) ;
+            const varNode = labels.mkVar(text) ;
+            const typeNode : PNode = labels.mkNoTypeNd();
+            const initNode : PNode = labels.mkNoExpNd();
+            const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
+            const edit0 = pnodeEdits.insertChildrenEdit( [varNode] ) ;
+            const edit1 = pnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
+            return alt([edit0,edit1]).applyEdit(selection) ;
         }
 
         // While nodes
@@ -231,36 +238,24 @@ module treeManager {
 
         }
 
-        private makeVarDeclNode(selection:Selection, isConstant : boolean ) : Option<Selection> {
-            let varNode : PNode ;
-            let typeNode : PNode ;
-            let initNode : PNode ;
-            // If the selection is a declNode, try changing it.
-            if( selection.size() === 1
-            && selection.selectedNodes()[0].isVarDeclNode() ) {
-                const declNode = selection.selectedNodes()[0] ;
-                varNode = declNode.child(0) ;
-                typeNode = declNode.child(1) ;
-                initNode = declNode.child(2) ;
-            } // If the selection parent is a declNode, try changing it.
-            else if( selection.parent().isVarDeclNode() ) {
-                const declNode = selection.parent() ;
-                varNode = declNode.child(0) ;
-                typeNode = declNode.child(1) ;
-                initNode = declNode.child(2) ;
-                // Try going up.
-                const upEdit = pnodeEdits.moveFocusUpEdit ;
-                upEdit.applyEdit(selection).map( s => selection=s ) ;
-            } // Otherwise try making a new node.
-            else {
-                varNode = labels.mkVar("");
-                typeNode = labels.mkNoTypeNd();
-                initNode = labels.mkNoExpNd();
-            }
+        private makeLocNode( selection : Selection ) : Option<Selection> {
+            // We either make a new location operator or toggle a variable
+            // declaration between being loc or nonloc.
+            const template = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
+            const edit = alt( [ compose(pnodeEdits.toggleVarDecl, pnodeEdits.tabForwardEdit ),
+                                replaceOrEngulfTemplateEdit( template ),
+                                compose( pnodeEdits.moveOutNormal,
+                                         pnodeEdits.toggleVarDecl,
+                                         pnodeEdits.tabForwardEdit) ] ) ;
+            return edit.applyEdit( selection ) ;
+        }
 
-            const vardeclnode = isConstant
-                 ? labels.mkConstDecl( varNode, typeNode, initNode ) 
-                 : labels.mkVarDecl( varNode, typeNode, initNode );
+        private makeVarDeclNode(selection:Selection ) : Option<Selection> {
+            const varNode : PNode = labels.mkVar("");
+            const typeNode : PNode = labels.mkNoTypeNd();
+            const initNode : PNode = labels.mkNoExpNd();
+
+            const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
@@ -314,14 +309,14 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private makeStringLiteralNode(selection:Selection, text : string = "hello") : Option<Selection> {
+        private makeStringLiteralNode(selection:Selection, text : string = "") : Option<Selection> {
 
             const literalnode = labels.mkStringLiteral(text) ;
             const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
-        private makeNumberLiteralNode(selection:Selection, text : string = "123") : Option<Selection> {
+        private makeNumberLiteralNode(selection:Selection, text : string = "0") : Option<Selection> {
 
             const literalnode = labels.mkNumberLiteral(text) ;
 
@@ -358,7 +353,7 @@ module treeManager {
             const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test0 = edits.testEdit<Selection>(
+            const test0 = testEdit<Selection>(
                 (s:Selection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
@@ -371,7 +366,7 @@ module treeManager {
             const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
             // Otherwise if the new string is not an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test1 = edits.testEdit<Selection>(
+            const test1 = testEdit<Selection>(
                 (s:Selection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
@@ -385,22 +380,21 @@ module treeManager {
             const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
             // Finally we do an optional tab left or right or neither.
             const tab = tabDirection < 0
-                      ? edits.optionally(pnodeEdits.tabBackEdit)
+                      ? optionally(pnodeEdits.tabBackEdit)
                       : tabDirection > 0
-                      ? edits.optionally(pnodeEdits.tabForwardEdit)
-                      : edits.id<Selection>() ;
-            const edit = edits.compose( changeLabel,
-                                        edits.alt( [edits.compose( test0,
-                                                                   pnodeEdits.rightEdit,
-                                                                   addPlaceholders,
-                                                                   pnodeEdits.selectParentEdit ),
-                                                    edits.compose( test1,
-                                                                   pnodeEdits.rightEdit,
-                                                                   add1Placeholder,
-                                                                   pnodeEdits.selectParentEdit ),
-                                                    edits.id()
-                                        ]),
-                                        tab ) ;
+                      ? optionally(pnodeEdits.tabForwardEdit)
+                      : id<Selection>() ;
+            const edit = compose( changeLabel,
+                                  alt( [compose( test0,
+                                                 pnodeEdits.rightEdit,
+                                                 addPlaceholders,
+                                                 pnodeEdits.selectParentEdit ),
+                                        compose( test1,
+                                                 pnodeEdits.rightEdit,
+                                                 add1Placeholder,
+                                                 pnodeEdits.selectParentEdit ),
+                                        id()] ),
+                                  tab ) ;
             return edit.applyEdit(selection) ;
         }
 

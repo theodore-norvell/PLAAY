@@ -28,6 +28,7 @@ module interpreter {
     import Value = vms.Value ;
     import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
+    import Context = vms.Context ;
     import BuiltInV = valueTypes.BuiltInV ;
     import StringV = valueTypes.StringV ;
     import NumberV = valueTypes.NumberV ;
@@ -72,9 +73,11 @@ module interpreter {
     
     type Selector = ( vms : VMS ) => void ;
 
-    const leftToRightSelectorSameContext = leftToRightSelector( false ) ;
+    const leftToRightSelectorSameContext = leftToRightSelector( vms.Context.SAME ) ;
 
-    const leftToRightSelectorRContext = leftToRightSelector( true ) ;
+    const leftToRightSelectorRContext = leftToRightSelector( vms.Context.R ) ;
+
+    const leftToRightSelectorLContext = leftToRightSelector( vms.Context.L ) ;
 
     interface StepperRegistry { [key:string] : Stepper ; }
 
@@ -121,12 +124,15 @@ module interpreter {
     theStepperRegistry[labels.WhileLabel.kindConst] = whileStepper;
     theSelectorRegistry[labels.WhileLabel.kindConst] = whileSelector;
 
-    // Variable Labels
+    // Variable Labels and related
     theStepperRegistry[labels.AssignLabel.kindConst] = assignStepper;
     theSelectorRegistry[labels.AssignLabel.kindConst] = assignSelector;
 
     theSelectorRegistry[labels.VariableLabel.kindConst] = alwaysSelector;
     theStepperRegistry[labels.VariableLabel.kindConst] = variableStepper;
+
+    theSelectorRegistry[labels.LocLabel.kindConst] = leftToRightSelectorLContext;
+    theStepperRegistry[labels.LocLabel.kindConst] = locStepper;
 
     theSelectorRegistry[labels.VarDeclLabel.kindConst] = varDeclSelector;
     theStepperRegistry[labels.VarDeclLabel.kindConst] = varDeclStepper;
@@ -154,7 +160,7 @@ module interpreter {
         vm.setReady( true ) ;
     }
 
-    function leftToRightSelector( rContext: boolean ) : Selector {
+    function leftToRightSelector( context: Context ) : Selector {
         return function ( vm : VMS ) : void {
                     const node = vm.getPendingNode() ;
                     const sz = node.count() ;
@@ -169,8 +175,7 @@ module interpreter {
                     else {
                         // Child i has not been evaluated.
                         // recursively select from that child.
-                        vm.pushPending( i ) ;
-                        if( rContext ) vm.rContext() ;
+                        vm.pushPending( i, context ) ;
                         vm.getInterpreter().select( vm ) ;
                     }
                 } ;
@@ -200,7 +205,7 @@ module interpreter {
             const choiceNode = result ? 1 : 2 ;
             if (!vm.isChildMapped(choiceNode)) {
                 // More work to do on child. Recurse
-                vm.pushPending(choiceNode);
+                vm.pushPending(choiceNode, Context.SAME );
                 vm.getInterpreter().select(vm);
             }
             else {
@@ -210,8 +215,7 @@ module interpreter {
         }
 
         else {
-            vm.pushPending(0);
-            vm.rContext() ;
+            vm.pushPending(0, Context.R );
             vm.getInterpreter().select(vm);
         }
 
@@ -231,7 +235,7 @@ module interpreter {
             const result : boolean = (vm.getChildVal(0) as BoolV).getVal();
             //check if true or false, if true, check select the body
             if (result) {
-                vm.pushPending(1);
+                vm.pushPending(1, Context.L );
                 vm.getInterpreter().select(vm);
             }
             //otherwise, if it is false, set this node to ready
@@ -241,8 +245,7 @@ module interpreter {
         }
         //if it isn't selected, select the guard node
         else {
-            vm.pushPending(0);
-            vm.rContext() ;
+            vm.pushPending(0, Context.R );
             vm.getInterpreter().select(vm);
         }
     }
@@ -250,13 +253,11 @@ module interpreter {
     function assignSelector(vm : VMS) : void {
 
         if (!vm.isChildMapped(0)) {
-            vm.pushPending(0);
-            vm.lContext() ;
+            vm.pushPending(0, Context.L);
             vm.getInterpreter().select(vm);
         }
         else if (!vm.isChildMapped(1)) {
-            vm.pushPending(1);
-            vm.rContext() ;
+            vm.pushPending(1, Context.R);
             vm.getInterpreter().select(vm);
         }
         else {
@@ -270,8 +271,7 @@ module interpreter {
         const initializerNode : PNode = vm.getPendingNode().child(2) ;
         if ( ! (initializerNode.label() instanceof labels.NoExprLabel )
          &&  !vm.isChildMapped(2) ) {
-            vm.pushPending(2);
-            vm.rContext() ;
+            vm.pushPending(2, Context.R);
             vm.getInterpreter().select(vm);
         }
         else {
@@ -639,6 +639,11 @@ module interpreter {
             return ; 
         }
         vm.finishStep( TupleV.theDoneValue, false ) ;
+    }
+
+    function locStepper( vm : VMS) : void {
+        const childVal = vm.getChildVal(0) ;
+        vm.finishStep( childVal, false ) ;
     }
 
     function variableStepper(vm : VMS) : void {

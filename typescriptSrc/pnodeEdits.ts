@@ -8,6 +8,7 @@ import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
 import pnode = require( './pnode' ) ;
+import { VarDeclLabel, mkVar, mkVarDecl, mkVarOrLocDecl } from './labels';
 
 /** pnodeEdits is responsible for edits that operate on selections.
  * This module also includes the Selection class as well as
@@ -568,6 +569,35 @@ module pnodeEdits {
             else return singleReplace( selection, newNodes ) ;
         }
     }
+    
+    /**  Toggles the boolean value of a VarDecl
+     *  
+     */
+    class ToggleVarDeclEdit extends AbstractEdit<Selection> {
+
+        constructor() {
+            super();
+        }
+
+        public applyEdit(selection:Selection):Option<Selection> {
+            const nodes = selection.selectedNodes() ;
+            if( nodes.length !== 1 ) {
+                console.log( "Length isn't 1") ;
+                return none() ; }
+            const node = nodes[0] ;
+            const label = node.label()  ;
+            if( ! (label instanceof VarDeclLabel) ) {
+                console.log( "Node isn't VarDeclNode") ;
+                return none() ; }
+            const isConst = (label as VarDeclLabel).declaresConstant() ;
+            const newNode = mkVarOrLocDecl( !isConst, node.child(0), node.child(1), node.child(2) ) ;
+            const result = singleReplace( selection, [newNode] ) ;
+            console.log( "result is " + result ) ;
+            return result ;
+        }
+    }
+
+    export const toggleVarDecl = new ToggleVarDeclEdit() ;
 
     /**  Open the labels of a selection.  Opening a label will make it editable in the editor.
      *  

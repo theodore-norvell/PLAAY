@@ -531,7 +531,7 @@ div.expOp {
     border-radius: 5px ;
 }
 
-div.hCont, div.var, div.assign {
+div.hCont, div.var, div.assign, div.loc {
     border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
@@ -543,16 +543,14 @@ div.hCont, div.var, div.assign {
     margin: 1px 2px 1px 2px ;
 }
 
-div.locdecl:before {
-    content: "loc" ;
-    display: inline ;
-    vertical-align: top ;
-    color: ghostwhite ;
-    font-size: large ;
+div.var {
+    font-family : "Times New Roman", Times,serif;
+    font-size: large;
+    font-style: italic ;
 }
 
-div.condecl:before {
-    content: "con" ;
+div.locdecl:before {
+    content: "loc" ;
     display: inline ;
     vertical-align: top ;
     color: ghostwhite ;
@@ -583,9 +581,6 @@ div.call {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family:"Times New Roman",Times,serif;
-    font-weight:bold;
-    font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
 }
@@ -594,11 +589,19 @@ div.callWorld {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family : "Times New Roman", Times,serif;
-    font-weight:bold;
-    font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
+}
+
+div.op {
+    font-family : "Times New Roman", Times, serif;
+    font-size: large ;
+    font-style: italic ;
+    font-weight: normal ;
+}
+
+div.upright {
+    font-style: normal ;
 }
 
 div.objectGuardBox:before { content: "$" ;
@@ -690,6 +693,7 @@ div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;
     font-family:"Lucida Console", monospace;
+    font-style: normal ;
     font-weight: normal ;
     font-size: medium ;
     color: rgb(255,255,255);
@@ -707,6 +711,7 @@ div.nullLiteral {
     border-radius: 5px ;
     font-size: x-large ;
     font-family:"Lucida Console", Monospace;
+    font-style: normal ;
     font-weight:bold;
     text-align:center;
     color:rgb(255,255,255);
@@ -737,7 +742,7 @@ div.inmap{
     margin: 1px 2px 1px 2px ;
 }
 
-
+/* Is this used? */
 div.selection {
     border:thin solid rgb(244, 140, 0) ; /* Orange */
     background-color:rgb(0,0,0);

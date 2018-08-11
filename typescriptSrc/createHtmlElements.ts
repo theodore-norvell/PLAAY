@@ -79,8 +79,8 @@ module createHtmlElements {
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
 		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK);
-		createTexted("div", "leftSideButton paletteItem", "condecl", palette, "con");
-		createTexted("div", "leftSideButton paletteItem", "locdecl", palette, "loc");
+		createTexted("div", "leftSideButton paletteItem", "condecl", palette, ": :=");
+		createTexted("div", "leftSideButton paletteItem", "loc", palette, "loc");
 		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
 		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
 		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...");
