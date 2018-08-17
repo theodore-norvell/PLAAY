@@ -64,7 +64,12 @@ digraph Depends {
    valueTypes -> labels ;
    valueTypes -> pnode ;
    valueTypes -> vms ;
+   valueTypes -> types ;
+   
+   types -> pnode ;
+   types -> labels ;
 
+   
    vms -> backtracking
    vms -> pnode ;
 
