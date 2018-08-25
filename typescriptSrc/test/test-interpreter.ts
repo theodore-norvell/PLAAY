@@ -2312,7 +2312,7 @@ describe('AssignLabel', function () : void {
 
     it('should assign a new value to a previously declared variable', function () : void {
         //setup
-        // exprSeq( decl a:= 1, a := 2, a )
+        // exprSeq( loc a::= 1, a := 2, a )
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
@@ -2334,7 +2334,7 @@ describe('AssignLabel', function () : void {
         assert.check(result === 2, "It did not return 2 as expected. It returned " + result);
     });
 
-    it('should fail if assigning to a constant', function () : void {
+    it('should fail if assigning to a nonlocation', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
         const variableNode : PNode = labels.mkVar("a");
