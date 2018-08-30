@@ -33,8 +33,10 @@ import BoolV = valueTypes.BoolV;
 import TupleV = valueTypes.TupleV;
 import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
-import { mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq, mkLambda, mkNoExpNd,
-         mkNoTypeNd, mkNumberLiteral, mkObject, mkParameterList, mkTuple, mkVar, mkVarDecl } from '../labels';
+import { mkAccessor, mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq,
+         mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject,
+         mkParameterList, mkTuple, mkVar, mkVarDecl, mkVarOrLocDecl }
+       from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
 import {Value} from "../vms";
@@ -1596,7 +1598,7 @@ describe('AccessorLabel', function(): void {
     it ('should evaluate to a StringV equaling 5', function(): void {
         const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
         const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
-        const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("x")]);
+        const root = mkAccessor(object, labels.mkStringLiteral("x") );
         const vm = makeStdVMS(root);
         while (vm.canAdvance()) {
           vm.advance();
@@ -1610,7 +1612,7 @@ describe('AccessorLabel', function(): void {
     it('should report an error that the object does not have a field named y', function(): void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel, [field]);
-      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, labels.mkStringLiteral("y")]);
+      const root = mkAccessor( object, labels.mkStringLiteral("y") ) ;
       const vm = makeStdVMS(root);
       while( vm.canAdvance() ) {
         vm.advance(); }
@@ -1622,8 +1624,8 @@ describe('AccessorLabel', function(): void {
     it('should report an error when applied to non-object', function(): void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const stringLiteral = mkNumberLiteral("5");
-      const root = new PNode(labels.AccessorLabel.theAccessorLabel, [stringLiteral, labels.mkStringLiteral("y")]);
-      const vm = makeStdVMS(root);
+      const root = mkAccessor( stringLiteral, labels.mkStringLiteral("y") ) ;
+      const vm = makeStdVMS(root) ;
       while( vm.canAdvance() ) {
         vm.advance(); }
       assert.check( vm.hasError() );
@@ -1635,7 +1637,7 @@ describe('AccessorLabel', function(): void {
         const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
         const object = new PNode(new labels.ObjectLiteralLabel, [field]);
         const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
-        const root = new PNode(labels.AccessorLabel.theAccessorLabel, [object, index]);
+        const root = mkAccessor( object, index ) ;
         const vm = makeStdVMS(root);
         while( vm.canAdvance() ) {
             vm.advance(); }
@@ -1732,7 +1734,7 @@ describe('push built in', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23")]);
     const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
     const pushCall = new PNode(new labels.CallWorldLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
-    const accessor = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("a"), labels.mkStringLiteral("1")]);
+    const accessor = mkAccessor( mkVar("a"), labels.mkStringLiteral("1") ) ;
     const root = mkExprSeq([arrayDecl, pushCall, accessor]);
     const vm = makeStdVMS(root);
     while (vm.canAdvance()) {
@@ -2400,10 +2402,10 @@ describe('AssignLabel', function () : void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
-      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") );
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
-      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const accessor2 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") );
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
 
@@ -2423,10 +2425,10 @@ describe('AssignLabel', function () : void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
-      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("y")]);
+      const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("y") );
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
-      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("obj"), labels.mkStringLiteral("x")]);
+      const accessor2 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") ) ;
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
       const vm = makeStdVMS(root);
 
@@ -2442,7 +2444,7 @@ describe('AssignLabel', function () : void {
       const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
-      const accesor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("NoObj"), labels.mkStringLiteral("x")]);
+      const accesor1 = mkAccessor( mkVar("NoObj"), labels.mkStringLiteral("x") ) ;
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
       const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign]) ;
@@ -2468,10 +2470,10 @@ describe('AssignLabel', function () : void {
       const innerObj = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const outerObj = new PNode(new labels.ObjectLiteralLabel(), [mkVarDecl(mkVar("io"), mkNoTypeNd(), innerObj)]);
       const objDecl = mkVarDecl(mkVar("o"), mkNoTypeNd(), outerObj);
-      const accessor1 = new PNode(labels.AccessorLabel.theAccessorLabel, [mkVar("o"), labels.mkStringLiteral("io")]);
-      const accessor2 = new PNode(labels.AccessorLabel.theAccessorLabel, [accessor1, labels.mkStringLiteral("x")]);
+      const accessor1 = mkAccessor( mkVar("o"), labels.mkStringLiteral("io") );
+      const accessor2 = mkAccessor( accessor1, labels.mkStringLiteral("x") );
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accessor2, mkNumberLiteral("666")]);
-      const accessor3 = new PNode(labels.AccessorLabel.theAccessorLabel, [accessor1, labels.mkStringLiteral("x")]);
+      const accessor3 = mkAccessor( accessor1, labels.mkStringLiteral("x") );
       const root = mkExprSeq([objDecl, assign, accessor3]);
       const vm = makeStdVMS(root);
       //run the test until the top evaluation is done or there is an error
@@ -2734,7 +2736,7 @@ describe('TupleLable', function () : void {
     });
 });
 
-describe('TupleLable', function () : void {
+describe('TupleLabel', function () : void {
     it('should return TupleV value for more than one value tuple.', function () : void {
             const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
             const numberNode : PNode = labels.mkNumberLiteral("10");
@@ -2767,6 +2769,85 @@ describe('TupleLable', function () : void {
             assert.check( val1Result === 10 );
             assert.check( val2Result === "test123");
 
+    });
+});
+
+describe('Loc operator', function () : void {
+    it('Should suppress fetch of location variable.', function () : void {
+            // loc x : := 0
+            // loc x
+            const root = mkExprSeq([
+                             mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                        mkNumberLiteral("0")),
+                             mkLoc( mkVar("x" ) ) ]) ;
+            const result = getResult( root ) ;
+            assert.check( result.isLocationV() ) ;
+    });
+
+    it('Should suppress fetch for dot operators.', function () : void {
+            // obj : := object{ loc x : := 0 }
+            // loc obj.x
+            const root = mkExprSeq([
+                             mkVarDecl( mkVar("obj"), mkNoTypeNd(), 
+                                        mkObject([
+                                            mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                       mkNumberLiteral("0")),
+                                ])),
+                             mkLoc( mkDot("x", false, mkVar("obj")) ) ]) ;
+            const result = getResult( root ) ;
+            assert.check( result.isLocationV() ) ;
+    });
+
+    it('Should suppress fetch for index operators.', function () : void {
+            // obj : := object{ loc x : := 0 }
+            // loc obj["x"]
+            const root = mkExprSeq([
+                             mkVarDecl( mkVar("obj"), mkNoTypeNd(), 
+                                        mkObject([
+                                            mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                       mkNumberLiteral("0")) ])),
+                             mkLoc( mkAccessor( mkVar("obj"), labels.mkStringLiteral( "x") ) )
+                         ]) ;
+            const result = getResult( root ) ;
+            assert.check( result.isLocationV() ) ;
+    });
+
+    it('Should suppress fetch for the call operator.', function () : void {
+            // f : := \ -> {
+            //            loc x : := 0 ;
+            //            loc x }
+            // loc call(f)
+            const root = mkExprSeq([
+                             mkVarDecl( mkVar("f"), mkNoTypeNd(), 
+                                        mkLambda( mkParameterList([]),
+                                                  mkNoTypeNd(),
+                                                  mkExprSeq([
+                                                    mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                               mkNumberLiteral("0")),
+                                                    mkLoc( mkVar("x") ) ] ) ) ),
+                             mkLoc( mkCall(mkVar("f" ) ) )
+                         ]) ;
+            const result = getResult( root ) ;
+            assert.check( result.isLocationV() ) ;
+    });
+
+    it('Should suppress fetch for the callWorld operator.', function () : void {
+            // f : := \ -> {
+            //            loc x : := 0 ;
+            //            loc x }
+            // loc callWorld("f")
+            const root = mkExprSeq([
+                             mkVarDecl( mkVar("f"), mkNoTypeNd(), 
+                                        mkLambda( mkParameterList([]),
+                                                  mkNoTypeNd(),
+                                                  mkExprSeq([
+                                                    mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                               mkNumberLiteral("0")),
+                                                    mkLoc( mkVar("x") ) ] ) ) ),
+                             mkLoc( mkCallWorld("f", [] ) )
+                         ]) ;
+            const result = getResult( root ) ;
+            assert.check( result.isLocationV() ) ;
     });
 });
 

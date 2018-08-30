@@ -1017,13 +1017,13 @@ module labels {
         return make (LambdaLabel.theLambdaLabel, [param, type, func]) ; }
 
     export function mkObject( children : Array<PNode> ) : PNode {
-        return make( ObjectLiteralLabel.theObjectLiteralLabel, children ) ;
-    }
+        return make( ObjectLiteralLabel.theObjectLiteralLabel, children ) ; }
 
     export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
-        assert.check( child.isExprNode() ) ;
-        return make( new DotLabel( val, open), [child] ) ;
-    }
+        return make( new DotLabel( val, open), [child] ) ; }
+
+    export function mkAccessor( obj : PNode, index : PNode ) : PNode {
+        return make( AccessorLabel.theAccessorLabel, [obj, index]) ; }
 
     export function mkTuple( children : Array<PNode>) : PNode {
         return make(TupleLabel.theTupleLabel,children);
