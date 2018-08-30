@@ -208,7 +208,7 @@ module labels {
         }
 
         public toString():string {
-            return "vdecl";
+            return "vdecl["+ this._isConst + "]" ;
         }
 
         constructor( isConst : boolean ) {
@@ -918,8 +918,43 @@ module labels {
     }
     pnode.registry[ CallLabel.kindConst ] = CallLabel ;
 
-    export class PrimitiveTypesLabel extends TypeLabel {
+    /** The "loc" operator -- eval in L-context  */
+    export class LocLabel extends ExprLabel {
+        
+        public static readonly kindConst : string = "LocLabel" ;
 
+        public isValid(children:Array<PNode>) : boolean {
+            return children.length === 1
+                && children.every( (c:PNode) => c.isExprNode() );
+        }
+
+        public toString():string {
+            return "loc";
+        }
+
+        /*private*/
+        constructor() {
+            super() ;
+        }
+
+        // Singleton
+        public static theLocLabel : LocLabel = new LocLabel();
+
+        public toJSON() : object {
+            return { kind: LocLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : LocLabel {
+            return LocLabel.theLocLabel ;
+        }
+
+        public hasDropZonesAt(start : number): boolean { return false; }
+            
+        public kind() : string { return LocLabel.kindConst ; }
+    }
+    pnode.registry[ LocLabel.kindConst ] = LocLabel ;
+
+    export class PrimitiveTypesLabel extends TypeLabel {
         public static readonly kindConst : string = "PrimitiveTypesLabel" ;
         public readonly type : string;
 
@@ -1107,7 +1142,6 @@ module labels {
     }
     pnode.registry[JoinTypeLabel.kindConst] = JoinTypeLabel;
 
-
     export function mkExprPH():PNode {
         return  make(ExprPHLabel.theExprPHLabel, []); }
 
@@ -1136,11 +1170,17 @@ module labels {
     export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {
         return make( CallLabel.theCallLabel, [func].concat(args) ) ; }
     
+    export function mkLoc( operand : PNode ) : PNode {
+        return make( LocLabel.theLocLabel, [operand] ) ; }
+    
     export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
-        return make( new VarDeclLabel(false), [varNode, ttype, initExp ] ) ; }
+        return mkVarOrLocDecl( false, varNode, ttype, initExp ) ; }
     
     export function mkConstDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
-        return make( new VarDeclLabel(true), [varNode, ttype, initExp ] ) ; }
+        return mkVarOrLocDecl( true, varNode, ttype, initExp ) ; }
+
+    export function mkVarOrLocDecl( isConst : boolean, varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
+        return make( new VarDeclLabel(isConst), [varNode, ttype, initExp ] ) ; }
 
     export function mkParameterList( exprs : Array<PNode> ) : PNode {
         return make( ParameterListLabel.theParameterListLabel, exprs ) ; }
@@ -1164,16 +1204,16 @@ module labels {
         return make (new VariableLabel(val, true), []) ;}
 
     export function mkLambda( param:PNode, type:PNode, func : PNode) : PNode{
-        return make (LambdaLabel.theLambdaLabel, [param, type, func]) ;}
+        return make (LambdaLabel.theLambdaLabel, [param, type, func]) ; }
 
     export function mkObject( children : Array<PNode> ) : PNode {
-        return make( ObjectLiteralLabel.theObjectLiteralLabel, children ) ;
-    }
+        return make( ObjectLiteralLabel.theObjectLiteralLabel, children ) ; }
 
     export function mkDot( val : string, open : boolean, child : PNode ) : PNode {
-        assert.check( child.isExprNode() ) ;
-        return make( new DotLabel( val, open), [child] ) ;
-    }
+        return make( new DotLabel( val, open), [child] ) ; }
+
+    export function mkAccessor( obj : PNode, index : PNode ) : PNode {
+        return make( AccessorLabel.theAccessorLabel, [obj, index]) ; }
 
     export function mkTuple( children : Array<PNode>) : PNode {
         return make(TupleLabel.theTupleLabel,children);
@@ -1193,7 +1233,7 @@ module labels {
     }
 
     export function mkLocationType( child : PNode) :PNode {
-        return make ( LocationTypeLabel.theLocationTypeLabel,[child] )
+        return make ( LocationTypeLabel.theLocationTypeLabel,[child] ) ;
     }
 
     export function mkFieldType( children: Array<PNode> ) : PNode {

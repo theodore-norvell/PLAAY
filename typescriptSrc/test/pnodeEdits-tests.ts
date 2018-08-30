@@ -195,9 +195,9 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         //console.log( "editResult0 is " + editResult0.toString() ) ;
         editResult0.choose(
             s => {
-                assert.checkEqual( "Selection( _root:vdecl( variable[a]() noType() noExpr())"
+                assert.checkEqual( "Selection( _root:vdecl[false]( variable[a]() noType() noExpr())"
                                             + " _path:() _anchor: 2 _focus: 3)",
-                                    s.toString() ) ;
+                                   s.toString() ) ;
             },
             () => assert.check( false ) ) ; } ) ;
 

@@ -4,7 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -14,7 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
@@ -350,34 +350,31 @@ module editor {
         }
     }
 
+    function updateLabelHelper( element: HTMLElement, tabDirection : number ) : void {
+        //console.log( ">>updateLabelHelper") ;
+        const text = $(element).val();
+        const optLocationOfTarget : Option<Selection>
+            = sharedMkHtml.getPathToNode(currentSelection.root(), $(element) )  ;
+        //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
+        
+        optLocationOfTarget.bind(
+            locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text, tabDirection ) )
+        .map( (result : Selection) => update( result ) ) ;
+        //console.log( "<< updateLabelHelper " + result.toString() ) ;
+    }
+
     
     const updateLabelHandler = function (this : HTMLElement, e : Event ) : void {
             console.log( ">>updateLabelHandler") ;
-            const text = $(this).val();
-            const optLocationOfTarget : Option<Selection>
-                = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
-            console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
-            const opt = optLocationOfTarget.bind(
-                locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
-            console.log( "  opt is " + opt) ;
-            opt.map( sel => update(sel) );
+            updateLabelHelper( this, 1 ) ;
             console.log( "<< updateLabelHandler") ; } ;
 
     const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             if (e.keyCode === 13 || e.keyCode === 9) {
                 console.log( ">>input keydown handler") ;
-                updateLabelHandler.call( this, e ) ;
-                if( !e.shiftKey && e.keyCode === 9)
-                {
-                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ;
-                }
-                else if( e.shiftKey && e.which === 9 ) // shift+tab
-                {
-                    treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
-                             update( sel ) ) ;
-                }
+                const tabDirection = e.keyCode !== 9 ? 0 : e.shiftKey ? -1 : +1 ;
+                updateLabelHelper( this, tabDirection ) ;
                 // TODO: It would be nice to have special handling of
                 //   up and down arrows (for example). However that
                 //   requires handling of the event before it gets
@@ -561,11 +558,10 @@ module editor {
     function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
             console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
-            // Create location decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
-            if ( (!e.shiftKey && e.which===59)
-              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
+            // Create location decl node: ;  
+            if ( (!e.shiftKey && e.which===59) ) 
             {
-                createNode("locdecl", currentSelection );
+                createNode("loc", currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -736,6 +732,9 @@ module editor {
             currentSelection = sel ;
             redostack.length = 0 ;
             generateHTMLSoon();
+            if (sessionStorage.length > 0) {
+                save();
+            }
     }
 
     export function getCurrentSelection() : Selection {
@@ -861,6 +860,24 @@ module editor {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
             function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
+    }
+
+    let saving : boolean = false;
+    function save() : void {
+        if (!saving) {
+            saving = true;
+            setTimeout(function () {
+                $.post('/update/',
+                    {
+                        identifier: sessionStorage.getItem("programId"),
+                        program: pnode.fromPNodeToJSON(currentSelection.root())
+                    },
+                    function () {
+                        saving = false;
+                    });
+            }, 15000);
+        }
+
     }
 }
 

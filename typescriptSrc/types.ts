@@ -2,10 +2,12 @@
 
 
 import assert = require( './assert' ) ;
-import { PNode, make } from './pnode';
 import labels  = require('./labels') ;
+import pnode = require( './pnode' ) ;
 
 module types {
+
+    import PNode = pnode.PNode ;
 
     export enum TypeKind {
         BOTTOM,
@@ -134,7 +136,7 @@ module types {
             this.children = [left,right];
         }
 
-        public static CreateJoinType(left:Type, right:Type) {
+        public static createJoinType(left:Type, right:Type) : JoinType {
             return new JoinType(left,right);
         }
 
@@ -179,7 +181,7 @@ module types {
             this.children = [left,right];
         }
 
-        public static createMeetType(left:TypeTerm, right:TypeTerm) {
+        public static createMeetType(left:TypeTerm, right:TypeTerm) : MeetType {
             return new MeetType(left,right);
         }
 
@@ -227,25 +229,30 @@ module types {
 
     export class TupleType extends TypeFactor {
 
-        private readonly types : Array<Type>;
+        private readonly childTypes : Array<Type>;
 
         public getKind() : TypeKind {
             return TypeKind.TUPLE;
         }
 
         public getLength() : number {
-            return this.types.length;
+            return this.childTypes.length;
         }
 
-        private constructor(types:Array<Type>) {
+        public getTypeByIndex( index : number ) : Type {
+            assert.checkPrecondition( 0 <= index && index < this.childTypes.length ) ;
+            return this.childTypes[index] ;
+        }
+
+        private constructor(tys:Array<Type>) {
             super();
-            this.types = types.slice();
+            this.childTypes = tys.slice();
         }
 
         public static readonly theZeroTupleType = new TupleType([]);
 
-        public static CreateTupleType(types:Array<Type>) {
-            return new TupleType(types);
+        public static createTupleType(tys:Array<Type>) : TupleType {
+            return new TupleType(tys);
         }
     }
 
@@ -269,7 +276,7 @@ module types {
             this.returnType = returnT;
         }
 
-        public static CreateFunctionType(valueT:Type,returnT:Type) {
+        public static createFunctionType(valueT:Type,returnT:Type) : FunctionType {
             return new FunctionType(valueT,returnT);
         }
 
@@ -302,7 +309,7 @@ module types {
             this.identifier = identifier;
         }
 
-        public static  CreateFieldType(type:Type,identifier:string) {
+        public static  createFieldType(type:Type,identifier:string) : FieldType {
             return new FieldType(type,identifier);
         }
 
@@ -332,12 +339,12 @@ module types {
             this.type = type;
         }
 
-        public static CreateLocationType(type:Type) {
+        public static createLocationType(type:Type) : LocationType {
             return new LocationType(type);
         }
     }
 
-    export function CreateType(node:PNode) : Type {
+    export function createType(node:PNode) : Type {
         
         const kind : string = node.label().kind();
         switch(kind) {
@@ -364,44 +371,43 @@ module types {
                     case "bottomType" :
                         return BottomType.theBottomType;                        
                     default :
-                        assert.failedPrecondition( "Unknown primitive type in CreateType ");
+                        return assert.failedPrecondition( "Unknown primitive type in createType ");
                 }
-
             case labels.LocationTypeLabel.kindConst  : {
                 const child = node.child(0);
-                const type = CreateType(child);
-                return LocationType.CreateLocationType(type);
+                const type = createType(child);
+                return LocationType.createLocationType(type);
             }
 
             case labels.FieldTypeLabel.kindConst : {
                 const identifier = node.child(0).label().getVal(); 
                 const typeNode = node.child(1);
-                const type = CreateType(typeNode);
-                return FieldType.CreateFieldType(type,identifier);
+                const type = createType(typeNode);
+                return FieldType.createFieldType(type,identifier);
             }
 
             case labels.FunctionTypeLabel.kindConst : {
-                const valueType = CreateType(node.child(0));
-                const returnType =  CreateType(node.child(1));
-                return FunctionType.CreateFunctionType(valueType,returnType);
+                const valueType = createType(node.child(0));
+                const returnType =  createType(node.child(1));
+                return FunctionType.createFunctionType(valueType,returnType);
             }
 
             case  labels.TupleTypeLabel.kindConst : {
                 const children = node.children();
-                let types : Type[] = [] ;
+                const tys : Type[] = [] ;
                 for(let i=0; i<children.length; i++ ) {
-                    types.push(CreateType(children[i]));
+                    tys.push(createType(children[i]));
                 }
-                return TupleType.CreateTupleType(types);
+                return TupleType.createTupleType(tys);
             }
 
             case labels.JoinTypeLabel.kindConst : {
-                const childTypes = node.children().map(CreateType);
-                return childTypes.reduce(JoinType.CreateJoinType);
+                const childTypes = node.children().map(createType);
+                return childTypes.reduce(JoinType.createJoinType);
             }
 
             case labels.MeetTypeLabel.kindConst : {
-                const childTypes = node.children().map(CreateType);
+                const childTypes = node.children().map(createType);
                 return childTypes.reduce(makeMeet);
             }
 
@@ -410,7 +416,7 @@ module types {
             }
 
             default :
-                assert.failedPrecondition("Unknown type node in CreateType");
+                assert.failedPrecondition("Unknown type node in createType");
         }
         return PrimitiveType.nullType; // Review: Should return something else
     }
@@ -424,14 +430,14 @@ module types {
                 return BottomType.theBottomType;
             }
             else {
-                return JoinType.CreateJoinType(makeMeet(left,(right as JoinType).getChild(0)), makeMeet(left, (right as JoinType).getChild(1))); 
+                return JoinType.createJoinType(makeMeet(left,(right as JoinType).getChild(0)), makeMeet(left, (right as JoinType).getChild(1))); 
             }
         }
         else if( left.isBottomT() ) {
             return BottomType.theBottomType;
         }
         else {
-            return JoinType.CreateJoinType( makeMeet((left as JoinType).getChild(0),right), makeMeet((left as JoinType).getChild(1),right));
+            return JoinType.createJoinType( makeMeet((left as JoinType).getChild(0),right), makeMeet((left as JoinType).getChild(1),right));
         }
     }
 

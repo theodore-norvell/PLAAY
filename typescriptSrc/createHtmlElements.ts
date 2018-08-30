@@ -37,9 +37,9 @@ module createHtmlElements {
 
 		const body = $("body");
 
-		create("div", "", "upperArea", body);
-		const upperArea = $("#upperArea");
-		createUpperAreaHTML( upperArea )  ;
+		// create("div", "", "upperArea", body);
+		// const upperArea = $("#upperArea");
+		// createUpperAreaHTML( upperArea )  ;
 
 		create("div", "", "contentArea", body);
 		const contentArea = $("#contentArea");
@@ -50,17 +50,17 @@ module createHtmlElements {
 		createOutputArea( body ) ;
 	}
 
-	function createUpperAreaHTML( upperArea : JQuery ) : void {
-		createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
-		//User-related elements. All added functionalities of the elements are in userRelated module.
-		create("div", "userBar", "userBar", upperArea);
-		const userBar = $("#userBar");
-		createTexted("div", "", "login", userBar, "Login/Register");
-		createTexted("div", "", "logout", userBar, "Logout").hide();
-		createTexted("div", "", "userSettings", userBar, "User Settings").hide();
-		createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
-		createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
-	}
+	// function createUpperAreaHTML( upperArea : JQuery ) : void {
+	// 	createTexted("div", "", "bannerArea", upperArea, "PLAAY - The Programming Language for Adults and Youngsters");
+	// 	//User-related elements. All added functionalities of the elements are in userRelated module.
+	// 	create("div", "userBar", "userBar", upperArea);
+	// 	const userBar = $("#userBar");
+	// 	createTexted("div", "", "login", userBar, "Login/Register");
+	// 	createTexted("div", "", "logout", userBar, "Logout").hide();
+	// 	createTexted("div", "", "userSettings", userBar, "User Settings").hide();
+	// 	createTexted("div", "", "saveProgram", userBar, "Save Program").hide();
+	// 	createTexted("div", "", "loadProgram", userBar, "Load Program").hide();
+	// }
 
 	function createEditorHTML( contentArea : JQuery ) : void {
 				// Editor structure
@@ -96,8 +96,8 @@ module createHtmlElements {
 
 		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
 		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK);
-		createTexted("div", "leftSideButton paletteItem", "condecl", palette, "con");
-		createTexted("div", "leftSideButton paletteItem", "locdecl", palette, "loc");
+		createTexted("div", "leftSideButton paletteItem", "condecl", palette, ": :=");
+		createTexted("div", "leftSideButton paletteItem", "loc", palette, "loc");
 		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
 		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
 		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...");
