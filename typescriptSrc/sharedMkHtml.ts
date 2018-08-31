@@ -641,7 +641,7 @@ module sharedMkHtml
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
 
-                result.html("loc");
+                result.append(children[0]);
             }
             break;
             case labels.FieldTypeLabel.kindConst :

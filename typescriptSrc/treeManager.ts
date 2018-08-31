@@ -84,8 +84,8 @@ module treeManager {
                     return this.makeWorldCallNode(selection, "", 0);
                 case "accessor":
                     return this.makeAccessorNode(selection) ;
-                    case "dot":
-                        return this.makeDotNode(selection) ;
+                case "dot":
+                    return this.makeDotNode(selection) ;
 
                 //misc
                 case "lambda":
@@ -103,7 +103,7 @@ module treeManager {
                 case "nullType" :
                     return this.makeNullLiteralNode(selection,true);
                 case "booleanType" :
-                    return this.makeTrueBooleanLiteralNode(selection);
+                    return this.makeIfNode(selection);
                 case "integerType" :
                     return this.makePrimitiveTypeNode(selection,"integerType");
                 case "natType" :
@@ -117,7 +117,7 @@ module treeManager {
                 case "functionType" :
                     return this.makeLambdaNode(selection);
                 case "locationType" :
-                    return this.makeVarDeclNode(selection);
+                    return this.makeLocNode(selection);
                 case "fieldType" :
                     return this.makeFieldTypeNode(selection);
                 case "joinType" :
@@ -238,9 +238,10 @@ module treeManager {
             const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( ifNode, list<number>(1), 0, 0 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
+            const edit0 = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
             // console.log( "makeIfNode: Applying edit") ;
-            return edit.applyEdit(selection);
+            const edit1 = this.insertPrimitiveTypeEdit("booleanType");
+            return alt([edit0,edit1]).applyEdit(selection);
         }
 
         private makeLambdaNode(selection:Selection) : Option<Selection> {
@@ -254,7 +255,7 @@ module treeManager {
             
 
             const template0 = new Selection( lambdanode, list(2), 0, 0 ) ;
-            const template1 = new Selection( typenode, list(), 0, 0 ) ;
+            const template1 = new Selection( typenode, list(), 0, 1 ) ;
             const edit0 = replaceOrEngulfTemplateEdit( template0  ) ;
             const edit1 = replaceOrEngulfTemplateEdit( template1  ) ;
             const edit = edits.alt([edit0,edit1]);
@@ -280,9 +281,12 @@ module treeManager {
         private makeLocNode( selection : Selection ) : Option<Selection> {
             // We either make a new location operator or toggle a variable
             // declaration between being loc or nonloc.
-            const template = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
-            const edit = alt( [ compose(pnodeEdits.toggleVarDecl, pnodeEdits.tabForwardEdit ),
-                                replaceOrEngulfTemplateEdit( template ),
+            const operatorTempl = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
+            const typeTempl = new Selection( labels.mkLocationType( labels.mkExprPH() ), list<number>(), 0, 1 ) ;
+            const edit = alt( [ compose( pnodeEdits.toggleVarDecl,
+                                         pnodeEdits.tabForwardEdit ),
+                                replaceOrEngulfTemplateEdit( operatorTempl ),
+                                replaceOrEngulfTemplateEdit( typeTempl ),
                                 compose( pnodeEdits.moveOutNormal,
                                          pnodeEdits.toggleVarDecl,
                                          pnodeEdits.tabForwardEdit) ] ) ;
@@ -305,7 +309,6 @@ module treeManager {
         }
 
         private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {
-            // TODO: Allow a variable number of place holders.
             // console.log( ">> Calling makeWorldCallNode") ;
             const args = new Array<PNode>() ;
             const ph = labels.mkExprPH();
@@ -371,9 +374,7 @@ module treeManager {
 
         private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
             const literalnode = labels.mkTrueBooleanLiteral() ;
-            const edit0 = this.insertPrimitiveTypeEdit("booleanType");
-            const edit1 = pnodeEdits.insertChildrenEdit([literalnode]);
-            const edit = edits.alt([edit0,edit1]);
+            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
             return edit.applyEdit(selection);
         }
 
@@ -397,8 +398,9 @@ module treeManager {
 
         private insertPrimitiveTypeEdit( type : string ) : Edit<Selection> {
             const typeNode = labels.mkPrimitiveTypeLabel(type);
-            return edits.compose( pnodeEdits.insertChildrenEdit([typeNode]),
-                                  edits.optionally(pnodeEdits.tabForwardEdit)) ;
+            //return edits.compose( pnodeEdits.insertChildrenEdit([typeNode]),
+            //                      edits.optionally(pnodeEdits.tabForwardEdit)) ;
+            return pnodeEdits.insertChildrenEdit([typeNode]) ;
         }
 
         private makePrimitiveTypeNode(selection:Selection, type : string) : Option<Selection> {
@@ -410,8 +412,9 @@ module treeManager {
             const child1 = labels.mkExprPH();
 
             const typeNode = labels.mkFieldType([child0,child1]);
-            const template = new Selection(typeNode,list<number>(),0,1);
-            const edit = replaceOrEngulfTemplateEdit([template]);
+            const template0 = new Selection(typeNode,list<number>(),0,1);
+            const template1 = new Selection(typeNode,list<number>(),1,2);
+            const edit = replaceOrEngulfTemplateEdit([template0,template1]);
             return edit.applyEdit(selection);
         }
 
