@@ -32,6 +32,15 @@ module treeManager {
     import PNode = pnode.PNode;
     import Option = collections.Option;
 
+    export enum Actions { IF, WHILE, STRING, NUMBER, TRUE, FALSE, NULL,
+                          OBJECT, ARRAY, VAR, VAR_DECL, ASSIGN, CALL, LOC,
+                          WORLD_CALL, INDEX, DOT, LAMBDA, NO_TYPE, TUPLE,
+                          STRING_TYPE, NUMBER_TYPE, NULL_TYPE, BOOLEAN_TYPE,
+                          INTEGER_TYPE, NAT_TYPE, LOCATION_TYPE,
+                          TOP_TYPE, BOTTOM_TYPE,
+                          TUPLE_TYPE, FUNCTION_TYPE, FIELD_TYPE, JOIN_TYPE,
+                          MEET_TYPE} ;
+    
     export class TreeManager {
 
         public createRoot() : Option<Selection>{
@@ -45,84 +54,85 @@ module treeManager {
 
         }
 
-        public createNode(label:string, selection:Selection) : Option<Selection> {
-            switch (label) {
+        public createNode( action: Actions, selection:Selection) : Option<Selection> {
+            console.log( "treeManager.createNode action is " + action.toString() ) ;
+            switch ( action) {
                 //loops & if
-                case "if":
+                case Actions.IF:
                     return this.makeIfNode(selection);
-                case "while":
+                case Actions.WHILE:
                     return this.makeWhileNode(selection);
 
                 //literals
-                case "stringliteral":
+                case Actions.STRING:
                     return this.makeStringLiteralNode(selection);
-                case "numberliteral":
+                case Actions.NUMBER:
                     return this.makeNumberLiteralNode(selection);
-                case "trueliteral":
+                case Actions.TRUE:
                     return this.makeTrueBooleanLiteralNode(selection);
-                case "falseliteral":
+                case Actions.FALSE:
                     return this.makeFalseBooleanLiteralNode(selection);
-                case "nullliteral":
+                case Actions.NULL:
                     return this.makeNullLiteralNode(selection,false);
-                case "objectliteral":
+                case Actions.OBJECT:
                     return this.makeObjectLiteralNode(selection);
-                case "arrayliteral":
+                case Actions.ARRAY:
                     return this.makeArrayLiteralNode(selection);
 
                 //variables & variable manipulation
-                case "var":
+                case Actions.VAR:
                     return this.makeVarNode(selection);
-                case "condecl":
+                case Actions.VAR_DECL:
                     return this.makeVarDeclNode(selection);
-                case "assign":
+                case Actions.ASSIGN:
                     return this.makeAssignNode(selection);
-                case "call":
+                case Actions.CALL:
                     return this.makeCallNode(selection);
-                case "loc":
+                case Actions.LOC:
                     return this.makeLocNode(selection);
-                case "worldcall":
+                case Actions.WORLD_CALL:
                     return this.makeWorldCallNode(selection, "", 0);
-                case "accessor":
+                case Actions.INDEX:
                     return this.makeAccessorNode(selection) ;
-                case "dot":
+                case Actions.DOT:
                     return this.makeDotNode(selection) ;
 
                 //misc
-                case "lambda":
+                case Actions.LAMBDA:
                     return this.makeLambdaNode(selection);
-                case "type":
+                case Actions.NO_TYPE:
                     return this.makeNoTypeNode(selection);
-                case "tuple":
+                case Actions.TUPLE:
                     return this.makeTupleNode(selection);
 
                 //types
-                case "stringType":
+                case Actions.STRING_TYPE:
                     return this.makeStringLiteralNode(selection);
-                case "numberType":
-                    return this.makeNumberLiteralNode(selection);
-                case "nullType" :
+                case Actions.NUMBER_TYPE:
+                    return this.makePrimitiveTypeNode(selection,"numberType") ;
+                case Actions.NULL_TYPE :
                     return this.makeNullLiteralNode(selection,true);
-                case "booleanType" :
+                case Actions.BOOLEAN_TYPE :
                     return this.makeIfNode(selection);
-                case "integerType" :
+                case Actions.INTEGER_TYPE :
                     return this.makePrimitiveTypeNode(selection,"integerType");
-                case "natType" :
+                case Actions.NAT_TYPE :
                     return this.makePrimitiveTypeNode(selection,"natType");
-                case "topType" :
+                case Actions.TOP_TYPE :
                     return this.makePrimitiveTypeNode(selection,"topType");
-                case "bottomType" :
+                case Actions.BOTTOM_TYPE :
                     return this.makePrimitiveTypeNode(selection,"bottomType");
-                case "tupleType" :
+                case Actions.TUPLE_TYPE :
                     return this.makeTupleNode(selection);
-                case "functionType" :
+                case Actions.FUNCTION_TYPE :
                     return this.makeLambdaNode(selection);
-                case "locationType" :
+                case Actions.LOCATION_TYPE :
                     return this.makeLocNode(selection);
-                case "fieldType" :
+                case Actions.FIELD_TYPE :
                     return this.makeFieldTypeNode(selection);
-                case "joinType" :
+                case Actions.JOIN_TYPE :
                     return this.makeJoinTypeNode(selection);
-                case "meetType" :
+                case Actions.MEET_TYPE :
                     return this.makeMeetTypeNode(selection);
                 
                 default:
@@ -131,15 +141,16 @@ module treeManager {
         }
 
         //Only for nodes that can contain text, such as variables and strings.
-        public createNodeWithText( label:string, selection:Selection, text: string ) : Option<Selection> {
-            switch (label) {
-                case "stringliteral":
+        public createNodeWithText( action: Actions, selection:Selection, text: string ) : Option<Selection> {
+            console.log( "treeManager.createNodeWithText action is " + action.toString() + " text is " + text ) ;
+            switch (action) {
+                case Actions.STRING:
                     return this.makeStringLiteralNode(selection, text);
-                case "numberliteral":
+                case Actions.NUMBER:
                     return this.makeNumberLiteralNode(selection, text);
-                case "var":
+                case Actions.VAR:
                     return this.makeVarNode(selection, text);
-                case "worldcall":
+                case Actions.WORLD_CALL:
                     return this.makeWorldCallNode(selection, text, 2);
 
                 default:

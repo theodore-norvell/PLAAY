@@ -32,6 +32,8 @@ module editor {
 
     import Selection = pnodeEdits.Selection;
 
+    import Actions = treeManager.Actions ;
+
     enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE }
 
     const redostack : Array<Selection> = [];
@@ -81,7 +83,8 @@ module editor {
         $( ".paletteItem" ).click(
             function(this : HTMLElement, evt : Event) : void {
                 console.log( "click on " + $(this).attr("id") ) ;
-                createNodeOnCurrentSelection( $(this).attr("id") ) ; } ) ;
+                const action : Actions = $(this).data("action") as Actions ;
+                createNodeOnCurrentSelection( action ) ; } ) ;
 
     }
 
@@ -280,7 +283,8 @@ module editor {
                         console.log("  Third case." ) ;
                         console.log("  " + ui.draggable.attr("id"));
                         // Add create a new node and use it to replace the current selection.
-                        createNode(ui.draggable.attr("id") /*id*/, dropTarget );
+                        const action : Actions = ui.draggable.data( "action" ) as Actions ;
+                        createNode( action, dropTarget );
                     } else {
                         assert.check( false, "Drop without a drag.") ;
                     } } ) ;
@@ -561,7 +565,7 @@ module editor {
             // Create location decl node: ;  
             if ( (!e.shiftKey && e.which===59) ) 
             {
-                createNode("loc", currentSelection );
+                createNode( Actions.LOC, currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -569,14 +573,14 @@ module editor {
             else if ( (!e.shiftKey && e.which===188)
               || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 67) 
             {
-                createNode("condecl", currentSelection );
+                createNode( Actions.VAR_DECL, currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             //Create assignment node: shift+; (aka :)
             else if (e.shiftKey && (e.which === 59 || e.which === 186))
             {
-                createNode("assign", currentSelection );
+                createNode(Actions.ASSIGN, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -589,42 +593,42 @@ module editor {
                 {
                     charCode -= 48; //Convert numpad key to number key
                 }
-                createNode("numberliteral", currentSelection, String.fromCharCode(charCode) );
+                createNode(Actions.NUMBER, currentSelection, String.fromCharCode(charCode) );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create if node: shift+/ (aka ?)
             else if (e.shiftKey && e.which === 191)
             {
-                createNode("if", currentSelection );
+                createNode(Actions.IF, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create while node: shift+2 (aka @)
             else if (e.shiftKey && e.which === 50)
             {
-                createNode("while", currentSelection );
+                createNode(Actions.WHILE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create lambda node: with the \ key
             else if (!e.shiftKey && e.which === 220)
             {
-                createNode("lambda", currentSelection );
+                createNode(Actions.LAMBDA, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create call node: with the shift - key (aka _)
             else if (e.shiftKey && (e.which === 189 || e.which === 173) )
             {
-                createNode("call", currentSelection );
+                createNode(Actions.CALL, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create string literal node: shift+' (aka ")
             else if (e.shiftKey && e.which === 222)
             {
-                createNode("stringliteral", currentSelection, "" );
+                createNode(Actions.STRING, currentSelection, "" );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -636,12 +640,12 @@ module editor {
                 {
                     charCode += 32;
                 }
-                createNode("var", currentSelection, String.fromCharCode(charCode) );
+                createNode(Actions.VAR, currentSelection, String.fromCharCode(charCode) );
                 e.stopPropagation();
                 e.preventDefault();
             }
             else if( !e.shiftKey && e.which === 192 ) {  // Backquote
-                createNode("worldcall", currentSelection );
+                createNode(Actions.WORLD_CALL, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -666,32 +670,32 @@ module editor {
                 const charCode : number = e.which;
                 if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
                 {
-                    createNode("worldcall", currentSelection, "+");
+                    createNode(Actions.WORLD_CALL, currentSelection, "+");
                 }
                 else if(charCode === 61)
                 {
-                    createNode("worldcall", currentSelection, "=");
+                    createNode(Actions.WORLD_CALL, currentSelection, "=");
                 }
                 else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
-                    createNode("worldcall", currentSelection, "-");
+                    createNode(Actions.WORLD_CALL, currentSelection, "-");
                 }
                 else if(charCode === 56 || charCode === 106)
                 {
-                    createNode("worldcall", currentSelection, "*");
+                    createNode(Actions.WORLD_CALL, currentSelection, "*");
                 }
                 else if( charCode === 188 ) {
-                    createNode("worldcall", currentSelection, "<");
+                    createNode(Actions.WORLD_CALL, currentSelection, "<");
                 }
                 else if( charCode === 190 ) {
-                    createNode("worldcall", currentSelection, ">");
+                    createNode(Actions.WORLD_CALL, currentSelection, ">");
                 }
                 else if( charCode === 53 ) {
-                    createNode("worldcall", currentSelection, "%");
+                    createNode(Actions.WORLD_CALL, currentSelection, "%");
                 }
                 else //only the codes for /  can possibly remain.
                 {
-                    createNode("worldcall", currentSelection, "/");
+                    createNode(Actions.WORLD_CALL, currentSelection, "/");
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -699,28 +703,28 @@ module editor {
             // Create Object Literal node: $
             else if (e.shiftKey && e.which === 52)
             {
-                createNode("objectliteral", currentSelection);
+                createNode(Actions.OBJECT, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create accessor node: [
             else if(!e.shiftKey && e.which === 219)
             {
-                createNode("accessor", currentSelection);
+                createNode(Actions.INDEX, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create dot node: .
             else if(!e.shiftKey && (e.which === 190 || e.which === 110) )
             {
-                createNode("dot", currentSelection);
+                createNode(Actions.DOT, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create tuple node: (
             else if(e.shiftKey && (e.which === 57 )) 
             {
-                createNode("tuple", currentSelection);
+                createNode(Actions.TUPLE, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -741,17 +745,17 @@ module editor {
         return currentSelection ;
     }
 
-    function createNodeOnCurrentSelection(id: string, nodeText?: string) : void
+    function createNodeOnCurrentSelection(action: Actions, nodeText?: string) : void
     {
-        createNode( id, getCurrentSelection(), nodeText) ;
+        createNode( action, getCurrentSelection(), nodeText) ;
     }
 
-    function createNode(id: string, selection : Selection, nodeText?: string) : void
+    function createNode(action : Actions, selection : Selection, nodeText?: string) : void
     {
         const opt : Option<Selection> =
             (nodeText !== undefined) 
-            ? treeMgr.createNodeWithText(id, selection, nodeText)
-            : treeMgr.createNode(id, selection );
+            ? treeMgr.createNodeWithText(action, selection, nodeText)
+            : treeMgr.createNode(action, selection );
         //console.log("  opt is " + opt );
         opt.map(
             sel => {
