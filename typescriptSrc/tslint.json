@@ -48,7 +48,7 @@
         "one-variable-per-declaration": [true, "ignore-for-loop"],
         "ordered-imports": true,
         "semicolon": [true, "always"],
-        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"],
+        "variable-name": [true, "ban-keywords", "check-format", "allow-leading-underscore"]
     },
     "rulesDirectory": []
 }

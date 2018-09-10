@@ -224,8 +224,8 @@ module createHtmlElements {
 	                       className: string|null,
 	                       idName: string|null,
 	                       parentElement: JQuery|null,
-						   textContent: string|null,
-						   action : Actions|null): JQuery {
+	                       textContent: string|null,
+	                       action : Actions|null): JQuery {
 		const obj = create(elementType, className, idName, parentElement);
 		if (textContent!==null) { obj.text(textContent); }
 		if ( action !== null) { obj.data("action", action) ; }

@@ -840,7 +840,7 @@ module sharedMkHtml
     }
 
     export function stringIsInfixOperator( str : string ) : boolean {
-        return str.match( /^([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+$|^[`].*$/ ) !== null ;
+        return str.match( /^(([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+|[`].*|and|or|implies)$/ ) !== null ;
     }  
 }
 

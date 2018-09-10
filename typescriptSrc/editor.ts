@@ -565,7 +565,7 @@ module editor {
             // Create location decl node: ;  
             if ( (!e.shiftKey && e.which===59) ) 
             {
-                createNode( Actions.LOC, currentSelection );
+                createNode( Actions.LOC_OR_LOCATION_TYPE, currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -580,7 +580,7 @@ module editor {
             //Create assignment node: shift+; (aka :)
             else if (e.shiftKey && (e.which === 59 || e.which === 186))
             {
-                createNode(Actions.ASSIGN, currentSelection );
+                createNode(Actions.ASSIGN_OR_ASSIGN_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -593,14 +593,14 @@ module editor {
                 {
                     charCode -= 48; //Convert numpad key to number key
                 }
-                createNode(Actions.NUMBER, currentSelection, String.fromCharCode(charCode) );
+                createNode(Actions.NUMBER_OR_NUMBER_TYPE, currentSelection, String.fromCharCode(charCode) );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create if node: shift+/ (aka ?)
             else if (e.shiftKey && e.which === 191)
             {
-                createNode(Actions.IF, currentSelection );
+                createNode(Actions.IF_OR_BOOL_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -614,7 +614,7 @@ module editor {
             //Create lambda node: with the \ key
             else if (!e.shiftKey && e.which === 220)
             {
-                createNode(Actions.LAMBDA, currentSelection );
+                createNode(Actions.LAMBDA_OR_FUNCTION_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -628,7 +628,7 @@ module editor {
             //Create string literal node: shift+' (aka ")
             else if (e.shiftKey && e.which === 222)
             {
-                createNode(Actions.STRING, currentSelection, "" );
+                createNode(Actions.STRING_OR_STRING_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -657,7 +657,9 @@ module editor {
                                    || e.which === 56      // Shift 56  *
                                    || e.which === 188     // Shift 188 <
                                    || e.which ===190      // Shift 190 >
-                                   || e.which === 53))    // Shift 53  %
+                                   || e.which === 53      // Shift 53  %
+                                   || e.which === 55      // Shift 55 &
+                                   || e.which === 220 ))  // Shift 220 |
                    || (!e.shiftKey && (e.which === 191    // No shift 191 /
                                       || e.which === 173  // No shift 173  -
                                       || e.which === 189  // No shift 189  -
@@ -693,6 +695,12 @@ module editor {
                 else if( charCode === 53 ) {
                     createNode(Actions.WORLD_CALL, currentSelection, "%");
                 }
+                else if( charCode === 55 ) {
+                    createNode(Actions.AND_OR_MEET_TYPE, currentSelection );
+                }
+                else if( charCode === 220 ) {
+                    createNode(Actions.OR_OR_JOIN_TYPE, currentSelection );
+                }
                 else //only the codes for /  can possibly remain.
                 {
                     createNode(Actions.WORLD_CALL, currentSelection, "/");
@@ -724,7 +732,7 @@ module editor {
             //Create tuple node: (
             else if(e.shiftKey && (e.which === 57 )) 
             {
-                createNode(Actions.TUPLE, currentSelection);
+                createNode(Actions.TUPLE_OR_TUPLE_TYPE, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -847,7 +855,7 @@ module editor {
                 { //Keep going if the selected node is open.
                     return false;
                 }
-                for(let child of sel.selectedNodes()[0].children())
+                for(const child of sel.selectedNodes()[0].children())
                 { //deal with cases where a child of the selected node is open, but not the selected node itself.
                     if(child.label().isOpen())
                     {
@@ -870,18 +878,17 @@ module editor {
     function save() : void {
         if (!saving) {
             saving = true;
-            setTimeout(function () {
-                $.post('/update/',
-                    {
-                        identifier: sessionStorage.getItem("programId"),
-                        program: pnode.fromPNodeToJSON(currentSelection.root())
-                    },
-                    function () {
-                        saving = false;
-                    });
-            }, 15000);
+            setTimeout(function () : void {
+                            $.post('/update/',
+                                   {
+                                        identifier: sessionStorage.getItem("programId"),
+                                        program: pnode.fromPNodeToJSON(currentSelection.root())
+                                   },
+                                   function () : void {
+                                       saving = false;
+                                   }); },
+                       15000);
         }
-
     }
 }
 
