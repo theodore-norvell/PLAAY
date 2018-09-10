@@ -42,6 +42,7 @@ digraph Depends {
    sharedMkHtml -> pnodeEdits ;
    sharedMkHtml -> labels ;
 
+   treeManager -> edits ;
    treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;

@@ -1,8 +1,8 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
 
-import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import collections = require( './collections' ) ;
 
 /** Edits are essentially operations on objects that might succeed or fail.  */
 module edits {

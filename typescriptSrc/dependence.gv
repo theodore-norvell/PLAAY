@@ -21,8 +21,6 @@ digraph Depends {
    editor -> sharedMkHtml ;
    editor -> treeManager ;
 
-   edits -> pnode ;
-
    evaluationManager -> backtracking ;
    evaluationManager -> interpreter ;
    evaluationManager -> pnode ;
