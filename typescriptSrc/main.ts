@@ -6,8 +6,8 @@
 /// <reference path="userRelated.ts" />
 /// <reference path="editor.ts" />
 
-import createHtmlElements = require('./createHtmlElements');
 import animator = require('./animator');
+import createHtmlElements = require('./createHtmlElements');
 import editor = require('./editor');
 import userRelated = require('./userRelated');
 import {identifier} from "../tsServer/node_modules/@types/babel-types";

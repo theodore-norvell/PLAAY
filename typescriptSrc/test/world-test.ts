@@ -11,12 +11,13 @@ import assert = require( '../assert' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
+import types = require('../types') ;
 import ObjectV = valueTypes.ObjectV;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import Field = valueTypes.Field;
-import Type = vms.Type;
+import Type = types.TypeKind;
 import VarStack = vms.VarStack;
 import { Transaction, TransactionManager } from '../backtracking';
 

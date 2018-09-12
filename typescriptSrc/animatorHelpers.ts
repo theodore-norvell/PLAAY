@@ -48,6 +48,7 @@ module animatorHelpers
     const GRAY : string = "rgb(153, 153, 153)";
     const RED : string = "rgb(200, 0, 0)";
     const GREEN : string = "rgb(0,200,0)";
+    const YELLOW : string = "rgb(242, 231, 21)";
 
     const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: italic; font-size: large;' ;
     const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
@@ -863,6 +864,186 @@ module animatorHelpers
                 // result.addClass( "H" ) ;;
             }
             break ;
+            //types
+            case labels.PrimitiveTypesLabel.kindConst :
+            {
+                const label = node.label() as labels.PrimitiveTypesLabel;
+                let textElement : svg.Text;
+                switch (label.type) {
+                    case "stringType" :
+                        textElement = element.text(sharedMkHtml.STRINGTYPE);
+                        break;
+                    case "numberType" :
+                        textElement = element.text(sharedMkHtml.NUMBERTYPE);
+                        break;
+                    case "integerType" :
+                        textElement = element.text(sharedMkHtml.INTEGERTYPE);
+                        break;
+                    case "booleanType" :
+                        textElement = element.text(sharedMkHtml.BOOLEANTYPE);
+                        break;
+                    case "natType" :
+                        textElement = element.text(sharedMkHtml.NATTYPE);
+                        break;
+                    case "nullType" :
+                        textElement = element.text(NULLMARK);
+                        break;
+                    case "topType" :
+                        textElement = element.text(sharedMkHtml.TOPTYPE);
+                        break;
+                    case "bottomType" :
+                        textElement = element.text(sharedMkHtml.BOTTOMTYPE);
+                        break;
+                    default:
+                        assert.unreachable("Unknown primitive type in buildSVG: " + kind.toString() +".");
+                        textElement = element.text("");
+                }
+                makePrimitiveTyeSVG(element,textElement);
+            }
+            break;
+            case labels.TupleTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+                let seqBoxX : number = 0;
+                const padding : number = 15;
+                const seqBox :  svg.G = element.group().dmove(20, 0) ;
+                const leftBracketText : svg.Text= element.text( "(");
+                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                leftBracketText.fill(YELLOW.toString());
+                seqBox.add( leftBracketText.dmove(-20,-5) );
+
+                let len = findWidthOfLargestChild(childArray)+padding;
+    
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    if( i !== childArray.length - 1) {
+                        const comma : svg.Text= element.text( ",");
+                        comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        comma.fill(YELLOW.toString());
+                        seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
+                    }                    
+                    seqBoxX += childArray[i].bbox().width + 25;
+                    
+                }
+                if(seqBoxX === 0)
+                {
+                    seqBox.rect(10,10).opacity(0);
+                }
+                const rightBracketText : svg.Text= element.text( ")");
+                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                rightBracketText.fill(YELLOW.toString());
+                seqBox.add( rightBracketText.dmove(seqBoxX -20,-5) );
+
+                makeSimpleBorder(element, YELLOW,10);
+            }
+            break;
+            case labels.FunctionTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+
+                const padding : number = 5;
+                let x : number = 0;
+
+                x += childArray[0].bbox().width + padding;
+                const arrow : svg.Text = element.text(sharedMkHtml.FUNCTIONTYPE);
+                arrow.fill(YELLOW).dmove(x, -5);
+
+                x += arrow.bbox().width + padding;
+                childArray[1].dmove(x, 0);
+
+                x += childArray[1].bbox().width + padding;
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
+
+                makeSimpleBorder(element, YELLOW );
+            }
+            break;
+            case labels.LocationTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+                makeSimpleBorder(element,YELLOW);
+            }
+            break;
+            case labels.FieldTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+
+                const padding : number = 5;
+                let x : number = 0;
+
+                x += childArray[0].bbox().width + padding;
+                const colon : svg.Text = element.text(":");
+                colon.fill(YELLOW).dmove(x, 0);
+
+                x += colon.bbox().width + padding;
+                childArray[1].dmove(x, 0);
+
+                x += childArray[1].bbox().width + padding;
+                const childBBox : svg.BBox = childArray[1].bbox();
+                if(childBBox.x < x)
+                {
+                    childArray[1].dx(-childBBox.x);
+                }
+
+                makeSimpleBorder(element, YELLOW ); 
+            }
+            break;
+            case labels.JoinTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+                let seqBoxX : number = 0;
+                const padding : number = 15;
+                const seqBox :  svg.G = element.group().dmove(10, 0) ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    if( i !== childArray.length - 1) {
+                        const pipe : svg.Text= element.text(sharedMkHtml.JOINTYPE);
+                        pipe.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        pipe.fill(YELLOW.toString());
+                        seqBox.add(pipe.dmove(childArray[i].bbox().width +seqBoxX + 10 , -5));
+                    }                    
+                    seqBoxX += childArray[i].bbox().width + 25;
+                    
+                }
+                if(seqBoxX === 0)
+                {
+                    seqBox.rect(10,10).opacity(0);
+                }
+                
+                makeSimpleBorder(element,YELLOW,10);
+                
+            }
+            break;
+            case labels.MeetTypeLabel.kindConst :
+            {
+                const childArray = element.children();
+                let seqBoxX : number = 0;
+                const seqBox :  svg.G = element.group().dmove(10, 0) ;
+                for (let i = 0; true; ++i) {
+                    if (i === childArray.length) break;
+                    seqBox.add(childArray[i].dmove(seqBoxX , 0));
+                    if( i !== childArray.length - 1) {
+                        const amp : svg.Text= element.text(sharedMkHtml.MEETTYPE);
+                        amp.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        amp.fill(YELLOW.toString());
+                        seqBox.add(amp.dmove(childArray[i].bbox().width +seqBoxX + 10 , -5));
+                    }                    
+                    seqBoxX += childArray[i].bbox().width + 35;
+                    
+                }
+                if(seqBoxX === 0)
+                {
+                    seqBox.rect(10,10).opacity(0);
+                }
+                
+                makeSimpleBorder(element,YELLOW,10);
+            }
+            break;
             default:
             {
                 assert.unreachable( "Unknown label in buildSVG: " + kind.toString() + ".") ;
@@ -1291,6 +1472,19 @@ module animatorHelpers
         outline.radius(5);
         outline.fill({opacity: 0});
         outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
+    }
+
+    function makePrimitiveTyeSVG(base : svg.Container, textElement : svg.Text) : void
+    {
+        textElement.dy(-5);
+        textElement.fill(YELLOW);
+        textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: large ;");
+        const bounds : svg.BBox = textElement.bbox();
+        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        outline.stroke({color: YELLOW, opacity: 1, width: 1.5});
     }
 
     function findWidthOfLargestChild(arr : svg.Element[]) : number

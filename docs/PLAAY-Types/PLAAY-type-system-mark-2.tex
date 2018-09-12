@@ -17,7 +17,7 @@
 %TCIDATA{<META NAME="SaveForMode" CONTENT="1">}
 %TCIDATA{BibliographyScheme=Manual}
 %TCIDATA{Created=Tuesday, May 08, 2018 11:08:28}
-%TCIDATA{LastRevised=Friday, July 13, 2018 21:36:30}
+%TCIDATA{LastRevised=Friday, August 31, 2018 17:35:15}
 %TCIDATA{<META NAME="GraphicsSave" CONTENT="32">}
 %TCIDATA{<META NAME="DocumentShell" CONTENT="Articles\Literate Programming Article">}
 %TCIDATA{Language=American English}
@@ -75,7 +75,7 @@ The PLAAY's the thing --- William Shakespear.
 
 \item[$b$] boolean:\ either \textsf{true} or \textsf{false}.
 
-\item[$c$] constness:\ either \textsf{con} or \textsf{loc}
+\item[$c$] constness:\ either \textsf{con} or \textsf{loc}.
 
 \item[$d$] declaration
 
@@ -83,11 +83,15 @@ The PLAAY's the thing --- William Shakespear.
 
 \item[$f$] field
 
+\item[$h$] context:\ either $\mathrm{L}$ or $\mathrm{R}$
+
 \item[$i,j$] identifier
 
 \item[$k$] natural numbers
 
 \item[$n$] numbers
+
+\item[$m$] members:\ Either expressions or declarations
 
 \item[$p$] primitive types
 
@@ -104,55 +108,65 @@ The PLAAY's the thing --- William Shakespear.
 
 \subsection{Expressions}
 
+\subsubsection{Abstract syntax}
+
 PLAAY\ is a visual programming language in which the programmer directly
 manipulates the abstract syntax of the program. Mostly this document is
 about the type system, but this section contains a quick introduction to
 some of the abstract syntax for expressions and declarations. Expressions $e$
 include%
 \begin{eqnarray*}
-e &:&:=\mathsf{numberLiteral}\left[ i\right]  \\
+e &:&:=\mathsf{numberLiteral}\left[ i\right] \\
 &\mid &\mathsf{stringLiteral}[i] \\
 &\mid &\mathsf{nullLiteral} \\
+&\mid &\mathsf{boolLiteral}[b] \\
 &\mid &\mathsf{var}[i] \\
 &\mid &\mathsf{dot}\left[ i\right] (e) \\
-&\mid &\mathsf{tuple}\left( e_{0},e_{1},\ldots ,e_{n-1}\right)  \\
+&\mid &\mathsf{tuple}\left( e_{0},e_{1},\ldots ,e_{n-1}\right) \\
 &\mid &\mathsf{call}(e_{0},e_{1},\ldots ,e_{n-1}) \\
 &\mid &\mathsf{callVar}[i](e_{1},\ldots ,e_{n-1}) \\
-&\mid &\lambda  \\
+&\mid &\lambda \\
 &\mid &\mathsf{if}(e,\mathit{seq},\mathit{seq)} \\
-&\mid &\mathsf{while}\left( e,\mathit{seq}\right)  \\
+&\mid &\mathsf{while}\left( e,\mathit{seq}\right) \\
 &\mid &\mathsf{assign}(e_{0},e_{1}) \\
+&\mid &\mathsf{loc}\left( e\right) \\
 &\mid &\mathsf{objectLiteral}\left( \mathit{seqMember}_{0},\mathit{seqMember}%
-_{1},\ldots ,\mathit{seqMember}_{n-1}\right)  \\
+_{1},\ldots ,\mathit{seqMember}_{n-1}\right) \\
 &\mid &\mathsf{expPH} \\
-\lambda  &:&:=\mathsf{lambda}(\mathit{params},\mathit{optType,seq})
+\lambda &:&:=\mathsf{lambda}(\mathit{params},\mathit{optType,seq})
 \end{eqnarray*}%
 where $i$ ranges over strings. We have the following additional forms of
 trees%
 \begin{eqnarray*}
-\mathit{params} &:&:=\mathsf{params}\left( d_{0},d_{1},...,d_{n-1}\right)  \\
+\mathit{params} &:&:=\mathsf{params}\left( d_{0},d_{1},...,d_{n-1}\right) \\
 d &:&:=\mathsf{varDecl}[c]\mathsf{(var}[i],\mathit{optType,optExp}) \\
 c &:&:=\mathsf{loc}\mid \mathsf{con} \\
 \mathit{optType} &:&:=\mathit{type}\mid \mathsf{noType} \\
 \mathit{optExp} &:&:=e\mid \mathsf{noExp} \\
-\mathit{seq} &:&:=\mathsf{expSeq}\left( \mathit{seqMember}_{0},\mathit{%
-seqMember}_{1},\ldots ,\mathit{seqMember}_{n-1}\right)  \\
-\mathit{seqMember} &:&:=e\mid d
+\mathit{seq} &:&:=\mathsf{expSeq}\left( m_{0},m_{1},\ldots ,m_{n-1}\right) \\
+m &:&:=e\mid d
 \end{eqnarray*}
+
+The abstract syntax of of \textit{type} is given in Section \ref%
+{sec:type-syntax}.
+
+The set of expressions above roughly corresponds to the language as
+implemented in the summer of 2018.
+
+\subsubsection{Informal meaning}
 
 The meanings of most of these constructs are fairly straightforward:
 
 \begin{itemize}
-\item number, string, and null literal evaluate to number, string, and null
-values respectively.
+\item number, string, boolean, and null literal evaluate to number, string,
+boolean and null values respectively.
 
 \item $\mathsf{var}[i]$ is an occurrence of a variable. Its value is
 obtained from the run-time stack. If the variable has not been initialized,
 it is an error ---but not a type error.
 
 \item Evaluating $\mathsf{dot}\left[ i\right] (e)$ accesses a field of an
-object. If the object has no such field it is a type error. If the field
-have not been initialized, it is an error ---but not a type error.
+object.
 
 \item Evaluating $\mathsf{tuple}\left( e_{0},e_{1},\ldots ,e_{n-1}\right) $
 creates a tuple of values. In the case where $n=1$, its value is the same as
@@ -177,13 +191,9 @@ is missing, the return type is inferred from the sequence which is its body.
 more locations in the store. The value of an assign is the empty tuple. The
 expression on the left should evaluate to an location value or a tuple of
 location values or so on. The expression on the right should evaluate to an
-expression of the appropriate type. There is a difference in how the left
-operand and the right operand are evaluated: if the right operand evaluates
-to a location, that location is fetched from. This indirection is not
-iterated; if the result of a fetch is another location, there is no second
-fetch. This distinction between L-contexts and R-contexts is discussed more
-later. Storing a value in a location that does not belong to the location's
-type is a type error.
+expression of the appropriate type.This distinction between L contexts and R
+contexts is discussed more below. Storing a value that does not belong to
+the location's type is a type error.
 
 \item Evaluating $\mathsf{if}(e,\mathit{seq},\mathit{seq)}$ evaluates $e$
 and then evaluates one of two expression sequences, based on the value of $e$%
@@ -191,9 +201,14 @@ and then evaluates one of two expression sequences, based on the value of $e$%
 is the value of the chosen sequence.
 
 \item Evaluating $\mathsf{while}\left( e,\mathit{seq}\right) $ evaluates $e$
-and then the sequence repeatedly until the expression evaluates to false. 
-If $e$ evaluates to neither true nor false, it is a type error. The value of
-a loop that terminates is the empty tuple.
+and then the sequence repeatedly until the expression evaluates to false. If 
+$e$ evaluates to neither true nor false, it is a type error. The value of a
+loop that terminates is the empty tuple.
+
+\item Evaluating $\mathsf{loc}\left( e\right) $ evaluates $e$ as if it were
+on the left side of an assignment. That is $e$ is evaluated in an L context.
+The value of $\mathsf{loc}\left( e\right) $ is the same as the value of its
+operand evaluated in a L context.
 
 \item Evaluating $\mathsf{objectLiteral}\left( \mathit{seqMember}_{0},%
 \mathit{seqMember}_{1},\ldots ,\mathit{seqMember}_{n-1}\right) $ evaluates a
@@ -228,24 +243,76 @@ declaration is the empty tuple.
 
 \item Variable declarations can also appear in parameter lists. In this
 case, the value for the variable comes from the corresponding argument in
-the case of \textsf{con}. For $\mathsf{loc}$ declarations, a new location is
-created as part of the call and the argument is used to initialize that
-location. Initialization expressions can be used to provide default
-arguments.
+the case of \textsf{con} variable declarations. For $\mathsf{loc}$
+declarations, a new location is created as part of the call and the argument
+is used to initialize that location. Initialization expressions can be used
+to provide default arguments.
 \end{itemize}
 
-The set of expressions above roughly corresponds to the language as
-currently (2018 June 26) implemented, except that there are currently no
-types (variable types must be $\mathsf{noType}$) and the implementation of
-location and tuple values is on-going.
+\subsubsection{Implicit fetches}
+
+For certain of the expressions listed above, the evaluation of the
+expression is immediately followed by an `implicit fetch'. An fetch
+operation converts a location to its contents. Implicit fetches only happen
+when the value is a location. For example consider an assignment 
+\begin{equation*}
+\mathsf{assign(var[x],callVar[+](var[y],numberLiteral[1]))}
+\end{equation*}%
+Suppose the value of $\mathsf{var[x]}$ is a location. There is no implicit
+fetch because the expression occurs in an L context. (The left side of an
+assignment is an L context.) The expression $\mathsf{var[y]}$ occurs in an R
+context. (The operands of a call are R contexts.)\ If $\mathsf{var[y]}$
+represents a location, that location is implicitly fetched and the contents
+of the location will be the first argument to the function. Implicit
+fetching only happens if three things are true:
+
+\begin{itemize}
+\item The expression is a \textsf{var} expression, a \textsf{dot}
+expression, a \textsf{call} expression or a $\mathsf{callVar}$ expression.
+
+\item The expression occurs in an R context.
+
+\item The value of the expression is a location.
+\end{itemize}
+
+Implicit fetcing is done only once: if the result of an implicit fetch is a
+location, then that is the result of the expression. For example, suppose $x$
+and $y$\ are both variables whose values are locations that hold locations
+that hold numbers. Consider $\mathsf{assign(var[x],var[y])}$. The left side
+will evaluate to a location that holds a location that holds a number. The
+right side will evaluate to a value of the same type, but as implicit fetch
+will change that to a location that holds a number. Thus the assignment will
+work without error.
+
+As mentioned above, implicit fetches can be suppressed with the $\mathsf{loc}
+$ operator; this is in fact its only purpose. Supppose that variable $x$
+represents a location that holds a location that holds a number, as above,
+and variable $z$ represents a location that holds a number. Consider: 
+\begin{equation*}
+\mathsf{assign(var[x],loc(var[z]))}
+\end{equation*}%
+here there is no implicit fetch, so the types of the left and right hand
+operands will be as in the previous example. The assignment will work
+without error.
+
+A fetch can be forced by calling the identity function. For example, if, as
+above, variable $x$ represents a location that holds a location that holds a
+number, we could write%
+\begin{equation*}
+\mathsf{assign(callVar[id](var[x]),numberLiteral[42])}
+\end{equation*}%
+Since the operand of a call is an R context, $\mathsf{var[x]}$ is implicitly
+fetched from; the function's argument (and hence its value) is a location
+that holds a number. The call itself occurs in an L context and so there is
+no implicit fetch after the call returns. Thus the left side will evaluate
+to a location that holds a number. The assignment will work without error.
 
 \subsection{Notation}
 
 Since the abstract syntax can be verbose, I'll sometimes use a sort of
 ad-hoc pseudocode. E.g.,%
 \begin{equation*}
-\lambda \;\mathbf{con}\;\mathsf{y}:\mathsf{Loc}[\mathsf{Int}]\cdot \{\;%
-\mathsf{y}:=12\;\}
+\lambda \;\mathsf{y}:\mathsf{Loc}[\mathsf{Int}]\cdot \{\;\mathsf{y}:=12\;\}
 \end{equation*}%
 instead of the abstract syntax%
 \begin{equation*}
@@ -318,14 +385,15 @@ Let's start the type system by supposing that we have types $\mathsf{String}$%
 \textbf{primitive} types. We'll leave tuples, objects, closures, built-in
 functions, and locations to later.
 
-We will use $\func{Im}(t)$ to represent the set of values\footnote{%
+We will use $\limfunc{Val}(t)$ to represent the set of values\footnote{%
 The idea that types correspond to sets is likely naive. However, it serves
 as a starting point.} that belong to type $t$. For example%
 \begin{equation*}
-\left\{ 0,1,2,3.14,-42,\ldots \right\} \subseteq \func{Im}(\mathsf{Number})
+\left\{ 0,1,2,3.14,-42,\ldots \right\} \subseteq \limfunc{Val}(\mathsf{Number%
+})
 \end{equation*}
 
-\subsection{Extraordinary outcomes and the bottom type}
+\subsection{Extraordinary outcomes}
 
 Usually a computation results in some value. But there are other possible 
 \textbf{outcomes}.
@@ -339,33 +407,38 @@ a computation that never finishes.
 \end{itemize}
 
 We want division, for example, to be such that $x\div y:\mathsf{Number}$
-when $x,y:\mathsf{Number}$. Since $12,0:\mathsf{Number}$, it follows that $%
-\blacktriangledown $ should be in the image of $\mathsf{Number}$.
+when $x,y:\mathsf{Number}$. Since $12,0:\mathsf{Number}$.
 
 Similarly, we can argue that $\blacktriangledown $ should be in the image of
 every type. We want the type of any nonempty expression sequence to be the
 type of its last expression. Consider%
 \begin{equation*}
 \mathsf{ExpSeq}\mathrm{(\mathsf{while}(\mathsf{true},\mathsf{ExpSeq}()),12)}
-\end{equation*}%
-It follows that $\blacktriangle $ should be be in the image $\mathsf{Number}$%
-.
+\end{equation*}
 
-Let's suppose that all types' images contain both $\blacktriangle $ and $%
-\blacktriangledown $.
+However we don't say that $\blacktriangledown $ or $\blacktriangle $ are
+values of type $\mathsf{Number}$, since they aren't values at all; they are
+outcomes. We will distinguish between the values of type, written as $%
+\limfunc{Val}(t)$ and the possible outcomes of a computation of type $t$,
+which we call the type's image, $\func{Im}(t)$. The relationship is simply
+that%
+\begin{equation*}
+\func{Im}(t)=\limfunc{Val}(t)\cup \left\{ \blacktriangledown ,\blacktriangle
+\right\}
+\end{equation*}
+
+\subsection{The bottom type}
 
 The minimal type we can form is \textquotedblleft bottom\textquotedblright\
 notated $\bot $. This type's image contains only $\blacktriangle $ and $%
 \blacktriangledown $. We have 
 \begin{eqnarray*}
-\func{Im}(\bot ) &=&\left\{ \blacktriangle ,\blacktriangledown \right\}  \\
-\func{Im}(\mathsf{Bool}) &=&\left\{ \blacktriangle ,\blacktriangledown 
-\mathrm{,}\mathsf{true},\mathsf{false}\right\} 
+\limfunc{Val}(\bot ) &=&\emptyset \\
+\limfunc{Val}(\mathsf{Bool}) &=&\left\{ \mathsf{true},\mathsf{false}\right\}
 \end{eqnarray*}%
 and 
 \begin{equation*}
-\func{Im}(\mathsf{Number})=\left\{ \blacktriangle ,\blacktriangledown
-,0,1,2,3.14,-42,\ldots \right\} 
+\limfunc{Val}(\mathsf{Number})=\left\{ 0,1,2,3.14,-42,\ldots \right\}
 \end{equation*}%
 and so on.
 
@@ -375,14 +448,14 @@ We write $t<:u$ to mean that $t$ \textbf{is a subtype of} $u$. We can define
 this relation on types so that $\bot <:\mathsf{Number}$. In general we want
 that, for any types $t$ and $u$%
 \begin{equation}
-\left( t<:u\right) \Rightarrow \left( \func{Im}(t)\subseteq \func{Im}%
-(u)\right)   \tag{Soundness}
+\left( t<:u\right) \Rightarrow \left( \limfunc{Val}(t)\subseteq \limfunc{Val}%
+(u)\right)  \tag{Soundness}
 \end{equation}%
 Furthermore, we want that, for any types $t$, $u$, and $v$,%
 \begin{eqnarray}
-&&\left. t<:t\right.   \TCItag{Reflexivity} \\
+&&\left. t<:t\right.  \TCItag{Reflexivity} \\
 &&\left. \left( t<:u\right) \wedge \left( u<:v\right) \Rightarrow \left(
-t<:v\right) \right.   \TCItag{Transitivity}
+t<:v\right) \right.  \TCItag{Transitivity}
 \end{eqnarray}%
 I.e., that subtyping is a preorder.
 
@@ -390,7 +463,7 @@ When $t<:u$ and $u<:t$, we say the types are \textbf{equivalent}. It doesn't
 follow that the types are equal. In fact we will regard types to simply be
 abstract syntax trees, so two types are equal only when they are written out
 exactly the same way. But it does follow that, when $t$ and $u$ are
-equivalent, they have the same image. We will write $t\equiv u$ to mean $t$
+equivalent, they have the same values. We will write $t\equiv u$ to mean $t$
 and $u$ are equivalent.
 
 \subsection{Meets and joins and top}
@@ -419,8 +492,8 @@ We have%
 
 From soundness we can prove that%
 \begin{eqnarray*}
-\func{Im}(t)\cup \func{Im}(u) &\subseteq &\func{Im}(t\sqcup u) \\
-\func{Im}(t\sqcap u) &\subseteq &\func{Im}(t)\cap \func{Im}(u)
+\limfunc{Val}(t)\cup \limfunc{Val}(u) &\subseteq &\limfunc{Val}(t\sqcup u) \\
+\limfunc{Val}(t\sqcap u) &\subseteq &\limfunc{Val}(t)\cap \limfunc{Val}(u)
 \end{eqnarray*}
 
 We will want to arrange that finite joins always exist. We want joins for
@@ -458,24 +531,24 @@ in $t\sqcup u$.
 %
 %\draw (0,0) node (bot) {$\bot$ } ;
 %\draw
-%         (top) to  (bns)
+%      (top) to  (bns)
 %
-%        (bns) to (bn)
-%        (bns) to (bs) 
-%        (bns) to (ns) 
+%     (bns) to (bn)
+%     (bns) to (bs) 
+%     (bns) to (ns) 
 %
-%        (bn) to (b)
-%        (bn) to (n)
+%     (bn) to (b)
+%     (bn) to (n)
 %
-%        (bs) to (b)
-%        (bs) to (s)
+%     (bs) to (b)
+%     (bs) to (s)
 %
-%        (ns) to (n)
-%        (ns) to (s)
+%     (ns) to (n)
+%     (ns) to (s)
 %
-%        (b) to (bot)
-%        (n) to (bot)
-%        (s) to (bot) ;
+%     (b) to (bot)
+%     (n) to (bot)
+%     (s) to (bot) ;
 %\end{tikzpicture}}}%
 %BeginExpansion
 \begin{tikzpicture}
@@ -493,24 +566,24 @@ in $t\sqcup u$.
 
 \draw (0,0) node (bot) {$\bot$ } ;
 \draw
-         (top) to  (bns)
+      (top) to  (bns)
 
-        (bns) to (bn)
-        (bns) to (bs) 
-        (bns) to (ns) 
+     (bns) to (bn)
+     (bns) to (bs) 
+     (bns) to (ns) 
 
-        (bn) to (b)
-        (bn) to (n)
+     (bn) to (b)
+     (bn) to (n)
 
-        (bs) to (b)
-        (bs) to (s)
+     (bs) to (b)
+     (bs) to (s)
 
-        (ns) to (n)
-        (ns) to (s)
+     (ns) to (n)
+     (ns) to (s)
 
-        (b) to (bot)
-        (n) to (bot)
-        (s) to (bot) ;
+     (b) to (bot)
+     (n) to (bot)
+     (s) to (bot) ;
 \end{tikzpicture}%
 %EndExpansion
 \end{center}
@@ -570,23 +643,23 @@ some atomic types to keep the diagram reasonable).
 %
 %\draw (0,0) node (bot) {$\bot$ } ;
 %\draw
-%         (top) to  (bnum)
+%      (top) to  (bnum)
 %
-%        (bnum) to (bint)
-%        (bnum) to (num)
+%     (bnum) to (bint)
+%     (bnum) to (num)
 %
-%        (num) to (int)
+%     (num) to (int)
 %
-%        (bint) to (int)
-%        (bint) to (bnat)
+%     (bint) to (int)
+%     (bint) to (bnat)
 %
-%        (int) to (nat)
+%     (int) to (nat)
 %
-%        (bnat) to (nat)
-%        (bnat) to (b)
+%     (bnat) to (nat)
+%     (bnat) to (b)
 %
-%        (b) to (bot)
-%        (nat) to (bot) ;
+%     (b) to (bot)
+%     (nat) to (bot) ;
 %\end{tikzpicture}}}%
 %BeginExpansion
 \begin{tikzpicture}
@@ -605,23 +678,23 @@ some atomic types to keep the diagram reasonable).
 
 \draw (0,0) node (bot) {$\bot$ } ;
 \draw
-         (top) to  (bnum)
+      (top) to  (bnum)
 
-        (bnum) to (bint)
-        (bnum) to (num)
+     (bnum) to (bint)
+     (bnum) to (num)
 
-        (num) to (int)
+     (num) to (int)
 
-        (bint) to (int)
-        (bint) to (bnat)
+     (bint) to (int)
+     (bint) to (bnat)
 
-        (int) to (nat)
+     (int) to (nat)
 
-        (bnat) to (nat)
-        (bnat) to (b)
+     (bnat) to (nat)
+     (bnat) to (b)
 
-        (b) to (bot)
-        (nat) to (bot) ;
+     (b) to (bot)
+     (nat) to (bot) ;
 \end{tikzpicture}%
 %EndExpansion
 \end{center}
@@ -652,30 +725,25 @@ etc. We consider tuples of types to be types. Thus the type $\left\langle
 \mathsf{Int},\mathsf{String}\right\rangle $ is a 2-tuple of types and hence
 a type. There are no 1-tuple types.
 
-The image of the type $\left\langle {}\right\rangle $ is the set $\left\{
-(),\blacktriangle ,\blacktriangledown \right\} $ containing only the empty
-tuple and our extraordinary outcomes. The image of $\left\langle \mathsf{Int}%
-,\mathsf{String}\right\rangle $ contains pairs of values such as $\left( 42,%
-\text{\textquotedblleft hello\textquotedblright }\right) $. But it does not
-contain pairs with extraordinary outcomes such as $\left( \blacktriangle
-,\blacktriangledown \right) $. The image of $\left\langle t,u\right\rangle $
-is the set 
+The values of the type $\left\langle {}\right\rangle $ is the set $\left\{
+()\right\} $ containing only the empty tuple. The values of $\left\langle 
+\mathsf{Int},\mathsf{String}\right\rangle $ contains pairs of values such as 
+$\left( 42,\text{\textquotedblleft hello\textquotedblright }\right) $. But
+it does not contain pairs with extraordinary outcomes such as $\left(
+\blacktriangle ,\blacktriangledown \right) $. The values of $\left\langle
+t,u\right\rangle $ is the set 
 \begin{equation*}
-\left( \left( \func{Im}(t)-\left\{ \blacktriangle ,\blacktriangledown
-\right\} \right) \times \left( \func{Im}(u\mathsf{)-}\left\{ \blacktriangle
-,\blacktriangledown \right\} \right) \right) \cup \left\{ \blacktriangle
-,\blacktriangledown \right\} 
+\limfunc{Val}(t)\times \limfunc{Val}(u\mathsf{)}
 \end{equation*}%
 And so on for larger tuples. The reason is that, if we try to make a tuple
 using erroneous computation, then that is an error. Likewise if we make a
 tuple using a nonterminating computation we will get a nonterminating
 computation.
 
-It follows that, for any $t$, $\func{Im}(\left\langle t,\bot \right\rangle
-)=\left\{ \blacktriangle ,\blacktriangledown \right\} =\func{Im}(\bot )=%
-\func{Im}(\left\langle \bot ,t\right\rangle )$. So we can expect that $%
-\left\langle t,\bot \right\rangle \equiv \bot \equiv \left\langle \bot
-,t\right\rangle $.
+It follows that, for any $t$, $\limfunc{Val}(\left\langle t,\bot
+\right\rangle )=\emptyset =\limfunc{Val}(\bot )=\limfunc{Val}(\left\langle
+\bot ,t\right\rangle )$. So we can expect that $\left\langle t,\bot
+\right\rangle \equiv \bot \equiv \left\langle \bot ,t\right\rangle $.
 
 Comparison of tuple types is item-wise, so%
 \begin{equation*}
@@ -965,7 +1033,7 @@ should have both type $\mathsf{Nat\rightarrow Int}$ and $\left\langle
 in the future.} For example a function in the image of%
 \begin{equation*}
 \left( \mathsf{Int}\rightarrow \mathsf{Nat}\right) \sqcap \left( \mathsf{Bool%
-}\rightarrow \mathsf{Bool}\right) 
+}\rightarrow \mathsf{Bool}\right)
 \end{equation*}%
 is a function that accepts an argument of either type $\mathsf{Int}$ or type 
 $\mathsf{Bool}$ and returns a $\mathsf{Nat}$, if the argument is an integer,
@@ -975,12 +1043,12 @@ or a nontermination) the answer must be in both $\mathsf{Nat}$ and a $%
 \mathsf{Bool}$ (which would mean an error or a nontermination). We would
 expect this type to be a subtype of each of the following types%
 \begin{eqnarray*}
-&&\left( \mathsf{Int}\rightarrow \mathsf{Nat}\right)  \\
-&&\left( \mathsf{Bool}\rightarrow \mathsf{Bool}\right)  \\
+&&\left( \mathsf{Int}\rightarrow \mathsf{Nat}\right) \\
+&&\left( \mathsf{Bool}\rightarrow \mathsf{Bool}\right) \\
 &&\left( \mathsf{Int}\sqcup \mathsf{Bool}\rightarrow \mathsf{Nat}\sqcup 
-\mathsf{Bool}\right)  \\
+\mathsf{Bool}\right) \\
 &&\left( \mathsf{Int}\sqcap \mathsf{Bool}\rightarrow \mathsf{Nat\sqcap Bool}%
-\right) 
+\right)
 \end{eqnarray*}
 
 Certain built-in functions are best described by meets. For example, the
@@ -1019,12 +1087,12 @@ seems reasonable to guess that%
 \begin{equation*}
 \left( \mathsf{Int}\rightarrow \mathsf{String}\right) \sqcap \left( \mathsf{%
 Int}\rightarrow \mathsf{Bool}\right) \equiv \left( \mathsf{Int}\rightarrow
-\bot \right) 
+\bot \right)
 \end{equation*}%
 and more generally that 
 \begin{equation*}
 \left( t\rightarrow u_{0}\right) \sqcap \left( t\rightarrow u_{1}\right)
-\equiv \left( t\rightarrow u_{0}\sqcap u_{1}\right) 
+\equiv \left( t\rightarrow u_{0}\sqcap u_{1}\right)
 \end{equation*}%
 But we are not forced to this conclusion. From the (arrow-subtype) rule, we
 can see that%
@@ -1035,18 +1103,18 @@ u_{2}\right) \right. \text{if and only if }u_{0}\sqcap u_{1}<:u_{2}
 Taking $u_{2}=u_{0}$ we get%
 \begin{equation*}
 \left( t\rightarrow u_{0}\sqcap u_{1}\right) <:\left( t\rightarrow
-u_{0}\right) 
+u_{0}\right)
 \end{equation*}%
 and likewise%
 \begin{equation*}
 \left( t\rightarrow u_{0}\sqcap u_{1}\right) <:\left( t\rightarrow
-u_{1}\right) 
+u_{1}\right)
 \end{equation*}%
 From the last two and that $a<:b$ and $a<:c$ implies $a<:b\sqcap c$ we get
 that%
 \begin{equation*}
 \left( t\rightarrow u_{0}\sqcap u_{1}\right) <:\left( t\rightarrow
-u_{0}\right) \sqcap \left( t\rightarrow u_{1}\right) 
+u_{0}\right) \sqcap \left( t\rightarrow u_{1}\right)
 \end{equation*}%
 The question then is: is it also the case that 
 \begin{equation*}
@@ -1079,12 +1147,12 @@ types are disjoint. We might expect that
 \begin{equation*}
 \left( \mathsf{Bool}\rightarrow \mathsf{String}\right) \sqcap \left( \mathsf{%
 Nat}\rightarrow \mathsf{String}\right) \equiv \left( \mathsf{Bool}\sqcup 
-\mathsf{Nat}\rightarrow \mathsf{String}\right) 
+\mathsf{Nat}\rightarrow \mathsf{String}\right)
 \end{equation*}%
 and more generally that 
 \begin{equation*}
 \left( t_{0}\rightarrow u\right) \sqcap \left( t_{1}\rightarrow u\right)
-\equiv \left( t_{0}\sqcup t_{1}\rightarrow u\right) 
+\equiv \left( t_{0}\sqcup t_{1}\rightarrow u\right)
 \end{equation*}%
 From (arrow-subtype) we get $\left( t_{0}\rightarrow u\right) <:\left(
 t_{0}\sqcup t_{1}\rightarrow u\right) $ and we also have $\left(
@@ -1092,12 +1160,12 @@ t_{1}\rightarrow u\right) <:\left( t_{0}\sqcup t_{1}\rightarrow u\right) $.
 From this we get 
 \begin{equation*}
 \left( t_{0}\rightarrow u\right) \sqcap \left( t_{1}\rightarrow u\right)
-<:\left( t_{0}\sqcup t_{1}\rightarrow u\right) 
+<:\left( t_{0}\sqcup t_{1}\rightarrow u\right)
 \end{equation*}%
 However to get the other half of the equivalence, we must decree that%
 \begin{equation*}
 \left( t_{0}\sqcup t_{1}\rightarrow u\right) <:\left( t_{0}\rightarrow
-u\right) \sqcap \left( t_{1}\rightarrow u\right) 
+u\right) \sqcap \left( t_{1}\rightarrow u\right)
 \end{equation*}
 
 \subsubsection{Joins of function types}
@@ -1115,12 +1183,12 @@ i $ of type $t$. These objects can have other fields too.
 
 Consider $\mathsf{a\colon Bool}$ this type's image includes the objects%
 \begin{equation*}
-\left\{ \mathsf{a\colon Bool}\mapsto \mathsf{true}\right\} 
+\left\{ \mathsf{a\colon Bool}\mapsto \mathsf{true}\right\}
 \end{equation*}%
 and%
 \begin{equation*}
 \left\{ \mathsf{a\mathsf{\colon Bool}\mapsto true},\mathsf{b\mathsf{\colon }%
-Nat\mapsto 12}\right\} 
+Nat\mapsto 12}\right\}
 \end{equation*}%
 The latter of these is also in the images of $\mathsf{b}$\textsf{$\colon $}$%
 \mathsf{Nat}$, $\mathsf{b}$\textsf{$\colon $}$\mathsf{Int}$, and $\mathsf{a}$%
@@ -1145,15 +1213,15 @@ the image of type $\mathsf{Bool}$ and a field \textquotedblleft \textsf{b}%
 \textquotedblright\ that contains only values in the image of type $\mathsf{%
 Int}$.
 
-Suppose we consider that for each individual string there is a corresponding
-type, so $\left. \text{\textquotedblleft }\mathsf{a}\text{\textquotedblright 
-}<:\mathsf{String}\right. $ and $\func{Im}\left( \text{\textquotedblleft }%
-\mathsf{a}\text{\textquotedblright }\right) =\left\{ \text{\textquotedblleft 
-}\mathsf{a}\text{\textquotedblright },\blacktriangle ,\blacktriangledown
+[Suppose, for a moment, we consider that for each individual string there is
+a corresponding type, so $\left. \text{\textquotedblleft }\mathsf{a}\text{%
+\textquotedblright }<:\mathsf{String}\right. $ and $\limfunc{Val}\left( 
+\text{\textquotedblleft }\mathsf{a}\text{\textquotedblright }\right)
+=\left\{ \text{\textquotedblleft }\mathsf{a}\text{\textquotedblright }%
 \right\} $. Then $\mathsf{a}$\textsf{$\colon $}$\mathsf{Bool}$ can be
 considered to be equivalent to \textquotedblleft $\mathsf{a}$%
 \textquotedblright $\rightarrow \mathsf{Bool}$. I'm not yet willing to take
-this step.
+this step.]
 
 Sequences can be thought of as a combination of a function and a length
 field. Thus (Following Reynolds [[1988]]) $\mathsf{Seq}[t]$ is a synonym for 
@@ -1162,18 +1230,18 @@ $\left( \mathsf{Nat}\rightarrow t\right) \sqcap \left( \mathsf{length:Nat}%
 
 \subsection{Locations}
 
-[A short comment on wording: In PLAAY ---or at least in this document--- we
-use the word \textbf{variable} in the mathematical sense of a name for a
-value. Variables may be parameters, local variables, or fields of objects.\
-(In fact, since activation frames are simply objects, all three kinds of
-variable are fields.) Anyway for the lifetime of a variable its
+\textbf{A short comment on wording:} In PLAAY ---or at least in this
+document--- we use the word \textbf{variable} in the mathematical sense of a
+name for a value. Variables may be parameters, local variables, or fields of
+objects.\ (In fact, since activation frames are simply objects, all three
+kinds of variable are fields.) Anyway for the lifetime of a variable its
 \textquotedblleft value\textquotedblright\ does not change, except to change
 from uninitialized to initialized. In order to accommodate imperative
 programming, we need assignment. In PLAAY, the thing we assign to is a 
 \textbf{location}. Locations can be thought of as addresses that index a
 store. Assignment alters the store. Locations are themselves considered
 values and so we can use variables to name locations. Earlier documentation
-may use these words differently.]
+may use these words differently. \textbf{end comment}
 
 If we have an assignment command $a:=e$, where $a$ is a $\mathsf{Number}$
 location, $e$ could be of type $\mathsf{Number}$ or $\mathsf{Int}$ or $%
@@ -1210,14 +1278,14 @@ for $a.\mathsf{set}\left( e\right) $. With this approach we define $\mathsf{%
 Loc}[t]\equiv \mathsf{get}\colon \left( \left\langle {}\right\rangle
 \rightarrow t\right) \sqcap \mathsf{set}\colon \left( t\rightarrow
 \left\langle {}\right\rangle \right) $. In this case it is not true that $%
-\mathsf{Loc}[t]<:t$. This means that at certain places in the code (called
-R-contexts), locations will need to be dereferenced.
+\mathsf{Loc}[t]<:t$. This means that at certain places in the code (called R
+contexts), locations will need to be dereferenced.
 \end{itemize}
 
 We take an approach similar to the third. $\mathsf{Loc}[t]$ is a class that
 implements $\mathsf{get}\colon \left( \left\langle {}\right\rangle
 \rightarrow t\right) \sqcap \mathsf{set}\colon \left( t\rightarrow
-\left\langle {}\right\rangle \right) $. 
+\left\langle {}\right\rangle \right) $.
 
 We can abbreviate $\mathsf{get}\colon \left( \left\langle {}\right\rangle
 \rightarrow t\right) $ as $\mathsf{Source}[t]$ and $\mathsf{set}\colon
@@ -1263,23 +1331,23 @@ complex.
 
 In the previous paragraph, I've used assignment as an example. Similar
 remarks apply to operands of other operators, such as the call operator. In
-assignment, the left operand is said to be in an L-context. The right
-operand is said to be in an R-context. Expressions in an R-context are
-evaluated slightly differently from expressions in an L-context; expressions
-in an R-context are evaluated in two phases; in the first, the expression is
-evaluated as if it was in an L-context. In the second, if the result of the
-first phase is a source, the source is fetched from, otherwise the result is
-just the result of the first phase. Every expression in a program can be
-considered to be in an R-context or an L-context. Arguments to calls are in
-an R-context as are the first operands of `if' and `while' expressions and
-the bodies of lambda expressions. The operands of the tupling operation
-inherit their context from the tuple operation itself. For example in the
-tree%
+assignment, the left operand is said to be in an L context. The right
+operand is said to be in an R context. Expressions in an R context may be
+evaluated slightly differently from expressions in an L context; var, dot
+and call expressions in an R context are evaluated in two phases; in the
+first, the expression is evaluated as if it were in an L context. In the
+second, if the result of the first phase is a source, the source is fetched
+from, otherwise the result is just the result of the first phase. Every
+expression in a program can be considered to be in an R context or an L
+context. Arguments to calls are in an R context, as are the first operands
+of `if' and `while' expressions and the bodies of lambda expressions. The
+operands of the tupling operation inherit their context from the tuple
+operation itself. For example in the tree%
 \begin{equation*}
 \mathsf{assign(tuple(var[a],var[b]),tuple(var[c],numberLiteral[12]))}
 \end{equation*}%
-the first tuple is in an L-context and so its children are also; the second
-tuple is in an R-context and so its children are also.
+the first tuple is in an L context and so its children are also; the second
+tuple is in an R context and so its children are also.
 
 \subsubsection{Some consequences}
 
@@ -1288,44 +1356,42 @@ We have that $\mathsf{Loc}[t]\equiv \mathsf{Loc}[u]$ is true when $t\equiv u$%
 
 When $t\not\equiv u$ and neither is equivalent to $\bot $, we should expect
 that on semantic grounds $\mathsf{Loc}[t]\ $and $\mathsf{Loc}[u]$ are
-disjoint, i.e. that the intersection of their images contains only members
-of $\func{Im}(\bot )$. This can be justified on semantic grounds as follows.
-Suppose $t\not\equiv u$. Then there may be at least one value in the image
-of $t$ that is not in the image of $u$ or the other way around. Without loss
-of generality, suppose $x$ is in the image $t$ and not in the image of $u$.
-Of course $x$ is a value. Consider an ordinary member $y$ that is in the
-image of $\mathsf{Loc}\left[ u\right] $ which has a set field which gives an
-error when applied to $x$ and, more importantly, does not update the
-contents of the location. $y$ should not be in the image of $\mathsf{Loc}[t]$%
-. Now consider any ordinary member $z$ of the image of $\mathsf{Loc}[t]$.
-After we set $z$ to $x$ it has a value that is not in $u$, a location that
-might hold a value not in $u$ should not be in the image of $\mathsf{Loc}%
-\left[ u\right] $.
+disjoint, i.e. that the intersection of their value is empty. This can be
+justified on semantic grounds as follows. Suppose $t\not\equiv u$. Then
+there may be at least one value in the image of $t$ that is not in the image
+of $u$ or the other way around. Without loss of generality, suppose $x$ is
+in the image $t$ and not in the image of $u$. Of course $x$ is a value.
+Consider an ordinary member $y$ that is in the image of $\mathsf{Loc}\left[ u%
+\right] $ which has a set field which gives an error when applied to $x$
+and, more importantly, does not update the contents of the location. $y$
+should not be in the image of $\mathsf{Loc}[t]$. Now consider any ordinary
+member $z$ of the image of $\mathsf{Loc}[t]$. After we set $z$ to $x$ it has
+a value that is not in $u$, a location that might hold a value not in $u$
+should not be in the image of $\mathsf{Loc}\left[ u\right] $.
 
 What about the case that $t\not\equiv u$, but one of $t$ and $u$ is
 equivalent to $\bot $. Suppose, without loss of generality that $t\equiv
 \bot $ and $u\not\equiv \bot $. An value of type $\mathsf{Loc}[t]$ would be
-an address of a part of the store that can only hold members of $\func{Im}%
-(t)=\func{Im}(\bot )$. Do such values exist?\ We don't have to decide yet. 
+an address of a part of the store that can not hold any values. Do such
+values exist?\ We don't have to decide yet.
 
 \begin{itemize}
 \item Suppose we decide that $\mathsf{Loc}[t]$ has no values. Then we have
-that $\func{Im}(\mathsf{Loc}[t])=\func{Im}(\bot )\subseteq \func{Im}(\mathsf{%
-Loc}\left[ u\right] ).$So $\func{Im}(\mathsf{Loc}[t])\cap \func{Im}(\mathsf{%
-Loc}\left[ u\right] )=\func{Im}(\bot )$.
+that $\limfunc{Val}(\mathsf{Loc}[t])=\emptyset .$So $\limfunc{Val}(\mathsf{%
+Loc}[t])\cap \limfunc{Val}(\mathsf{Loc}\left[ u\right] )=\emptyset $.
 
-\item On the other hand, if we decide that there are values of $\func{Im}(%
-\mathsf{Loc}[t])$, they can not accept ordinary values of $\func{Im}(u)$ and
-so are not in $\mathsf{Loc}\left[ u\right] $. Any ordinary values of $%
-\mathsf{Loc}\left[ u\right] $ would be able to store and later produce
-ordinary values of $\func{Im}(u)$, which an ordinary value in $\func{Im}(%
+\item On the other hand, if we decide that there are values in $\limfunc{Val}%
+(\mathsf{Loc}[t])$, they can not accept values of $\limfunc{Val}(u)$ and so
+are not in $\mathsf{Loc}\left[ u\right] $. Any ordinary values of $\mathsf{%
+Loc}\left[ u\right] $ would be able to store and later produce ordinary
+values of $\limfunc{Val}(u)$, which an ordinary value in $\limfunc{Val}(%
 \mathsf{Loc}[t])$ would not be able to do. And so, again, we conclude that $%
-\func{Im}(\mathsf{Loc}[t])\cap \func{Im}(\mathsf{Loc}\left[ u\right] )=\func{%
-Im}(\bot )$.
+\limfunc{Val}(\mathsf{Loc}[t])\cap \limfunc{Val}(\mathsf{Loc}\left[ u\right]
+)=\emptyset $.
 \end{itemize}
 
-Either way, if $t\not\equiv u$ then the intersection of their images should
-be $\func{Im}(\bot )$.
+Either way, if $t\not\equiv u$ then the intersection of their values should
+be empty.
 
 \subsubsection{Aliasing}
 
@@ -1339,27 +1405,28 @@ bottle the choice is whether to find a way to stuff it back in, or to let it
 out all the way. Java stuffs the genie back in the bottle by not allowing
 any aliasing between stack variables and stack variables nor between stack
 variables and heap variables. C++ allows unfettered aliasing. Allowing this
-aliasing may make automated verification more tricky in the future. On the
-other hand Occam's razor seems to lead us to location types.
+aliasing may make automated verification more tricky. On the other hand
+Occam's razor seems to lead us to location types.
 
 On the plus side, pass-by-reference parameters (reference parameters for
 C++ers, var parameters for Pascal fans)\ are now perfectly natural; for
 example, we have a type $\mathsf{Loc}[t]\rightarrow u$.\footnote{%
 There is a catch here because at the call site side we typically need to
 suppress the normal value conversion. E.g., if $x$ is a $\mathsf{Loc(Int)}$
-then $\mathsf{call(}f,x\mathsf{)}$ will normally pass an $\mathsf{Int}$. So
-either we need to do something fancy on semantics of the call, or we need
-for the caller to indicate which parameters are passed by reference. I\
-don't want to do anything in the semantics that causes types to changes the
-meaning of a legitimate program.\ (Technically we want an erasure property
-in which the types of a correct program can be erased without changing its
-meaning.) That leaves it to the programmer to mark reference parameters at
-the call site. For example we could have an operator \textsf{loc} whose
-operand is an L-context. It wraps its operand with a new location. Then the
-call would look like $\mathsf{call(}f,\mathsf{loc}\left( x\right) \mathsf{)}$%
-. I\ don't mind this, as it makes the code more readable and the semantics
-simple.} Mutable fields in interfaces also make sense for example, $\mathsf{f%
-}\colon \mathsf{Loc}[t]$.
+and $f$ is a $\mathsf{Loc[Int]\rightarrow Int}$ then $\mathsf{call(}f,%
+\mathsf{var}[x]\mathsf{)}$ will normally pass an $\mathsf{Int,}$leading to a
+type error. So either we need to do something fancy on semantics of the
+call, or we need for the caller to indicate which parameters are passed by
+reference. I\ don't want to do anything in the semantics that causes types
+to changes the meaning of a legitimate program.\ (Technically we want an
+erasure property in which the types of a correct program can be erased
+without changing its meaning.) That leaves it to the programmer to mark
+reference parameters at the call site. For this we have the operator \textsf{%
+loc} whose operand is an L-context. Then the call would look like $\mathsf{%
+call(}f,\mathsf{loc}\left( \mathsf{var}[x]\right) \mathsf{)}$. I\ don't mind
+this, as it makes the code more readable and the semantics simple.} Mutable
+fields in interfaces also make sense for example, $\mathsf{f}\colon \mathsf{%
+Loc}[t]$.
 
 It is tempting to think that location declarations are just abbreviations
 for constant declarations. For example we might expect that%
@@ -1368,19 +1435,19 @@ for constant declarations. For example we might expect that%
 \end{equation*}%
 is just an abbreviation for%
 \begin{equation*}
-\mathbf{con}\;\mathsf{x}:\mathsf{Loc}[\mathsf{Int}]:=\mathsf{12}
+\mathsf{x}:\mathsf{Loc}[\mathsf{Int}]:=\mathsf{12}
 \end{equation*}%
 but this is not right, since the type of 12 is $\mathsf{Nat}$ and $\mathsf{%
-Nat}$ is not a subtype of $\mathsf{Loc}[\mathsf{Int}]$. A location
-declaration creates (at runtime)\  a new location while a constant
-declaration gives a new name to an existing value. We can think of%
+Nat}$ is not a subtype of $\mathsf{Loc}[\mathsf{Int}],$so the latter has a
+type error, while th former should not. A location declaration creates (at
+runtime)\ a new location while a constant declaration simply gives a name to
+a value. We can think of%
 \begin{equation*}
 \mathbf{loc}\;\mathsf{x}:\mathsf{Int:=12}
 \end{equation*}%
 as an abbreviation for%
 \begin{equation*}
-\mathbf{con}\;\mathsf{x}:\mathsf{Loc}[\mathsf{Int}]:=\mathsf{new\;Loc}(%
-\mathsf{12)}
+\mathsf{x}:\mathsf{Loc}[\mathsf{Int}]:=\mathsf{new\;Loc}(\mathsf{12)}
 \end{equation*}%
 where $\mathsf{Loc}$ is a constructor of locations.\footnote{%
 The construction $\mathsf{new\;Loc}(\mathsf{-)}$ looks a bit like the
@@ -1388,17 +1455,16 @@ construction $\mathsf{loc}\left( \mathsf{-}\right) $ proposed in an earlier
 foot note but they are different $\mathsf{new\;Loc}(\mathsf{-)}$ evaluates
 its operand for value (i.e., its operand is an R-context) and wraps a
 location around the value. The construction $\mathsf{loc}\left( \mathsf{-}%
-\right) $ evaluates its operand for location and wraps a location around
-that location. For example if $x$ is a $\mathsf{Loc(Int)}$, then $\mathsf{%
-new\;Loc}(x\mathsf{)}$ is a $\mathsf{Loc(Int)}$ that initially shares the
-same value as $x$, but $\mathsf{loc}\left( x\right) $ is a $\mathsf{Loc}%
-\left( \mathsf{Loc(Int)}\right) $ whose value is $x$.}
+\right) $ evaluates its operand for location. For example if $x$ is a $%
+\mathsf{Loc(Int)}$, then $\mathsf{new\;Loc}(x\mathsf{)}$ is a new $\mathsf{%
+Loc(Int)}$ that initially shares the same value as $x$, but $\mathsf{loc}%
+\left( x\right) $ simply evaluates to original location named $x$ itself.}
 
 For similar reasons, the pass-by-reference parameters of a function are
 usually written as constant declarations. For example this lambda expression%
 \begin{equation}
-\lambda \;\mathbf{con}\;\mathsf{y}:\mathsf{Loc}[\mathsf{Int}]\cdot \{\;%
-\mathsf{y}:=12\;\}  \label{eq:assign12}
+\lambda \;\mathsf{y}:\mathsf{Loc}[\mathsf{Int}]\cdot \{\;\mathsf{y}:=12\;\}
+\label{eq:assign12}
 \end{equation}%
 has type $\mathsf{Loc}[\mathsf{Int}]\rightarrow \left\langle {}\right\rangle 
 $. The lambda expression%
@@ -1412,7 +1478,7 @@ as a location is purely a matter that is internal to the function's
 implementation. The function (\ref{eq:inc0}) has the same type and does the
 same thing (although in a slightly different way) as the function%
 \begin{equation*}
-\lambda \;\mathbf{con}\;\mathsf{y}:\mathsf{Int}\cdot \{\;\mathsf{y}+1\;\}
+\lambda \;\mathsf{y}:\mathsf{Int}\cdot \{\;\mathsf{y}+1\;\}
 \end{equation*}%
 The lambda expression%
 \begin{equation*}
@@ -1432,13 +1498,12 @@ where $\mathsf{id}$ is the identity function.
 
 Arrays can be thought of as sequences of locations. A declaration%
 \begin{equation*}
-\mathbf{con}\;a:=\;\mathbf{new\;}\mathsf{Array[Int}](10)
+a:\;:=\;\mathbf{new\;}\mathsf{Array[Int}](10)
 \end{equation*}%
-declares a new variable of type $\mathsf{Seq[Loc[Int]]}$.
-
-PLAAY does not need object identity! It only needs location identity. Two
-objects that have the same names and values for their fields are
-indistinguishable and could be considered equal.
+declares a new variable of type $\mathsf{Seq[Loc[Int]]}$. Consider the
+assignment $a(i):=b(i)$ where $a$ and $b$ are both arrays. The call on the
+left side returns a location. The call on the right side also returns a
+location, but this location is implicitly fetched.
 
 \subsection{Classes}
 
@@ -1466,7 +1531,7 @@ definition, would not be allowed.
 
 \section{Formalizing the type system}
 
-\subsection{Abstract syntax for types}
+\subsection{Abstract syntax for types\label{sec:type-syntax}}
 
 [To be done]
 
@@ -1477,20 +1542,20 @@ following abstract grammar which defines types%
 \begin{eqnarray*}
 t,u,v::= &&r \\
 &\mid &t\sqcup u \\
-&\mid &\bot 
+&\mid &\bot
 \end{eqnarray*}%
 type terms%
 \begin{eqnarray*}
 r,s::= &&q \\
 &\mid &r\sqcap s \\
-&\mid &\top 
+&\mid &\top
 \end{eqnarray*}%
 type factors%
 \begin{eqnarray*}
 q::= &&p \\
 &\mid &\left\langle {}\right\rangle \mid \left\langle
 t_{0},t_{1}\right\rangle \mid \left\langle t_{0},t_{1},t_{3}\right\rangle
-\mid \cdots  \\
+\mid \cdots \\
 &\mid &t\rightarrow u \\
 &\mid &i\colon t \\
 &\mid &\mathsf{Loc}[t]
@@ -1512,12 +1577,12 @@ Null}\right) \sqcup \left( \mathsf{Int}\sqcap \mathsf{Null}\right) $.
 
 For types factors, we can define a length of the type factor%
 \begin{eqnarray*}
-\#\left\langle {}\right\rangle  &=&0 \\
+\#\left\langle {}\right\rangle &=&0 \\
 \#p &=&\#\left( t\rightarrow u\right) =\#\left( i\colon t\right) =\#\mathsf{%
 Loc}[t]=1 \\
-\#\left\langle t_{0},t_{1}\right\rangle  &=&2 \\
-\#\left\langle t_{0},t_{1},t_{3}\right\rangle  &=&3 \\
-&&\cdots 
+\#\left\langle t_{0},t_{1}\right\rangle &=&2 \\
+\#\left\langle t_{0},t_{1},t_{3}\right\rangle &=&3 \\
+&&\cdots
 \end{eqnarray*}
 
 \subsection{Subtypes}
@@ -1525,19 +1590,18 @@ Loc}[t]=1 \\
 We wish to formally define the subtype relation $t<:u$. We do that by first
 defining a relationship between finite sets of types. We'll define%
 \begin{equation*}
-\Theta <:\Delta 
+\Theta <:\Delta
 \end{equation*}%
 where $\Theta $ and $\Delta $ are finite sets of types and then define $t<:u$
 as $\left\{ t\right\} <:\left\{ u\right\} $. The intended interpretation is
 that $\Theta <:\Delta $ should hold only if the intersection\footnote{%
 The interssection of $0$ sets here is considered to be the universe of all
-values. This univers $V$ and will be defined in a later section along with
-the image function.} of the images of types in $\Theta $ is contained in the
-union of the types in $\Delta $:%
+values. This universe $V$ and will be defined in a later section along with
+the $\limfunc{Val}$ function.} of the values of types in $\Theta $ is
+contained in the union of values in types in $\Delta $:%
 \begin{equation*}
 \Theta <:\Delta \qquad \Rightarrow \qquad \dbigcap\limits_{t\in \Theta }%
-\func{Im}(t)\subseteq \func{Im}(\bot )\cup \dbigcup\limits_{u\in \Delta }%
-\func{Im}(u)
+\limfunc{Val}(t)\subseteq \dbigcup\limits_{u\in \Delta }\limfunc{Val}(u)
 \end{equation*}%
 This is soundness. Completeness of the subtype relation is the converse
 implication. Fans of logic may recognize that $\Theta <:\Delta $ is
@@ -1551,7 +1615,7 @@ singleton set $\left\{ t\right\} $ by its sole occupant $t$ and $\Theta \cup
 \begin{itemize}
 \item Reflexive rule%
 \begin{equation*}
-\Theta <:\Theta 
+\Theta <:\Theta
 \end{equation*}
 
 \item Subset rules%
@@ -1645,12 +1709,12 @@ given above.%
 
 \item Primitive disjointness rules.%
 \begin{eqnarray*}
-\mathsf{Bool},\mathsf{Number} &<&:\emptyset  \\
-\mathsf{Bool},\mathsf{String} &<&:\emptyset  \\
-\mathsf{Bool},\mathsf{Null} &<&:\emptyset  \\
-\mathsf{Number},\mathsf{String} &<&:\emptyset  \\
-\mathsf{Number},\mathsf{Null} &<&:\emptyset  \\
-\mathsf{String},\mathsf{Null} &<&:\emptyset 
+\mathsf{Bool},\mathsf{Number} &<&:\emptyset \\
+\mathsf{Bool},\mathsf{String} &<&:\emptyset \\
+\mathsf{Bool},\mathsf{Null} &<&:\emptyset \\
+\mathsf{Number},\mathsf{String} &<&:\emptyset \\
+\mathsf{Number},\mathsf{Null} &<&:\emptyset \\
+\mathsf{String},\mathsf{Null} &<&:\emptyset
 \end{eqnarray*}
 
 \item Tuple disjointness rules%
@@ -1673,17 +1737,17 @@ and so on.
 
 \item Other disjointness rules. Recall that $p$ ranges over primitive types.%
 \begin{eqnarray*}
-&&p,\left( t\rightarrow u\right) <:\emptyset  \\
-&&p,\left( i:t\right) <:\emptyset  \\
-&&p,\mathsf{Loc}[t]<:\emptyset  \\
-&&\left( t\rightarrow u\right) ,\mathsf{Loc}[t]<:\emptyset 
+&&p,\left( t\rightarrow u\right) <:\emptyset \\
+&&p,\left( i:t\right) <:\emptyset \\
+&&p,\mathsf{Loc}[t]<:\emptyset \\
+&&\left( t\rightarrow u\right) ,\mathsf{Loc}[t]<:\emptyset
 \end{eqnarray*}
 
 \item \lbrack [Perhaps we need a rule that location types are disjoint from
 objects that don't implement the location type's interface.]]
 \end{itemize}
 
-\subsection{Values and images}
+\subsection{Values and semantics of types}
 
 In this section we give a semantics for types. It uses sets rather than
 domains. I\ think this is adequate for the purpose of showing the subtype
@@ -1704,17 +1768,17 @@ design-by-contract to the implementation.}
 
 Values are trees following this abstract grammar%
 \begin{eqnarray*}
-x,y,z\in \mathcal{V} &:&:=\mathsf{boolv}\left( b\right)  \\
-&\mid &\mathsf{stringv}\left( \mathit{str}\right)  \\
-&\mid &\mathsf{numberv}\left( n\right)  \\
-&\mid &\mathsf{tuplev}\left( x_{0},x_{1},\ldots x_{k}\right)  \\
+x,y,z\in \mathcal{V} &:&:=\mathsf{boolv}\left( b\right) \\
+&\mid &\mathsf{stringv}\left( \mathit{str}\right) \\
+&\mid &\mathsf{numberv}\left( n\right) \\
+&\mid &\mathsf{tuplev}\left( x_{0},x_{1},\ldots x_{k}\right) \\
 &\mid &\mathsf{nullv} \\
-&\mid &\mathsf{obv}\left( f_{0},f_{1},...f_{k}\right)  \\
-&\mid &\mathsf{locv}\left( t,a\right)  \\
-&\mid &\mathsf{closurev}\left( \lambda ,\eta ,t\rightarrow u,a\right)  \\
+&\mid &\mathsf{obv}\left( f_{0},f_{1},...f_{k}\right) \\
+&\mid &\mathsf{locv}\left( t,a\right) \\
+&\mid &\mathsf{closurev}\left( \lambda ,\eta ,t\rightarrow u,a\right) \\
 &\mid &\mathsf{builtinv(}t\rightarrow u,a) \\
 f &:&:=\mathsf{field}(i,t,a) \\
-\lambda  &:&:=\mathsf{lambda}(\mathit{params},\mathit{optType,seq})
+\lambda &:&:=\mathsf{lambda}(\mathit{params},\mathit{optType,seq})
 \end{eqnarray*}%
 where: $b$ is a boolean in the set $\left\{ \mathsf{true,false}\right\} $; $%
 \mathit{str}$ is a string from a set of strings $\mathcal{S}$; $n$ is a
@@ -1725,8 +1789,8 @@ is the set of numbers that javascript can represent and so includes positive
 and negative infinities and various NaN values in addition to a subset of
 the rationals.}; $t$ and $u$ are types; $a$ is an address from a countable
 and infinite set of addresses $\mathcal{A}$; $\eta $ is an environment,
-which is a finite sequence of values each of which is an \textsf{obv}; and $i
-$ is an identifier from a countable, infinite, totally ordered set of
+which is a finite sequence of values each of which is an \textsf{obv}; and $%
+i $ is an identifier from a countable, infinite, totally ordered set of
 identifiers $\mathcal{I}$. In any $\mathsf{obv}$, no two fields may have the
 same identifier and we restrict the fields of an $\mathsf{obv}$ to being in
 order by identifier.\ In \textsf{tuplev}, the number of values must not be 1.
@@ -1736,7 +1800,7 @@ completely straight forward. Two values are equal if they are the same tree.%
 \footnote{%
 In contrast to most OOPLs there is (technically) no object identity. However
 fields do have identity, since they have addresses. Thus if we evaluate$%
-\bigskip $ the expression 
+\bigskip $ the expression
 \par
 \begin{equation*}
 \begin{array}[t]{l}
@@ -1758,7 +1822,7 @@ example%
 \begin{equation*}
 x=\mathsf{locv}\left( t_{0},a\right) \wedge y=\mathsf{locv}\left(
 t_{1},a\right) \Rightarrow t_{0}=t_{1}\wedge \mathsf{locv}\left(
-t_{0},a\right) =\mathsf{locv}\left( t_{1},a\right) 
+t_{0},a\right) =\mathsf{locv}\left( t_{1},a\right)
 \end{equation*}%
 We can imagine that each element of $\mathcal{A}$ is associated with just
 one type and that each time we create a location, we are sure to pick an
@@ -1770,11 +1834,10 @@ In practice such values are not useful and we can make it a dynamic or
 static error to create one. But in terms of defining our set of values we
 will say that they exist. A similar comment applies to fields.
 
-\subsubsection{Images}
+\subsubsection{Semantics of types}
 
-Each type $t$ has an image $\func{Im}(t)$ which is a set of outcomes. These
-have already been formally introduced. Here we do it formally.\ For each
-type $t$, we'll define a set of values $\limfunc{Val}(t)$. We define 
+For each type $t$, we'll define a set of values $\limfunc{Val}(t)$. We
+define 
 \begin{equation*}
 \func{Im}(t)=\limfunc{Val}(t)\cup \left\{ \blacktriangle ,\blacktriangledown
 \right\} 
@@ -1782,48 +1845,51 @@ type $t$, we'll define a set of values $\limfunc{Val}(t)$. We define
 
 Next we define the Val function.%
 \begin{eqnarray*}
-\limfunc{Val}\left( \top \right)  &=&\mathcal{V} \\
-\limfunc{Val}\left( \bot \right)  &=&\emptyset  \\
-\limfunc{Val}\left( r\sqcap s\right)  &=&\limfunc{Val}\left( r\right) \cap 
-\limfunc{Val}\left( s\right)  \\
-\limfunc{Val}\left( t\sqcup u\right)  &=&\limfunc{Val}\left( t\right) \cup 
-\limfunc{Val}\left( u\right) 
+\limfunc{Val}\left( \top \right) &=&\mathcal{V} \\
+\limfunc{Val}\left( \bot \right) &=&\emptyset \\
+\limfunc{Val}\left( r\sqcap s\right) &=&\limfunc{Val}\left( r\right) \cap 
+\limfunc{Val}\left( s\right) \\
+\limfunc{Val}\left( t\sqcup u\right) &=&\limfunc{Val}\left( t\right) \cup 
+\limfunc{Val}\left( u\right)
 \end{eqnarray*}
 
 For tuple types we have
 
 \begin{eqnarray*}
 \limfunc{Val}(\left\langle {}\right\rangle ) &=&\left\{ \mathsf{tuplev()}%
-\right\}  \\
+\right\} \\
 \limfunc{Val}(\left\langle t_{0},t_{1}\right\rangle ) &=&\left\{ \mathsf{%
 tuplev}(x_{0},x_{1})\in \mathcal{V}\mid x_{0}\in \limfunc{Val}(t_{0})\wedge
-x_{1}\in \limfunc{Val}(t_{1})\right\}  \\
-&&\ldots 
+x_{1}\in \limfunc{Val}(t_{1})\right\} \\
+&&\ldots
 \end{eqnarray*}%
 Since the members of $\mathcal{V}$ are trees, we can not have tuple values
 that contain themselves.
 
 For function types we have%
 \begin{eqnarray*}
-\limfunc{Val}\left( t_{0}\rightarrow u_{0}\right)  &=&\left\{ \mathsf{%
-closurev}\left( t_{1}\rightarrow u_{1},\lambda ,\eta ,a\right) \in \mathcal{V%
-}\mid t_{0}<:t_{1}\wedge u_{1}<:u_{0}\right\}  \\
+\limfunc{Val}\left( t_{0}\rightarrow u_{0}\right) &=&\left\{ \mathsf{closurev%
+}\left( t_{1}\rightarrow u_{1},\lambda ,\eta ,a\right) \in \mathcal{V}\mid 
+\limfunc{Val}(t_{0})\subseteq \limfunc{Val}(t_{1})\wedge \limfunc{Val}%
+(u_{1})\subseteq \limfunc{Val}(u_{0})\right\} \\
 &&\cup \left\{ \mathsf{builtinv}\left( t_{1}\rightarrow u_{1},a\right) \in 
-\mathcal{V}\mid t_{0}<:t_{1}\wedge u_{1}<:u_{0}\right\} 
+\mathcal{V}\mid \limfunc{Val}(t_{0})\subseteq \limfunc{Val}(t_{1})\wedge 
+\limfunc{Val}(u_{1})\subseteq \limfunc{Val}(u_{0})\right\}
 \end{eqnarray*}
 
 For fields%
 \begin{eqnarray*}
 \limfunc{ObVal}\left( i:t\right)  &=&\left\{ \mathsf{obv}\left( \ldots ,%
-\mathsf{field}(j,u,a),\ldots \right) \in \mathcal{V}\mid i=j\wedge
-u<:t\right\}  \\
+\mathsf{field}(j,u,a),\ldots \right) \in \mathcal{V}\mid i=j\wedge \limfunc{%
+Val}(u)\subseteq \limfunc{Val}(t)\right\}  \\
 \limfunc{Val}\left( i:t\right)  &=&\left\{ 
 \begin{array}{lll}
-\limfunc{ObVal}\left( i:t\right) \cup \left\{ \mathsf{locv}(u,a)\mid
-u\rightarrow \left\langle {}\right\rangle <:t\right\}  & \qquad  & \text{if }%
-i=\mathsf{set} \\ 
-\limfunc{ObVal}\left( i:t\right) \cup \left\{ \mathsf{locv}(u,a)\mid
-u<:t\right\}  &  & \text{if }i=\mathsf{get} \\ 
+\limfunc{ObVal}\left( i:t\right) \cup \left\{ \mathsf{locv}(u,a)\mid 
+\limfunc{Val}(u\rightarrow \left\langle {}\right\rangle )\subseteq \limfunc{%
+Val}(t)\right\}  & \qquad  & \text{if }i=\mathsf{set} \\ 
+\limfunc{ObVal}\left( i:t\right) \cup \left\{ \mathsf{locv}(u,a)\mid 
+\limfunc{Val}(u)\subseteq \limfunc{Val}(t)\right\}  &  & \text{if }i=\mathsf{%
+get} \\ 
 \limfunc{ObVal}\left( i:t\right)  &  & \text{otherwise}%
 \end{array}%
 \right. 
@@ -1831,23 +1897,23 @@ u<:t\right\}  &  & \text{if }i=\mathsf{get} \\
 
 For location types%
 \begin{equation*}
-\limfunc{Val}\left( \mathsf{Loc}[t]\right) =\left\{ \mathsf{locv}(u,a)\mid
-t\equiv u\right\} 
+\limfunc{Val}\left( \mathsf{Loc}[t]\right) =\left\{ \mathsf{locv}(u,a)\mid 
+\limfunc{Val}(t)=\limfunc{Val}(u)\right\}
 \end{equation*}
 
 For primitive types we have%
 \begin{eqnarray*}
 \limfunc{Val}(\mathsf{Bool}) &=&\left\{ \mathsf{boolv}\left( \mathsf{true}%
-\right) ,\mathsf{boolv}\left( \mathsf{false}\right) \right\}  \\
+\right) ,\mathsf{boolv}\left( \mathsf{false}\right) \right\} \\
 \limfunc{Val}(\mathsf{String}) &=&\left\{ \mathsf{stringv}\left( str\right)
-\mid str\in \mathcal{S}\right\}  \\
+\mid str\in \mathcal{S}\right\} \\
 \limfunc{Val}(\mathsf{Number}) &=&\left\{ \mathsf{numberv}\left( n\right)
-\mid n\in \mathcal{Q}\right\}  \\
+\mid n\in \mathcal{Q}\right\} \\
 \limfunc{Val}(\mathsf{Int}) &=&\left\{ \mathsf{numberv}\left( n\right) \mid
-n\in \mathcal{Q}\wedge n\text{ is an integer}\right\}  \\
+n\in \mathcal{Q}\wedge n\text{ is an integer}\right\} \\
 \limfunc{Val}(\mathsf{Nat}) &=&\left\{ \mathsf{numberv}\left( n\right) \mid
-n\in \mathcal{Q}\wedge n\text{ is a nonnegative integer}\right\}  \\
-\limfunc{Val}(\mathsf{Null}) &=&\left\{ \mathsf{nullv}\right\} 
+n\in \mathcal{Q}\wedge n\text{ is a nonnegative integer}\right\} \\
+\limfunc{Val}(\mathsf{Null}) &=&\left\{ \mathsf{nullv}\right\}
 \end{eqnarray*}
 
 \subsubsection{Soundness}
@@ -1856,13 +1922,13 @@ At this point we have formally defined types, subtyping, and images; so we
 can ask the questions of whether the subtyping relation is sound
 
 \begin{equation}
-\forall t,u\cdot \left( t<:u\right) \Rightarrow \left( \func{Im}(t)\subseteq 
-\func{Im}(u)\right)   \tag{Soundness}
+\forall t,u\cdot \left( t<:u\right) \Rightarrow \left( \limfunc{Val}%
+(t)\subseteq \limfunc{Val}(u)\right)  \tag{Soundness}
 \end{equation}%
 and complete%
 \begin{equation}
-\forall t,u\cdot \left( \func{Im}(t)\subseteq \func{Im}(u)\right)
-\Rightarrow \left( t<:u\right)   \tag{Completeness}
+\forall t,u\cdot \left( \limfunc{Val}(t)\subseteq \limfunc{Val}(u)\right)
+\Rightarrow \left( t<:u\right)  \tag{Completeness}
 \end{equation}
 
 \subsection{Dynamic Type Checking}
@@ -1882,161 +1948,167 @@ following algorithm.
 
 \begin{eqnarray*}
 \limfunc{In}(x,\left\langle {}\right\rangle ) &=&\left( x=\mathsf{tuplev}%
-()\right)  \\
+()\right) \\
 \limfunc{In}(x,\left\langle t_{0},t_{1}\right\rangle ) &=&\left( \exists
 x,y\cdot x=\mathsf{tuplev}(x,y)\wedge \limfunc{In}(y,t_{0})\wedge \limfunc{In%
-}(z,t_{1})\right)  \\
-&&\ldots 
+}(z,t_{1})\right) \\
+&&\ldots
 \end{eqnarray*}%
 \begin{eqnarray*}
-\limfunc{In}\left( x,t_{0}\rightarrow u_{0}\right)  &=&\left( \exists
+\limfunc{In}\left( x,t_{0}\rightarrow u_{0}\right) &=&\left( \exists
 t_{1},u_{1},\lambda ,\nu ,a\cdot 
 \begin{array}{ll}
-& x=\mathsf{closurev}\left( t_{1}\rightarrow u_{1},\lambda ,\eta ,a\right) 
+& x=\mathsf{closurev}\left( t_{1}\rightarrow u_{1},\lambda ,\eta ,a\right)
 \\ 
-\wedge  & t_{0}<:t_{1}\wedge u_{1}<:u_{0}%
+\wedge & t_{0}<:t_{1}\wedge u_{1}<:u_{0}%
 \end{array}%
-\right)  \\
+\right) \\
 &&\vee \left( \exists t_{1},u_{1},a\cdot 
 \begin{array}{ll}
-& x=\mathsf{builtinv}\left( t_{1}\rightarrow u_{1},a\right)  \\ 
-\wedge  & t_{0}<:t_{1}\wedge u_{1}<:u_{0}%
+& x=\mathsf{builtinv}\left( t_{1}\rightarrow u_{1},a\right) \\ 
+\wedge & t_{0}<:t_{1}\wedge u_{1}<:u_{0}%
 \end{array}%
-\right) 
+\right)
 \end{eqnarray*}%
 \begin{eqnarray*}
-\limfunc{In}\left( x,i:t\right)  &=&\left( \exists u,a\cdot 
+\limfunc{In}\left( x,i:t\right) &=&\left( \exists u,a\cdot 
 \begin{array}{ll}
-& x=\mathsf{obv}\left( \ldots ,\mathsf{field}(i,u,a),\ldots \right)  \\ 
-\wedge  & u<:t%
+& x=\mathsf{obv}\left( \ldots ,\mathsf{field}(i,u,a),\ldots \right) \\ 
+\wedge & u<:t%
 \end{array}%
-\right)  \\
+\right) \\
 &&\vee \left( i=\mathsf{set}\wedge \exists u,a\cdot 
 \begin{array}{ll}
-& x=\mathsf{locv}\left( u,a\right)  \\ 
-\wedge  & u\rightarrow \left\langle {}\right\rangle <:t%
+& x=\mathsf{locv}\left( u,a\right) \\ 
+\wedge & u\rightarrow \left\langle {}\right\rangle <:t%
 \end{array}%
-\right)  \\
+\right) \\
 &&\vee \left( i=\mathsf{get}\wedge \exists u,a\cdot 
 \begin{array}{ll}
-& x=\mathsf{locv}\left( u,a\right)  \\ 
-\wedge  & u<:t%
+& x=\mathsf{locv}\left( u,a\right) \\ 
+\wedge & u<:t%
 \end{array}%
-\right) 
+\right)
 \end{eqnarray*}%
 \begin{equation*}
 \limfunc{In}\left( x,\mathsf{Loc}[t]\right) =\exists u,a\cdot 
 \begin{array}{ll}
-& x=\mathsf{locv}\left( u,a\right)  \\ 
-\wedge  & t\equiv u%
+& x=\mathsf{locv}\left( u,a\right) \\ 
+\wedge & t\equiv u%
 \end{array}%
 \end{equation*}%
 \begin{eqnarray*}
 \limfunc{In}(x,\mathsf{Bool}) &=&\left( x=\mathsf{boolv}\left( \mathsf{true}%
-\right) \vee x=\mathsf{boolv}\left( \mathsf{false}\right) \right)  \\
+\right) \vee x=\mathsf{boolv}\left( \mathsf{false}\right) \right) \\
 \limfunc{In}(x,\mathsf{String}) &=&\exists \mathit{str}\in \mathcal{S}\cdot
-x=\mathsf{stringv}\left( \mathit{str}\right)  \\
+x=\mathsf{stringv}\left( \mathit{str}\right) \\
 \limfunc{In}(x,\mathsf{Number}) &=&\exists n\in \mathcal{Q}\cdot x=\mathsf{%
-numberv}\left( n\right)  \\
+numberv}\left( n\right) \\
 \limfunc{In}(x,\mathsf{Int}) &=&\exists n\in \mathcal{Q}\cdot x=\mathsf{%
 numberv}\left( n\right) \wedge n\text{ is an integer} \\
 \limfunc{In}(x,\mathsf{Nat}) &=&\exists n\in \mathcal{Q}\cdot x=\mathsf{%
 numberv}\left( n\right) \wedge n\text{ is a nonnegative integer} \\
-\limfunc{In}(x,\mathsf{Null}) &=&\left( x=\mathsf{nullv}\right) 
+\limfunc{In}(x,\mathsf{Null}) &=&\left( x=\mathsf{nullv}\right)
 \end{eqnarray*}
 
 \subsection{Static Typing of expressions}
 
-[[This section needs serious revision. Please ignore for now.
+[[This is still work in progress. But it is getting better.]]
 
-\subsubsection{The $\limfunc{fType}$ function}
-
-We can extract the type of a given field from a type as follows%
-\begin{eqnarray*}
-\limfunc{fType}\left( \bot ,i\right)  &=&\bot  \\
-\limfunc{fType}\left( t\sqcup u,i\right)  &=&\limfunc{fType}(t,i)\sqcup 
-\limfunc{fType}\left( u,i\right)  \\
-\limfunc{fType}(\top ,i) &=&\top  \\
-\limfunc{fType}\left( r\sqcap s,i\right)  &=&\limfunc{fType}(r,i)\sqcap 
-\limfunc{fType}\left( s,i\right)  \\
-\limfunc{fType}(p,i) &=&\top  \\
-\limfunc{fType}\left( \left\langle {}\right\rangle ,i\right)  &=&\limfunc{%
-fType}\left( \left\langle t_{0},t_{1}\right\rangle ,i\right) =\cdots =\top 
-\\
-\limfunc{fType}\left( t\rightarrow u,i\right)  &=&\top  \\
-\limfunc{fType}\left( j\colon t,i\right)  &=&\left\{ 
-\begin{array}{lll}
-t & \qquad  & \text{if }i=j \\ 
-\top  &  & \text{otherwise}%
-\end{array}%
-\right.  \\
-\limfunc{fType}\left( \mathsf{Loc}[t],i\right)  &=&\left\{ 
-\begin{array}{lll}
-t & \qquad  & \text{if }i=\mathsf{get} \\ 
-t\rightarrow \left\langle {}\right\rangle  &  & \text{if }i=\mathsf{set} \\ 
-\top  &  & \text{otherwise}%
-\end{array}%
-\right. 
-\end{eqnarray*}
-
-\subsubsection{The $\limfunc{rType}$ function}
-
-When an expression is used in an R-context, there may be a need to fetch
-from a location in the store, the $\limfunc{rType}$ function maps locations
-to the types they may hold.%
-\begin{eqnarray*}
-\limfunc{rType}\left( \bot \right)  &=&\bot  \\
-\limfunc{rType}\left( t\sqcup u\right)  &=&\limfunc{rType}\left( t\right)
-\sqcup \limfunc{rType}\left( u\right)  \\
-\limfunc{rType}\left( q\right)  &=&\left\{ 
-\begin{array}{lll}
-\limfunc{fType}\left( q,\mathsf{get}\right)  & \qquad  & \text{if }\limfunc{%
-fType}\left( q,\mathsf{get}\right) \not\equiv \top  \\ 
-q &  & \text{otherwise}%
-\end{array}%
-\right. 
-\end{eqnarray*}
+Judgements. Recall that expressions are evaluated in either an L\ context or
+an R\ context. For example the first operand of an assignment is evaluated
+in an L\ context and the second in an R context. When type checking we need
+to be sensitive to wether an expression is in an L or R context. Let $\Gamma 
+$ be a partial function from identifiers to types and $h$ be either L or R.
+For an expression or declaration $m$ and type $t$, we write $\Gamma \vdash
+_{h}m:t$ to mean that $m$ has type $t$ if evaluated in an $h$ context with
+an environment described by $\Gamma $. The rules are intended to convey a
+partial function in that, for a given $\Gamma $, $h$, and $e$, there should
+be at most one $t$ so that $\Gamma \vdash _{h}e:t$. E.g. we'll have $\Gamma
+\vdash \mathsf{numberLiteral}[12]:\mathsf{Nat}$, but not $\Gamma \vdash 
+\mathsf{numberLiteral}[12]:\mathsf{Int}$. We aim to get the smallest type
+that is consistent with the meaning of the code.
 
 \subsubsection{Typing rules}
-
-One job the static checker must do is to check that the expressions of a
-program contain no type errors. We do this with respect to an environment $%
-\Gamma $ that maps each variable to its declared type. A type judgement $%
-\Gamma \vdash e:t$ says that, given environment $\Gamma $, expression $e$
-has type $t$. The rules are intended to convey a partial function in that,
-for a given $\Gamma $ and $e$, there should be at most one $t$ so that $%
-\Gamma \vdash e:t$. E.g. we'll have $\Gamma \vdash \mathsf{numberLiteral}%
-[12]:\mathsf{Nat}$, but not $\Gamma \vdash \mathsf{numberLiteral}[12]:%
-\mathsf{Int}$.
 
 Here are some of the rules for type judgement.
 
 \begin{itemize}
-\item Literals [[To be done]]
+\item Number literals:$\ $%
+\begin{equation*}
+\Gamma \vdash _{h}\mathsf{numberLiteral}[i]:\limfunc{numberType}(i)
+\end{equation*}%
+where%
+\begin{equation*}
+\limfunc{numberType}(i)=\left\{ 
+\begin{array}{lll}
+\mathsf{Nat} & \qquad  & \text{if }i\text{ is a natural number} \\ 
+\mathsf{Int} &  & \text{if }i\text{ is a negative natural} \\ 
+\mathsf{Number} &  & \text{otherwise}%
+\end{array}%
+\right. 
+\end{equation*}%
+We should also check that $i$ actually represents a number. E.g. $\mathsf{%
+numberLiteral}[$\textquotedblleft abc\textquotedblright $]$ should be an
+error. Although it is not a type error.
 
-\item Tuples [[To be done]]
+\item String literals 
+\begin{equation*}
+\Gamma \vdash _{h}\mathsf{stringLiteral}[i]:\mathsf{String}
+\end{equation*}
 
-\item Place Holders [[To be done]]
+\item Boolean literals 
+\begin{equation*}
+\Gamma \vdash _{h}\mathsf{booleanLiteral}[b]:\mathsf{Bool}
+\end{equation*}
+
+\item Null literals%
+\begin{equation*}
+\Gamma \vdash _{h}\mathsf{nullLiteral}:\mathsf{Null}
+\end{equation*}
+
+\item Tuples%
+\begin{equation*}
+\frac{\Gamma \vdash _{h}\bar{e}:\bar{t}}{\Gamma \vdash _{h}\mathsf{tuple}%
+\left( \bar{e}\right) :\left\langle \bar{t}\right\rangle }
+\end{equation*}
 
 \item Variable rule%
 \begin{equation*}
-\frac{x\in \limfunc{dom}(\Gamma )}{\Gamma \vdash \mathsf{var}[x]:\Gamma x}
-\end{equation*}
+\frac{x\in \limfunc{dom}(\Gamma )}{\Gamma \vdash _{h}\mathsf{var}[x]:%
+\limfunc{fetch}(h,\Gamma x)}
+\end{equation*}%
+where%
+\begin{eqnarray*}
+\limfunc{fetch}(\mathrm{L},q) &=&q \\
+\limfunc{fetch}(\mathrm{R},q) &=&\left\{ 
+\begin{array}{lll}
+u & \qquad  & \text{if }q=Loc[u] \\ 
+q &  & \text{otherwise}%
+\end{array}%
+\right.  \\
+\limfunc{fetch}(h,p\sqcap q) &=&\limfunc{fetch}(h,p)\sqcap \limfunc{fetch}%
+(h,q) \\
+\limfunc{fetch}(h,\top ) &=&\top  \\
+\limfunc{fetch}(h,t\sqcup u) &=&\limfunc{fetch}(h,t)\sqcup \limfunc{fetch}%
+(h,u) \\
+\limfunc{fetch}(h,\bot ) &=&\bot 
+\end{eqnarray*}
 
 \item Lambda rules. Declaring the return type of a lambda is optional. If
-the type is declared we check that the return type is a subtype the body.%
+the type is declared, we check that the return type is a subtype the body.%
 \begin{equation*}
-\frac{\Gamma \vdash \mathsf{params}(\bar{d}):\bar{t}\qquad \limfunc{extend}%
-(\Gamma ,\limfunc{vars}(\bar{d}),\bar{t})\vdash b:u\qquad u<:v}{\Gamma
-\vdash \mathsf{lambda}(\mathsf{params}(\bar{d}),v,b):\left\langle \bar{t}%
-\right\rangle \rightarrow v}
+\frac{\Gamma \vdash \mathsf{paramList}(\bar{d}):\bar{t}\qquad \limfunc{extend%
+}(\Gamma ,\limfunc{vars}(\bar{d}),\bar{t})\vdash _{\mathrm{R}}b:u\qquad u<:v%
+}{\Gamma \vdash _{h}\mathsf{lambda}(\mathsf{params}(\bar{d}%
+),v,b):\left\langle \bar{t}\right\rangle \rightarrow v}
 \end{equation*}%
 If the return type is not declared, it is inferred from the body.%
 \begin{equation*}
-\frac{\Gamma \vdash \mathsf{paramList}(\bar{p}):\bar{t}\qquad \limfunc{extend%
-}(\Gamma ,\limfunc{vars}(\bar{p}),\bar{t})\vdash b:u}{\Gamma \vdash \mathsf{%
-lambda}(\mathsf{params}(\bar{p}),\mathsf{noType},b):\left\langle \bar{t}%
-\right\rangle \rightarrow u}
+\frac{\Gamma \vdash \mathsf{paramList}(\bar{d}):\bar{t}\qquad \limfunc{extend%
+}(\Gamma ,\limfunc{vars}(\bar{d}),\bar{t})\vdash _{\mathrm{R}}b:u}{\Gamma
+\vdash _{h}\mathsf{lambda}(\mathsf{params}(\bar{d}),\mathsf{noType}%
+,b):\left\langle \bar{t}\right\rangle \rightarrow u}
 \end{equation*}%
 The extend function extends the environment with additional bindings,
 shadowing existing bindings if need be. Type-checking the parameter list
@@ -2048,17 +2120,20 @@ When a return type is declared, we can determine the type of a lambda
 expression without type checking the body.\ This is useful in the first pass
 over an expression sequence, as described later:%
 \begin{equation*}
-\frac{\Gamma \vdash \mathsf{params}(\bar{d}):\bar{t}}{\Gamma \vdash \mathsf{%
-lambda}(\mathsf{params}(\bar{d}),v,b):\left\langle \bar{t}\right\rangle
-\rightarrow v}
+\frac{\Gamma \vdash \mathsf{params}(\bar{d}):\bar{t}}{\Gamma \vdash _{h}%
+\mathsf{lambda}(\mathsf{params}(\bar{d}),v):\left\langle \bar{t}%
+\right\rangle \rightarrow v}
 \end{equation*}
 
-\item Call rules%
+\item Call rules. Any call expression with more or fewer than 2 operands can
+be treated as if it had 2. In particular $\mathsf{call}(e_{0})$ is treated
+as $\mathsf{call}(e_{0},\mathsf{tuple}())$ and $\mathsf{call}%
+(e_{0},e_{1},\ldots ,e_{n-1})$ is treated as $\mathsf{call}(e_{0},\mathsf{%
+tuple}(e_{1},\ldots ,e_{n-1}))$ when $n>2$.%
 \begin{equation*}
-\frac{\Gamma \vdash e_{0}:t\qquad \Gamma \vdash e_{u}:u\qquad \limfunc{%
-applicable}(\limfunc{rType}(t),\limfunc{rType}(u))}{\Gamma \vdash \mathsf{%
-call}(e_{0},e_{1}):\limfunc{returnType}(\limfunc{rType}(t),\limfunc{rType}%
-(u))}
+\frac{\Gamma \vdash _{\mathrm{R}}e_{0}:t\qquad \Gamma \vdash _{\mathrm{R}%
+}e_{1}:u\qquad \limfunc{applicable}(t.u)}{\Gamma \vdash _{h}\mathsf{call}%
+(e_{0},e_{1}):\limfunc{fetch}(h,\limfunc{returnType}(t.u))}
 \end{equation*}%
 where $\limfunc{applicable}$ and the $\limfunc{returnType}$ function are
 defined by%
@@ -2112,22 +2187,27 @@ to combine the return type of $\mathsf{length\colon Nat}$ applied to $%
 Nat\rightarrow String}\right) $ applied to $\mathsf{Nat}$; the result is $%
 \top \sqcap \mathsf{String}=\mathsf{String}$.
 
+\item An expression $\mathsf{callVar}[i](e_{1},\ldots ,e_{n-1})$ is
+typechecked the same as $\mathsf{call}(\mathsf{var}[i],e_{1},\ldots ,e_{n-1})
+$
+
 \item The dot rule%
 \begin{equation*}
-\frac{\Gamma \vdash x:t\qquad \limfunc{fType}\left( \limfunc{rType}%
-(t),i\right) =u}{\Gamma \vdash \mathsf{dot}\left[ i\right] (x):u}
+\frac{\Gamma \vdash _{\mathrm{R}}x:t\qquad \limfunc{fType}\left( \limfunc{%
+rType}(t),i\right) =u}{\Gamma \vdash _{h}\mathsf{dot}\left[ i\right] (x):%
+\limfunc{fetch}(h,u)}
 \end{equation*}
 
 \item The loc rule%
 \begin{equation*}
-\frac{\Gamma \vdash x:t}{\Gamma \vdash \mathsf{loc}(x):\mathsf{Loc}[t]}
+\frac{\Gamma \vdash _{\mathrm{L}}x:t}{\Gamma \vdash _{h}\mathsf{loc}(x):t}
 \end{equation*}
 
 \item The assignment rule%
 \begin{equation*}
-\frac{\Gamma \vdash x:t\qquad \Gamma \vdash y:u\qquad \limfunc{assignable}(t,%
-\limfunc{rType}(y))}{\Gamma \vdash \mathsf{assign}(x,y):\left\langle
-{}\right\rangle }
+\frac{\Gamma \vdash _{\mathrm{L}}x:t\qquad \Gamma \vdash _{\mathrm{R}%
+}y:u\qquad \limfunc{assignable}(t,u)}{\Gamma \vdash \mathsf{assign}%
+(x,y):\left\langle {}\right\rangle }
 \end{equation*}%
 where%
 \begin{eqnarray*}
@@ -2156,59 +2236,103 @@ an explicit type, there is no problem. However variables that don't have
 explicit types are assigned a type based on their initialization expression.
 One solution is to ban forward references, i.e., not allow a variable to be
 used before it is declared. \ However, that prevents mutually recursive
-subroutines and so is undesirable. Instead we start by making two passes
-over the declarations. \ We start by assigning all variables declared in the
-initialization sequence a type of `unknown'. Next we attempt to assign each
-variable a type based either on its explicit type or the type of its
-initialization expression. If determining the type of an initialization
-expression requires knowing the type of a variable declared later, there is
-an error. In particular the variables used in the body of a lambda do not
-need to be of known type if the lambda has an explicit return type. Let's
-call the result of this process $\limfunc{extend}(\Gamma ,\mathsf{exprSeq}%
-\left( e_{0},e_{1},...,e_{n-1}\right) )$. Once this new environment has been
-successfully computed, we can type check the expression sequence with the
-following rule where $n\geq 1$.%
+subroutines and so is undesirable. Another approach is to try to do
+Hindley-Milner style inference; we won't do that yet; maybe someday. Instead
+we start by making two passes over the declarations. \ We start by assigning
+all variables declared in the initialization sequence a peudo-type of
+`unknown'. Next we attempt to assign each variable (from left to right) a
+type based either on its explicit type or the type of its initialization
+expression. If determining the type of an initialization expression requires
+knowing the type of a variable declared later, there is an error. In
+particular the variables used in the body of a lambda do not need to be of
+known type if the lambda has an explicit return type. Let's call the result
+of this process $\limfunc{extend}(\Gamma ,\mathsf{exprSeq}\left( \bar{m}%
+\right) )$. Once this new environment has been successfully computed, we can
+type check the expression sequence with the following rule, when there is at
+least one member.%
 \begin{equation*}
-\frac{\Gamma ^{\prime }=\limfunc{extend}(\Gamma ,\mathsf{exprSeq}\left(
-e_{0},e_{1},...,e_{n-1}\right) )\qquad \Gamma ^{\prime }\vdash
-e_{0}:t_{0}\qquad \Gamma ^{\prime }\vdash e_{1}:t_{1}\qquad \cdots \qquad
-\Gamma ^{\prime }\vdash e_{n-1}:t_{n-1}}{\Gamma \vdash \mathsf{exprSeq}%
-\left( e_{0},e_{1},...,e_{n-1}\right) :t_{n-1}}
+\frac{\Gamma ^{\prime }=\limfunc{extend}(\Gamma ,\bar{m})\qquad \Gamma
+^{\prime }\vdash _{\mathrm{L}}m_{0}:t_{0}\qquad \Gamma ^{\prime }\vdash _{%
+\mathrm{L}}m_{1}:t_{1}\qquad \cdots \qquad \Gamma ^{\prime }\vdash
+_{h}m_{n-1}:t_{n-1}}{\Gamma \vdash _{h}\mathsf{exprSeq}\left( \bar{m}\right)
+:t_{n-1}}
 \end{equation*}%
 In the case of an empty sequence we have%
 \begin{equation*}
-\Gamma \vdash \mathsf{exprSeq}\left( {}\right) :\left\langle {}\right\rangle 
+\Gamma \vdash _{h}\mathsf{exprSeq}\left( {}\right) :\left\langle
+{}\right\rangle 
 \end{equation*}
 
 Note that type checking does not catch use before definition errors. Such
 errors need a data-flow analysis.
 
 \item Variable declarations. Since the first pass of an expression sequence
-deals with determining the types of variables. The second pass is simply to
-check the type of the initialization expression%
+or object literal deals with determining the types of variables. The second
+pass is simply to check the type of the initialization expression%
 \begin{equation*}
-\frac{\Gamma \vdash x:u}{\Gamma \vdash \mathsf{varDecl[}c\mathsf{]}\left( 
-\mathsf{var}(i),\mathsf{noType},x\right) :\left\langle {}\right\rangle }
+\frac{\Gamma \vdash _{\mathrm{R}}x:u}{\Gamma \vdash _{h}\mathsf{varDecl[}c%
+\mathsf{]}\left( \mathsf{var}[i],\mathsf{noType},x\right) :\left\langle
+{}\right\rangle }
 \end{equation*}%
 \begin{equation*}
-\frac{\Gamma \vdash x:u\qquad u<:t}{\Gamma \vdash \mathsf{varDecl[}c\mathsf{]%
-}\left( \mathsf{var}(i),t,x\right) :\left\langle {}\right\rangle }
+\frac{\Gamma \vdash _{\mathrm{R}}x:u\qquad u<:t}{\Gamma \vdash _{h}\mathsf{%
+varDecl[}c\mathsf{]}\left( \mathsf{var}[i],t,x\right) :\left\langle
+{}\right\rangle }
 \end{equation*}%
 When there are no initialization expressions we have%
 \begin{equation*}
-\Gamma \vdash \mathsf{varDecl[}c\mathsf{]}\left( \mathsf{var}(i),\mathsf{%
+\Gamma \vdash _{h}\mathsf{varDecl[}c\mathsf{]}\left( \mathsf{var}[i],\mathsf{%
 noType},\mathsf{noExp}\right) :\left\langle {}\right\rangle 
 \end{equation*}%
 \begin{equation*}
-\Gamma \vdash \mathsf{varDecl[}c\mathsf{]}\left( \mathsf{var}(i),t,\mathsf{%
-noExp}\right) :\left\langle {}\right\rangle 
+\Gamma \vdash _{h}\mathsf{varDecl[}c\mathsf{]}\left( \mathsf{var}[i],t,%
+\mathsf{noExp}\right) :\left\langle {}\right\rangle 
+\end{equation*}%
+[Note that the case of no type and no initializtion will actually be flagged
+as an error in the first pass over the expression list. Thus there is no
+need to flag the error in the typing pass.]
+
+\item If%
+\begin{equation*}
+\frac{\Gamma \vdash _{\mathrm{R}}e:t_{0}\qquad t_{0}<:\mathsf{Bool}\qquad
+\Gamma \vdash _{h}\mathit{seq}_{0}:u_{0}\qquad \Gamma \vdash _{h}\mathit{seq}%
+_{1}:u_{1}}{\Gamma \vdash _{h}\mathsf{if}(e,\mathit{seq}_{0},\mathit{seq}%
+_{1}):u_{0}\sqcup u_{1}}
 \end{equation*}
 
-\item If, While, and Object Literals [[All to be done]]
+\item While loops%
+\begin{equation*}
+\frac{\Gamma \vdash _{\mathrm{R}}e:t_{0}\qquad t_{0}<:\mathsf{Bool}\qquad
+\Gamma \vdash _{h}\mathit{seq}:u}{\Gamma \vdash _{h}\mathsf{while}\left( e,%
+\mathit{seq}\right) :\left\langle {}\right\rangle }
+\end{equation*}
+
+\item Object literal. We make the same first pass and second pass as for an
+expression sequence (except that there is no need to evaluate the last
+member in anything other than an L context)%
+\begin{equation*}
+\frac{\Gamma ^{\prime }=\limfunc{extend}(\Gamma ,\bar{m})\qquad \Gamma
+^{\prime }\vdash _{\mathrm{L}}\bar{m}:\bar{t}\qquad }{\Gamma \vdash _{h}%
+\mathsf{objectLiteral}\left( \bar{m}\right) :\limfunc{extract}(\bar{m}%
+,\Gamma ^{\prime })}
+\end{equation*}%
+The $\limfunc{extract}(\bar{e},\Gamma ^{\prime })$ function simply retrieves
+the name/type pairs for each variable declaration in $\bar{m}$, forms a
+field type for each, and then meets those field types togther. [[Details to
+be filled in, perhaps]]
+
+\item Place Holders. No rule. Hence place holder are always an error.
 \end{itemize}
 
-[[Need to define how environments are extended.]]
+\subsubsection{Soundness of the typing rules}
 
-[[...]]
+The static typing rules are sound if whenever%
+\begin{equation*}
+\Gamma \vdash _{h}m:t
+\end{equation*}
+evaluating the member $m$, with respect to an environment that agrees with $%
+\Gamma $ and in an $h$ context, results in either nontermination, error, or
+a value $v$ such that $v\in \limfunc{Val}(t)$. Of course to prove soundness,
+I'd have to give a formal definition of evaluation. Maybe someday.
 
 \end{document}

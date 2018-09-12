@@ -60,6 +60,18 @@ describe( 'pnode.tryModify', function() : void {
             () => {  } ) ; } ) ; 
 } ) ;
 
+describe("Labels", function() : void {
+    it("Should forbid NoTypeNode as a part of a type", function() : void {
+        const lab = labels.mkNoTypeNd() ;
+        const opt = pnode.tryMake(
+                        new labels.FieldTypeLabel(),
+                        [labels.mkNoExpNd(), labels.mkNoTypeNd() ] ) ;
+        opt.choose(
+            p => { assert.check( false, "Allowed Bad field type" ) ; },
+            () => {  } ) ; 
+    } ) ;
+} ) ;
+
 let string0 : string ;
 
 describe( 'pnode.fromPNodeToJSON', () => {

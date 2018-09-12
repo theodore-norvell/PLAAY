@@ -224,6 +224,35 @@ html, body
     align-items: flex-start ;
 }
 
+.paletteArea
+{
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    width: auto ;
+    height: 70%;
+    margin: auto;
+    background-color: #262626;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    
+    -webkit-align-items:stretch;
+    align-items: stretch ;
+}
+
 #container
 {
     flex: 1 1 auto ;
@@ -234,21 +263,36 @@ html, body
     background-color: #262626 ;
 }
 
+/* expression palette */
 .palette
 {
     flex: 10 1 auto ;
     width: auto;
     margin: 1em 1em 1em 1em ;
     background-color:#a6a6a6 ;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.typePalette
+{
+    flex: 10 1 auto;
+    width:  auto;
+    margin: 1em 1em 1em 1em ;
+    background-color:#a6a6a6 ;
+    overflow-y: auto; 
+    overflow-x: hidden;   
 }
 
 .buttonArea
 {
     flex: 1 1 auto ;
     width: auto;
+    height: 25%;
     margin: 1em 1em 1em 1em ;
     background-color: #a6a6a6 ;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .leftSideButton
@@ -687,6 +731,48 @@ div.tuple {
     font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
+}
+
+div.types {
+    border:none;
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.typesBorder {
+    border :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.locationType {
+    border-left :thin solid rgb(242, 231, 21);
+    border-right :thin solid rgb(242, 231, 21);
+    border-bottom :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+    
 }
 
 div.literal {

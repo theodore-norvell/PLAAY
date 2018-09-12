@@ -9,10 +9,8 @@
 
 import collections = require( './collections' );
 import editor = require( './editor' );
-import pnodeEdits = require( './pnodeEdits');
 import pnode = require('./pnode');
-import main = require('./main');
-import {id} from "./edits";
+import pnodeEdits = require( './pnodeEdits');
 
 /** userRelated  provides the UI for communicating with the server. */
 module userRelated 

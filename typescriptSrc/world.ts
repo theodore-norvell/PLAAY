@@ -14,6 +14,7 @@ import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
+import types = require('./types');
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
 
@@ -34,7 +35,7 @@ module world {
     import NumberV = valueTypes.NumberV;
     import BoolV = valueTypes.BoolV;
     import TupleV = valueTypes.TupleV;
-    import Type = vms.Type;
+    import Type = types.TypeKind;
     import VMS = vms.VMS;
     import EvalStack = vms.EvalStack;
     import Evaluation = vms.Evaluation;

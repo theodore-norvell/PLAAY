@@ -8,7 +8,7 @@
 
 The module dependency must be acyclic. If module A depends, directly or indirectly, on module B, then module B must not depend, whether director or indirectly, on module A.
 
-Module dependency should be documented in file "dependence.gv". Dependence at the javascript level should be documented in file "dependence-js.gv".
+Module dependency should be documented in file "dependence.gv".
 
 #### File names
 

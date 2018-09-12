@@ -7,8 +7,8 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
+import labels = require( './labels') ;
 import pnode = require( './pnode' ) ;
-import { VarDeclLabel, mkVar, mkVarDecl, mkVarOrLocDecl } from './labels';
 
 /** pnodeEdits is responsible for edits that operate on selections.
  * This module also includes the Selection class as well as
@@ -17,8 +17,6 @@ import { VarDeclLabel, mkVar, mkVarDecl, mkVarOrLocDecl } from './labels';
  */
 module pnodeEdits {
     import Option = collections.Option;
-    import None = collections.None;
-    import Some = collections.Some;
     import none = collections.none;
     import some = collections.some;
     import List = collections.List ;
@@ -27,15 +25,15 @@ module pnodeEdits {
     import snoc = collections.snoc;
     import last = collections.last;
     import butLast = collections.butLast;
-    import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
-    import Label = pnode.Label;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
     import compose = edits.compose ;
     import alt = edits.alt ;
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
+    import VarDeclLabel = labels.VarDeclLabel ;
+    import mkVarOrLocDecl = labels.mkVarOrLocDecl ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.

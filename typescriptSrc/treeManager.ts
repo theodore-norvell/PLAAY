@@ -20,16 +20,37 @@ module treeManager {
 
     import alt = edits.alt ;
     import compose = edits.compose ;
+    import Edit = edits.Edit ;
     import id = edits.id ;
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
     import CallWorldLabel = labels.CallWorldLabel ;
-    import mkExprPH = labels.mkExprPH ;
     import Selection = pnodeEdits.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
     import PNode = pnode.PNode;
     import Option = collections.Option;
+
+    export enum Actions { IF, WHILE, STRING, NUMBER, TRUE, FALSE, NULL,
+                          OBJECT, ARRAY, VAR, VAR_DECL, ASSIGN, CALL, LOC,
+                          WORLD_CALL, INDEX, DOT, LAMBDA, NO_TYPE, TUPLE,
+                          STRING_TYPE, NUMBER_TYPE, NULL_TYPE, BOOLEAN_TYPE,
+                          INTEGER_TYPE, NAT_TYPE, LOCATION_TYPE,
+                          TOP_TYPE, BOTTOM_TYPE,
+                          TUPLE_TYPE, FUNCTION_TYPE, FIELD_TYPE, JOIN_TYPE,
+                          MEET_TYPE,
+                          STRING_OR_STRING_TYPE,
+                          NUMBER_OR_NUMBER_TYPE,
+                          IF_OR_BOOL_TYPE,
+                          LAMBDA_OR_FUNCTION_TYPE,
+                          LOC_OR_LOCATION_TYPE,
+                          ASSIGN_OR_ASSIGN_TYPE,
+                          TUPLE_OR_TUPLE_TYPE,
+                          AND_OR_MEET_TYPE,
+                          OR_OR_JOIN_TYPE }
+    
+
+    const placeHolder = labels.mkExprPH() ;
 
     export class TreeManager {
 
@@ -37,220 +58,310 @@ module treeManager {
             
             const rootNode = labels.mkExprSeq( [] )  ;
 
-            const placeholder = labels.mkExprPH();
             const sel = new Selection(rootNode, collections.list(0), 0, 1);
-            const edit = pnodeEdits.insertChildrenEdit([placeholder]);
+            const edit = pnodeEdits.insertChildrenEdit([placeHolder]);
             return edit.applyEdit(sel);
 
         }
 
-        public createNode(label:string, selection:Selection) : Option<Selection> {
-            switch (label) {
+        public createNode( action: Actions, selection:Selection) : Option<Selection> {
+            console.log( "treeManager.createNode action is " + action.toString() ) ;
+            let edit : Edit<Selection> ;
+            switch ( action) {
                 //loops & if
-                case "if":
-                    return this.makeIfNode(selection);
-                case "while":
-                    return this.makeWhileNode(selection);
-
-                //literals
-                case "stringliteral":
-                    return this.makeStringLiteralNode(selection);
-                case "numberliteral":
-                    return this.makeNumberLiteralNode(selection);
-                case "trueliteral":
-                    return this.makeTrueBooleanLiteralNode(selection);
-                case "falseliteral":
-                    return this.makeFalseBooleanLiteralNode(selection);
-                case "nullliteral":
-                    return this.makeNullLiteralNode(selection);
-                case "objectliteral":
-                    return this.makeObjectLiteralNode(selection);
-                case "arrayliteral":
-                    return this.makeArrayLiteralNode(selection);
-
+                case Actions.IF:
+                    edit = this.makeIfNode();
+                    break ;
+                case Actions.WHILE:
+                    edit = this.makeWhileNode();
+                    break ;
+                
+                // Literals
+                case Actions.STRING:
+                    edit = this.makeStringLiteralNode();
+                    break ;
+                case Actions.NUMBER:
+                    edit = this.makeNumberLiteralNode();
+                    break ;
+                case Actions.TRUE:
+                    edit = this.makeTrueBooleanLiteralNode();
+                    break ;
+                case Actions.FALSE:
+                    edit = this.makeFalseBooleanLiteralNode();
+                    break ;
+                case Actions.NULL:
+                    edit = this.makeNullLiteralNode(false);
+                    break ;
+                case Actions.OBJECT:
+                    edit = this.makeObjectLiteralNode();
+                    break ;
+                case Actions.ARRAY:
+                    edit = this.makeArrayLiteralNode();
+                    break ;
                 //variables & variable manipulation
-                case "var":
-                    return this.makeVarNode(selection);
-                case "condecl":
-                    return this.makeVarDeclNode(selection);
-                case "assign":
-                    return this.makeAssignNode(selection);
-                case "call":
-                    return this.makeCallNode(selection);
-                case "loc":
-                    return this.makeLocNode(selection);
-                case "worldcall":
-                    return this.makeWorldCallNode(selection, "", 0);
-                case "accessor":
-                    return this.makeAccessorNode(selection) ;
-                    case "dot":
-                        return this.makeDotNode(selection) ;
+                case Actions.VAR:
+                    edit = this.makeVarNode();
+                    break ;
+                case Actions.VAR_DECL:
+                    edit = this.makeVarDeclNode();
+                    break ;
+                case Actions.ASSIGN:
+                    edit = this.makeAssignNode()  ;
+                    break ;
+                case Actions.CALL:
+                    edit = this.makeCallNode();
+                    break ;
+                case Actions.LOC:
+                    edit = this.makeLocNode();
+                    break ;
+                case Actions.WORLD_CALL:
+                    edit = this.makeWorldCallNode( "", 0);
+                    break ;
+                case Actions.INDEX:
+                    edit = this.makeAccessorNode() ;
+                    break ;
+                case Actions.DOT:
+                    edit = this.makeDotNode() ;
 
                 //misc
-                case "lambda":
-                    return this.makeLambdaNode(selection);
-                case "type":
-                    return this.makeNoTypeNode(selection);
-                case "tuple":
-                    return this.makeTupleNode(selection);
+                    break ;
+                case Actions.LAMBDA:
+                    edit = this.makeLambdaNode();
+                    break ;
+                case Actions.NO_TYPE:
+                    edit = this.makeNoTypeNode();
+                    break ;
+                case Actions.TUPLE:
+                    edit = this.makeTupleNode();
+
+                //types
+                    break ;
+                case Actions.STRING_TYPE:
+                    edit = this.makePrimitiveTypeNode("stringType") ;
+                    break ;
+                case Actions.NULL_TYPE :
+                    edit = this.makeNullLiteralNode(true);
+                    break ;
+                case Actions.BOOLEAN_TYPE :
+                    edit = this.makePrimitiveTypeNode("booleanType");
+                    break ;
+                case Actions.NAT_TYPE :
+                    edit = this.makeNumberTypeNode( "0" ) ;
+                    break ;
+                case Actions.INTEGER_TYPE :
+                    edit = this.makeNumberTypeNode( "1" ) ;
+                    break ;
+                case Actions.NUMBER_TYPE:
+                    edit = this.makeNumberTypeNode( "2" ) ;
+                    break ;
+                case Actions.TOP_TYPE :
+                    edit = this.makePrimitiveTypeNode("topType");
+                    break ;
+                case Actions.BOTTOM_TYPE :
+                    edit = this.makePrimitiveTypeNode("bottomType");
+                    break ;
+                case Actions.TUPLE_TYPE :
+                    edit = this.makeTupleType();
+                    break ;
+                case Actions.FUNCTION_TYPE :
+                    edit = this.makeFunctionType() ;
+                    break ;
+                case Actions.LOCATION_TYPE :
+                    edit = this.makeLocType();
+                    break ;
+                case Actions.FIELD_TYPE :
+                    edit = this.makeFieldTypeNode();
+                    break ;
+                case Actions.JOIN_TYPE :
+                    edit = this.makeJoinTypeNode();
+                    break ;
+                case Actions.MEET_TYPE :
+                    edit = this.makeMeetTypeNode();
+                    break ;
+
+
+                // Actions that could have multiple meanings.
+                case Actions.STRING_OR_STRING_TYPE:
+                    edit = alt( [ this.makeStringLiteralNode(),
+                                  this.makePrimitiveTypeNode("stringType") ]) ;
+                    break ;
+                case Actions.IF_OR_BOOL_TYPE:
+                    edit = alt( [ this.makeIfNode(  ),
+                                  this.makePrimitiveTypeNode("booleanType") ]) ;
+                    break ;
+                case Actions.LAMBDA_OR_FUNCTION_TYPE :
+                    edit = alt( [ this.makeLambdaNode(),
+                                  this.makeFunctionType() ] ) ;
+                    break ;
+                case Actions.LOC_OR_LOCATION_TYPE :
+                    edit = alt( [ this.makeLocType(),
+                                  this.makeLocNode() ] ) ;
+                    break ;
+                case Actions.ASSIGN_OR_ASSIGN_TYPE :
+                    edit = alt( [ this.makeAssignNode(),
+                                  this.makeFieldTypeNode() ] ) ;
+                    break ;
+                case Actions.TUPLE_OR_TUPLE_TYPE :
+                    edit = alt( [ this.makeTupleNode(), this.makeTupleType() ] ) ;
+                    break ;
+                case Actions.AND_OR_MEET_TYPE :
+                    edit = alt( [ this.makeWorldCallNode("and", 2),
+                                  this.makeMeetTypeNode() ] ) ;
+                    break ;
+                case Actions.OR_OR_JOIN_TYPE :
+                    edit = alt( [ this.makeWorldCallNode("or", 2),
+                                  this.makeJoinTypeNode() ] ) ;
+                    break ;
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
+            return edit.applyEdit(selection) ;
         }
 
         //Only for nodes that can contain text, such as variables and strings.
-        public createNodeWithText( label:string, selection:Selection, text: string ) : Option<Selection> {
-            switch (label) {
-                case "stringliteral":
-                    return this.makeStringLiteralNode(selection, text);
-                case "numberliteral":
-                    return this.makeNumberLiteralNode(selection, text);
-                case "var":
-                    return this.makeVarNode(selection, text);
-                case "worldcall":
-                    return this.makeWorldCallNode(selection, text, 2);
-
+        public createNodeWithText( action: Actions, selection: Selection, text: string ) : Option<Selection> {
+            console.log( "treeManager.createNodeWithText action is " + action.toString() + " text is " + text ) ;
+            let edit : Edit<Selection> ;
+            switch (action) {
+                case Actions.STRING:
+                    edit = this.makeStringLiteralNode(text);
+                    break ;
+                case Actions.NUMBER:
+                    edit = this.makeNumberLiteralNode(text);
+                    break ;
+                case Actions.NUMBER_OR_NUMBER_TYPE:
+                    edit = alt( [
+                        this.makeNumberLiteralNode(text),
+                        this.makeNumberTypeNode( text )
+                    ]) ;
+                    break ;
+                case Actions.VAR:
+                    edit = this.makeVarNode(text);
+                    break ;
+                case Actions.WORLD_CALL:
+                    edit = this.makeWorldCallNode(text, 2);
+                    break ;
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
             }
+            return edit.applyEdit(selection) ;
         }
 
-        private makeVarNode(selection:Selection, text : string = "") : Option<Selection> {
-
+        private makeVarNode(text : string = "") : Edit<Selection> {
             const varNode = labels.mkVar(text) ;
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = labels.mkNoExpNd();
             const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
             const edit0 = pnodeEdits.insertChildrenEdit( [varNode] ) ;
             const edit1 = pnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
-            return alt([edit0,edit1]).applyEdit(selection) ;
+            return alt([edit0,edit1]) ;
         }
 
         // While nodes
-        private makeWhileNode(selection:Selection) : Option<Selection> {
+        private makeWhileNode() : Edit<Selection> {
 
-            const cond = labels.mkExprPH();
             const seq = labels.mkExprSeq([]);
 
-            const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [cond, seq]);
+            const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [placeHolder, seq]);
             const template0 = new Selection( whilenode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( whilenode, list<number>(0), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( [template0, template1] ) ;
         }
 
         //objects
-        private makeObjectLiteralNode(selection:Selection) : Option<Selection> {
+        private makeObjectLiteralNode() : Edit<Selection> {
             const objectnode = labels.mkObject([]);
             const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template ) ;
         }
 
         //arrays
-        private makeArrayLiteralNode(selection:Selection) : Option<Selection> {
+        private makeArrayLiteralNode() : Edit<Selection> {
             const arraynode = pnode.make(labels.ArrayLiteralLabel.theArrayLiteralLabel, []);
             const template = new Selection( arraynode, list<number>(), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template ) ;
         }
 
         //Object accessor
-        private makeAccessorNode(selection:Selection) : Option<Selection> {
+        private makeAccessorNode() : Edit<Selection> {
 
-            const left = labels.mkExprPH();
-            const right = labels.mkExprPH();
-
-            const opt = pnode.tryMake(labels.AccessorLabel.theAccessorLabel, [left, right]);
+            const opt = pnode.tryMake(labels.AccessorLabel.theAccessorLabel,
+                                      [placeHolder, placeHolder]);
 
             const accessorNode = opt.first() ;
 
             const template = new Selection( accessorNode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template ) ;
 
         }
 
         //Object accessor
-        private makeDotNode(selection:Selection) : Option<Selection> {
+        private makeDotNode() : Edit<Selection> {
 
-            const left = labels.mkExprPH();
-
-            const dotNode = labels.mkDot( "", true, left ) ;
+            const dotNode = labels.mkDot( "", true, placeHolder ) ;
 
             const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template ) ;
 
         }
 
-        private makeTupleNode(selection:Selection) : Option<Selection> {
-                                    
-            const tuplenode = labels.mkTuple([labels.mkExprPH()]);
-            const template = new Selection( tuplenode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template ) ;
-            return edit.applyEdit(selection);
+        private makeTupleNode() : Edit<Selection> {
+            const tuplenode = labels.mkTuple([placeHolder,placeHolder]);
+            const template0 = new Selection( tuplenode, list<number>(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( [template0] ) ;
+        }
 
+        private makeTupleType() : Edit<Selection> {
+            const tupleType = labels.mkTupleType([placeHolder,placeHolder]);
+            const template1 = new Selection( tupleType, list<number>(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( [template1] ) ;
         }
 
         // If nodes
-        private makeIfNode(selection:Selection) : Option<Selection> {
+        private makeIfNode() : Edit<Selection> {
 
-            const guard = labels.mkExprPH();
-            const thn = labels.mkExprSeq([]);
-            const els = labels.mkExprSeq([]);
+            const emptSeq = labels.mkExprSeq([]);
 
-            const ifNode = pnode.make(labels.IfLabel.theIfLabel, [guard, thn, els]);
+            const ifNode = pnode.make(labels.IfLabel.theIfLabel, [placeHolder, emptSeq, emptSeq]);
 
             // console.log( "makeIfNode: Making template") ;
             const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( ifNode, list<number>(1), 0, 0 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
-            // console.log( "makeIfNode: Applying edit") ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
         }
 
-        private makeLambdaNode(selection:Selection) : Option<Selection> {
-            const paramList = labels.mkParameterList([]);
+        private makeLambdaNode() : Edit<Selection> {
             const noTypeNode = labels.mkNoTypeNd() ;
+            const paramList = labels.mkParameterList([]);
             const body : PNode =labels.mkExprSeq([]);
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
-
             const template = new Selection( lambdanode, list(2), 0, 0 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeAssignNode(selection:Selection) : Option<Selection> {
+        private makeAssignNode() : Edit<Selection> {
 
-            const left = labels.mkExprPH();
-            const right = labels.mkExprPH();
-
-            const opt = pnode.tryMake(labels.AssignLabel.theAssignLabel, [left, right]);
-
-            const assignnode = opt.first() ;
+            const assignnode = labels.mkAssign( placeHolder, placeHolder ) ;
 
             const template0 = new Selection( assignnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( assignnode, list<number>(), 0, 2 ) ;
-            const edit = replaceOrEngulfTemplateEdit( [template0, template1] ) ;
-            return edit.applyEdit(selection) ;
-
+            return replaceOrEngulfTemplateEdit( [template0, template1] ) ;
         }
 
-        private makeLocNode( selection : Selection ) : Option<Selection> {
+        private makeLocNode() : Edit<Selection> {
             // We either make a new location operator or toggle a variable
             // declaration between being loc or nonloc.
-            const template = new Selection( labels.mkLoc( labels.mkExprPH()), list<number>(), 0, 1 ) ;
-            const edit = alt( [ compose(pnodeEdits.toggleVarDecl, pnodeEdits.tabForwardEdit ),
-                                replaceOrEngulfTemplateEdit( template ),
-                                compose( pnodeEdits.moveOutNormal,
-                                         pnodeEdits.toggleVarDecl,
-                                         pnodeEdits.tabForwardEdit) ] ) ;
-            return edit.applyEdit( selection ) ;
+            const operatorTempl = new Selection( labels.mkLoc(placeHolder),                                                list<number>(), 0, 1 ) ;
+            return alt( [ compose( pnodeEdits.toggleVarDecl,
+                                   pnodeEdits.tabForwardEdit ),
+                          replaceOrEngulfTemplateEdit( operatorTempl ),
+                          compose( pnodeEdits.moveOutNormal,
+                                   pnodeEdits.toggleVarDecl,
+                                   pnodeEdits.tabForwardEdit) ] ) ;
         }
 
-        private makeVarDeclNode(selection:Selection ) : Option<Selection> {
+        private makeVarDeclNode( ) : Edit<Selection> {
             const varNode : PNode = labels.mkVar("");
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = labels.mkNoExpNd();
@@ -259,17 +370,16 @@ module treeManager {
 
             const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
-            const edit = replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
-            return edit.applyEdit(selection);
+            const templates = [template0, template1] ;
+
+            return replaceOrEngulfTemplateEdit( templates  ) ;
         }
 
-        private makeWorldCallNode(selection:Selection, name : string, argCount : number ) : Option<Selection> {
-            // TODO: Allow a variable number of place holders.
+        private makeWorldCallNode(name : string, argCount : number ) : Edit<Selection> {
             // console.log( ">> Calling makeWorldCallNode") ;
             const args = new Array<PNode>() ;
-            const ph = labels.mkExprPH();
             for( let i = 0 ; i < argCount ; ++i ) {
-                args.push(ph) ;
+                args.push(placeHolder) ;
             }
             let worldcallnode : PNode ;
             if(name === "")
@@ -278,8 +388,7 @@ module treeManager {
                 const template = argCount === 0
                     ? new Selection( worldcallnode, list<number>(), 0, 0 )
                     : new Selection( worldcallnode, list<number>(), 0, 1 ) ;
-                const edit = replaceOrEngulfTemplateEdit( template  ) ;
-                return edit.applyEdit(selection);
+                return replaceOrEngulfTemplateEdit( template  ) ;
             }
             else
             {
@@ -287,66 +396,103 @@ module treeManager {
                 const template = argCount===0
                     ? new Selection( worldcallnode, list<number>(), 0, 0 )
                     : new Selection( worldcallnode, list<number>(), 0, 1 );
-                const edit = replaceOrEngulfTemplateEdit( template  ) ;
-                return edit.applyEdit(selection) ;
+                return replaceOrEngulfTemplateEdit( template  ) ;
             }
         }
 
-        private makeCallNode(selection:Selection) : Option<Selection> {
+        private makeCallNode() : Edit<Selection> {
 
-            const func = labels.mkExprPH();
-            const callnode = labels.mkCall(func) ;
+            const callnode = labels.mkCall(placeHolder) ;
 
             const template = new Selection( callnode, list<number>(), 0, 1 ) ;
-            const edit = replaceOrEngulfTemplateEdit( template  ) ;
-            return edit.applyEdit(selection);
+            return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeNoTypeNode(selection:Selection) : Option<Selection> {
+        private makeNoTypeNode() : Edit<Selection> {
 
             const typenode = labels.mkNoTypeNd() ;
-            const edit = pnodeEdits.insertChildrenEdit([typenode]);
-            return edit.applyEdit(selection);
+            return pnodeEdits.insertChildrenEdit([typenode]);
         }
 
-        private makeStringLiteralNode(selection:Selection, text : string = "") : Option<Selection> {
+        private makeStringLiteralNode(text : string = "") : Edit<Selection> {
+            const literalnode = labels.mkStringLiteral(text);
+            return pnodeEdits.insertChildrenEdit([literalnode]);
 
-            const literalnode = labels.mkStringLiteral(text) ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
-            return edit.applyEdit(selection);
         }
 
-        private makeNumberLiteralNode(selection:Selection, text : string = "0") : Option<Selection> {
+        private makeNumberLiteralNode(text : string = "0") : Edit<Selection> {
+            const literalnode = labels.mkNumberLiteral(text);
+            return pnodeEdits.insertChildrenEdit([literalnode]);
 
-            const literalnode = labels.mkNumberLiteral(text) ;
-
-            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
-            return edit.applyEdit(selection);
         }
 
-        private makeTrueBooleanLiteralNode(selection:Selection) : Option<Selection> {
+        private makeTrueBooleanLiteralNode() : Edit<Selection> {
             const literalnode = labels.mkTrueBooleanLiteral() ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
-            return edit.applyEdit(selection);
+            return pnodeEdits.insertChildrenEdit([literalnode]);
         }
 
-        private makeFalseBooleanLiteralNode(selection:Selection) : Option<Selection> {
+        private makeFalseBooleanLiteralNode() : Edit<Selection> {
             const literalnode = labels.mkFalseBooleanLiteral() ;
-            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
-            return edit.applyEdit(selection);
+            const edit0 = this.makePrimitiveTypeNode("booleanType");
+            const edit1 = pnodeEdits.insertChildrenEdit([literalnode]);
+            return edits.alt([edit0,edit1]);
         }
 
-        private makeNullLiteralNode(selection:Selection) : Option<Selection> {
-
+        private makeNullLiteralNode(isTypeNode:boolean) : Edit<Selection> {
             const opt = pnode.tryMake(labels.NullLiteralLabel.theNullLiteralLabel, []);
-
             const literalnode = opt.first() ;
-
-            const edit = pnodeEdits.insertChildrenEdit([literalnode]);
-            return edit.applyEdit(selection);
+            const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
+            const edit1 = this.makePrimitiveTypeNode("nullType");
+            return edits.alt([edit0,edit1]);
+            
         }
 
-        public changeNodeString(selection:Selection, newString:string, tabDirection : number ) : Option<Selection> {
+        private makeNumberTypeNode( digit : string )  : Edit<Selection> {
+            switch( digit ) {
+                case "0" : return this.makePrimitiveTypeNode( "natType" ) ;
+                case "1" : return this.makePrimitiveTypeNode( "integerType" ) ;
+                default: return this.makePrimitiveTypeNode( "numberType" ) ;
+            }
+        }
+
+        private makePrimitiveTypeNode( type : string ) : Edit<Selection> {
+            const typeNode = labels.mkPrimitiveTypeLabel(type);
+            //return edits.compose( pnodeEdits.insertChildrenEdit([typeNode]),
+            //                      edits.optionally(pnodeEdits.tabForwardEdit)) ;
+            return pnodeEdits.insertChildrenEdit([typeNode]) ; }
+
+        private makeLocType() : Edit<Selection> {
+            const typeTempl = new Selection( labels.mkLocationType( placeHolder ),
+                                             list<number>(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( typeTempl ) ;
+        }
+
+        private makeFieldTypeNode() : Edit<Selection> {
+            const typeNode = labels.mkFieldType([placeHolder, placeHolder]);
+            const template0 = new Selection(typeNode,list<number>(),0,1);
+            const template1 = new Selection(typeNode,list<number>(),1,2);
+            return replaceOrEngulfTemplateEdit([template0,template1]);
+        }
+
+        private makeFunctionType() : Edit<Selection> {
+            const typenode = labels.mkFunctionType(placeHolder, placeHolder);
+            const template = new Selection( typenode, list(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( template  ) ;
+        }
+
+        private makeJoinTypeNode() : Edit<Selection> {
+            const typeNode = labels.mkJoinType([placeHolder, placeHolder]);
+            const template = new Selection(typeNode,list<number>(),0,1);
+            return replaceOrEngulfTemplateEdit( template ) ; 
+        }
+
+        private makeMeetTypeNode() : Edit<Selection> {
+            const typeNode = labels.mkMeetType([placeHolder, placeHolder]);
+            const template = new Selection(typeNode,list<number>(),0,1);
+            return replaceOrEngulfTemplateEdit( template ) ; 
+        }
+
+        public changeNodeString(selection: Selection, newString: string, tabDirection: number ) : Option<Selection> {
             // First change the label
             const oldLabelEmpty = selection.size() === 1
                                && selection.selectedNodes()[0].label().getVal() === "" ;
@@ -363,7 +509,8 @@ module treeManager {
                           && p.label().kind() === CallWorldLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add two placeholders as children and select callVar node.
-            const addPlaceholders = pnodeEdits.insertChildrenEdit( [ mkExprPH(), mkExprPH() ] ) ;
+            const addPlaceholders = pnodeEdits.insertChildrenEdit(
+                                        [ placeHolder, placeHolder ] ) ;
             // Otherwise if the new string is not an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
             const test1 = testEdit<Selection>(
@@ -377,25 +524,25 @@ module treeManager {
                           && p.count() === 0 ; } ) ;
             // ... then add one placeholder.
             // Othewise leave it alone.
-            const add1Placeholder = pnodeEdits.insertChildrenEdit( [ mkExprPH() ] ) ;
+            const add1Placeholder = pnodeEdits.insertChildrenEdit( [ placeHolder ] ) ;
             // Finally we do an optional tab left or right or neither.
             const tab = tabDirection < 0
                       ? optionally(pnodeEdits.tabBackEdit)
                       : tabDirection > 0
                       ? optionally(pnodeEdits.tabForwardEdit)
                       : id<Selection>() ;
-            const edit = compose( changeLabel,
-                                  alt( [compose( test0,
-                                                 pnodeEdits.rightEdit,
-                                                 addPlaceholders,
-                                                 pnodeEdits.selectParentEdit ),
-                                        compose( test1,
-                                                 pnodeEdits.rightEdit,
-                                                 add1Placeholder,
-                                                 pnodeEdits.selectParentEdit ),
-                                        id()] ),
-                                  tab ) ;
-            return edit.applyEdit(selection) ;
+            const edit =  compose( changeLabel,
+                                   alt( [compose( test0,
+                                                  pnodeEdits.rightEdit,
+                                                  addPlaceholders,
+                                                  pnodeEdits.selectParentEdit ),
+                                         compose( test1,
+                                                  pnodeEdits.rightEdit,
+                                                  add1Placeholder,
+                                                  pnodeEdits.selectParentEdit ),
+                                         id()] ),
+                                   tab ) ;
+            return edit.applyEdit( selection ) ;
         }
 
         public selectAll( selection:Selection ) : Option<Selection> {
@@ -458,9 +605,11 @@ module treeManager {
             return edit.applyEdit(selection);
         }
 
-        private standardBackFillList = [[labels.mkNoExpNd()], [labels.mkExprPH()], [labels.mkNoTypeNd()]] ;
+        private standardBackFillList = [[labels.mkNoExpNd()], [placeHolder], [placeHolder], [labels.mkNoTypeNd()]] ;
+
         private deleteEdit = pnodeEdits.replaceWithOneOf( [[] as Array<PNode> ].concat(this.standardBackFillList) );
-        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [labels.mkExprPH()], [labels.mkNoTypeNd()]] );
+
+        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [placeHolder], [labels.mkNoTypeNd()]] );
 
         public delete(selection:Selection) : Option<Selection> {
             const nodes : Array<PNode> = selection.selectedNodes() ;
@@ -470,7 +619,7 @@ module treeManager {
                 return this.deleteEdit.applyEdit(selection); }
         }
 
-        public paste( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
+        public paste( srcSelection: Selection, trgSelection: Selection ) : Option<Selection> {
             const pasteEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
             return pasteEdit.applyEdit( trgSelection ) ;
         }

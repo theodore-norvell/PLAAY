@@ -1,4 +1,4 @@
- /**
+/**
  * Created by Ryne on 24/02/2016.
  */
 
@@ -11,6 +11,7 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import types = require('./types');
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -21,6 +22,7 @@ module vms{
     import TVar = backtracking.TVar;
     import TArray = backtracking.TArray;
     import TransactionManager = backtracking.TransactionManager;
+    import Type = types.TypeKind;
 
     import List = collections.List ;
     import nil = collections.nil ;
@@ -753,10 +755,5 @@ module vms{
         setValue : ( value : Value ) => void ;
     }
 
-    // TODO replace this with a proper system of types.
-    export class Type {
-        private constructor() {} 
-        public static readonly TOP = new Type() ;
-    }
 }
 export = vms;

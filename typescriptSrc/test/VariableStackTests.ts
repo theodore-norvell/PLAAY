@@ -11,6 +11,7 @@ import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
+import types = require('../types') ;
 import world = require('../world') ;
 
 import Evaluation = vms.Evaluation;
@@ -18,7 +19,7 @@ import VMS = vms.VMS;
 import World = world.World;
 import Field = valueTypes.Field;
 import ObjectV = valueTypes.ObjectV;
-import Type = vms.Type;
+import Type = types.TypeKind;
 import VarStack = vms.VarStack;
 import NonEmptyVarStack = vms.NonEmptyVarStack ;
 import EmptyVarStack = vms.EmptyVarStack ;

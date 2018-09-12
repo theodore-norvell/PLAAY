@@ -1,8 +1,10 @@
 /// <reference path="jquery.d.ts" />
 
 /// <reference path="sharedMkHtml.ts" />
+/// <reference path="treeManager.ts" />
 
 import sharedMkHtml = require('./sharedMkHtml');
+import treeManager = require('./treeManager');
 
 /** Create the top level HTML and buttons.
  */
@@ -13,6 +15,19 @@ module createHtmlElements {
 	import WHILEMARK = sharedMkHtml.WHILEMARK ;
 	import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
 	import NULLMARK = sharedMkHtml.NULLMARK ;
+
+	import BOOLEANTYPE = sharedMkHtml.BOOLEANTYPE;
+	import STRINGTYPE = sharedMkHtml.STRINGTYPE;
+	import NUMBERTYPE = sharedMkHtml.NUMBERTYPE;
+	import INTEGERTYPE = sharedMkHtml.INTEGERTYPE;
+	import NATTYPE = sharedMkHtml.NATTYPE;
+	import TOPTYPE = sharedMkHtml.TOPTYPE;
+	import BOTTOMTYPE = sharedMkHtml.BOTTOMTYPE;
+	import FUNCTIONTYPE = sharedMkHtml.FUNCTIONTYPE;
+	import JOINTYPE = sharedMkHtml.JOINTYPE;
+	import MEETTYPE = sharedMkHtml.MEETTYPE;
+
+	import Actions = treeManager.Actions ;
 	
 	export function createHtmls() : void {
 
@@ -54,48 +69,69 @@ module createHtmlElements {
 		//    contentArea
 		//        editor
 		//            editorLeftSideArea
-		//                pallette
-		//                    pallette items
+		//                palletteArea
+		//                    pallette items  type items
 		//                buttonArea
 		//                    buttons for editing
 		//            container
 		const editorDiv = create("div", "tab", "editor", contentArea ) ;
 		create("div", "leftSideArea", "editorLeftSideArea", editorDiv);
 		const editorLeftSideArea = $("#editorLeftSideArea");
-		create("div", "palette", "palette", editorLeftSideArea);
+		create("div","paletteArea","paletteArea",editorLeftSideArea);
+		const paletteArea = $('#paletteArea');
+		create("div", "palette", "palette", paletteArea);
 		const palette = $("#palette");
+		create("div","typePalette","typePalette",paletteArea);
+		const typePalette = $('#typePalette');
 		create("div", "buttonArea", "editorButtonArea", editorLeftSideArea);
 		const buttonArea = $("#editorButtonArea");
 
 		//createTexted("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "leftSideButton editButton", "play", buttonArea, "Play");
-		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo");
-		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo");
-		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash");
-		createTexted("div", "leftSideButton", "toggleOutput", buttonArea, "Output");
+		createTexted("div", "leftSideButton editButton", "play", buttonArea, "Play", null);
+		createTexted("div", "leftSideButton editButton", "undo", buttonArea, "Undo", null);
+		createTexted("div", "leftSideButton editButton", "redo", buttonArea, "Redo", null);
+		createTexted("div", "leftSideButton editButton", "trash", buttonArea, "Trash", null);
+		createTexted("div", "leftSideButton", "toggleOutput", buttonArea, "Output", null);
 
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
-		createTexted("div", "leftSideButton paletteItem", "if", palette, "?");
-		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK);
-		createTexted("div", "leftSideButton paletteItem", "condecl", palette, ": :=");
-		createTexted("div", "leftSideButton paletteItem", "loc", palette, "loc");
-		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=");
-		createTexted("div", "leftSideButton paletteItem", "var", palette, "x");
-		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...");
-		createTexted("div", "leftSideButton paletteItem", "call", palette, "call");
-		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]");
-		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".");
-		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""');
-		createTexted("div", "leftSideButton paletteItem", "numberliteral", palette, '123');
-		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, NULLMARK);
-		createTexted("div", "leftSideButton paletteItem", "lambda", palette, LAMBDAMARK);
-		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$");
-		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array");
-		createTexted("div", "leftSideButton paletteItem", "tuple", palette, "( )");
-		createTexted("div", "leftSideButton paletteItem", "trueliteral", palette, TRUEMARK);
-		createTexted("div", "leftSideButton paletteItem", "falseliteral", palette, FALSEMARK);
+		createTexted("div", "leftSideButton paletteItem", "if", palette, "?", Actions.IF );
+		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK, Actions.WHILE );
+		createTexted("div", "leftSideButton paletteItem", "condecl", palette, ": :=", Actions.VAR_DECL );
+		createTexted("div", "leftSideButton paletteItem", "loc", palette, "loc", Actions.LOC);
+		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=", Actions.ASSIGN);
+		createTexted("div", "leftSideButton paletteItem", "var", palette, "x", Actions.VAR);
+		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...", Actions.WORLD_CALL);
+		createTexted("div", "leftSideButton paletteItem", "call", palette, "call", Actions.CALL);
+		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", Actions.INDEX);
+		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", Actions.DOT);
+		createTexted("div", "leftSideButton paletteItem", "stringliteral", palette, '""', Actions.STRING);
+		createTexted("div", "leftSideButton paletteItem", "numberliteral", palette, '123', Actions.NUMBER);
+		createTexted("div", "leftSideButton paletteItem", "nullliteral", palette, NULLMARK, Actions.NULL );
+		createTexted("div", "leftSideButton paletteItem", "lambda", palette, LAMBDAMARK, Actions.LAMBDA);
+		createTexted("div", "leftSideButton paletteItem", "objectliteral", palette, "$", Actions.OBJECT);
+		createTexted("div", "leftSideButton paletteItem", "arrayliteral", palette, "array", Actions.ARRAY);
+		createTexted("div", "leftSideButton paletteItem", "tuple", palette, "( )", Actions.TUPLE);
+		createTexted("div", "leftSideButton paletteItem", "trueliteral", palette, TRUEMARK, Actions.TRUE);
+		createTexted("div", "leftSideButton paletteItem", "falseliteral", palette, FALSEMARK, Actions.FALSE);
+
+		// type palette items
+		createTexted("div","leftSideButton paletteItem","booleanType",typePalette,BOOLEANTYPE, Actions.BOOLEAN_TYPE );
+		createTexted("div","leftSideButton paletteItem","stringType",typePalette,STRINGTYPE, Actions.STRING_TYPE);
+		createTexted("div","leftSideButton paletteItem","numberType",typePalette,NUMBERTYPE, Actions.NUMBER_TYPE);
+		createTexted("div","leftSideButton paletteItem","integerType",typePalette,INTEGERTYPE, Actions.INTEGER_TYPE);
+		createTexted("div","leftSideButton paletteItem","natType",typePalette,NATTYPE, Actions.NAT_TYPE);
+		createTexted("div","leftSideButton paletteItem","nullType",typePalette,NULLMARK, Actions.NULL_TYPE) ;
+		createTexted("div","leftSideButton paletteItem","topType",typePalette,TOPTYPE, Actions.TOP_TYPE);
+		createTexted("div","leftSideButton paletteItem","bottomType",typePalette,BOTTOMTYPE, Actions.BOTTOM_TYPE);
+		createTexted("div","leftSideButton paletteItem","tupleType",typePalette,"( )", Actions.TUPLE_TYPE);
+		createTexted("div","leftSideButton paletteItem","locationType",typePalette,"loc", Actions.LOCATION_TYPE);
+		createTexted("div","leftSideButton paletteItem","fieldType",typePalette,":", Actions.FIELD_TYPE);
+		createTexted("div","leftSideButton paletteItem","functionType",typePalette,FUNCTIONTYPE, Actions.FUNCTION_TYPE);
+		createTexted("div","leftSideButton paletteItem","joinType",typePalette,JOINTYPE, Actions.JOIN_TYPE);
+		createTexted("div","leftSideButton paletteItem","meetType",typePalette,MEETTYPE, Actions.MEET_TYPE);
+
 
 		// The container for the tree.
 		create("div", "container", "container", editorDiv);
@@ -116,15 +152,15 @@ module createHtmlElements {
 		const animatorLeftSideArea = $("#animatorLeftSideArea");
 		create("div", "buttonArea", "evalButtonArea", animatorLeftSideArea);
 		const evalButtonArea = $("#evalButtonArea");
-		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit");
-		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next");
-		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Into") ;
-		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Over");
-		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Return");
-		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run");
-		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo");
-		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo");
-		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output");
+		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit", null);
+		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next", null );
+		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Into", null ) ;
+		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Over", null );
+		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Return", null );
+		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run", null );
+		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo", null );
+		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo", null );
+		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output", null );
 
 		create("div", "vms", "vms", animatorDiv) ;
 
@@ -188,9 +224,11 @@ module createHtmlElements {
 	                       className: string|null,
 	                       idName: string|null,
 	                       parentElement: JQuery|null,
-	                       textContent: string|null): JQuery {
+	                       textContent: string|null,
+	                       action : Actions|null): JQuery {
 		const obj = create(elementType, className, idName, parentElement);
 		if (textContent!==null) { obj.text(textContent); }
+		if ( action !== null) { obj.data("action", action) ; }
 		return obj;
 	}
 
@@ -198,12 +236,6 @@ module createHtmlElements {
 		const obj = $("<" + elementType + "></" + elementType + ">");
 		if (parentElement) { obj.appendTo(parentElement); }
 		if (value) { obj.val(value); }
-		return obj;
-	}
-
-	function createPrepended(elementType: string, className: string, idName: string, parentElement: JQuery, textContent: string, prependToThis: JQuery): JQuery {
-		const obj = createTexted(elementType, className, idName, parentElement, textContent);
-		if (prependToThis) { obj.prependTo(prependToThis); }
 		return obj;
 	}
 

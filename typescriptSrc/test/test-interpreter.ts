@@ -17,12 +17,13 @@ import pnode = require( '../pnode' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
+import types = require('../types') ;
 
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import Field = valueTypes.Field;
-import Type = vms.Type;
+import Type = types.TypeKind;
 import VarStack = vms.VarStack;
 import ObjectV = valueTypes.ObjectV;
 import ClosureV = valueTypes.ClosureV;
@@ -35,7 +36,7 @@ import NullV = valueTypes.NullV;
 import PNode = pnode.PNode ;
 import { mkAccessor, mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq,
          mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject,
-         mkParameterList, mkTuple, mkVar, mkVarDecl, mkVarOrLocDecl }
+         mkParameterList, mkPrimitiveTypeLabel, mkTuple, mkVar, mkVarDecl, mkVarOrLocDecl }
        from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
@@ -2770,6 +2771,111 @@ describe('TupleLabel', function () : void {
             assert.check( val2Result === "test123");
 
     });
+});
+
+describe('PrimitiveTypesLabel', function(): void {
+    it('should evaluate to STRING TypeKind',function() : void {
+        const stringTypeNode = mkPrimitiveTypeLabel("stringType");
+        assert.check(stringTypeNode.count() === 0 );
+        const type = types.createType(stringTypeNode);
+        assert.check( type.getKind() === types.TypeKind.STRING);
+    }) ;
+});
+
+describe('PrimitiveTypesLabel', function(): void {
+    it('should evaluate to BOOL TypeKind',function() : void {
+        const booleanTypeNode = mkPrimitiveTypeLabel("booleanType");
+        assert.check(booleanTypeNode.count() === 0 );
+        const type = types.createType(booleanTypeNode);
+        assert.check( type.getKind() === types.TypeKind.BOOL);
+    }) ;
+});
+
+describe('PrimitiveTypesLabel', function(): void {
+    it('should evaluate to NUMBER TypeKind',function() : void {
+        const numberTypeNode = mkPrimitiveTypeLabel("numberType");
+        assert.check(numberTypeNode.count() === 0 );
+        const type = types.createType(numberTypeNode);
+        assert.check( type.getKind() === types.TypeKind.NUMBER);
+    }) ;
+});
+
+describe('PrimitiveTypesLabel', function(): void {
+    it('should evaluate to TOP TypeKind',function() : void {
+        const topTypeNode = mkPrimitiveTypeLabel("topType");
+        const type = types.createType(topTypeNode);
+        assert.check( type.getKind() === types.TypeKind.TOP);
+        assert.check( type instanceof types.TopType);
+    }) ;
+});
+
+describe('PrimitiveTypesLabel', function(): void {
+    it('should evaluate to BOTTOM TypeKind',function() : void {
+        const bottomTypeNode = mkPrimitiveTypeLabel("bottomType");
+        const type = types.createType(bottomTypeNode);
+        assert.check( type.getKind() === types.TypeKind.BOTTOM);
+        assert.check( type instanceof types.BottomType);
+    }) ;
+});
+
+describe('TupleTypeLabel', function(): void {
+    it('should evaluate to Tuple TypeKind',function() : void {
+        const numberNode : PNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode : PNode = mkPrimitiveTypeLabel("stringType");
+        const tupleTypeNode = labels.mkTupleType([numberNode,stringNode]);
+        const type = types.createType(tupleTypeNode);
+        assert.check( type.getKind() === types.TypeKind.TUPLE);
+        assert.check( (type as types.TupleType).getLength() === 2 );
+        assert.check( (type as types.TupleType).getTypeByIndex(0).getKind() === types.TypeKind.NUMBER);
+        assert.check( (type as types.TupleType).getTypeByIndex(1).getKind() === types.TypeKind.STRING);
+    }) ;
+});
+
+describe('LocationTypeLabel', function(): void {
+    it('should evaluate to LOCATION TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const locationTypeNode = labels.mkLocationType(numberNode);
+        const type = types.createType(locationTypeNode);
+        assert.check( type.getKind() === types.TypeKind.LOCATION);
+        assert.check( (type as types.LocationType).getLength() === 1 );
+        assert.check( type instanceof types.LocationType);
+    }) ;
+});
+
+describe('FunctionTypeLabel', function(): void {
+    it('should evaluate to FUNCTION TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const functionTypeNode = labels.mkFunctionType(numberNode,stringNode);
+        const type = types.createType(functionTypeNode);
+        assert.check( type.getKind() === types.TypeKind.FUNCTION);
+        assert.check( type instanceof types.FunctionType);
+    }) ;
+});
+
+describe('FieldTypeLabel', function(): void {
+    it('should evaluate to FIELD TypeKind',function() : void {
+        const varNode = mkVar("x");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const fieldTypeNode = labels.mkFieldType([varNode,stringNode]);
+        const type = types.createType(fieldTypeNode);
+        assert.check( type.getKind() === types.TypeKind.FIELD);
+        assert.check( type instanceof types.FieldType);
+    }) ;
+});
+
+describe('MeetTypeLabel', function(): void {
+    it('should evaluate to MEET TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const booleanNode = mkPrimitiveTypeLabel("booleanType");
+        const meetTypeNode = labels.mkMeetType([numberNode,stringNode,booleanNode]);
+        const type = types.createType(meetTypeNode);
+        assert.check( type.getKind() === types.TypeKind.MEET);
+        assert.check( type instanceof types.MeetType);
+        //assert.check( (type as types.MeetType).getChild(0) instanceof types.);
+        //  assert.check( (type as types.MeetType).getChild(1).getKind() === types.TypeKind.STRING);
+    }) ;
 });
 
 describe('Loc operator', function () : void {
