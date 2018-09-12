@@ -10,8 +10,8 @@ import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
-import vms = require('./vms') ;
 import types = require('./types');
+import vms = require('./vms') ;
 
 /** Value types provides classes that represent the values of Plaay programs
  * at runtime.

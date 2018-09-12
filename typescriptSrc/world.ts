@@ -14,9 +14,9 @@ import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
+import types = require('./types');
 import valueTypes = require( './valueTypes' ) ;
 import vms = require('./vms');
-import types = require('./types');
 
 /** This module contains code for the standard library.
  * 
