@@ -12,12 +12,16 @@ digraph Depends {
         label = "Legend" ;
         shape=rectangle ;
         color = black ;
+        a [style=invis];
+        b [style=invis] ;
+        c [style=invis] ;
+        d [style=invis] ;
         c -> d [label="only ts", style=dashed, fontsize=20] ; 
         a -> b [label="ts and js", fontsize=20] ;
         gui -> controller [style=invis] ;
         view -> model [style=invis] ;
         builtins -> utilities [style=invis] ;
-        
+
         gui [style=filled, fillcolor="#ffcccc"] ;
         controller [style=filled, fillcolor="#ccccff"] ;
         view [style=filled, fillcolor="#ccffcc"] ;
@@ -25,13 +29,12 @@ digraph Depends {
         builtins [style=filled, fillcolor="#ffffcc"] ;
         utilities ;
         "external libraries" [shape=rectangle] ;
-
     }
 
    utils [label="Modules 'assert' and 'collections' are omitted from this graph",
               shape=none] ;
    caption [ label="Dependence relations between modules", fontsize=40,
-              pos="1,1!", shape=none] ;
+              shape=none] ;
 
     main [style=filled, fillcolor="#ffcccc"] ;
     editor [style=filled, fillcolor="#ffcccc"] ;
