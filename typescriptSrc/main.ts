@@ -10,7 +10,6 @@ import animator = require('./animator');
 import createHtmlElements = require('./createHtmlElements');
 import editor = require('./editor');
 import userRelated = require('./userRelated');
-import {identifier} from "../tsServer/node_modules/@types/babel-types";
 
 /** The main module is the entry point.  It creates the HTML and installs the 
  * initial set of event handlers.
