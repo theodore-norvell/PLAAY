@@ -541,7 +541,7 @@ module pnodeEdits {
     /**  Changes the string value of a node's label.
      *  
      */
-    export class ChangeLabelEdit extends AbstractEdit<Selection> {
+    export class ChangeStringEdit extends AbstractEdit<Selection> {
         private _newString:string;
 
         constructor(newString:string) {
@@ -580,12 +580,10 @@ module pnodeEdits {
         public applyEdit(selection:Selection):Option<Selection> {
             const nodes = selection.selectedNodes() ;
             if( nodes.length !== 1 ) {
-                console.log( "Length isn't 1") ;
                 return none() ; }
             const node = nodes[0] ;
             const label = node.label()  ;
             if( ! (label instanceof VarDeclLabel) ) {
-                console.log( "Node isn't VarDeclNode") ;
                 return none() ; }
             const isConst = (label as VarDeclLabel).declaresConstant() ;
             const newNode = mkVarOrLocDecl( !isConst, node.child(0), node.child(1), node.child(2) ) ;

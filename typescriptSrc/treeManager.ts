@@ -496,7 +496,7 @@ module treeManager {
             // First change the label
             const oldLabelEmpty = selection.size() === 1
                                && selection.selectedNodes()[0].label().getVal() === "" ;
-            const changeLabel = new pnodeEdits.ChangeLabelEdit(newString);
+            const changeLabel = new pnodeEdits.ChangeStringEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
             const test0 = testEdit<Selection>(
