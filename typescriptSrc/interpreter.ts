@@ -107,8 +107,8 @@ module interpreter {
     theSelectorRegistry[ labels.LambdaLabel.kindConst ] = alwaysSelector ;
     theStepperRegistry[labels.LambdaLabel.kindConst] = lambdaStepper;
 
-    theSelectorRegistry[ labels.CallWorldLabel.kindConst ] = leftToRightSelectorRContext ;
-    theStepperRegistry[ labels.CallWorldLabel.kindConst ] = callWorldStepper ;
+    theSelectorRegistry[ labels.CallVarLabel.kindConst ] = leftToRightSelectorRContext ;
+    theStepperRegistry[ labels.CallVarLabel.kindConst ] = callVarStepper ;
 
     theSelectorRegistry[ labels.CallLabel.kindConst ] = leftToRightSelectorRContext ;
     theStepperRegistry[labels.CallLabel.kindConst] = callStepper;
@@ -348,7 +348,7 @@ module interpreter {
         vm.finishStep(closure, false);
     }
 
-    function callWorldStepper( vm : VMS ) : void {
+    function callVarStepper( vm : VMS ) : void {
         const node = vm.getPendingNode();
         const variableName = node.label().getVal();
         if (vm.getStack().hasField(variableName)) {

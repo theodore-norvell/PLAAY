@@ -462,10 +462,10 @@ module animationView
                 // result.addClass( "workplace" ) ;
             }
             break ;
-            case labels.CallWorldLabel.kindConst :
+            case labels.CallVarLabel.kindConst :
             {
                 const childArray = element.children();
-                // result.addClass( "callWorld" ) ;
+                // result.addClass( "callVar" ) ;
                 // result.addClass( "H" ) ;
                 const opText = element.text(node.label().getVal());
                 const labelString = node.label().getVal() ;
@@ -501,8 +501,8 @@ module animationView
                     }
                 }
 
-                doCallWorldLabelStylingSVG(opText);
-                drawHighlightOn = makeCallWorldBorderSVG(parent, element);
+                doCallVarLabelStylingSVG(opText);
+                drawHighlightOn = makeCallVarBorderSVG(parent, element);
                 
             }
             break ;
@@ -1238,13 +1238,13 @@ module animationView
         line.stroke({color: MAUVE, opacity: 1, width: 4});
     }
 
-    function doCallWorldLabelStylingSVG(textElement : svg.Text) : void
+    function doCallVarLabelStylingSVG(textElement : svg.Text) : void
     {
         textElement.fill(MAUVE);
         textElement.style( varStyle );
     }
 
-    function makeCallWorldBorderSVG(base : svg.Container, el : svg.Container) : svg.G
+    function makeCallVarBorderSVG(base : svg.Container, el : svg.Container) : svg.G
     {
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);

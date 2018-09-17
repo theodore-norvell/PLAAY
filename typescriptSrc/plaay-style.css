@@ -629,7 +629,7 @@ div.call {
     min-height: 1em ;
 }
 
-div.callWorld {
+div.callVar {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */

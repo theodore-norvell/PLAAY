@@ -402,7 +402,7 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
 });
 
 describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
-    const rootlabel = new labels.CallWorldLabel("/", false);
+    const rootlabel = new labels.CallVarLabel("/", false);
     const op1 = labels.mkNumberLiteral("9");
     const op2 = labels.mkNumberLiteral("3");
     const root = new PNode(rootlabel, [op1, op2]);

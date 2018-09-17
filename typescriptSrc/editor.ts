@@ -646,7 +646,7 @@ module editor {
                 e.preventDefault();
             }
             else if( !e.shiftKey && e.which === 192 ) {  // Backquote
-                createNode(Actions.WORLD_CALL, currentSelection );
+                createNode(Actions.CALL_VAR, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -673,28 +673,28 @@ module editor {
                 const charCode : number = e.which;
                 if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
                 {
-                    createNode(Actions.WORLD_CALL, currentSelection, "+");
+                    createNode(Actions.CALL_VAR, currentSelection, "+");
                 }
                 else if(charCode === 61)
                 {
-                    createNode(Actions.WORLD_CALL, currentSelection, "=");
+                    createNode(Actions.CALL_VAR, currentSelection, "=");
                 }
                 else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
-                    createNode(Actions.WORLD_CALL, currentSelection, "-");
+                    createNode(Actions.CALL_VAR, currentSelection, "-");
                 }
                 else if(charCode === 56 || charCode === 106)
                 {
-                    createNode(Actions.WORLD_CALL, currentSelection, "*");
+                    createNode(Actions.CALL_VAR, currentSelection, "*");
                 }
                 else if( charCode === 188 ) {
-                    createNode(Actions.WORLD_CALL, currentSelection, "<");
+                    createNode(Actions.CALL_VAR, currentSelection, "<");
                 }
                 else if( charCode === 190 ) {
-                    createNode(Actions.WORLD_CALL, currentSelection, ">");
+                    createNode(Actions.CALL_VAR, currentSelection, ">");
                 }
                 else if( charCode === 53 ) {
-                    createNode(Actions.WORLD_CALL, currentSelection, "%");
+                    createNode(Actions.CALL_VAR, currentSelection, "%");
                 }
                 else if( charCode === 55 ) {
                     createNode(Actions.AND_OR_MEET_TYPE, currentSelection );
@@ -704,7 +704,7 @@ module editor {
                 }
                 else //only the codes for /  can possibly remain.
                 {
-                    createNode(Actions.WORLD_CALL, currentSelection, "/");
+                    createNode(Actions.CALL_VAR, currentSelection, "/");
                 }
                 e.stopPropagation();
                 e.preventDefault();

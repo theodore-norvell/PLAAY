@@ -35,8 +35,8 @@ import BoolV = values.BoolV;
 import TupleV = values.TupleV;
 import NullV = values.NullV;
 import PNode = pnode.PNode ;
-import { mkAccessor, mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq,
-         mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject,
+import { mkAccessor, mkAssign, mkCall, mkConstDecl, mkDot, mkExprSeq,
+         mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject, mkOpenCallVar,
          mkParameterList, mkPrimitiveTypeLabel, mkTuple, mkVar, mkVarDecl, mkVarOrLocDecl }
        from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
@@ -204,7 +204,7 @@ describe ('Call - method', function(): void {
                                                                   mkNoTypeNd(),
                                                                   mkExprSeq([
                                                                 mkAssign( mkVar("x"),
-                                                                          mkCallWorld("+", [mkVar("x"), mkVar("y")]))
+                                                                          mkOpenCallVar("+", [mkVar("x"), mkVar("y")]))
                                                                 ]) ))
                                     ]));
     const add2 = mkCall( mkDot( "f", false, mkVar("a") ),
@@ -231,7 +231,7 @@ describe ('Call - method', function(): void {
 describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const callWorld = new PNode(new labels.CallVarLabel("f", false), []);
     const root = mkExprSeq([lambdaDecl, callWorld]);
     // {  var f : := \ -> { 42 }
     //    callWorld[f]()
@@ -261,10 +261,10 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
     const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("*", [mkVar("x"), mkVar("y")])]);
+    const lambdaBody = mkExprSeq([mkOpenCallVar("*", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-    const callWorld = new PNode(new labels.CallWorldLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
+    const callWorld = new PNode(new labels.CallVarLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
     const root = mkExprSeq([lambdaDecl, callWorld]);
     const vm = makeStdVMS(root);
 
@@ -291,10 +291,10 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
     const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
-    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkNumberLiteral("5")])]);
+    const lambdaBody = mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkNumberLiteral("5")])]);
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
     const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
-    const callWorld = new PNode(new labels.CallWorldLabel("f", false), []);
+    const callWorld = new PNode(new labels.CallVarLabel("f", false), []);
     const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
 
     it('should evaluate to a NumberV equaling 8', function() : void {
@@ -305,7 +305,7 @@ describe ('CallWorldLabel - closure (w/ context)', function(): void {
 });
 
 describe( 'CallWorldLabel - addition', function() : void {
-  const rootlabel = new labels.CallWorldLabel("+", false);
+  const rootlabel = new labels.CallVarLabel("+", false);
   const op1 = labels.mkNumberLiteral("2");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -340,7 +340,7 @@ describe( 'CallWorldLabel - subtraction', function() : void {
 
 
   it('callWorld["-"]() should equal 0', function() : void {
-    const root = mkCallWorld("-", []) ;
+    const root = mkOpenCallVar("-", []) ;
     const val = getResult( root ) ;
     assert.check( val instanceof NumberV ) ;
     assert.check( (val as NumberV).getVal() === 0 );
@@ -348,21 +348,21 @@ describe( 'CallWorldLabel - subtraction', function() : void {
 
 
   it('callWorld["-"](5) should equal 5', function() : void {
-    const root = mkCallWorld("-", [op1]) ;
+    const root = mkOpenCallVar("-", [op1]) ;
     const val = getResult( root ) ;
     assert.check( val instanceof NumberV ) ;
     assert.check( (val as NumberV).getVal() === -5 );
   } );
 
   it('callWorld["-"](5, 3) should equal 2', function() : void {
-      const root = mkCallWorld("-", [op1, op2]) ;
+      const root = mkOpenCallVar("-", [op1, op2]) ;
       const val = getResult( root ) ;
       assert.check( val instanceof NumberV ) ;
       assert.check( (val as NumberV).getVal() === 2 );
   } );
 
   it('callWorld["-"](5, 3, 7 ) should equal -5', function() : void {
-      const root = mkCallWorld("-", [op1, op2, op3]) ;
+      const root = mkOpenCallVar("-", [op1, op2, op3]) ;
       const val = getResult( root ) ;
       assert.check( val instanceof NumberV ) ;
       assert.check( (val as NumberV).getVal() === -5 );
@@ -373,28 +373,28 @@ describe( 'CallWorldLabel - multiplication', function() : void {
 
 
     it('*() should give 1', function() : void {
-        const root = mkCallWorld("*", [] ) ;
+        const root = mkOpenCallVar("*", [] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1);
     } );
 
     it('*(two) should give 2', function() : void {
-        const root = mkCallWorld("*", [two] ) ;
+        const root = mkOpenCallVar("*", [two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 2);
     } );
 
     it('nine * three should give 27', function() : void {
-        const root = mkCallWorld("*", [nine, three] ) ;
+        const root = mkOpenCallVar("*", [nine, three] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 27);
     } );
 
     it('* nine three two should give 54', function() : void {
-        const root = mkCallWorld("*", [nine, three, two] ) ;
+        const root = mkOpenCallVar("*", [nine, three, two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 54);
@@ -405,63 +405,63 @@ describe( 'CallWorldLabel - multiplication', function() : void {
 describe( 'CallWorldLabel - division', function() : void {
 
     it('/() should give 1', function() : void {
-        const root = mkCallWorld("/", [] ) ;
+        const root = mkOpenCallVar("/", [] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1);
     } );
 
     it('/ two should give 0.5', function() : void {
-        const root = mkCallWorld("/", [two] ) ;
+        const root = mkOpenCallVar("/", [two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 0.5);
     } );
 
     it('nine / three should give 3', function() : void {
-        const root = mkCallWorld("/", [nine, three] ) ;
+        const root = mkOpenCallVar("/", [nine, three] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 3);
     } );
 
     it('five / two should give 2.5', function() : void {
-        const root = mkCallWorld("/", [five, two] ) ;
+        const root = mkOpenCallVar("/", [five, two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 2.5);
     } );
 
     it('/ nine three two should give 1.5', function() : void {
-        const root = mkCallWorld("/", [nine, three, two] ) ;
+        const root = mkOpenCallVar("/", [nine, three, two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1.5);
     } );
 
     it('/ zero should give +infinity', function() : void {
-        const root = mkCallWorld("/", [zero] ) ;
+        const root = mkOpenCallVar("/", [zero] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1/0);
     } );
 
     it('two / zero should give +infinity', function() : void {
-        const root = mkCallWorld("/", [two, zero] ) ;
+        const root = mkOpenCallVar("/", [two, zero] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1/0);
     } );
 
     it('/(2,0,5) should give +infinity', function() : void {
-        const root = mkCallWorld("/", [two, zero, five] ) ;
+        const root = mkOpenCallVar("/", [two, zero, five] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === 1/0);
     } );
 
     it('zero / two should give zero', function() : void {
-        const root = mkCallWorld("/", [zero, two] ) ;
+        const root = mkOpenCallVar("/", [zero, two] ) ;
         const val = getResult( root ) ;
         assert.check( val instanceof NumberV ) ;
         assert.checkEqual( 0.0, (val as NumberV).getVal() );
@@ -469,7 +469,7 @@ describe( 'CallWorldLabel - division', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - greater than', function() : void {
-  const rootlabel = new labels.CallWorldLabel(">", false);
+  const rootlabel = new labels.CallVarLabel(">", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -497,7 +497,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - greater than', function() : void {
-  const rootlabel = new labels.CallWorldLabel(">", false);
+  const rootlabel = new labels.CallVarLabel(">", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -525,7 +525,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - greater than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const rootlabel = new labels.CallVarLabel(">=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -553,7 +553,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - greater than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const rootlabel = new labels.CallVarLabel(">=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -581,7 +581,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - greater than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel(">=", false);
+  const rootlabel = new labels.CallVarLabel(">=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -609,7 +609,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - less than', function() : void {
-  const rootlabel = new labels.CallWorldLabel("<", false);
+  const rootlabel = new labels.CallVarLabel("<", false);
   const op1 = labels.mkNumberLiteral("1");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -637,7 +637,7 @@ describe( 'CallWorldLabel - less than', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - less than', function() : void {
-  const rootlabel = new labels.CallWorldLabel("<", false);
+  const rootlabel = new labels.CallVarLabel("<", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -665,7 +665,7 @@ describe( 'CallWorldLabel - less than', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - less than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const rootlabel = new labels.CallVarLabel("<=", false);
   const op1 = labels.mkNumberLiteral("1");
   const op2 = labels.mkNumberLiteral("3");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -693,7 +693,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - less than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const rootlabel = new labels.CallVarLabel("<=", false);
   const op1 = labels.mkNumberLiteral("1000");
   const op2 = labels.mkNumberLiteral("300");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -721,7 +721,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - less than or equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("<=", false);
+  const rootlabel = new labels.CallVarLabel("<=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -750,7 +750,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
 
 /* Test for (true = true) = (false = false) = true */
 describe( 'CallWorldLabel - equal', function() : void {
-    const rootLabel = new labels.CallWorldLabel("=",false);
+    const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkTrueBooleanLiteral();
     const op2 = labels.mkFalseBooleanLiteral();
     const op3 = labels.mkTrueBooleanLiteral();
@@ -801,7 +801,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 
 /* Test for (true = x) = (x = true) = false for any x not true */
 describe( 'CallWorldLabel - equal', function() : void {
-    const rootLabel = new labels.CallWorldLabel("=",false);
+    const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkTrueBooleanLiteral();
     const op2 = labels.mkNumberLiteral("123");
     const root = new PNode(rootLabel, [op1,op2,op2,op1]);
@@ -839,7 +839,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 
 /* Test for (false = x) = (x = false) = false for any x not false */
 describe( 'CallWorldLabel - equal', function() : void {
-    const rootLabel = new labels.CallWorldLabel("=",false);
+    const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkFalseBooleanLiteral();
     const op2 = labels.mkNumberLiteral("123");
     const root = new PNode(rootLabel, [op1,op2,op2,op1]);
@@ -876,7 +876,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 });
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("=", false);
+  const rootlabel = new labels.CallVarLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -904,7 +904,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - equal', function() : void {
-  const rootlabel = new labels.CallWorldLabel("=", false);
+  const rootlabel = new labels.CallVarLabel("=", false);
   const op1 = labels.mkStringLiteral("This is a string");
   const op2 = labels.mkStringLiteral("This is not the same string");
   const root = new PNode(rootlabel, [op1, op2]);
@@ -932,7 +932,7 @@ describe( 'CallWorldLabel - equal', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
-  const rootlabel = new labels.CallWorldLabel("and", false);
+  const rootlabel = new labels.CallVarLabel("and", false);
   const op1 = labels.mkTrueBooleanLiteral();
   const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
@@ -960,7 +960,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical and', function() : void {
-  const rootlabel = new labels.CallWorldLabel("and", false);
+  const rootlabel = new labels.CallVarLabel("and", false);
   const op1 = labels.mkTrueBooleanLiteral();
   const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
@@ -988,7 +988,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("or", false);
+  const rootlabel = new labels.CallVarLabel("or", false);
   const op1 = labels.mkTrueBooleanLiteral();
   const op2 = labels.mkTrueBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
@@ -1016,7 +1016,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("or", false);
+  const rootlabel = new labels.CallVarLabel("or", false);
   const op1 = labels.mkTrueBooleanLiteral();
   const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
@@ -1044,7 +1044,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - logical or', function() : void {
-  const rootlabel = new labels.CallWorldLabel("or", false);
+  const rootlabel = new labels.CallVarLabel("or", false);
   const op1 = labels.mkFalseBooleanLiteral();
   const op2 = labels.mkFalseBooleanLiteral();
   const root = new PNode(rootlabel, [op1, op2]);
@@ -1072,7 +1072,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
 } ) ;
 
 describe( 'CallWorldLabel - implies', function() : void {
-    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const rootlabel = new labels.CallVarLabel("implies", false);
     const op1 = labels.mkFalseBooleanLiteral();
     const op2 = labels.mkFalseBooleanLiteral();
     const op3 = labels.mkFalseBooleanLiteral();
@@ -1110,7 +1110,7 @@ describe( 'CallWorldLabel - implies', function() : void {
   } ) ;
 
 describe( 'CallWorldLabel - implies', function() : void {
-    const rootlabel = new labels.CallWorldLabel("implies", false);
+    const rootlabel = new labels.CallVarLabel("implies", false);
     const op1 = labels.mkTrueBooleanLiteral();
     const op2 = labels.mkTrueBooleanLiteral();
     const op3 = labels.mkTrueBooleanLiteral();
@@ -1151,7 +1151,7 @@ describe( 'CallWorldLabel - implies', function() : void {
 describe ('Call Label with closure', function(): void {
     const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
     const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
-    const lambdaBody = mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])]);
+    const lambdaBody = mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
     const vm = makeStdVMS(root);
@@ -1221,7 +1221,7 @@ describe ('Call node', function(): void {
                                 [mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()),
                                  mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
                               mkNoTypeNd(),
-                              mkExprSeq([mkCallWorld("+", [mkVar("x"), mkVar("y")])])) );
+                              mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkVar("y")])])) );
     // loc h := lambda -> 42
     const dec_h = mkVarDecl(
                     mkVar("h"),
@@ -1248,7 +1248,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[f]( () ) should result in ()", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld("f", [mkTuple([])])] ) ;
+                                  mkOpenCallVar("f", [mkTuple([])])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
         assert.check( (result as TupleV).itemCount() === 0 ) ;
@@ -1256,7 +1256,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[f]() should result in ()", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld("f", [])] ) ;
+                                  mkOpenCallVar("f", [])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof TupleV ) ;
         assert.check( (result as TupleV).itemCount() === 0 ) ;
@@ -1281,7 +1281,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[f](1) should result in 1", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld("f",
+                                  mkOpenCallVar("f",
                                               [mkTuple([mkNumberLiteral("1")])] ) ] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
@@ -1290,7 +1290,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[f](1) should result in 1", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld("f", [mkNumberLiteral("1")])] ) ;
+                                  mkOpenCallVar("f", [mkNumberLiteral("1")])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
         assert.check( (result as NumberV).getVal() === 1 ) ;
@@ -1308,7 +1308,7 @@ describe ('Call node', function(): void {
 
     it( "callWorld[f]((3,5)) should result in (3,5)", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld( "f",
+                                  mkOpenCallVar( "f",
                                                [mkTuple([mkNumberLiteral("3"),
                                                          mkNumberLiteral("5")])])] ) ;
         const result = getResult( root ) ;
@@ -1328,7 +1328,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[f](3,5) should result in (3,5)", function() : void {
         const root = mkExprSeq( [ dec_f,
-                                  mkCallWorld( "f",
+                                  mkOpenCallVar( "f",
                                                [mkNumberLiteral("3"),
                                                 mkNumberLiteral("5")])] ) ;
         const result = getResult( root ) ;
@@ -1351,13 +1351,13 @@ describe ('Call node', function(): void {
 
     it( "callWorld[g](()) should result in an error", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld("g", [mkTuple([])])] ) ;
+                                  mkOpenCallVar("g", [mkTuple([])])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
     } ) ;
 
     it( "callWorld[g]() should result in an error", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld("g", [])] ) ;
+                                  mkOpenCallVar("g", [])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
     } ) ;
 
@@ -1376,14 +1376,14 @@ describe ('Call node', function(): void {
 
     it( "callVar[g]((1)) should result in an error", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld("g",
+                                  mkOpenCallVar("g",
                                               [mkTuple([mkNumberLiteral("1")])  ])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
     } ) ;
 
     it( "callVar[g](1) should result in an error", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld("g", [mkNumberLiteral("1")])] ) ;
+                                  mkOpenCallVar("g", [mkNumberLiteral("1")])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 2." ) ;
     } ) ;
 
@@ -1399,7 +1399,7 @@ describe ('Call node', function(): void {
 
     it( "callWorld[g]((3,5)) should result in 8", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld( "g",
+                                  mkOpenCallVar( "g",
                                                [mkTuple([mkNumberLiteral("3"),
                                                          mkNumberLiteral("5")])])] ) ;
         const result = getResult( root ) ;
@@ -1419,7 +1419,7 @@ describe ('Call node', function(): void {
 
     it( "callWorld(g,3,5) should result in 8", function() : void {
         const root = mkExprSeq( [ dec_g,
-                                  mkCallWorld( "g",
+                                  mkOpenCallVar( "g",
                                                [mkNumberLiteral("3"),
                                                 mkNumberLiteral("5") ] ) ] ) ;
         const result = getResult( root ) ;
@@ -1445,7 +1445,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[h](()) should result in 42", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld("h", [mkTuple([])])] ) ;
+                                  mkOpenCallVar("h", [mkTuple([])])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
         assert.check( (result as NumberV).getVal() === 42 ) ;
@@ -1453,7 +1453,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[h]() should result in 42", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld("h", [])] ) ;
+                                  mkOpenCallVar("h", [])] ) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
         assert.check( (result as NumberV).getVal() === 42 ) ;
@@ -1474,13 +1474,13 @@ describe ('Call node', function(): void {
 
     it( "callVar[h]((1) should result in an error", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld("h",
+                                  mkOpenCallVar("h",
                                               [mkTuple([mkNumberLiteral("1")]) ])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
     } ) ;
     it( "callVar[h](1) should result in an error", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld("h", [mkNumberLiteral("1")])] ) ;
+                                  mkOpenCallVar("h", [mkNumberLiteral("1")])] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
     } ) ;
 
@@ -1494,7 +1494,7 @@ describe ('Call node', function(): void {
 
     it( "callVar[h]((3,5)) should result in (3,5)", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld( "h",
+                                  mkOpenCallVar( "h",
                                                [mkTuple([mkNumberLiteral("3"),
                                                          mkNumberLiteral("5")])])] ) ;
         
@@ -1511,7 +1511,7 @@ describe ('Call node', function(): void {
 
     it( "callWorld(h,3,5) should result in (3,5)", function() : void {
         const root = mkExprSeq( [ dec_h,
-                                  mkCallWorld( "h",
+                                  mkOpenCallVar( "h",
                                                [mkNumberLiteral("3"),
                                                 mkNumberLiteral("5")] ) ] ) ;
         expectError( root, "Call has the wrong number of arguments: expected 0." ) ;
@@ -1544,7 +1544,7 @@ describe('Calls to built-ins with tuples as arguments', function() : void {
     } ) ;
 
     it( 'callWorld should work with a 0 tuple', function() : void {
-        const root = mkCallWorld("+", [ mkTuple([])]) ;
+        const root = mkOpenCallVar("+", [ mkTuple([])]) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
         assert.check( (result as NumberV).getVal() === 0 ) ;
@@ -1552,7 +1552,7 @@ describe('Calls to built-ins with tuples as arguments', function() : void {
 
 
     it( 'callWorld should work with a so-called 1-tuple', function() : void {
-        const root = mkCallWorld("+", [ mkTuple([mkNumberLiteral("42")])]) ;
+        const root = mkOpenCallVar("+", [ mkTuple([mkNumberLiteral("42")])]) ;
         const result = getResult( root ) ;
         assert.check( result instanceof NumberV ) ;
         assert.check( (result as NumberV).getVal() === 42 ) ;
@@ -1560,7 +1560,7 @@ describe('Calls to built-ins with tuples as arguments', function() : void {
 
 
     it( 'callWorld should work with a 3-tuple', function() : void {
-        const root = mkCallWorld("+", [ mkTuple([mkNumberLiteral("42"),
+        const root = mkOpenCallVar("+", [ mkTuple([mkNumberLiteral("42"),
                                                  mkNumberLiteral("7"),
                                                  mkNumberLiteral("21")])]) ;
         const result = getResult( root ) ;
@@ -1718,7 +1718,7 @@ describe('ArrayLiteralLabel', function(): void {
 describe('len built in', function(): void {
   it('should return a len of 2', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23"), mkNumberLiteral("123127645")]);
-    const lenCall = new PNode(new labels.CallWorldLabel("len", false), [array]);
+    const lenCall = new PNode(new labels.CallVarLabel("len", false), [array]);
     const root = mkExprSeq([array, lenCall]);
     const vm = makeStdVMS(root);
     while (vm.canAdvance()) {
@@ -1735,7 +1735,7 @@ describe('push built in', function(): void {
   it('should return a NumberV equaling 1000', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23")]);
     const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
-    const pushCall = new PNode(new labels.CallWorldLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
+    const pushCall = new PNode(new labels.CallVarLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
     const accessor = mkAccessor( mkVar("a"), labels.mkStringLiteral("1") ) ;
     const root = mkExprSeq([arrayDecl, pushCall, accessor]);
     const vm = makeStdVMS(root);
@@ -1753,8 +1753,8 @@ describe('pop built in', function(): void {
   it('should return a len of 2', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("1"), mkNumberLiteral("2"), mkNumberLiteral("3")]);
     const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
-    const popCall = new PNode(new labels.CallWorldLabel("pop", false), [mkVar("a")]);
-    const lenCall = new PNode(new labels.CallWorldLabel("len", false), [mkVar("a")]);
+    const popCall = new PNode(new labels.CallVarLabel("pop", false), [mkVar("a")]);
+    const lenCall = new PNode(new labels.CallVarLabel("len", false), [mkVar("a")]);
     const root = mkExprSeq([arrayDecl, popCall, lenCall]);
     const vm = makeStdVMS(root);
     while (vm.canAdvance()) {
@@ -2951,7 +2951,7 @@ describe('Loc operator', function () : void {
                                                     mkVarDecl( mkVar("x"), mkNoTypeNd(), 
                                                                mkNumberLiteral("0")),
                                                     mkLoc( mkVar("x") ) ] ) ) ),
-                             mkLoc( mkCallWorld("f", [] ) )
+                             mkLoc( mkOpenCallVar("f", [] ) )
                          ]) ;
             const result = getResult( root ) ;
             assert.check( result.isLocationV() ) ;

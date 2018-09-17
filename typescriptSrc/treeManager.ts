@@ -24,7 +24,7 @@ module treeManager {
     import id = edits.id ;
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
-    import CallWorldLabel = labels.CallWorldLabel ;
+    import CallVarLabel = labels.CallVarLabel ;
     import Selection = pnodeEdits.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
@@ -33,7 +33,7 @@ module treeManager {
 
     export enum Actions { IF, WHILE, STRING, NUMBER, TRUE, FALSE, NULL,
                           OBJECT, ARRAY, VAR, VAR_DECL, ASSIGN, CALL, LOC,
-                          WORLD_CALL, INDEX, DOT, LAMBDA, NO_TYPE, TUPLE,
+                          CALL_VAR, INDEX, DOT, LAMBDA, NO_TYPE, TUPLE,
                           STRING_TYPE, NUMBER_TYPE, NULL_TYPE, BOOLEAN_TYPE,
                           INTEGER_TYPE, NAT_TYPE, LOCATION_TYPE,
                           TOP_TYPE, BOTTOM_TYPE,
@@ -114,8 +114,8 @@ module treeManager {
                 case Actions.LOC:
                     edit = this.makeLocNode();
                     break ;
-                case Actions.WORLD_CALL:
-                    edit = this.makeWorldCallNode( "", 0);
+                case Actions.CALL_VAR:
+                    edit = this.makeCallVarNode( "", 0);
                     break ;
                 case Actions.INDEX:
                     edit = this.makeAccessorNode() ;
@@ -205,11 +205,11 @@ module treeManager {
                     edit = alt( [ this.makeTupleNode(), this.makeTupleType() ] ) ;
                     break ;
                 case Actions.AND_OR_MEET_TYPE :
-                    edit = alt( [ this.makeWorldCallNode("and", 2),
+                    edit = alt( [ this.makeCallVarNode("and", 2),
                                   this.makeMeetTypeNode() ] ) ;
                     break ;
                 case Actions.OR_OR_JOIN_TYPE :
-                    edit = alt( [ this.makeWorldCallNode("or", 2),
+                    edit = alt( [ this.makeCallVarNode("or", 2),
                                   this.makeJoinTypeNode() ] ) ;
                     break ;
                 default:
@@ -238,8 +238,8 @@ module treeManager {
                 case Actions.VAR:
                     edit = this.makeVarNode(text);
                     break ;
-                case Actions.WORLD_CALL:
-                    edit = this.makeWorldCallNode(text, 2);
+                case Actions.CALL_VAR:
+                    edit = this.makeCallVarNode(text, 2);
                     break ;
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
@@ -375,27 +375,27 @@ module treeManager {
             return replaceOrEngulfTemplateEdit( templates  ) ;
         }
 
-        private makeWorldCallNode(name : string, argCount : number ) : Edit<Selection> {
-            // console.log( ">> Calling makeWorldCallNode") ;
+        private makeCallVarNode(name : string, argCount : number ) : Edit<Selection> {
+            // console.log( ">> Calling makeCallVarNode") ;
             const args = new Array<PNode>() ;
             for( let i = 0 ; i < argCount ; ++i ) {
                 args.push(placeHolder) ;
             }
-            let worldcallnode : PNode ;
+            let callVarNode : PNode ;
             if(name === "")
             {
-                worldcallnode = labels.mkCallWorld( name, args);
+                callVarNode = labels.mkOpenCallVar( name, args);
                 const template = argCount === 0
-                    ? new Selection( worldcallnode, list<number>(), 0, 0 )
-                    : new Selection( worldcallnode, list<number>(), 0, 1 ) ;
+                    ? new Selection( callVarNode, list<number>(), 0, 0 )
+                    : new Selection( callVarNode, list<number>(), 0, 1 ) ;
                 return replaceOrEngulfTemplateEdit( template  ) ;
             }
             else
             {
-                worldcallnode = labels.mkClosedCallWorld(name, args);
+                callVarNode = labels.mkClosedCallVar(name, args);
                 const template = argCount===0
-                    ? new Selection( worldcallnode, list<number>(), 0, 0 )
-                    : new Selection( worldcallnode, list<number>(), 0, 1 );
+                    ? new Selection( callVarNode, list<number>(), 0, 0 )
+                    : new Selection( callVarNode, list<number>(), 0, 1 );
                 return replaceOrEngulfTemplateEdit( template  ) ;
             }
         }
@@ -506,7 +506,7 @@ module treeManager {
                     const p = nodes[0] ;
                     return oldLabelEmpty
                           && treeView.stringIsInfixOperator( newString )
-                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.label().kind() === CallVarLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add two placeholders as children and select callVar node.
             const addPlaceholders = pnodeEdits.insertChildrenEdit(
@@ -520,7 +520,7 @@ module treeManager {
                     const p = nodes[0] ;
                     return oldLabelEmpty
                           && ! treeView.stringIsInfixOperator( newString )
-                          && p.label().kind() === CallWorldLabel.kindConst 
+                          && p.label().kind() === CallVarLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add one placeholder.
             // Othewise leave it alone.

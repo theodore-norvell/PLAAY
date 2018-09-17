@@ -159,10 +159,10 @@ module treeView
                 result.append( doBox );
             }
             break ;
-            case labels.CallWorldLabel.kindConst :
+            case labels.CallVarLabel.kindConst :
             {
                 result  = $(document.createElement("div")) ;
-                result.addClass( "callWorld" ) ;
+                result.addClass( "callVar" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;

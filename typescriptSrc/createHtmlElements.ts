@@ -102,7 +102,7 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem", "loc", palette, "loc", Actions.LOC);
 		createTexted("div", "leftSideButton paletteItem", "assign", palette, ":=", Actions.ASSIGN);
 		createTexted("div", "leftSideButton paletteItem", "var", palette, "x", Actions.VAR);
-		createTexted("div", "leftSideButton paletteItem", "worldcall", palette, "+ - ...", Actions.WORLD_CALL);
+		createTexted("div", "leftSideButton paletteItem", "callvar", palette, "+ - ...", Actions.CALL_VAR);
 		createTexted("div", "leftSideButton paletteItem", "call", palette, "call", Actions.CALL);
 		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", Actions.INDEX);
 		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", Actions.DOT);

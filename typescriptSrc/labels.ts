@@ -270,26 +270,25 @@ module labels {
     pnode.registry[ AssignLabel.kindConst ] = AssignLabel ;
 
 
-    /** Calls to explicitly named functions.
-     * TODO Change the name to something else. */
-    export class CallWorldLabel extends ExprLabelWithString  {
+    /** Calls to explicitly named functions. */
+    export class CallVarLabel extends ExprLabelWithString  {
 
-        public static readonly kindConst : string = "CallWorldLabel" ;
+        public static readonly kindConst : string = "CallVarLabel" ;
 
         public isValid(children:Array<PNode>):boolean {
             return children.every((c : PNode) => c.isExprNode()  ) ;
         }
 
         public toString():string {
-            return "callWorld";
+            return "callVar";
         }
 
         public open() : Option<Label> {
-            return some( new CallWorldLabel( this._val, true ) ) ;
+            return some( new CallVarLabel( this._val, true ) ) ;
         }
 
         public changeString (newString : string) : Option<Label> {
-            const newLabel = new CallWorldLabel(newString, false);
+            const newLabel = new CallVarLabel(newString, false);
             return new Some(newLabel);
         }
 
@@ -299,18 +298,19 @@ module labels {
         }
 
         public toJSON() : object {
-            return { kind: CallWorldLabel.kindConst, name: this._val, open: this._open } ;
+            return { kind: CallVarLabel.kindConst, name: this._val, open: this._open } ;
         }
 
-        public static fromJSON( json : object ) : CallWorldLabel {
-            return new CallWorldLabel( json["name"], json["open"] ) ;
+        public static fromJSON( json : object ) : CallVarLabel {
+            return new CallVarLabel( json["name"], json["open"] ) ;
         }
     
         public hasDropZonesAt(start : number): boolean { return true; }
             
-        public kind() : string { return CallWorldLabel.kindConst ; }
+        public kind() : string { return CallVarLabel.kindConst ; }
     }
-    pnode.registry[ CallWorldLabel.kindConst ] = CallWorldLabel ;
+    pnode.registry[ CallVarLabel.kindConst ] = CallVarLabel ;
+    pnode.registry[ "CallWorldLabel" ] = CallVarLabel ; // Legacy name.
 
     /** Place holder nodes for expression. */
     export class ExprPHLabel extends ExprLabel {
@@ -882,7 +882,7 @@ module labels {
     }
     pnode.registry[ NullLiteralLabel.kindConst ] = NullLiteralLabel ;
 
-    /** Call a function.  */
+    /** Apply a function to an argument list  */
     export class CallLabel extends ExprLabel {
         
         public static readonly kindConst : string = "CallLabel" ;
@@ -1161,11 +1161,11 @@ module labels {
     export function mkExprSeq( exprs : Array<PNode> ) : PNode {
         return make( ExprSeqLabel.theExprSeqLabel, exprs ) ; }
 
-    export function mkCallWorld( name : string, args : Array<PNode> ) : PNode {
-        return make( new CallWorldLabel( name, true), args ) ; }
+    export function mkOpenCallVar( name : string, args : Array<PNode> ) : PNode {
+        return make( new CallVarLabel( name, true), args ) ; }
 
-    export function mkClosedCallWorld( name : string, args : Array<PNode> ) : PNode {
-        return make( new CallWorldLabel( name, false), args ) ; }
+    export function mkClosedCallVar( name : string, args : Array<PNode> ) : PNode {
+        return make( new CallVarLabel( name, false), args ) ; }
     
     export function mkCall( func : PNode, ...args : Array<PNode> ) : PNode {
         return make( CallLabel.theCallLabel, [func].concat(args) ) ; }
