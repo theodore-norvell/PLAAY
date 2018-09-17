@@ -4,7 +4,7 @@
 /// <reference path="../interpreter.ts" />
 /// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
-/// <reference path="../valueTypes.ts" />
+/// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
@@ -14,7 +14,7 @@ import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
-import valueTypes = require( '../valueTypes' ) ;
+import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
 import types = require('../types') ;
@@ -22,17 +22,17 @@ import types = require('../types') ;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
-import Field = valueTypes.Field;
+import Field = values.Field;
 import Type = types.TypeKind;
 import VarStack = vms.VarStack;
-import ObjectV = valueTypes.ObjectV;
-import ClosureV = valueTypes.ClosureV;
-import StringV = valueTypes.StringV;
-import NumberV = valueTypes.NumberV;
-import LocationV = valueTypes.LocationV;
-import BoolV = valueTypes.BoolV;
-import TupleV = valueTypes.TupleV;
-import NullV = valueTypes.NullV;
+import ObjectV = values.ObjectV;
+import ClosureV = values.ClosureV;
+import StringV = values.StringV;
+import NumberV = values.NumberV;
+import LocationV = values.LocationV;
+import BoolV = values.BoolV;
+import TupleV = values.TupleV;
+import NullV = values.NullV;
 import PNode = pnode.PNode ;
 import { mkAccessor, mkAssign, mkCall, mkCallWorld, mkConstDecl, mkDot, mkExprSeq,
          mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject,
@@ -1810,7 +1810,7 @@ describe( 'ExprSeqLabel', function () : void {
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
-        assert.check( val instanceof valueTypes.TupleV ) ;
+        assert.check( val instanceof values.TupleV ) ;
     } );
 });
 
@@ -2159,7 +2159,7 @@ describe('VarDeclLabel', function () : void {
 
         assert.check(vm.isDone(), "VMS is not done");
         assert.check(vm.isMapped(emptyList), "Empty list is not mapped.");
-        assert.check( vm.getVal( emptyList ) instanceof valueTypes.TupleV ) ;
+        assert.check( vm.getVal( emptyList ) instanceof values.TupleV ) ;
     });
 
     it('should fail when not using a variable node as the first node', function () : void {

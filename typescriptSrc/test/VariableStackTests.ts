@@ -3,13 +3,13 @@
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../pnode.ts" />
-/// <reference path="../valueTypes.ts" />
+/// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
 import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
-import valueTypes = require( '../valueTypes' ) ;
+import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
 import types = require('../types') ;
 import world = require('../world') ;
@@ -17,8 +17,8 @@ import world = require('../world') ;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
-import Field = valueTypes.Field;
-import ObjectV = valueTypes.ObjectV;
+import Field = values.Field;
+import ObjectV = values.ObjectV;
 import Type = types.TypeKind;
 import VarStack = vms.VarStack;
 import NonEmptyVarStack = vms.NonEmptyVarStack ;
@@ -42,7 +42,7 @@ describe( 'Variable Stack ', function() : void {
 
     it('Should be able to look up values', function() : void {
 
-        const str = new valueTypes.StringV("");
+        const str = new values.StringV("");
         const f : Field = new Field("abc", Type.TOP, manager, str);
         const obj : ObjectV = new ObjectV(manager ) ;
         obj.addField( f ) ;

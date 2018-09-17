@@ -9,12 +9,12 @@ import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
 import sharedMkHtml = require('./sharedMkHtml');
-import valueTypes = require('./valueTypes');
+import values = require('./values');
 import vms = require('./vms');
 import * as svg from "svg.js";
 
 /** The animatorHelpers module looks after the conversion of trees to SVG.*/
-module animatorHelpers 
+module animationView 
 {
     import list = collections.list;
     import List = collections.List;
@@ -25,13 +25,13 @@ module animatorHelpers
     import none = collections.none;
     // path is an alias for list<number>
     import PNode = pnode.PNode;
-    import ObjectV = valueTypes.ObjectV;
-    import StringV = valueTypes.StringV;
+    import ObjectV = values.ObjectV;
+    import StringV = values.StringV;
     import ValueMap = vms.ValueMap;
     import Value = vms.Value;
     import ObjectI = vms.ObjectI;
-    import TupleV = valueTypes.TupleV;
-    import LocationV = valueTypes.LocationV;
+    import TupleV = values.TupleV;
+    import LocationV = values.LocationV;
 
     import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
     import TRUEMARK  = sharedMkHtml.TRUEMARK ;
@@ -1093,7 +1093,7 @@ module animatorHelpers
         }
         if(value.isBoolV())
         {
-            if(value === valueTypes.BoolV.trueValue) {
+            if(value === values.BoolV.trueValue) {
                 const bool : svg.Text = element.text( TRUEMARK );
                 makeBooleanLiteralSVG(element,bool,true);
             }
@@ -1522,4 +1522,4 @@ module animatorHelpers
     }
 }
 
-export = animatorHelpers;
+export = animationView;

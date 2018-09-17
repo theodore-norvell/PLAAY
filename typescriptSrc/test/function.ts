@@ -4,7 +4,7 @@
 /// <reference path="../interpreter.ts" />
 /// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
-/// <reference path="../valueTypes.ts" />
+/// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../world.ts" />
 
@@ -14,7 +14,7 @@ import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
-import valueTypes = require( '../valueTypes' ) ;
+import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
 import types = require('../types') ;
@@ -22,12 +22,12 @@ import types = require('../types') ;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
-import Field = valueTypes.Field;
+import Field = values.Field;
 import Type =types.TypeKind;
 import VarStack = vms.VarStack;
-import ObjectV = valueTypes.ObjectV;
-import ClosureV = valueTypes.ClosureV;
-import StringV = valueTypes.StringV;
+import ObjectV = values.ObjectV;
+import ClosureV = values.ClosureV;
+import StringV = values.StringV;
 import PNode = pnode.PNode ;
 import TransactionManager = backtracking.TransactionManager ;
 const interp = interpreter.getInterpreter() ;
@@ -102,8 +102,8 @@ describe( 'Call', function() : void {
             vm.advance() ; }
         assert.check( timeOut > 0 ) ;
         const val : vms.Value = vm.getFinalValue() ;
-        assert.check( val instanceof valueTypes.StringV ) ;
-        const stringVal =  val as valueTypes.StringV ;
+        assert.check( val instanceof values.StringV ) ;
+        const stringVal =  val as values.StringV ;
         assert.check( stringVal.getVal() === expectedResult ) ;
     }
 

@@ -5,7 +5,7 @@
 /// <reference path="../pnode.ts" />
 /// <reference path="../vms.ts" />
 /// <reference path="../interpreter.ts" />
-/// <reference path="../valueTypes.ts" />
+/// <reference path="../values.ts" />
 /// <reference path="../world.ts" />
 /// <reference path="../collections.ts" />
 
@@ -15,7 +15,7 @@ import assert = require( '../assert' ) ;
 import pnode = require( '../pnode' ) ;
 import vms = require( '../vms' ) ;
 import interpreter = require('../interpreter') ;
-import valueTypes = require( '../valueTypes' ) ;
+import values = require( '../values' ) ;
 import world = require('../world') ;
 import labels = require('../labels') ;
 
@@ -25,13 +25,13 @@ import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
 import World = world.World;
-import ObjectV = valueTypes.ObjectV;
+import ObjectV = values.ObjectV;
 import PNode = pnode.PNode;
 import VMS = vms.VMS;
 import EmptyVarStack = vms.EmptyVarStack;
 import VarStack = vms.VarStack;
 import Evaluation = vms.Evaluation;
-import StringV = valueTypes.StringV;
+import StringV = values.StringV;
 
 import nil = collections.nil ;
 import list = collections.list ;

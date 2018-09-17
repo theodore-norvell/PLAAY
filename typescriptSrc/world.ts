@@ -6,7 +6,7 @@
 /// <reference path="collections.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="seymour.ts" />
-/// <reference path="valueTypes.ts" />
+/// <reference path="values.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' ) ;
@@ -15,7 +15,7 @@ import collections = require( './collections' ) ;
 import pnode = require( './pnode' ) ;
 import seymour = require('./seymour') ;
 import types = require('./types');
-import valueTypes = require( './valueTypes' ) ;
+import values = require( './values' ) ;
 import vms = require('./vms');
 
 /** This module contains code for the standard library.
@@ -26,15 +26,15 @@ module world {
     import List = collections.List;
     import TransactionManager = backtracking.TransactionManager ;
     import PNode = pnode.PNode;
-    import ObjectV = valueTypes.ObjectV;
-    import Field  = valueTypes.Field;
+    import ObjectV = values.ObjectV;
+    import Field  = values.Field;
     import Value = vms.Value;
-    import BuiltInV = valueTypes.BuiltInV ;
-    import NullV = valueTypes.NullV ;
-    import StringV = valueTypes.StringV;
-    import NumberV = valueTypes.NumberV;
-    import BoolV = valueTypes.BoolV;
-    import TupleV = valueTypes.TupleV;
+    import BuiltInV = values.BuiltInV ;
+    import NullV = values.NullV ;
+    import StringV = values.StringV;
+    import NumberV = values.NumberV;
+    import BoolV = values.BoolV;
+    import TupleV = values.TupleV;
     import Type = types.TypeKind;
     import VMS = vms.VMS;
     import EvalStack = vms.EvalStack;

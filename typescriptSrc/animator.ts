@@ -1,6 +1,6 @@
 /// <reference path="jquery.d.ts" />
 
-/// <reference path="animatorHelpers.ts" />
+/// <reference path="animationView.ts" />
 /// <reference path="assert.ts" />
 /// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
@@ -8,10 +8,10 @@
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="seymour.ts" />
-/// <reference path="valueTypes.ts" />
+/// <reference path="values.ts" />
 /// <reference path="vms.ts" />
 
-import animatorHelpers = require('./animatorHelpers');
+import animationView = require('./animationView');
 import assert = require( './assert' );
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
@@ -20,7 +20,7 @@ import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
 import * as svg from "svg.js";
-import valueTypes = require('./valueTypes');
+import values = require('./values');
 import vms = require('./vms');
 import world = require('./world') ;
 
@@ -35,10 +35,10 @@ import world = require('./world') ;
 module animator 
 {
     import EvaluationManager = evaluationManager.EvaluationManager;
-    import traverseAndBuild = animatorHelpers.traverseAndBuild;
-    import buildStack = animatorHelpers.buildStack;
-    import buildObjectArea = animatorHelpers.buildObjectArea;
-    import drawArrows = animatorHelpers.drawArrows;
+    import traverseAndBuild = animationView.traverseAndBuild;
+    import buildStack = animationView.buildStack;
+    import buildObjectArea = animationView.buildObjectArea;
+    import drawArrows = animationView.drawArrows;
     import List = collections.List;
     import list = collections.list;
     import nil = collections.nil;
@@ -74,7 +74,7 @@ module animator
     {
         createHTMLElements.hideEditor() ;
         createHTMLElements.showAnimator() ;
-        const libraries : valueTypes.ObjectV[] = [] ;
+        const libraries : values.ObjectV[] = [] ;
         const transactionMgr = new TransactionManager() ;
         const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
         turtleWorld = new seymour.TurtleWorld(canv, transactionMgr ) ;
@@ -88,7 +88,7 @@ module animator
         const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, animatorHeight);
         const animation : svg.G = animatorArea.group().move(10, 10);
         const stack : svg.G = animatorArea.group();
-        animatorHelpers.clearObjectDrawingInfo() ;
+        animationView.clearObjectDrawingInfo() ;
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
@@ -192,7 +192,7 @@ module animator
             errorPath = evaluationMgr.getVMS().getPending();
             error = evaluationMgr.getVMS().getError();
         }
-        animatorHelpers.clearObjectDrawingInfo();
+        animationView.clearObjectDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),

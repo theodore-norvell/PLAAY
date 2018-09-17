@@ -16,7 +16,7 @@ import vms = require('./vms') ;
 /** Value types provides classes that represent the values of Plaay programs
  * at runtime.
  */
-module valueTypes {
+module values {
 
     import Option = collections.Option ;
     import none = collections.none ;
@@ -381,4 +381,4 @@ module valueTypes {
     }
 
 }
-export = valueTypes ;
+export = values ;

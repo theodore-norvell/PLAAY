@@ -2,7 +2,7 @@
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="valueTypes.ts" />
+/// <reference path="values.ts" />
 /// <reference path="vms.ts" />
 /// <reference path="world.ts" />
 
@@ -12,7 +12,7 @@ import collections = require( './collections' ) ;
 import labels = require('./labels') ;
 import pnode = require('./pnode') ;
 import types = require('./types') ;
-import valueTypes = require('./valueTypes') ;
+import values = require('./values') ;
 import vms = require('./vms') ;
 import world = require('./world') ;
 
@@ -30,16 +30,16 @@ module interpreter {
     import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
     import Context = vms.Context ;
-    import BuiltInV = valueTypes.BuiltInV ;
-    import StringV = valueTypes.StringV ;
-    import NumberV = valueTypes.NumberV ;
-    import BoolV = valueTypes.BoolV ;
-    import ObjectV = valueTypes.ObjectV ;
-    import LocationV = valueTypes.LocationV ;
-    import ClosureV = valueTypes.ClosureV ;
-    import NullV = valueTypes.NullV ;
-    import TupleV = valueTypes.TupleV ;
-    import Field = valueTypes.Field;
+    import BuiltInV = values.BuiltInV ;
+    import StringV = values.StringV ;
+    import NumberV = values.NumberV ;
+    import BoolV = values.BoolV ;
+    import ObjectV = values.ObjectV ;
+    import LocationV = values.LocationV ;
+    import ClosureV = values.ClosureV ;
+    import NullV = values.NullV ;
+    import TupleV = values.TupleV ;
+    import Field = values.Field;
     import NonEmptyVarStack = vms.NonEmptyVarStack;
 
     class PlaayInterpreter implements vms.Interpreter {

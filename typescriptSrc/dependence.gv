@@ -51,7 +51,7 @@ digraph Depends {
     animatorHelpers [style=filled, fillcolor="#ccffcc"] ;
 
     vms [style=filled, fillcolor="#ffccff"] ;
-    valueTypes [style=filled, fillcolor="#ffccff"] ;
+    values [style=filled, fillcolor="#ffccff"] ;
     types [style=filled, fillcolor="#ffccff"] ;
     labels [style=filled, fillcolor="#ffccff"] ;
     pnode [style=filled, fillcolor="#ffccff"] ;
@@ -65,7 +65,7 @@ digraph Depends {
    animator -> editor ;
    animator -> evaluationManager ;
    animator -> seymour ;
-   animator -> valueTypes ;
+   animator -> values ;
    animator -> world ;
    animator -> vms [style=dashed] ;
    animator -> svg ;
@@ -74,7 +74,7 @@ digraph Depends {
    animatorHelpers -> labels ;
    animatorHelpers -> pnode [style=dashed] ;
    animatorHelpers -> sharedMkHtml ;
-   animatorHelpers -> valueTypes ;
+   animatorHelpers -> values ;
    animatorHelpers -> vms [style=dashed];
    animatorHelpers -> svg ;
    
@@ -97,7 +97,7 @@ digraph Depends {
    interpreter -> labels ;
    interpreter -> pnode  [style=dashed];
    interpreter -> types ;
-   interpreter -> valueTypes ;
+   interpreter -> values ;
    interpreter -> vms ;
    interpreter -> world  [style=dashed];
 
@@ -136,11 +136,11 @@ digraph Depends {
    userRelated -> pnodeEdits ;
    userRelated -> pnode ;
    
-   valueTypes -> backtracking ;
-   valueTypes -> labels ;
-   valueTypes -> pnode ;
-   valueTypes -> types  [style=dashed];
-   valueTypes -> vms ;
+   values -> backtracking ;
+   values -> labels ;
+   values -> pnode ;
+   values -> types  [style=dashed];
+   values -> vms ;
 
    
    vms -> backtracking
@@ -151,7 +151,7 @@ digraph Depends {
    world -> pnode  [style=dashed];
    world -> seymour  [style=dashed];
    world -> types ;
-   world -> valueTypes  [style=dashed];
+   world -> values  [style=dashed];
    world -> vms  [style=dashed];
    
 }
