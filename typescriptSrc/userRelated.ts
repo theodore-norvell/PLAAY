@@ -4,7 +4,6 @@
 /// <reference path="editor.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="sharedMkHtml.ts" />
 
 
 import collections = require( './collections' );

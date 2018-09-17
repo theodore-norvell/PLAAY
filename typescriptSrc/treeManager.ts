@@ -4,7 +4,7 @@
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
-/// <reference path="sharedMkHtml.ts" />
+/// <reference path="treeView.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
@@ -12,7 +12,7 @@ import edits = require('./edits');
 import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
-import sharedMkHtml = require( './sharedMkHtml') ;
+import treeView = require( './treeView') ;
 
 /** The treemanager provides to the UI an interface for editing a tree.
  */
@@ -505,7 +505,7 @@ module treeManager {
                     if( nodes.length === 0 ) return false ;
                     const p = nodes[0] ;
                     return oldLabelEmpty
-                          && sharedMkHtml.stringIsInfixOperator( newString )
+                          && treeView.stringIsInfixOperator( newString )
                           && p.label().kind() === CallWorldLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add two placeholders as children and select callVar node.
@@ -519,7 +519,7 @@ module treeManager {
                     if( nodes.length === 0 ) return false ;
                     const p = nodes[0] ;
                     return oldLabelEmpty
-                          && ! sharedMkHtml.stringIsInfixOperator( newString )
+                          && ! treeView.stringIsInfixOperator( newString )
                           && p.label().kind() === CallWorldLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add one placeholder.

@@ -8,8 +8,9 @@
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
-/// <reference path="sharedMkHtml.ts" />
+/// <reference path="treeView.ts" />
 /// <reference path="treeManager.ts" />
+/// <reference path="treeView.ts" />
 
 
 import assert = require('./assert') ;
@@ -18,8 +19,8 @@ import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
-import sharedMkHtml = require('./sharedMkHtml');
 import treeManager = require( './treeManager');
+import treeView = require('./treeView');
 
 /** The UI of for editing program trees. */
 module editor {
@@ -141,7 +142,7 @@ module editor {
                 const trashedSelection = trashArray[i] ;
                 const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
                 for( let j=0 ; j < a.length; ++j ) {
-                    trashItemDiv.append($(sharedMkHtml.traverseAndBuild(a[j], -1, false))); }
+                    trashItemDiv.append($(treeView.traverseAndBuild(a[j], -1, false))); }
             }
             installTrashItemDragHandler() ;
         }
@@ -177,7 +178,7 @@ module editor {
                 if( dragKind !== DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   ui is " + ui.draggable.toString()  );
                 const optSelectionToDelete : Option<Selection>
-                    = sharedMkHtml.getPathToNode(currentSelection.root(), ui.draggable);
+                    = treeView.getPathToNode(currentSelection.root(), ui.draggable);
                 console.log("   Dropping selection. " + optSelectionToDelete.toString() );
                 const opt = optSelectionToDelete.bind(
                     selectionToDelete => treeMgr.delete( selectionToDelete ) ) ;
@@ -231,9 +232,9 @@ module editor {
     function generateHTML() : void
     {
         // Refresh the view of the current selection
-        const newHTML : JQuery = sharedMkHtml.traverseAndBuild(currentSelection.root(), -1, false) ;
+        const newHTML : JQuery = treeView.traverseAndBuild(currentSelection.root(), -1, false) ;
         $("#container").empty().append(newHTML);
-        sharedMkHtml.highlightSelection( currentSelection, newHTML ) ;
+        treeView.highlightSelection( currentSelection, newHTML ) ;
         // Handle drops
         $( "#container .droppable" ).droppable({
             greedy: true,
@@ -246,7 +247,7 @@ module editor {
                 console.log( "dragKind is " + dragKind ) ;
                 console.log( "draggedObject is " + draggedObject ) ;
                 console.log( "draggedSelection is " + draggedSelection ) ;
-                const optDropTarget : Option<Selection>  = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                const optDropTarget : Option<Selection>  = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                 console.log("  on current selection " + optDropTarget.toString() ) ;
                 // Case: Dragged object is dropped on a node or drop zone of the current tree.
                 optDropTarget.map( dropTarget => {
@@ -301,7 +302,7 @@ module editor {
             opacity: 0.5, 
             start: function(event : Event, ui : JQueryUI.DraggableEventUIParams) : void {
                 console.log( ">> Drag handler for things in or in the trash" ) ;   
-                const optDraggedSelection : Option<Selection> = sharedMkHtml.getPathToNode(currentSelection.root(), $(this));
+                const optDraggedSelection : Option<Selection> = treeView.getPathToNode(currentSelection.root(), $(this));
                 optDraggedSelection.map( ds => {
                     dragKind = DragEnum.CURRENT_TREE ;            
                     draggedObject = undefined ;
@@ -331,7 +332,7 @@ module editor {
                 function(this : HTMLElement, evt : Event) : void {
                     console.log( ">> Click Handler") ;
                     const optClickTarget :  Option<Selection>
-                    = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                    = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => update( clickTarget ) ) ;
                     evt.stopPropagation(); 
                     console.log( "<< Click Handler") ;
@@ -343,7 +344,7 @@ module editor {
                 function(this : HTMLElement, evt : Event) : void {
                     console.log( ">> Double Click Handler") ;
                     const optClickTarget : Option<Selection> 
-                    = sharedMkHtml.getPathToNode(currentSelection.root(), $(this)) ;
+                    = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => {
                         const edit = new pnodeEdits.OpenLabelEdit() ;
                         const opt = edit.applyEdit( clickTarget ) ;
@@ -358,7 +359,7 @@ module editor {
         //console.log( ">>updateLabelHelper") ;
         const text = $(element).val();
         const optLocationOfTarget : Option<Selection>
-            = sharedMkHtml.getPathToNode(currentSelection.root(), $(element) )  ;
+            = treeView.getPathToNode(currentSelection.root(), $(element) )  ;
         //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
         
         optLocationOfTarget.bind(

@@ -2,13 +2,15 @@
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
+/// <reference path="treeView.ts" />
+/// <reference path="values.ts" />
 /// <reference path="vms.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
-import sharedMkHtml = require('./sharedMkHtml');
+import treeView = require('./treeView');
 import values = require('./values');
 import vms = require('./vms');
 import * as svg from "svg.js";
@@ -33,12 +35,12 @@ module animationView
     import TupleV = values.TupleV;
     import LocationV = values.LocationV;
 
-    import stringIsInfixOperator = sharedMkHtml.stringIsInfixOperator;
-    import TRUEMARK  = sharedMkHtml.TRUEMARK ;
-    import FALSEMARK = sharedMkHtml.FALSEMARK ;
-    import WHILEMARK = sharedMkHtml.WHILEMARK ;
-    import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
-    import NULLMARK = sharedMkHtml.NULLMARK ;
+    import stringIsInfixOperator = treeView.stringIsInfixOperator;
+    import TRUEMARK  = treeView.TRUEMARK ;
+    import FALSEMARK = treeView.FALSEMARK ;
+    import WHILEMARK = treeView.WHILEMARK ;
+    import LAMBDAMARK = treeView.LAMBDAMARK ;
+    import NULLMARK = treeView.NULLMARK ;
 
     const MAUVE : string = "rgb(190, 133, 197)";
     const ORANGE : string = "rgb(244, 140, 0)";
@@ -871,28 +873,28 @@ module animationView
                 let textElement : svg.Text;
                 switch (label.type) {
                     case "stringType" :
-                        textElement = element.text(sharedMkHtml.STRINGTYPE);
+                        textElement = element.text(treeView.STRINGTYPE);
                         break;
                     case "numberType" :
-                        textElement = element.text(sharedMkHtml.NUMBERTYPE);
+                        textElement = element.text(treeView.NUMBERTYPE);
                         break;
                     case "integerType" :
-                        textElement = element.text(sharedMkHtml.INTEGERTYPE);
+                        textElement = element.text(treeView.INTEGERTYPE);
                         break;
                     case "booleanType" :
-                        textElement = element.text(sharedMkHtml.BOOLEANTYPE);
+                        textElement = element.text(treeView.BOOLEANTYPE);
                         break;
                     case "natType" :
-                        textElement = element.text(sharedMkHtml.NATTYPE);
+                        textElement = element.text(treeView.NATTYPE);
                         break;
                     case "nullType" :
                         textElement = element.text(NULLMARK);
                         break;
                     case "topType" :
-                        textElement = element.text(sharedMkHtml.TOPTYPE);
+                        textElement = element.text(treeView.TOPTYPE);
                         break;
                     case "bottomType" :
-                        textElement = element.text(sharedMkHtml.BOTTOMTYPE);
+                        textElement = element.text(treeView.BOTTOMTYPE);
                         break;
                     default:
                         assert.unreachable("Unknown primitive type in buildSVG: " + kind.toString() +".");
@@ -946,7 +948,7 @@ module animationView
                 let x : number = 0;
 
                 x += childArray[0].bbox().width + padding;
-                const arrow : svg.Text = element.text(sharedMkHtml.FUNCTIONTYPE);
+                const arrow : svg.Text = element.text(treeView.FUNCTIONTYPE);
                 arrow.fill(YELLOW).dmove(x, -5);
 
                 x += arrow.bbox().width + padding;
@@ -1002,7 +1004,7 @@ module animationView
                     if (i === childArray.length) break;
                     seqBox.add(childArray[i].dmove(seqBoxX, 0));
                     if( i !== childArray.length - 1) {
-                        const pipe : svg.Text= element.text(sharedMkHtml.JOINTYPE);
+                        const pipe : svg.Text= element.text(treeView.JOINTYPE);
                         pipe.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                         pipe.fill(YELLOW.toString());
                         seqBox.add(pipe.dmove(childArray[i].bbox().width +seqBoxX + 10 , -5));
@@ -1028,7 +1030,7 @@ module animationView
                     if (i === childArray.length) break;
                     seqBox.add(childArray[i].dmove(seqBoxX , 0));
                     if( i !== childArray.length - 1) {
-                        const amp : svg.Text= element.text(sharedMkHtml.MEETTYPE);
+                        const amp : svg.Text= element.text(treeView.MEETTYPE);
                         amp.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
                         amp.fill(YELLOW.toString());
                         seqBox.add(amp.dmove(childArray[i].bbox().width +seqBoxX + 10 , -5));

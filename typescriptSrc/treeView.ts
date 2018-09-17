@@ -10,9 +10,9 @@ import labels = require('./labels');
 import pnode = require('./pnode');
 import pnodeEdits = require('./pnodeEdits');
 
-/** The sharedMkHtml module looks after the conversion of trees to HTML.
+/** The treeView module looks after the conversion of trees to HTML.
  * It can also map HTML elements to paths and paths to HTML. */
-module sharedMkHtml 
+module treeView 
 {
     import list = collections.list;
     import List = collections.List;
@@ -844,4 +844,4 @@ module sharedMkHtml
     }  
 }
 
-export = sharedMkHtml;
+export = treeView;

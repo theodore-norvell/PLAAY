@@ -47,8 +47,8 @@ digraph Depends {
     treeManager [style=filled, fillcolor="#ccccff"] ;
     pnodeEdits [style=filled, fillcolor="#ccccff"] ;
     
-    sharedMkHtml [style=filled, fillcolor="#ccffcc"] ;
-    animatorHelpers [style=filled, fillcolor="#ccffcc"] ;
+    treeView [style=filled, fillcolor="#ccffcc"] ;
+    animationView [style=filled, fillcolor="#ccffcc"] ;
 
     vms [style=filled, fillcolor="#ffccff"] ;
     values [style=filled, fillcolor="#ffccff"] ;
@@ -59,7 +59,7 @@ digraph Depends {
     world [style=filled, fillcolor="#ffffcc"] ;
     seymour [style=filled, fillcolor="#ffffcc"] ;
     
-   animator -> animatorHelpers  ;
+   animator -> animationView  ;
    animator -> backtracking ;
    animator -> createHtmlElements ;
    animator -> editor ;
@@ -71,12 +71,12 @@ digraph Depends {
    animator -> svg ;
    animator -> jquery ;
 
-   animatorHelpers -> labels ;
-   animatorHelpers -> pnode [style=dashed] ;
-   animatorHelpers -> sharedMkHtml ;
-   animatorHelpers -> values ;
-   animatorHelpers -> vms [style=dashed];
-   animatorHelpers -> svg ;
+   animationView -> labels ;
+   animationView -> pnode [style=dashed] ;
+   animationView -> treeView ;
+   animationView -> values ;
+   animationView -> vms [style=dashed];
+   animationView -> svg ;
    
    createHtmlElements -> jquery ;
 
@@ -84,7 +84,7 @@ digraph Depends {
    editor -> labels ;
    editor -> pnode  ;
    editor -> pnodeEdits ;
-   editor -> sharedMkHtml ;
+   editor -> treeView ;
    editor -> treeManager ;
    editor -> jquery ;
 
@@ -119,10 +119,10 @@ digraph Depends {
 
    seymour -> backtracking ;
 
-   sharedMkHtml -> labels ;
-   sharedMkHtml -> pnode ;
-   sharedMkHtml -> pnodeEdits ;
-   sharedMkHtml -> jquery ;
+   treeView -> labels ;
+   treeView -> pnode ;
+   treeView -> pnodeEdits ;
+   treeView -> jquery ;
 
    svg [label="svg.js", shape=rectangle] ;
 
@@ -130,7 +130,7 @@ digraph Depends {
    treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
-   treeManager -> sharedMkHtml ;
+   treeManager -> treeView ;
 
    userRelated -> editor ;
    userRelated -> pnodeEdits ;

@@ -1,31 +1,31 @@
 /// <reference path="jquery.d.ts" />
 
-/// <reference path="sharedMkHtml.ts" />
 /// <reference path="treeManager.ts" />
+/// <reference path="treeView.ts" />
 
-import sharedMkHtml = require('./sharedMkHtml');
 import treeManager = require('./treeManager');
+import treeView = require('./treeView');
 
 /** Create the top level HTML and buttons.
  */
 module createHtmlElements {
 
-	import TRUEMARK  = sharedMkHtml.TRUEMARK ;
-	import FALSEMARK = sharedMkHtml.FALSEMARK ;
-	import WHILEMARK = sharedMkHtml.WHILEMARK ;
-	import LAMBDAMARK = sharedMkHtml.LAMBDAMARK ;
-	import NULLMARK = sharedMkHtml.NULLMARK ;
+	import TRUEMARK  = treeView.TRUEMARK ;
+	import FALSEMARK = treeView.FALSEMARK ;
+	import WHILEMARK = treeView.WHILEMARK ;
+	import LAMBDAMARK = treeView.LAMBDAMARK ;
+	import NULLMARK = treeView.NULLMARK ;
 
-	import BOOLEANTYPE = sharedMkHtml.BOOLEANTYPE;
-	import STRINGTYPE = sharedMkHtml.STRINGTYPE;
-	import NUMBERTYPE = sharedMkHtml.NUMBERTYPE;
-	import INTEGERTYPE = sharedMkHtml.INTEGERTYPE;
-	import NATTYPE = sharedMkHtml.NATTYPE;
-	import TOPTYPE = sharedMkHtml.TOPTYPE;
-	import BOTTOMTYPE = sharedMkHtml.BOTTOMTYPE;
-	import FUNCTIONTYPE = sharedMkHtml.FUNCTIONTYPE;
-	import JOINTYPE = sharedMkHtml.JOINTYPE;
-	import MEETTYPE = sharedMkHtml.MEETTYPE;
+	import BOOLEANTYPE = treeView.BOOLEANTYPE;
+	import STRINGTYPE = treeView.STRINGTYPE;
+	import NUMBERTYPE = treeView.NUMBERTYPE;
+	import INTEGERTYPE = treeView.INTEGERTYPE;
+	import NATTYPE = treeView.NATTYPE;
+	import TOPTYPE = treeView.TOPTYPE;
+	import BOTTOMTYPE = treeView.BOTTOMTYPE;
+	import FUNCTIONTYPE = treeView.FUNCTIONTYPE;
+	import JOINTYPE = treeView.JOINTYPE;
+	import MEETTYPE = treeView.MEETTYPE;
 
 	import Actions = treeManager.Actions ;
 	
