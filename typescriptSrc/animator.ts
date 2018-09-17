@@ -7,6 +7,7 @@
 /// <reference path="createHtmlElements.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
+/// <reference path="library.ts" />
 /// <reference path="seymour.ts" />
 /// <reference path="values.ts" />
 /// <reference path="vms.ts" />
@@ -18,11 +19,11 @@ import collections = require( './collections' );
 import createHTMLElements = require('./createHtmlElements');
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
+import library = require('./library') ;
 import seymour = require( './seymour' ) ;
-import * as svg from "svg.js";
 import values = require('./values');
 import vms = require('./vms');
-import world = require('./world') ;
+import * as svg from "svg.js";
 
 /** The animator is the execution pane of the application.
  * 
@@ -78,7 +79,7 @@ module animator
         const transactionMgr = new TransactionManager() ;
         const canv = $("#outputAreaCanvas")[0] as HTMLCanvasElement ;
         turtleWorld = new seymour.TurtleWorld(canv, transactionMgr ) ;
-        libraries.push( new world.TurtleWorldObject(turtleWorld, transactionMgr) ) ;
+        libraries.push( new library.TurtleWorldObject(turtleWorld, transactionMgr) ) ;
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
         transactionMgr.checkpoint();

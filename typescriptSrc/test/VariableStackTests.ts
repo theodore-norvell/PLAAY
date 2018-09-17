@@ -1,22 +1,20 @@
 /// <reference path="../typings/main/ambient/mocha/index.d.ts" />
 
 /// <reference path="../assert.ts" />
-/// <reference path="../collections.ts" />
-/// <reference path="../pnode.ts" />
+/// <reference path="../library.ts" />
+/// <reference path="../types.ts" />
 /// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../world.ts" />
 
-import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
+import library = require('../library') ;
+import types = require('../types') ;
 import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
-import types = require('../types') ;
-import world = require('../world') ;
 
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
-import World = world.World;
+import World = library.World;
 import Field = values.Field;
 import ObjectV = values.ObjectV;
 import Type = types.TypeKind;

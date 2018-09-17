@@ -1,17 +1,17 @@
 /// <reference path="assert.ts" />
+/// <reference path="collections.ts" />
 /// <reference path="interpreter.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="collections.ts" />
 
 
 import assert = require('./assert') ;
 import { TransactionManager } from './backtracking';
-import interpreter = require('./interpreter') ;
 import collections = require( './collections' ) ;
+import interpreter = require('./interpreter') ;
+import library = require( './library' ) ;
 import pnode = require('./pnode') ;
 import vms = require('./vms') ;
-import {World} from './world' ;
 
 /** The evaluation manager is a thin layer between the VMS and the animator.
  * 
@@ -19,10 +19,11 @@ import {World} from './world' ;
  */
 module evaluationManager {
 
-    import Evaluation = vms.Evaluation;
-    import PNode = pnode.PNode;
-    import VMS = vms.VMS;
+    import World = library.World ;
     import List = collections.List ;
+    import PNode = pnode.PNode;
+    import Evaluation = vms.Evaluation;
+    import VMS = vms.VMS;
 
     export class EvaluationManager {
 

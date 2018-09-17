@@ -2,26 +2,27 @@
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
 /// <reference path="../interpreter.ts" />
+/// <reference path="../library.ts" />
 /// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
+/// <reference path="../types.ts" />
 /// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../world.ts" />
 
 import assert = require( '../assert' ) ;
 import backtracking = require( '../backtracking' ) ;
 import collections = require( '../collections' ) ;
 import interpreter = require( '../interpreter' ) ;
 import labels = require( '../labels' ) ;
+import library = require('../library') ;
 import pnode = require( '../pnode' ) ;
+import types = require('../types') ;
 import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
-import world = require('../world') ;
-import types = require('../types') ;
 
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
-import World = world.World;
+import World = library.World;
 import Field = values.Field;
 import Type = types.TypeKind;
 import VarStack = vms.VarStack;

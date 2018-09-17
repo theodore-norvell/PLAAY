@@ -2,20 +2,22 @@
 
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
+/// <reference path="../library.ts" />
+/// <reference path="../types.ts" />
 /// <reference path="../values.ts" />
 /// <reference path="../vms.ts" />
-/// <reference path="../world.ts" />
 
-import collections = require( '../collections' ) ;
 import assert = require( '../assert' ) ;
+import collections = require( '../collections' ) ;
+import library = require('../library') ;
+import types = require('../types') ;
 import values = require( '../values' ) ;
 import vms = require( '../vms' ) ;
-import world = require('../world') ;
-import types = require('../types') ;
+
 import ObjectV = values.ObjectV;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
-import World = world.World;
+import World = library.World;
 import Field = values.Field;
 import Type = types.TypeKind;
 import VarStack = vms.VarStack;

@@ -4,7 +4,6 @@
 /// <reference path="pnode.ts" />
 /// <reference path="values.ts" />
 /// <reference path="vms.ts" />
-/// <reference path="world.ts" />
 
 
 import assert = require('./assert') ;
@@ -14,7 +13,6 @@ import pnode = require('./pnode') ;
 import types = require('./types') ;
 import values = require('./values') ;
 import vms = require('./vms') ;
-import world = require('./world') ;
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.

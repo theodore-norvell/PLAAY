@@ -6,25 +6,25 @@
 /// <reference path="../vms.ts" />
 /// <reference path="../interpreter.ts" />
 /// <reference path="../values.ts" />
-/// <reference path="../world.ts" />
+/// <reference path="../library.ts" />
 /// <reference path="../collections.ts" />
 
-import collections = require( '../collections' ) ;
-import backtracking = require( '../backtracking' ) ;
 import assert = require( '../assert' ) ;
-import pnode = require( '../pnode' ) ;
-import vms = require( '../vms' ) ;
+import backtracking = require( '../backtracking' ) ;
+import collections = require( '../collections' ) ;
 import interpreter = require('../interpreter') ;
-import values = require( '../values' ) ;
-import world = require('../world') ;
 import labels = require('../labels') ;
+import library = require('../library') ;
+import pnode = require( '../pnode' ) ;
+import values = require( '../values' ) ;
+import vms = require( '../vms' ) ;
 
 import TVar = backtracking.TVar;
 import TArray = backtracking.TArray;
 import TransactionManager = backtracking.TransactionManager;
 import Transaction = backtracking.Transaction;
 import States = backtracking.States;
-import World = world.World;
+import World = library.World;
 import ObjectV = values.ObjectV;
 import PNode = pnode.PNode;
 import VMS = vms.VMS;

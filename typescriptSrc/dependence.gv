@@ -56,7 +56,7 @@ digraph Depends {
     labels [style=filled, fillcolor="#ffccff"] ;
     pnode [style=filled, fillcolor="#ffccff"] ;
 
-    world [style=filled, fillcolor="#ffffcc"] ;
+    library [style=filled, fillcolor="#ffffcc"] ;
     seymour [style=filled, fillcolor="#ffffcc"] ;
     
    animator -> animationView  ;
@@ -66,7 +66,7 @@ digraph Depends {
    animator -> evaluationManager ;
    animator -> seymour ;
    animator -> values ;
-   animator -> world ;
+   animator -> library ;
    animator -> vms [style=dashed] ;
    animator -> svg ;
    animator -> jquery ;
@@ -92,14 +92,13 @@ digraph Depends {
    evaluationManager -> interpreter ;
    evaluationManager -> pnode  [style=dashed];
    evaluationManager -> vms ;
-   evaluationManager -> world ;
+   evaluationManager -> library ;
 
    interpreter -> labels ;
    interpreter -> pnode  [style=dashed];
    interpreter -> types ;
    interpreter -> values ;
    interpreter -> vms ;
-   interpreter -> world  [style=dashed];
 
     jquery [shape=rectangle]
     
@@ -147,11 +146,11 @@ digraph Depends {
    vms -> pnode ;
    vms -> types  [style=dashed];
 
-   world -> backtracking  [style=dashed];
-   world -> pnode  [style=dashed];
-   world -> seymour  [style=dashed];
-   world -> types ;
-   world -> values  [style=dashed];
-   world -> vms  [style=dashed];
+   library -> backtracking  [style=dashed];
+   library -> pnode  [style=dashed];
+   library -> seymour  [style=dashed];
+   library -> types ;
+   library -> values  [style=dashed];
+   library -> vms  [style=dashed];
    
 }

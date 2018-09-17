@@ -21,7 +21,7 @@ import vms = require('./vms');
 /** This module contains code for the standard library.
  * 
  */
-module world {
+module library {
     import list = collections.list;
     import List = collections.List;
     import TransactionManager = backtracking.TransactionManager ;
@@ -642,4 +642,4 @@ module world {
     }
 }
 
-export = world;
+export = library;
