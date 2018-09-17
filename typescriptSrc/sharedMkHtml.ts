@@ -24,6 +24,23 @@ module sharedMkHtml
     import Selection = pnodeEdits.Selection;
     import PNode = pnode.PNode;
 
+    export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
+    export const FALSEMARK = "\u2718" ; // HEAVY BALLOT X
+    export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
+    export const LAMBDAMARK = "\u03BB" ;
+    export const NULLMARK = "\u23da" ; // EARTH GROUND
+
+    export const BOOLEANTYPE = "\uD835\uDD39";
+    export const STRINGTYPE = "\uD835\uDD4A";
+    export const NUMBERTYPE = "\u211A";
+    export const INTEGERTYPE = "\u2124";
+    export const NATTYPE = "\u2115";
+    export const TOPTYPE = "\u22A4";
+    export const BOTTOMTYPE = "\u22A5";
+    export const FUNCTIONTYPE = "\u2192";
+    export const JOINTYPE = "\u007C";
+    export const MEETTYPE = "\u0026";
+
     export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
     {
         const children = new Array<JQuery>() ;
@@ -206,6 +223,24 @@ module sharedMkHtml
                 }
             }
             break ;
+            case labels.LocLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "loc" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+
+                const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "upright" ) ;
+                opDiv.addClass( "op" );
+                opDiv.text( "loc" ) ;
+
+                result.append(opDiv);
+                result.append(children[0]);
+
+            }
+            break ;
             case labels.AssignLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
@@ -215,6 +250,7 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 const opDiv : JQuery = $( document.createElement("div") ) ;
+                opDiv.addClass( "upright" );
                 opDiv.addClass( "op" );
                 opDiv.text( ":=" ) ;
 
@@ -293,10 +329,12 @@ module sharedMkHtml
                 result.addClass( "droppable" ) ;
 
                 const leftBracket : JQuery = $( document.createElement("div") ) ;
+                leftBracket.addClass( "upright" );
                 leftBracket.addClass( "op" );
                 leftBracket.text( "[" ) ;
 
                 const rightBracket : JQuery = $( document.createElement("div") ) ;
+                rightBracket.addClass( "upright" );
                 rightBracket.addClass( "op" );
                 rightBracket.text( "]" ) ;
 
@@ -386,20 +424,29 @@ module sharedMkHtml
             case labels.StringLiteralLabel.kindConst :
             {
 
-                if (! node.label().isOpen() )
+                result  = $(document.createElement("div")) ;
+                result.addClass( "literal" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                const leftDoubleQuotationMark = "\u201C" ;
+                const openQuote : JQuery = $( document.createElement("span") ).text(leftDoubleQuotationMark) ;
+                result.append(openQuote) ;
+                if ( node.label().isOpen() )
                 {
-                    result  = $(document.createElement("div")) ;
-                    result.addClass( "stringLiteral" ) ;
-                    result.addClass( "H" ) ;
-                    result.addClass( "droppable" ) ;
-                    result.addClass( "click" ) ;
-                    result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const textField = makeTextInputElement( node, ["input"], collections.none() ) ;
+                    result.append(textField) ;
                 }
                 else
                 {
-                    result = $( makeTextInputElement( node, ["stringLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                    const str = node.label().getVal() ;
+                    const textEl = $( document.createElement("span") ).text( str ) ;
+                    result.append(textEl) ;
                 }
+                const rightDoubleQuotationMark = "\u201D" ;
+                const closeQuote : JQuery = $( document.createElement("span") ).text(rightDoubleQuotationMark) ;
+                result.append(closeQuote) ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
@@ -408,7 +455,7 @@ module sharedMkHtml
                 if (! node.label().isOpen() )
                 {
                     result  = $(document.createElement("div")) ;
-                    result.addClass( "numberLiteral" ) ;
+                    result.addClass( "literal" ) ;
                     result.addClass( "H" ) ;
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
@@ -419,6 +466,27 @@ module sharedMkHtml
                 {
                     result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
                 }
+            }
+            break ;
+            case labels.BooleanLiteralLabel.kindConst :
+            {
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "literal" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "click" ) ;
+                result.addClass( "canDrag" ) ;
+                let mark : string ;
+                let colorClass : string ;
+                if( node.label().getVal() === "true" ) {
+                    mark = TRUEMARK ;
+                    colorClass = "greenText" ; }
+                else {
+                    mark = FALSEMARK ;
+                    colorClass = "redText" ; }
+                result.text( mark ) ;
+                result.addClass( colorClass ) ;
             }
             break ;
             case labels.NoTypeLabel.kindConst :
@@ -462,6 +530,175 @@ module sharedMkHtml
                 result.append(children[2]);
             }
             break ;
+            case labels.TupleLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "tuple" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                result.append( openPar ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        result.append( comma ) ; }
+                }
+                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                result.append( closePar ) ; 
+            }
+            break ;
+            case labels.PrimitiveTypesLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const label = node.label() as labels.PrimitiveTypesLabel;
+                switch(label.type) {
+                    case "stringType" :
+                        result.html(STRINGTYPE);
+                        break;
+                    case "numberType" :
+                        result.html(NUMBERTYPE);
+                        break;
+                    case "booleanType" :
+                        result.html(BOOLEANTYPE);
+                        break;
+                    case "nullType" :
+                        result.html(NULLMARK);
+                        break;
+                    case "integerType" :
+                        result.html(INTEGERTYPE);
+                        break;
+                    case "natType" :
+                        result.html(NATTYPE);
+                        break ;
+                    case "topType" :
+                        result.html(TOPTYPE);
+                        break;
+                    case "bottomType" :
+                        result.html(BOTTOMTYPE);
+                        break;
+                    default :
+                        result = assert.unreachable("Unknown primitive type in buildHTML.");
+                }
+            }
+            break;
+            case labels.TupleTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                
+                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                result.append( openPar ) ;
+                // Add children and drop zones.
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        result.append( comma ) ; }
+                }
+                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                result.append( closePar ) ; 
+            }
+            break;
+            case labels.FunctionTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "typesBorder" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                const arrow : JQuery = $( document.createElement("div") );
+                arrow.text(FUNCTIONTYPE);
+
+                result.append(children[0]);
+                result.append(arrow);
+                result.append(children[1]);
+                
+            }
+            break;
+            case labels.LocationTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "locationType" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                result.append(children[0]);
+            }
+            break;
+            case labels.FieldTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "types" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                const colon : JQuery = $( document.createElement("div") );
+                colon.text(":");
+
+                result.append(children[0]);
+                result.append(colon);
+                result.append(children[1]);
+                
+            }
+            break;
+            case labels.JoinTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "typesBorder" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const pipe : JQuery = $( document.createElement("div") ).text(JOINTYPE) ;
+                        result.append( pipe ) ; }
+                }
+
+            }
+            break;
+            case labels.MeetTypeLabel.kindConst :
+            {
+                result = $(document.createElement("div")) ;
+                result.addClass( "typesBorder" ) ;
+                result.addClass( "H" ) ;
+                result.addClass( "droppable" ) ;
+
+                for (let i = 0; true; ++i) {
+                    const dz = makeDropZone(i, false ) ;
+                    dropzones.push( dz ) ;
+                    result.append(dz);
+                    if (i === children.length) break;
+                    result.append(children[i]);
+                    if( i < children.length -1 ) {
+                        const amp : JQuery = $( document.createElement("div") ).text(MEETTYPE) ;
+                        result.append( amp ) ; }
+                }
+            }
+            break;
             default:
             {
                 result = assert.unreachable( "Unknown label in buildHTML.") ;
@@ -520,18 +757,15 @@ module sharedMkHtml
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-            let text = node.label().getVal() ;
-            text = text.replace( /&/g, "&amp;" ) ;
-            text = text.replace( /"/g, "&quot;") ;
-
+            const str = node.label().getVal() ;
             const element : JQuery = $(document.createElement("input"));
             for( let i=0 ; i < classes.length ; ++i ) {
                 element.addClass( classes[i] ) ; }
             childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
             element.attr("type", "text");
-            element.attr("value", text) ;
+            element.attr("value", str) ;
             // Give the element focus and move the caret to the end of the text.
-            const len = text.length ;
+            const len = str.length ;
             setSelection(element, len, len) ;
             return element ;
     }
@@ -606,7 +840,7 @@ module sharedMkHtml
     }
 
     export function stringIsInfixOperator( str : string ) : boolean {
-        return str.match( /^([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+$|^[`].*$/ ) !== null ;
+        return str.match( /^(([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+|[`].*|and|or|implies)$/ ) !== null ;
     }  
 }
 

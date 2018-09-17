@@ -11,6 +11,7 @@ import assert = require( './assert' ) ;
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
+import types = require('./types');
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -21,11 +22,13 @@ module vms{
     import TVar = backtracking.TVar;
     import TArray = backtracking.TArray;
     import TransactionManager = backtracking.TransactionManager;
+    import Type = types.TypeKind;
 
     import List = collections.List ;
     import nil = collections.nil ;
     import cons = collections.cons ;
     import list = collections.list ;
+    import Option = collections.Option ;
 
     export interface Interpreter {
         step : (vms:VMS) => void ;
@@ -130,14 +133,19 @@ module vms{
             return this.evalStack.top().getPendingNode() ;
         }
 
-        public pushPending( childNum : number ) : void {
+        public pushPending( childNum : number, context : Context ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().pushPending( childNum ) ;
+            this.evalStack.top().pushPending( childNum, context ) ;
         }
         
         public popPending( ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().popPending( ) ;
+        }
+
+        public isRContext() : boolean {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().isRContext() ;
         }
 
         public getValMap() : ValueMap {
@@ -199,9 +207,9 @@ module vms{
             return this.evalStack;
         }
 
-        public finishStep( value : Value ) : void {
+        public finishStep( value : Value, fetch : boolean ) : void {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value ) ;
+            this.evalStack.top().finishStep( value, fetch, this ) ;
         }
 
         public getFinalValue( ) : Value {
@@ -222,7 +230,7 @@ module vms{
             if( ev.isDone() ) {
                 const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
-                this.setResult( value ) ;
+                this.finishStep( value, true ) ;
             }
             else{
                 ev.advance( this.interpreter, this);
@@ -232,11 +240,6 @@ module vms{
         public pushEvaluation(root: PNode, varStack: VarStack) : void {
           const evaluation = new Evaluation(root, varStack, this);
           this.evalStack.push(evaluation);
-        }
-
-        private setResult(value : Value ) : void {
-            assert.check(this.evalStack.notEmpty() ) ;
-            this.evalStack.top().finishStep( value ) ;
         }
 
         public reportError( message : string ) : void {
@@ -254,6 +257,9 @@ module vms{
         }
     }
 
+    export enum Context {
+        L, R, SAME
+    }
     /** An evaluation is the state of evaluation of one PLAAY expression.
      * Typically it will  be the evaluatio of one method body.
      * See the run-time model documentation for details.
@@ -262,6 +268,7 @@ module vms{
         private readonly root : TVar<PNode>;
         private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
+        private readonly context : TVar<Context> ;
         private readonly ready : TVar<boolean>;
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
@@ -270,6 +277,7 @@ module vms{
             const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
+            this.context = new TVar<Context>( Context.R, manager ) ;
             this.ready = new TVar<boolean>(false, manager);
             this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
@@ -293,6 +301,12 @@ module vms{
             this.ready.set(newReady) ;
         }
 
+        public setContext( context : Context ) : void {
+            if( context !== Context.SAME ) {
+                this.context.set( context ) ; } }
+
+        public isRContext() : boolean { return this.context.get() === Context.R ; }
+        
         public getStack() : VarStack {
             return this.varStack.get() ;
         }
@@ -323,8 +337,9 @@ module vms{
             return this.root.get().get(p) ;
         }
 
-        public pushPending( childNum : number ) : void {
+        public pushPending( childNum : number, context:Context ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
+            this.setContext( context ) ;
             const p = this.pending.get() as List<number> ;
             this.pending.set( p.cat( list( childNum ) ) ) ;
         }
@@ -336,6 +351,7 @@ module vms{
                 this.pending.set( null ) ;
             } else {
                 this.pending.set( collections.nil<number>() ) ; }
+            this.setContext( Context.R ) ;
         }
 
         public scrub( path : List<number> ) : void {
@@ -400,9 +416,25 @@ module vms{
             this.extraInformationMap.put( p, v ) ; 
         }
 
-        public finishStep( value : Value ) : void {
+        /** Complete the step by mapping the value to the pending node and
+         * then setting pending to point to the root.
+         * @param value -- The value the pending node should be mapped to
+         * @param fetch -- Whether the value should be fetched from if it is a
+         * location and the current context is R.
+         * @param vm  -- Virtual machine for error reporting.
+         */
+        public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
+            if( fetch && value.isLocationV() && this.isRContext() ) {
+                const loc = value as Location ;
+                const opt = loc.getValue() ;
+                if( opt.isEmpty() ) {
+                    vm.reportError( "The location has no value." ) ;
+                    return ;
+                }
+                value = opt.first() ;
+            }
             const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
             this.popPending() ;
@@ -674,15 +706,32 @@ module vms{
      * Concrete value classes can be found elsewhere.
      */
     export interface Value {
+        getKind : () => ValueKind ;
         isClosureV : () => boolean ;
         isBuiltInV : () => boolean ;
         isStringV : () => boolean ;
         isNullV : () => boolean ;
         isObjectV : () => boolean ;
-        isDoneV : () => boolean ;
+        isLocationV : () => boolean ;
+        isTupleV : () => boolean ;
         isNumberV : () => boolean ;
         isBoolV : () => boolean ;
     }
+
+    export interface Location extends Value {
+        getValue : () => Option<Value> ;
+    }
+
+    export enum ValueKind {
+        STRING,
+        NUMBER,
+        BOOL,
+        NULL,
+        TUPLE,
+        OBJECT,
+        LOCATION,
+        BUILTIN,
+        CLOSURE }
 
     export interface ClosureI extends Value {
         getLambdaNode : () => PNode ;
@@ -701,23 +750,10 @@ module vms{
 
     export interface FieldI  {
         getName : () => string ;
-        getValue : () => Value ;
+        getValue : () => Option<Value> ;
         getType : () => Type ;
         setValue : ( value : Value ) => void ;
-        getIsDeclared : () => boolean ;
-        getIsConstant : () => boolean ;
-        setIsDeclared : () => void ;
     }
 
-
-    export enum Type {
-        NOTYPE,
-        STRING,
-        BOOL,
-        NUMBER,
-        ANY,
-        METHOD,
-        NULL
-    }
 }
 export = vms;

@@ -116,11 +116,23 @@ html, body
 {
     position:absolute;
     right:0;
-    width: 10em;
+    width: auto;
     padding: 0 .5em 0 .5em;
     text-align: right;
     float: right;
+    display: block;
+}
+
+.barButtons
+{
+    float: left;
+    border: 1px solid black;
     background-color: #cccccc;
+    margin: 2px ;
+}
+.barButtons:hover
+{
+    text-decoration: underline ; 
 }
 
 #outputArea
@@ -212,6 +224,35 @@ html, body
     align-items: flex-start ;
 }
 
+.paletteArea
+{
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    width: auto ;
+    height: 70%;
+    margin: auto;
+    background-color: #262626;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    
+    -webkit-align-items:stretch;
+    align-items: stretch ;
+}
+
 #container
 {
     flex: 1 1 auto ;
@@ -222,21 +263,36 @@ html, body
     background-color: #262626 ;
 }
 
+/* expression palette */
 .palette
 {
     flex: 10 1 auto ;
     width: auto;
     margin: 1em 1em 1em 1em ;
     background-color:#a6a6a6 ;
-    overflow: auto;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.typePalette
+{
+    flex: 10 1 auto;
+    width:  auto;
+    margin: 1em 1em 1em 1em ;
+    background-color:#a6a6a6 ;
+    overflow-y: auto; 
+    overflow-x: hidden;   
 }
 
 .buttonArea
 {
     flex: 1 1 auto ;
     width: auto;
+    height: 25%;
     margin: 1em 1em 1em 1em ;
     background-color: #a6a6a6 ;
+    overflow-y: auto;
+    overflow-x: hidden;
 }
 
 .leftSideButton
@@ -246,6 +302,11 @@ html, body
     margin: 2px 5px ;
     color: white ;
     background-color: black ;
+    border: 1px solid #a6a6a6 ;
+}
+.leftSideButton:hover
+{
+    border: 1px solid black;
 }
 
 .paletteItem 
@@ -256,6 +317,11 @@ html, body
     background-color: black;
     box-shadow: 0px 0px 3px;
     color: rgb(190, 133, 197);
+    border: 1px solid rgb(190, 133, 197);
+}
+.paletteItem:hover
+{
+    border: 1px solid black;
 }
 
 div.stack
@@ -509,7 +575,7 @@ div.expOp {
     border-radius: 5px ;
 }
 
-div.hCont, div.var, div.assign {
+div.hCont, div.var, div.assign, div.loc {
     border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
@@ -521,16 +587,14 @@ div.hCont, div.var, div.assign {
     margin: 1px 2px 1px 2px ;
 }
 
-div.locdecl:before {
-    content: "loc" ;
-    display: inline ;
-    vertical-align: top ;
-    color: ghostwhite ;
-    font-size: large ;
+div.var {
+    font-family : "Times New Roman", Times,serif;
+    font-size: large;
+    font-style: italic ;
 }
 
-div.condecl:before {
-    content: "con" ;
+div.locdecl:before {
+    content: "loc" ;
     display: inline ;
     vertical-align: top ;
     color: ghostwhite ;
@@ -561,9 +625,6 @@ div.call {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family:"Times New Roman",Times,serif;
-    font-weight:bold;
-    font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
 }
@@ -572,11 +633,19 @@ div.callWorld {
     border:thin solid rgb(190, 133, 197) ; /* Mauve */
     border-radius: 5px ;
     color:rgb(190, 133, 197) ; /* Mauve */
-    font-family : "Times New Roman", Times,serif;
-    font-weight:bold;
-    font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
+}
+
+div.op {
+    font-family : "Times New Roman", Times, serif;
+    font-size: large ;
+    font-style: italic ;
+    font-weight: normal ;
+}
+
+div.upright {
+    font-style: normal ;
 }
 
 div.objectGuardBox:before { content: "$" ;
@@ -653,30 +722,67 @@ div.dot {
     min-height: 1em ;
 }
 
-
-div.stringLiteral{
-    border: thin solid rgb(135,206,250);
+div.tuple {
+    border:thin solid rgb(135,206,250) ; /* Blue */
     border-radius: 5px ;
-    font-family:"Lucida Console", monospace;
-    font-weight: normal ;
-    font-size: medium ;
-    color: rgb(255,255,255);
+    color:rgb(135,206,250) ; /* Blue */
+    font-family : "Times New Roman", Times,serif;
+    font-weight:bold;
+    font-size:large;
     min-width: 1ex ;
     min-height: 1em ;
-    max-width: 200px ;
-    white-space: pre-wrap ;
-    word-wrap: break-word ;
+}
+
+div.types {
+    border:none;
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
 
-div.numberLiteral{
+div.typesBorder {
+    border :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.locationType {
+    border-left :thin solid rgb(242, 231, 21);
+    border-right :thin solid rgb(242, 231, 21);
+    border-bottom :thin solid rgb(242, 231, 21);
+    border-radius: 5px ;
+    font-size: large ;
+    font-family:"Lucida Console", Monospace;
+    font-weight:bold;
+    text-align:center;
+    color:rgb(242, 231, 21);
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+    
+}
+
+div.literal {
     border: thin solid rgb(135,206,250);
     border-radius: 5px ;
     font-family:"Lucida Console", monospace;
+    font-style: normal ;
     font-weight: normal ;
     font-size: medium ;
-    color: rgb(244, 140, 0) ; /* Orange */
+    color: rgb(255,255,255);
     min-width: 1ex ;
     min-height: 1em ;
     max-width: 200px ;
@@ -691,12 +797,21 @@ div.nullLiteral {
     border-radius: 5px ;
     font-size: x-large ;
     font-family:"Lucida Console", Monospace;
+    font-style: normal ;
     font-weight:bold;
     text-align:center;
     color:rgb(255,255,255);
     vertical-align:middle;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
+}
+
+div.redText {
+    color:rgb(200,0,0);
+}
+
+div.greenText {
+    color:rgb(0,200,0);
 }
 
 div.inmap{
@@ -713,7 +828,7 @@ div.inmap{
     margin: 1px 2px 1px 2px ;
 }
 
-
+/* Is this used? */
 div.selection {
     border:thin solid rgb(244, 140, 0) ; /* Orange */
     background-color:rgb(0,0,0);

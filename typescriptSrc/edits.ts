@@ -1,8 +1,8 @@
+/// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="pnode.ts" />
 
-import collections = require( './collections' ) ;
 import assert = require( './assert' ) ;
+import collections = require( './collections' ) ;
 
 /** Edits are essentially operations on objects that might succeed or fail.  */
 module edits {
@@ -71,7 +71,12 @@ module edits {
     * applies `y` to the result of that; but `z.applyEdit(a)` fails if
     * either either application fails.
     */
-    export function compose<A>( first : Edit<A>, second : Edit<A> )  : Edit<A> {
+    export function compose<A>( ...editList : Array<Edit<A>> )  : Edit<A> {
+        if( editList.length === 0 ) return id() ;
+        else return editList.reduce( compose2 ) ;
+    }
+    
+    function compose2<A>( first : Edit<A>, second : Edit<A> )  : Edit<A> {
         return new CompositeEdit<A>( first, second )  ; }
     
     class AlternateEdit<A> extends AbstractEdit<A> {

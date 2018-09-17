@@ -1,76 +1,157 @@
+
 digraph Depends {
+    size="9,6.5" ;
+    splines="polyline" ;
+    nodesep=0.2 ;
+    ranksep=0.2 ;
+   ratio=fill;
+   rankdir = LR ;
+   node[fontsize=20];
 
-   gsize="8,6"; ratio=fill;
-   node[fontsize=8, shape=rectangle];
+   subgraph cluster1 {
+        label = "Legend" ;
+        shape=rectangle ;
+        color = black ;
+        a [style=invis];
+        b [style=invis] ;
+        c [style=invis] ;
+        d [style=invis] ;
+        c -> d [label="only ts", style=dashed, fontsize=20] ; 
+        a -> b [label="ts and js", fontsize=20] ;
+        gui -> controller [style=invis] ;
+        view -> model [style=invis] ;
+        builtins -> utilities [style=invis] ;
 
+        gui [style=filled, fillcolor="#ffcccc"] ;
+        controller [style=filled, fillcolor="#ccccff"] ;
+        view [style=filled, fillcolor="#ccffcc"] ;
+        model [style=filled, fillcolor="#ffccff"] ;
+        builtins [style=filled, fillcolor="#ffffcc"] ;
+        utilities ;
+        "external libraries" [shape=rectangle] ;
+    }
 
-   animator -> animatorHelpers ;
+   utils [label="Modules 'assert' and 'collections' are omitted from this graph",
+              shape=none] ;
+   caption [ label="Dependence relations between modules", fontsize=40,
+              shape=none] ;
+
+    main [style=filled, fillcolor="#ffcccc"] ;
+    editor [style=filled, fillcolor="#ffcccc"] ;
+    animator [style=filled, fillcolor="#ffcccc"] ;
+    createHtmlElements [style=filled, fillcolor="#ffcccc"] ;
+    userRelated [style=filled, fillcolor="#ffcccc" ] ;
+    
+    evaluationManager [style=filled, fillcolor="#ccccff"] ;
+    interpreter [style=filled, fillcolor="#ccccff"] ;
+    treeManager [style=filled, fillcolor="#ccccff"] ;
+    pnodeEdits [style=filled, fillcolor="#ccccff"] ;
+    
+    sharedMkHtml [style=filled, fillcolor="#ccffcc"] ;
+    animatorHelpers [style=filled, fillcolor="#ccffcc"] ;
+
+    vms [style=filled, fillcolor="#ffccff"] ;
+    valueTypes [style=filled, fillcolor="#ffccff"] ;
+    types [style=filled, fillcolor="#ffccff"] ;
+    labels [style=filled, fillcolor="#ffccff"] ;
+    pnode [style=filled, fillcolor="#ffccff"] ;
+
+    world [style=filled, fillcolor="#ffffcc"] ;
+    seymour [style=filled, fillcolor="#ffffcc"] ;
+    
+   animator -> animatorHelpers  ;
    animator -> backtracking ;
    animator -> createHtmlElements ;
    animator -> editor ;
    animator -> evaluationManager ;
    animator -> seymour ;
    animator -> valueTypes ;
-   animator -> vms ;
    animator -> world ;
+   animator -> vms [style=dashed] ;
+   animator -> svg ;
+   animator -> jquery ;
+
+   animatorHelpers -> labels ;
+   animatorHelpers -> pnode [style=dashed] ;
+   animatorHelpers -> sharedMkHtml ;
+   animatorHelpers -> valueTypes ;
+   animatorHelpers -> vms [style=dashed];
+   animatorHelpers -> svg ;
+   
+   createHtmlElements -> jquery ;
 
    editor -> createHtmlElements ;
    editor -> labels ;
-   editor -> pnode ;
+   editor -> pnode  ;
    editor -> pnodeEdits ;
    editor -> sharedMkHtml ;
    editor -> treeManager ;
+   editor -> jquery ;
 
-   edits -> pnode ;
-
-   evaluationManager -> backtracking ;
+   evaluationManager -> backtracking  [style=dashed];
    evaluationManager -> interpreter ;
-   evaluationManager -> pnode ;
+   evaluationManager -> pnode  [style=dashed];
    evaluationManager -> vms ;
+   evaluationManager -> world ;
 
    interpreter -> labels ;
-   interpreter -> pnode ;
+   interpreter -> pnode  [style=dashed];
+   interpreter -> types ;
    interpreter -> valueTypes ;
    interpreter -> vms ;
-   interpreter -> world ;
+   interpreter -> world  [style=dashed];
 
+    jquery [shape=rectangle]
+    
    labels -> pnode ;
 
-   main -> createHtmlElements ;
    main -> animator ;
+   main -> createHtmlElements ;
    main -> editor ;
    main -> userRelated ;
 
    pnodeEdits -> edits ;
    pnodeEdits -> pnode ;
+   pnodeEdits -> labels ;
+   
+   types -> pnode [style=dashed];
+   types -> labels ;
 
-   seymour -> pnode ;
+   seymour -> backtracking ;
 
    sharedMkHtml -> labels ;
    sharedMkHtml -> pnode ;
    sharedMkHtml -> pnodeEdits ;
+   sharedMkHtml -> jquery ;
+
+   svg [label="svg.js", shape=rectangle] ;
 
    treeManager -> edits ;
    treeManager -> labels ;
    treeManager -> pnode ;
    treeManager -> pnodeEdits ;
+   treeManager -> sharedMkHtml ;
 
    userRelated -> editor ;
    userRelated -> pnodeEdits ;
    userRelated -> pnode ;
-   userRelated -> sharedMkHtml ;
    
    valueTypes -> backtracking ;
    valueTypes -> labels ;
    valueTypes -> pnode ;
+   valueTypes -> types  [style=dashed];
    valueTypes -> vms ;
 
+   
    vms -> backtracking
    vms -> pnode ;
+   vms -> types  [style=dashed];
 
-   world -> backtracking ;
-   world -> pnode ;
-   world -> seymour ;
-   world -> valueTypes ;
-   world -> vms ;
+   world -> backtracking  [style=dashed];
+   world -> pnode  [style=dashed];
+   world -> seymour  [style=dashed];
+   world -> types ;
+   world -> valueTypes  [style=dashed];
+   world -> vms  [style=dashed];
+   
 }

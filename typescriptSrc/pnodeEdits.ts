@@ -7,6 +7,7 @@
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
+import labels = require( './labels') ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
@@ -16,8 +17,6 @@ import pnode = require( './pnode' ) ;
  */
 module pnodeEdits {
     import Option = collections.Option;
-    import None = collections.None;
-    import Some = collections.Some;
     import none = collections.none;
     import some = collections.some;
     import List = collections.List ;
@@ -26,15 +25,15 @@ module pnodeEdits {
     import snoc = collections.snoc;
     import last = collections.last;
     import butLast = collections.butLast;
-    import arrayToList = collections.arrayToList;
     import PNode = pnode.PNode ;
-    import Label = pnode.Label;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
     import compose = edits.compose ;
     import alt = edits.alt ;
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
+    import VarDeclLabel = labels.VarDeclLabel ;
+    import mkVarOrLocDecl = labels.mkVarOrLocDecl ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -568,6 +567,35 @@ module pnodeEdits {
             else return singleReplace( selection, newNodes ) ;
         }
     }
+    
+    /**  Toggles the boolean value of a VarDecl
+     *  
+     */
+    class ToggleVarDeclEdit extends AbstractEdit<Selection> {
+
+        constructor() {
+            super();
+        }
+
+        public applyEdit(selection:Selection):Option<Selection> {
+            const nodes = selection.selectedNodes() ;
+            if( nodes.length !== 1 ) {
+                console.log( "Length isn't 1") ;
+                return none() ; }
+            const node = nodes[0] ;
+            const label = node.label()  ;
+            if( ! (label instanceof VarDeclLabel) ) {
+                console.log( "Node isn't VarDeclNode") ;
+                return none() ; }
+            const isConst = (label as VarDeclLabel).declaresConstant() ;
+            const newNode = mkVarOrLocDecl( !isConst, node.child(0), node.child(1), node.child(2) ) ;
+            const result = singleReplace( selection, [newNode] ) ;
+            console.log( "result is " + result ) ;
+            return result ;
+        }
+    }
+
+    export const toggleVarDecl = new ToggleVarDeclEdit() ;
 
     /**  Open the labels of a selection.  Opening a label will make it editable in the editor.
      *  

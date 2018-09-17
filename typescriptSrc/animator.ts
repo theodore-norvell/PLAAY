@@ -4,7 +4,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="backtracking.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="editor.ts" />
 /// <reference path="evaluationManager.ts" />
 /// <reference path="seymour.ts" />
@@ -15,7 +15,7 @@ import animatorHelpers = require('./animatorHelpers');
 import assert = require( './assert' );
 import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import editor = require('./editor');
 import evaluationManager = require('./evaluationManager');
 import seymour = require( './seymour' ) ;
@@ -40,7 +40,7 @@ module animator
     import buildObjectArea = animatorHelpers.buildObjectArea;
     import drawArrows = animatorHelpers.drawArrows;
     import List = collections.List;
-    import cons = collections.cons;
+    import list = collections.list;
     import nil = collections.nil;
     import arrayToList = collections.arrayToList;
     import ValueMap = vms.ValueMap;
@@ -92,10 +92,10 @@ module animator
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
                           nil(),
-                          cons(-1, nil()),
-                          null,
+                          list(-1),
+                          evaluationMgr.getVMS().getValMap(),
                           "",
-                          cons(-1, nil()));
+                          list(-1));
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
@@ -177,14 +177,14 @@ module animator
 
         let toHighlight : List<number>;
         let error : string = "";
-        let errorPath : List<number> = cons(-1, nil());
+        let errorPath : List<number> = list(-1);
         if (evaluationMgr.getVMS().isReady() ) 
         {
             toHighlight = evaluationMgr.getVMS().getPending();
         }
         else
         {
-            toHighlight = cons(-1, nil());
+            toHighlight = list(-1);
         }
         
         if(evaluationMgr.getVMS().hasError())
@@ -214,7 +214,7 @@ module animator
             objectAreaOffset = animationBBox.width + 100;
         }
         objectArea.dmove(objectAreaOffset, 0);
-        
+
         //keep stack spacing consistent unless animation too large
         if (stackOffset < objectAreaBBox.width + animationBBox.width){
             stackOffset = objectAreaBBox.width + animationBBox.width + 100;

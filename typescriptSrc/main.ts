@@ -6,8 +6,8 @@
 /// <reference path="userRelated.ts" />
 /// <reference path="editor.ts" />
 
-import createHtmlElements = require('./createHtmlElements');
 import animator = require('./animator');
+import createHtmlElements = require('./createHtmlElements');
 import editor = require('./editor');
 import userRelated = require('./userRelated');
 
@@ -16,13 +16,16 @@ import userRelated = require('./userRelated');
 */
 module main {
     
-    export function onLoad() : void
-    {
+    export function onLoad(programId : string | undefined = undefined) : void {
         createHtmlElements.createHtmls();
         animator.executingActions();
         userRelated.userRelatedActions();
         editor.editingActions();
+        if (programId) {
+            userRelated.loadProgram(programId);
+        }
     }
+
 
 }
 

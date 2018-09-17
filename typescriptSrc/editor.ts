@@ -4,7 +4,7 @@
 
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
-/// <reference path="createHTMLElements.ts" />
+/// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
@@ -14,7 +14,7 @@
 
 import assert = require('./assert') ;
 import collections = require( './collections' );
-import createHTMLElements = require('./createHTMLElements');
+import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
 import pnodeEdits = require( './pnodeEdits');
@@ -31,6 +31,8 @@ module editor {
     import snoc = collections.snoc;
 
     import Selection = pnodeEdits.Selection;
+
+    import Actions = treeManager.Actions ;
 
     enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE }
 
@@ -81,7 +83,8 @@ module editor {
         $( ".paletteItem" ).click(
             function(this : HTMLElement, evt : Event) : void {
                 console.log( "click on " + $(this).attr("id") ) ;
-                createNodeOnCurrentSelection( $(this).attr("id") ) ; } ) ;
+                const action : Actions = $(this).data("action") as Actions ;
+                createNodeOnCurrentSelection( action ) ; } ) ;
 
     }
 
@@ -280,7 +283,8 @@ module editor {
                         console.log("  Third case." ) ;
                         console.log("  " + ui.draggable.attr("id"));
                         // Add create a new node and use it to replace the current selection.
-                        createNode(ui.draggable.attr("id") /*id*/, dropTarget );
+                        const action : Actions = ui.draggable.data( "action" ) as Actions ;
+                        createNode( action, dropTarget );
                     } else {
                         assert.check( false, "Drop without a drag.") ;
                     } } ) ;
@@ -350,34 +354,31 @@ module editor {
         }
     }
 
+    function updateLabelHelper( element: HTMLElement, tabDirection : number ) : void {
+        //console.log( ">>updateLabelHelper") ;
+        const text = $(element).val();
+        const optLocationOfTarget : Option<Selection>
+            = sharedMkHtml.getPathToNode(currentSelection.root(), $(element) )  ;
+        //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
+        
+        optLocationOfTarget.bind(
+            locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text, tabDirection ) )
+        .map( (result : Selection) => update( result ) ) ;
+        //console.log( "<< updateLabelHelper " + result.toString() ) ;
+    }
+
     
     const updateLabelHandler = function (this : HTMLElement, e : Event ) : void {
             console.log( ">>updateLabelHandler") ;
-            const text = $(this).val();
-            const optLocationOfTarget : Option<Selection>
-                = sharedMkHtml.getPathToNode(currentSelection.root(), $(this) )  ;
-            console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
-            const opt = optLocationOfTarget.bind(
-                locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text ) ) ;
-            console.log( "  opt is " + opt) ;
-            opt.map( sel => update(sel) );
+            updateLabelHelper( this, 1 ) ;
             console.log( "<< updateLabelHandler") ; } ;
 
     const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             if (e.keyCode === 13 || e.keyCode === 9) {
                 console.log( ">>input keydown handler") ;
-                updateLabelHandler.call( this, e ) ;
-                if( !e.shiftKey && e.keyCode === 9)
-                {
-                    treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
-                         update( sel ) ) ;
-                }
-                else if( e.shiftKey && e.which === 9 ) // shift+tab
-                {
-                    treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
-                             update( sel ) ) ;
-                }
+                const tabDirection = e.keyCode !== 9 ? 0 : e.shiftKey ? -1 : +1 ;
+                updateLabelHelper( this, tabDirection ) ;
                 // TODO: It would be nice to have special handling of
                 //   up and down arrows (for example). However that
                 //   requires handling of the event before it gets
@@ -561,11 +562,10 @@ module editor {
     function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
     {
             console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
-            // Create location decl node: ; or Cntl-Shift-V or Cmd-Shift-V 
-            if ( (!e.shiftKey && e.which===59)
-              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 86) 
+            // Create location decl node: ;  
+            if ( (!e.shiftKey && e.which===59) ) 
             {
-                createNode("locdecl", currentSelection );
+                createNode( Actions.LOC_OR_LOCATION_TYPE, currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -573,14 +573,14 @@ module editor {
             else if ( (!e.shiftKey && e.which===188)
               || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 67) 
             {
-                createNode("condecl", currentSelection );
+                createNode( Actions.VAR_DECL, currentSelection );
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             //Create assignment node: shift+; (aka :)
             else if (e.shiftKey && (e.which === 59 || e.which === 186))
             {
-                createNode("assign", currentSelection );
+                createNode(Actions.ASSIGN_OR_ASSIGN_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -593,42 +593,42 @@ module editor {
                 {
                     charCode -= 48; //Convert numpad key to number key
                 }
-                createNode("numberliteral", currentSelection, String.fromCharCode(charCode) );
+                createNode(Actions.NUMBER_OR_NUMBER_TYPE, currentSelection, String.fromCharCode(charCode) );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create if node: shift+/ (aka ?)
             else if (e.shiftKey && e.which === 191)
             {
-                createNode("if", currentSelection );
+                createNode(Actions.IF_OR_BOOL_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create while node: shift+2 (aka @)
             else if (e.shiftKey && e.which === 50)
             {
-                createNode("while", currentSelection );
+                createNode(Actions.WHILE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create lambda node: with the \ key
             else if (!e.shiftKey && e.which === 220)
             {
-                createNode("lambda", currentSelection );
+                createNode(Actions.LAMBDA_OR_FUNCTION_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create call node: with the shift - key (aka _)
             else if (e.shiftKey && (e.which === 189 || e.which === 173) )
             {
-                createNode("call", currentSelection );
+                createNode(Actions.CALL, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create string literal node: shift+' (aka ")
             else if (e.shiftKey && e.which === 222)
             {
-                createNode("stringliteral", currentSelection, "" );
+                createNode(Actions.STRING_OR_STRING_TYPE, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -640,12 +640,12 @@ module editor {
                 {
                     charCode += 32;
                 }
-                createNode("var", currentSelection, String.fromCharCode(charCode) );
+                createNode(Actions.VAR, currentSelection, String.fromCharCode(charCode) );
                 e.stopPropagation();
                 e.preventDefault();
             }
             else if( !e.shiftKey && e.which === 192 ) {  // Backquote
-                createNode("worldcall", currentSelection );
+                createNode(Actions.WORLD_CALL, currentSelection );
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -657,7 +657,9 @@ module editor {
                                    || e.which === 56      // Shift 56  *
                                    || e.which === 188     // Shift 188 <
                                    || e.which ===190      // Shift 190 >
-                                   || e.which === 53))    // Shift 53  %
+                                   || e.which === 53      // Shift 53  %
+                                   || e.which === 55      // Shift 55 &
+                                   || e.which === 220 ))  // Shift 220 |
                    || (!e.shiftKey && (e.which === 191    // No shift 191 /
                                       || e.which === 173  // No shift 173  -
                                       || e.which === 189  // No shift 189  -
@@ -670,32 +672,38 @@ module editor {
                 const charCode : number = e.which;
                 if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
                 {
-                    createNode("worldcall", currentSelection, "+");
+                    createNode(Actions.WORLD_CALL, currentSelection, "+");
                 }
                 else if(charCode === 61)
                 {
-                    createNode("worldcall", currentSelection, "=");
+                    createNode(Actions.WORLD_CALL, currentSelection, "=");
                 }
                 else if(charCode === 109 || charCode === 173 || charCode === 189)
                 {
-                    createNode("worldcall", currentSelection, "-");
+                    createNode(Actions.WORLD_CALL, currentSelection, "-");
                 }
                 else if(charCode === 56 || charCode === 106)
                 {
-                    createNode("worldcall", currentSelection, "*");
+                    createNode(Actions.WORLD_CALL, currentSelection, "*");
                 }
                 else if( charCode === 188 ) {
-                    createNode("worldcall", currentSelection, "<");
+                    createNode(Actions.WORLD_CALL, currentSelection, "<");
                 }
                 else if( charCode === 190 ) {
-                    createNode("worldcall", currentSelection, ">");
+                    createNode(Actions.WORLD_CALL, currentSelection, ">");
                 }
                 else if( charCode === 53 ) {
-                    createNode("worldcall", currentSelection, "%");
+                    createNode(Actions.WORLD_CALL, currentSelection, "%");
+                }
+                else if( charCode === 55 ) {
+                    createNode(Actions.AND_OR_MEET_TYPE, currentSelection );
+                }
+                else if( charCode === 220 ) {
+                    createNode(Actions.OR_OR_JOIN_TYPE, currentSelection );
                 }
                 else //only the codes for /  can possibly remain.
                 {
-                    createNode("worldcall", currentSelection, "/");
+                    createNode(Actions.WORLD_CALL, currentSelection, "/");
                 }
                 e.stopPropagation();
                 e.preventDefault();
@@ -703,21 +711,28 @@ module editor {
             // Create Object Literal node: $
             else if (e.shiftKey && e.which === 52)
             {
-                createNode("objectliteral", currentSelection);
+                createNode(Actions.OBJECT, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create accessor node: [
             else if(!e.shiftKey && e.which === 219)
             {
-                createNode("accessor", currentSelection);
+                createNode(Actions.INDEX, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
             //Create dot node: .
             else if(!e.shiftKey && (e.which === 190 || e.which === 110) )
             {
-                createNode("dot", currentSelection);
+                createNode(Actions.DOT, currentSelection);
+                e.stopPropagation();
+                e.preventDefault();
+            }
+            //Create tuple node: (
+            else if(e.shiftKey && (e.which === 57 )) 
+            {
+                createNode(Actions.TUPLE_OR_TUPLE_TYPE, currentSelection);
                 e.stopPropagation();
                 e.preventDefault();
             }
@@ -729,23 +744,26 @@ module editor {
             currentSelection = sel ;
             redostack.length = 0 ;
             generateHTMLSoon();
+            if (sessionStorage.length > 0) {
+                save();
+            }
     }
 
     export function getCurrentSelection() : Selection {
         return currentSelection ;
     }
 
-    function createNodeOnCurrentSelection(id: string, nodeText?: string) : void
+    function createNodeOnCurrentSelection(action: Actions, nodeText?: string) : void
     {
-        createNode( id, getCurrentSelection(), nodeText) ;
+        createNode( action, getCurrentSelection(), nodeText) ;
     }
 
-    function createNode(id: string, selection : Selection, nodeText?: string) : void
+    function createNode(action : Actions, selection : Selection, nodeText?: string) : void
     {
         const opt : Option<Selection> =
             (nodeText !== undefined) 
-            ? treeMgr.createNodeWithText(id, selection, nodeText)
-            : treeMgr.createNode(id, selection );
+            ? treeMgr.createNodeWithText(action, selection, nodeText)
+            : treeMgr.createNode(action, selection );
         //console.log("  opt is " + opt );
         opt.map(
             sel => {
@@ -837,7 +855,7 @@ module editor {
                 { //Keep going if the selected node is open.
                     return false;
                 }
-                for(let child of sel.selectedNodes()[0].children())
+                for(const child of sel.selectedNodes()[0].children())
                 { //deal with cases where a child of the selected node is open, but not the selected node itself.
                     if(child.label().isOpen())
                     {
@@ -854,6 +872,23 @@ module editor {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
             function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
+    }
+
+    let saving : boolean = false;
+    function save() : void {
+        if (!saving) {
+            saving = true;
+            setTimeout(function () : void {
+                            $.post('/update/',
+                                   {
+                                        identifier: sessionStorage.getItem("programId"),
+                                        program: pnode.fromPNodeToJSON(currentSelection.root())
+                                   },
+                                   function () : void {
+                                       saving = false;
+                                   }); },
+                       15000);
+        }
     }
 }
 

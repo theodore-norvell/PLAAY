@@ -11,12 +11,13 @@ import assert = require( '../assert' ) ;
 import valueTypes = require( '../valueTypes' ) ;
 import vms = require( '../vms' ) ;
 import world = require('../world') ;
+import types = require('../types') ;
 import ObjectV = valueTypes.ObjectV;
 import Evaluation = vms.Evaluation;
 import VMS = vms.VMS;
 import World = world.World;
 import Field = valueTypes.Field;
-import Type = vms.Type;
+import Type = types.TypeKind;
 import VarStack = vms.VarStack;
 import { Transaction, TransactionManager } from '../backtracking';
 
@@ -28,7 +29,7 @@ describe( 'World', function () : void {
         const manager : TransactionManager = new TransactionManager();
         const wld = new World(manager);
         const str = new valueTypes.StringV("hello");
-        const f : Field = new Field("abcd", str, Type.ANY , false, true, manager);
+        const f : Field = new Field("abcd", Type.TOP , manager, str);
         const n = wld.numFields() ;
         wld.addField(f);
         assert.check(wld.getField(f.getName()) === f);
