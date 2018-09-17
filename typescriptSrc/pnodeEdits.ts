@@ -1,13 +1,11 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="edits.ts" />
-/// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
 import edits = require( './edits' ) ;
-import labels = require( './labels') ;
 import pnode = require( './pnode' ) ;
 
 /** pnodeEdits is responsible for edits that operate on selections.
@@ -32,8 +30,6 @@ module pnodeEdits {
     import alt = edits.alt ;
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
-    import VarDeclLabel = labels.VarDeclLabel ;
-    import mkVarOrLocDecl = labels.mkVarOrLocDecl ;
     
     
     /** A Selection indicates a set of selected nodes within a tree.
@@ -568,10 +564,13 @@ module pnodeEdits {
         }
     }
     
-    /**  Toggles the boolean value of a VarDecl
+    /**  Toggles boolean edit
      *  
      */
-    class ToggleVarDeclEdit extends AbstractEdit<Selection> {
+    /**  Changes the string value of a node's label.
+     *  
+     */
+    export class ToggleBooleanEdit extends AbstractEdit<Selection> {
 
         constructor() {
             super();
@@ -579,21 +578,24 @@ module pnodeEdits {
 
         public applyEdit(selection:Selection):Option<Selection> {
             const nodes = selection.selectedNodes() ;
-            if( nodes.length !== 1 ) {
-                return none() ; }
-            const node = nodes[0] ;
-            const label = node.label()  ;
-            if( ! (label instanceof VarDeclLabel) ) {
-                return none() ; }
-            const isConst = (label as VarDeclLabel).declaresConstant() ;
-            const newNode = mkVarOrLocDecl( !isConst, node.child(0), node.child(1), node.child(2) ) ;
-            const result = singleReplace( selection, [newNode] ) ;
-            console.log( "result is " + result ) ;
-            return result ;
+            const newNodes : Array<PNode> = [] ;
+            let count = 0 ;
+            // Loop through all the nodes, attempting to change the label on each.
+            for( let i = 0 ; i < nodes.length; ++i ) {
+                const optNode = nodes[i].label().getBoolean()
+                .bind( (q:boolean) => nodes[i].label().changeBoolean( !q ) )
+                .bind( l => nodes[i].tryModifyLabel(l) ) ;
+                optNode.choose(
+                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    () => { newNodes.push( nodes[i] ) ; } ) ;
+            }
+            // Fail if no labels changed.
+            if( count === 0 ) return none<Selection>() ;
+            else return singleReplace( selection, newNodes ) ;
         }
     }
 
-    export const toggleVarDecl = new ToggleVarDeclEdit() ;
+    export const toggleBooleanEdit = new ToggleBooleanEdit() ;
 
     /**  Open the labels of a selection.  Opening a label will make it editable in the editor.
      *  

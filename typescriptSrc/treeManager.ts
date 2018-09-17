@@ -353,11 +353,11 @@ module treeManager {
             // We either make a new location operator or toggle a variable
             // declaration between being loc or nonloc.
             const operatorTempl = new Selection( labels.mkLoc(placeHolder),                                                list<number>(), 0, 1 ) ;
-            return alt( [ compose( pnodeEdits.toggleVarDecl,
+            return alt( [ compose( pnodeEdits.toggleBooleanEdit,
                                    pnodeEdits.tabForwardEdit ),
                           replaceOrEngulfTemplateEdit( operatorTempl ),
                           compose( pnodeEdits.moveOutNormal,
-                                   pnodeEdits.toggleVarDecl,
+                                   pnodeEdits.toggleBooleanEdit,
                                    pnodeEdits.tabForwardEdit) ] ) ;
         }
 

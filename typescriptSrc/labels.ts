@@ -38,7 +38,19 @@ module labels {
 
         public open() : Option<Label>  { return none<Label>() ; }
 
+        public getString() : Option<string> {
+            return none<string>() ;
+        }
+
         public changeString (newString : string) : Option<Label> {
+            return none<Label>();
+        }
+
+        public getBoolean() : Option<boolean> {
+            return none<boolean>() ;
+        }
+
+        public changeBoolean (newBoolean : boolean) : Option<Label> {
             return none<Label>();
         }
 
@@ -110,6 +122,10 @@ module labels {
 
         public getVal() : string {
             return this._val;
+        }
+
+        public getString() : Option<string> {
+            return some<string>( this._val ) ;
         }
 
         public isOpen() : boolean {
@@ -217,6 +233,14 @@ module labels {
         }
 
         public declaresConstant() : boolean { return this._isConst ; }
+
+        public getBoolean() : Option<boolean> {
+            return some( this._isConst ) ;
+        }
+
+        public changeBoolean (newBoolean : boolean) : Option<Label> {
+            return some( new VarDeclLabel( newBoolean ) ) ;
+        }
 
         /** Is this label a label for a variable declaration node? */
         public isVarDeclNode() : boolean  { return true ; }

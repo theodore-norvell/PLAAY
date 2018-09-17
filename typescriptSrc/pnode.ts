@@ -43,14 +43,26 @@ module pnode {
          */
         open : () => Option<Label> ; 
 
+        /* Get the string value associated with the label if there is one */
+        getString : () => Option<string> ;
+
         /** Possibly change the string value associated with this label. 
          * The argument must not be null!
          * Labels that don't have a string associated with them should return None.
          * Labels that do have a string associated with them should return Some unless
-         * there is a validity problem. E.g. the string associated with a number should be
-         * properly formatted.  If it returns Some, the new label should be closed.
+         * there is a validity problem.
          */
         changeString : (newString : string) => Option<Label> ;
+
+        /* Get the Boolean value associated with the label if there is one */
+        getBoolean : () => Option<boolean> ;
+
+        /** Possibly change the boolean value associated with this label.
+         * Labels that don't have a boolean associated with them should return None.
+         * Labels that do have a boolean associated with them should return Some unless
+         * there is a validity problem.
+         */
+        changeBoolean : (newBoolean : boolean) => Option<Label> ;
 
         /** Convert the label to an object that we can put out as JSON.
          * This object must of a "kind" field and the value of that field must be the name of the 

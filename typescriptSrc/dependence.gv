@@ -111,7 +111,6 @@ digraph Depends {
 
    pnodeEdits -> edits ;
    pnodeEdits -> pnode ;
-   pnodeEdits -> labels ;
    
    types -> pnode [style=dashed];
    types -> labels ;
