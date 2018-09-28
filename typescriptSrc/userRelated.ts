@@ -2,21 +2,21 @@
 
 /// <reference path="collections.ts" />
 /// <reference path="editor.ts" />
-/// <reference path="pnodeEdits.ts" />
 /// <reference path="pnode.ts" />
+/// <reference path="selection.ts" />
 
 
 import collections = require( './collections' );
 import editor = require( './editor' );
 import pnode = require('./pnode');
-import pnodeEdits = require( './pnodeEdits');
+import selection = require( './selection');
 
 /** userRelated  provides the UI for communicating with the server. */
 module userRelated 
 {
     import list = collections.list;
     import fromJSONToPNode = pnode.fromJSONToPNode;
-    import Selection = pnodeEdits.Selection;
+    import Selection = selection.Selection;
 
     export function userRelatedActions () : void
     {

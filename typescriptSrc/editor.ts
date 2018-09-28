@@ -7,7 +7,7 @@
 /// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
+/// <reference path="selection.ts" />
 /// <reference path="treeView.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="treeView.ts" />
@@ -18,7 +18,7 @@ import collections = require( './collections' );
 import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
 import pnode = require( './pnode');
-import pnodeEdits = require( './pnodeEdits');
+import selection = require( './selection');
 import treeManager = require( './treeManager');
 import treeView = require('./treeView');
 
@@ -29,9 +29,8 @@ module editor {
     import Option = collections.Option ;
     import some = collections.some ;
     import none = collections.none ;
-    import snoc = collections.snoc;
 
-    import Selection = pnodeEdits.Selection;
+    import Selection = selection.Selection;
 
     import Actions = treeManager.Actions ;
 
@@ -46,7 +45,7 @@ module editor {
     let draggedSelection : Selection ;
     let dragKind : DragEnum  = DragEnum.NONE ;
 
-    let currentSelection = new pnodeEdits.Selection(labels.mkExprSeq([]),list<number>(),0,0);
+    let currentSelection = new Selection(labels.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
@@ -346,8 +345,7 @@ module editor {
                     const optClickTarget : Option<Selection> 
                     = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => {
-                        const edit = new pnodeEdits.OpenLabelEdit() ;
-                        const opt = edit.applyEdit( clickTarget ) ;
+                        const opt = treeMgr.openLabel(clickTarget) ;
                         opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
                     evt.stopPropagation(); 
                     console.log( "<< Double Click Handler") ;
@@ -547,8 +545,7 @@ module editor {
             }
             else if (! e.shiftKey && e.which === 13) // enter
             {
-                const edit = new pnodeEdits.OpenLabelEdit() ;
-                const opt = edit.applyEdit( currentSelection ) ;
+                const opt = treeMgr.openLabel( currentSelection ) ;
                 opt.map( (sel : Selection) => update( sel ) ) ;
                 e.stopPropagation() ;
                 e.preventDefault() ;
@@ -759,17 +756,17 @@ module editor {
         createNode( action, getCurrentSelection(), nodeText) ;
     }
 
-    function createNode(action : Actions, selection : Selection, nodeText?: string) : void
+    function createNode(action : Actions, sel : Selection, nodeText?: string) : void
     {
         const opt : Option<Selection> =
             (nodeText !== undefined) 
-            ? treeMgr.createNodeWithText(action, selection, nodeText)
-            : treeMgr.createNode(action, selection );
+            ? treeMgr.createNodeWithText(action, sel, nodeText)
+            : treeMgr.createNode(action, sel );
         //console.log("  opt is " + opt );
         opt.map(
-            sel => {
+            sel0 => {
                 // console.log("  createNode is possible." ) ;
-                update( sel ) ;
+                update( sel0 ) ;
                 // console.log("  HTML generated" ) ;
             } );
     }
@@ -793,11 +790,11 @@ module editor {
     // Scroll container to make a selected element fully visible
     function scrollIntoView() : void {
         const container : JQuery | null = $("#container ");
-        const selection : JQuery | null = $(".selected");
-        if (selection.get(0) === undefined) { return; } //Return if no selected nodes
+        const sel : JQuery | null = $(".selected");
+        if (sel.get(0) === undefined) { return; } //Return if no selected nodes
 
-        const selectionHeight : number | null = selection.outerHeight(); // Height of selected node     
-        const selectionTop : number | null = selection.position().top; // Relative to visible container top
+        const selectionHeight : number | null = sel.outerHeight(); // Height of selected node     
+        const selectionTop : number | null = sel.position().top; // Relative to visible container top
         const selectionBot : number | null = (selectionHeight + selectionTop); 
         const visibleHeight : number | null = container.outerHeight(); // Height of visible container   
         const visibleTop : number | null = container.scrollTop(); // Top of visible container

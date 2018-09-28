@@ -5,6 +5,7 @@
 /// <reference path="pnode.ts" />
 /// <reference path="pnodeEdits.ts" />
 /// <reference path="treeView.ts" />
+/// <reference path="selection.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
@@ -12,6 +13,7 @@ import edits = require('./edits');
 import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
 import pnodeEdits = require ('./pnodeEdits');
+import selection = require( './selection');
 import treeView = require( './treeView') ;
 
 /** The treemanager provides to the UI an interface for editing a tree.
@@ -25,7 +27,7 @@ module treeManager {
     import optionally = edits.optionally ;
     import testEdit = edits.testEdit ;
     import CallVarLabel = labels.CallVarLabel ;
-    import Selection = pnodeEdits.Selection;
+    import Selection = selection.Selection;
     import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
     import list = collections.list;
     import PNode = pnode.PNode;
@@ -54,17 +56,7 @@ module treeManager {
 
     export class TreeManager {
 
-        public createRoot() : Option<Selection>{
-            
-            const rootNode = labels.mkExprSeq( [] )  ;
-
-            const sel = new Selection(rootNode, collections.list(0), 0, 1);
-            const edit = pnodeEdits.insertChildrenEdit([placeHolder]);
-            return edit.applyEdit(sel);
-
-        }
-
-        public createNode( action: Actions, selection:Selection) : Option<Selection> {
+        public createNode( action: Actions, sel:Selection) : Option<Selection> {
             console.log( "treeManager.createNode action is " + action.toString() ) ;
             let edit : Edit<Selection> ;
             switch ( action) {
@@ -215,11 +207,11 @@ module treeManager {
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNode" ) ;
             }
-            return edit.applyEdit(selection) ;
+            return edit.applyEdit(sel) ;
         }
 
         //Only for nodes that can contain text, such as variables and strings.
-        public createNodeWithText( action: Actions, selection: Selection, text: string ) : Option<Selection> {
+        public createNodeWithText( action: Actions, sel: Selection, text: string ) : Option<Selection> {
             console.log( "treeManager.createNodeWithText action is " + action.toString() + " text is " + text ) ;
             let edit : Edit<Selection> ;
             switch (action) {
@@ -244,7 +236,7 @@ module treeManager {
                 default:
                     return assert.failedPrecondition("Unexpected parameter to createNodeWithText" ) ;
             }
-            return edit.applyEdit(selection) ;
+            return edit.applyEdit(sel) ;
         }
 
         private makeVarNode(text : string = "") : Edit<Selection> {
@@ -492,10 +484,14 @@ module treeManager {
             return replaceOrEngulfTemplateEdit( template ) ; 
         }
 
-        public changeNodeString(selection: Selection, newString: string, tabDirection: number ) : Option<Selection> {
+        public openLabel( sel: Selection ) : Option<Selection> {
+            return pnodeEdits.openLabelEdit().applyEdit( sel ) ;
+        }
+
+        public changeNodeString(sel: Selection, newString: string, tabDirection: number ) : Option<Selection> {
             // First change the label
-            const oldLabelEmpty = selection.size() === 1
-                               && selection.selectedNodes()[0].label().getVal() === "" ;
+            const oldLabelEmpty = sel.size() === 1
+                               && sel.selectedNodes()[0].label().getVal() === "" ;
             const changeLabel = new pnodeEdits.ChangeStringEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
@@ -542,67 +538,67 @@ module treeManager {
                                                   pnodeEdits.selectParentEdit ),
                                          id()] ),
                                    tab ) ;
-            return edit.applyEdit( selection ) ;
+            return edit.applyEdit( sel ) ;
         }
 
-        public selectAll( selection:Selection ) : Option<Selection> {
-            const root = selection.root() ;
+        public selectAll( sel:Selection ) : Option<Selection> {
+            const root = sel.root() ;
             const n = root.count() ;
             return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
         }
 
-        public moveOut( selection:Selection ) : Option<Selection> {
-            return pnodeEdits.moveOutNormal.applyEdit(selection) ;
+        public moveOut( sel:Selection ) : Option<Selection> {
+            return pnodeEdits.moveOutNormal.applyEdit(sel) ;
         }
 
-        public moveLeft( selection:Selection ) : Option<Selection> {
+        public moveLeft( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.leftEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveRight( selection:Selection ) : Option<Selection> {
+        public moveRight( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.rightEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveUp( selection:Selection ) : Option<Selection> {
+        public moveUp( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.upEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveDown( selection:Selection ) : Option<Selection> {
+        public moveDown( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.downEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveFocusLeft( selection:Selection ) : Option<Selection> {
+        public moveFocusLeft( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.moveFocusLeftEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveFocusRight( selection:Selection ) : Option<Selection> {
+        public moveFocusRight( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.moveFocusRightEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveFocusUp( selection:Selection ) : Option<Selection> {
+        public moveFocusUp( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.moveFocusUpEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveFocusDown( selection:Selection ) : Option<Selection> {
+        public moveFocusDown( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.moveFocusDownEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
-        public moveTabForward( selection:Selection ) : Option<Selection> {
+        public moveTabForward( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.tabForwardEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
          
-        public moveTabBack( selection:Selection ) : Option<Selection> {
+        public moveTabBack( sel:Selection ) : Option<Selection> {
             const edit = pnodeEdits.tabBackEdit;
-            return edit.applyEdit(selection);
+            return edit.applyEdit(sel);
         }
 
         private standardBackFillList = [[labels.mkNoExpNd()], [placeHolder], [placeHolder], [labels.mkNoTypeNd()]] ;
@@ -611,12 +607,12 @@ module treeManager {
 
         private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [placeHolder], [labels.mkNoTypeNd()]] );
 
-        public delete(selection:Selection) : Option<Selection> {
-            const nodes : Array<PNode> = selection.selectedNodes() ;
+        public delete(sel:Selection) : Option<Selection> {
+            const nodes : Array<PNode> = sel.selectedNodes() ;
             if(nodes.length === 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
-                return this.otherDeleteEdit.applyEdit( selection ) ; }
+                return this.otherDeleteEdit.applyEdit( sel ) ; }
             else {
-                return this.deleteEdit.applyEdit(selection); }
+                return this.deleteEdit.applyEdit(sel); }
         }
 
         public paste( srcSelection: Selection, trgSelection: Selection ) : Option<Selection> {

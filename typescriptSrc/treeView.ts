@@ -2,13 +2,13 @@
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
+/// <reference path="selection.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
 import pnode = require('./pnode');
-import pnodeEdits = require('./pnodeEdits');
+import selection = require( './selection');
 
 /** The treeView module looks after the conversion of trees to HTML.
  * It can also map HTML elements to paths and paths to HTML. */
@@ -21,7 +21,7 @@ module treeView
     import none = collections.none;
     // path is an alias for list<number>
     const path : (  ...args : Array<number> ) => List<number> = list;
-    import Selection = pnodeEdits.Selection;
+    import Selection = selection.Selection;
     import PNode = pnode.PNode;
 
     export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
@@ -836,7 +836,7 @@ module treeView
         
         // If making the selection fails, then the root passed in was not the root
         // used to make the HTML.
-        return some( new pnodeEdits.Selection(root, thePath, anchor, focus) ) ;
+        return some( new Selection(root, thePath, anchor, focus) ) ;
     }
 
     export function stringIsInfixOperator( str : string ) : boolean {

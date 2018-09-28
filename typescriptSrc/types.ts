@@ -252,6 +252,7 @@ module types {
         public static readonly theZeroTupleType = new TupleType([]);
 
         public static createTupleType(tys:Array<Type>) : TupleType {
+            assert.checkPrecondition( tys.length !== 1 ) ;
             return new TupleType(tys);
         }
     }
@@ -398,7 +399,8 @@ module types {
                 for(let i=0; i<children.length; i++ ) {
                     tys.push(createType(children[i]));
                 }
-                return TupleType.createTupleType(tys);
+                if( tys.length === 1 ) return tys[0] ;
+                else return TupleType.createTupleType(tys);
             }
 
             case labels.JoinTypeLabel.kindConst : {
