@@ -52,7 +52,8 @@ module selection {
             this._root = root;
             this._path = path;
             this._anchor = anchor ;
-            this._focus = focus ; }
+            this._focus = focus ;
+        }
         
         public root() : PNode { return this._root ; }
         
