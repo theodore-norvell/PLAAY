@@ -23,7 +23,8 @@ module types {
         NUMBER,
         INT,
         NAT,
-        NULL
+        NULL,
+        EQUAL
     }
 
     export interface Type {
@@ -44,6 +45,7 @@ module types {
         isIntT : () => boolean;
         isNatT : () => boolean;
         isNullT : () => boolean;
+        isEqual : () => boolean;
     }
 
     abstract class AbstractType implements Type {
@@ -108,6 +110,16 @@ module types {
             return this.getKind() === TypeKind.NULL;
         }
 
+        public isEqual() : boolean {
+            return this.getKind() === TypeKind.EQUAL;
+        }
+
+        public toString():  {
+            //ToDo
+            
+        }
+
+
     }   
 
     export class BottomType extends AbstractType {
@@ -120,6 +132,14 @@ module types {
             super();
         }
 
+        private toString(){
+            //ToDo
+        }
+
+        private isEquals(ty: Type){
+            //ToDo
+        }
+
         public static readonly theBottomType : BottomType = new BottomType();
     }
 
@@ -130,6 +150,15 @@ module types {
         public getKind() : TypeKind {
             return TypeKind.JOIN;
         }
+
+        private toString(){
+            //ToDo
+        }
+
+        private isEquals(ty: Type){
+            //ToDo
+        }
+
 
         private constructor(left : Type, right : Type) {
             super();
@@ -151,6 +180,15 @@ module types {
         constructor() {
             super();
         }
+
+        private toString(){
+            //ToDo
+        }
+
+        private isEquals(ty: Type){
+            //ToDo
+        }
+
 
     }
 
@@ -189,6 +227,17 @@ module types {
             assert.checkPrecondition(i === 0 || i === 1);
             return this.children[i];
         }
+
+
+        private toString(){
+            //ToDo
+        }
+
+        private isEquals(ty: Type){
+            //ToDo
+        }
+
+
 
     }
 
@@ -252,7 +301,6 @@ module types {
         public static readonly theZeroTupleType = new TupleType([]);
 
         public static createTupleType(tys:Array<Type>) : TupleType {
-            assert.checkPrecondition( tys.length !== 1 ) ;
             return new TupleType(tys);
         }
     }
@@ -399,8 +447,7 @@ module types {
                 for(let i=0; i<children.length; i++ ) {
                     tys.push(createType(children[i]));
                 }
-                if( tys.length === 1 ) return tys[0] ;
-                else return TupleType.createTupleType(tys);
+                return TupleType.createTupleType(tys);
             }
 
             case labels.JoinTypeLabel.kindConst : {
