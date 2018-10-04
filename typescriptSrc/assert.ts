@@ -93,21 +93,21 @@ module assert {
     
     /** Check that two things are equal by === 
      * 
-     * @param a a thing
-     * @param b  another thing
+     * @param expected a thing
+     * @param actual  another thing
      */
     /* tslint:disable:no-any */
-    export function checkEqual( a : any, b : any ) : void  {
+    export function checkEqual( expected : any, actual : any ) : void  {
     /* tslint:enable:no-any */
-        if( !( a===b) ) {
+        if( !( expected===actual) ) {
             let message = "Assertion failed:\nExpected " ;
-            if( a===undefined ) message += "undefined" ;
-            else if( a===null) message += "null" ;
-            else message += "<<" + a.toString() + ">>" ;
+            if( expected===undefined ) message += "undefined" ;
+            else if( expected===null) message += "null" ;
+            else message += "<<" + expected.toString() + ">>" ;
             message += "\n but got " ;
-            if( b===undefined ) message += "undefined" ;
-            else if( b===null) message += "null" ;
-            else message += "<<"+ b.toString() +">>";
+            if( actual===undefined ) message += "undefined" ;
+            else if( actual===null) message += "null" ;
+            else message += "<<"+ actual.toString() +">>";
             raiseTheAlarm( message ) ;
         }
     }

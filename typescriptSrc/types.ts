@@ -23,8 +23,7 @@ module types {
         NUMBER,
         INT,
         NAT,
-        NULL,
-        EQUAL
+        NULL
     }
 
     export interface Type {
@@ -45,7 +44,7 @@ module types {
         isIntT : () => boolean;
         isNatT : () => boolean;
         isNullT : () => boolean;
-        isEqual : () => boolean;
+        equals : ( ty : Type ) => boolean;
     }
 
     abstract class AbstractType implements Type {
@@ -110,16 +109,9 @@ module types {
             return this.getKind() === TypeKind.NULL;
         }
 
-        public isEqual() : boolean {
-            return this.getKind() === TypeKind.EQUAL;
-        }
+        public abstract equals( ty : Type ) : boolean ;
 
-        public toString():  {
-            //ToDo
-            
-        }
-
-
+        public abstract toString() : string ;
     }   
 
     export class BottomType extends AbstractType {
@@ -132,12 +124,12 @@ module types {
             super();
         }
 
-        private toString(){
-            //ToDo
+        public toString() : string {
+            return "Bottom" ;
         }
 
-        private isEquals(ty: Type){
-            //ToDo
+        public equals(ty: Type) : boolean {
+            return ty.isBottomT() ;
         }
 
         public static readonly theBottomType : BottomType = new BottomType();
@@ -151,12 +143,18 @@ module types {
             return TypeKind.JOIN;
         }
 
-        private toString(){
-            //ToDo
+        public toString() : string {
+            return "Join(" + this.children[0].toString() + ", " 
+                           + this.children[1].toString() + ")" ;
         }
 
-        private isEquals(ty: Type){
-            //ToDo
+        public equals(ty: Type) : boolean {
+            if( ty.isJoinT() ) {
+                const ty1 = ty as JoinType ;
+                return this.children[0].equals( ty1.children[0] )
+                &&  this.children[1].equals( ty1.children[1] ) ;
+            }
+            else return false  ;
         }
 
 
@@ -181,12 +179,14 @@ module types {
             super();
         }
 
-        private toString(){
-            //ToDo
+        public toString() : string {
+            assert.todo() ;
+            return "todo" ;
         }
 
-        private isEquals(ty: Type){
-            //ToDo
+        public equals(ty: Type) : boolean {
+            assert.todo() ;
+            return false ;
         }
 
 
@@ -229,12 +229,14 @@ module types {
         }
 
 
-        private toString(){
-            //ToDo
+        public toString() : string {
+            assert.todo() ;
+            return "todo" ;
         }
 
-        private isEquals(ty: Type){
-            //ToDo
+        public equals(ty: Type) : boolean {
+            assert.todo() ;
+            return false ;
         }
 
 
