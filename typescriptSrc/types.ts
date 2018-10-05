@@ -44,6 +44,7 @@ module types {
         isIntT : () => boolean;
         isNatT : () => boolean;
         isNullT : () => boolean;
+        equals : ( ty : Type ) => boolean;
     }
 
     abstract class AbstractType implements Type {
@@ -108,6 +109,9 @@ module types {
             return this.getKind() === TypeKind.NULL;
         }
 
+        public abstract equals( ty : Type ) : boolean ;
+
+        public abstract toString() : string ;
     }   
 
     export class BottomType extends AbstractType {
@@ -120,6 +124,14 @@ module types {
             super();
         }
 
+        public toString() : string {
+            return "Bottom" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            return ty.isBottomT() ;
+        }
+
         public static readonly theBottomType : BottomType = new BottomType();
     }
 
@@ -130,6 +142,21 @@ module types {
         public getKind() : TypeKind {
             return TypeKind.JOIN;
         }
+
+        public toString() : string {
+            return "Join(" + this.children[0].toString() + ", " 
+                           + this.children[1].toString() + ")" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            if( ty.isJoinT() ) {
+                const ty1 = ty as JoinType ;
+                return this.children[0].equals( ty1.children[0] )
+                &&  this.children[1].equals( ty1.children[1] ) ;
+            }
+            else return false  ;
+        }
+
 
         private constructor(left : Type, right : Type) {
             super();
@@ -151,6 +178,17 @@ module types {
         constructor() {
             super();
         }
+
+        public toString() : string {
+            assert.todo() ;
+            return "todo" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            assert.todo() ;
+            return false ;
+        }
+
 
     }
 
@@ -189,6 +227,19 @@ module types {
             assert.checkPrecondition(i === 0 || i === 1);
             return this.children[i];
         }
+
+
+        public toString() : string {
+            assert.todo() ;
+            return "todo" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            assert.todo() ;
+            return false ;
+        }
+
+
 
     }
 
@@ -252,7 +303,6 @@ module types {
         public static readonly theZeroTupleType = new TupleType([]);
 
         public static createTupleType(tys:Array<Type>) : TupleType {
-            assert.checkPrecondition( tys.length !== 1 ) ;
             return new TupleType(tys);
         }
     }
@@ -399,8 +449,7 @@ module types {
                 for(let i=0; i<children.length; i++ ) {
                     tys.push(createType(children[i]));
                 }
-                if( tys.length === 1 ) return tys[0] ;
-                else return TupleType.createTupleType(tys);
+                return TupleType.createTupleType(tys);
             }
 
             case labels.JoinTypeLabel.kindConst : {
