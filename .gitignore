@@ -47,3 +47,9 @@ tsServer/.env
 tsServer/dist
 tsServer/node-modules
 tsServer/node_modules
+Subtype-Prototype/PlaayTypes.hi
+Subtype-Prototype/PlaayTypes.o
+Subtype-Prototype/QuickChkTests
+Subtype-Prototype/QuickChkTests.hi
+Subtype-Prototype/QuickChkTests.o
+Subtype-Prototype/temp.hs
