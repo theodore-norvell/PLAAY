@@ -142,7 +142,9 @@ module collections {
         /** Fold right.
          * <p> <code>list(a,b,c,d).fold( f, g)</code> is the same
          * as <code>f( a, f( b, f( c, g() ) ) )</code>.*/
-        public abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
+        public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
+            if( this.isEmpty() ) { return g() ; }
+            else { return f( this.first(), this.rest().fold( f, g ) ) ; } }
         
         /** Choose an action based on whether the list is empty.
          * <p> <code> l.choose(f, g) </code> is the same as <code>g()</code>
@@ -150,7 +152,9 @@ module collections {
          * where <code>h</code> is the first item and <code>r</code> is the rest of
          * the list.
          */
-        public abstract choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B ;
+        public choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B {
+            if( this.isEmpty() ) { return g() ; }
+            else { return f( this.first(), this.rest() ) ; } }
 
         /** Map across the list.
          * <p> <code> list(a,b,c).map(f)</code> means <code>list( f(a), f(b, f(c) )</code>.
@@ -188,13 +192,38 @@ module collections {
         public cat( other : List<A> ) : List<A> {
             return this.fold( (a : A, b : List<A>) => cons(a,b),
                               () => other  ) ; }
+
+        /** Concatenate one list with another. */
+        public lazyCat( other : List<A> ) : List<A> {
+            return new LazyCat( this, other ) ; }
         
         /** Compare for equality using === on the items*/
-        public abstract equals( other : List<A> ) : boolean ;
+        public equals( other : List<A> ) : boolean {
+            if( this.isEmpty() ) {
+                return other.isEmpty() ; }
+            else {
+                if( other.isEmpty() ) {
+                    return false ; }
+                else {
+                    return this.first() === other.first() 
+                        && this.rest().equals( other.rest() ) ; } } }
 
-        public abstract exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> ;
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B>  {
+            if( this.isEmpty() ) { return none() ;}
+            else {return f(this.first() , this.rest()) ; } }
 
-        public abstract exNil<B>( f : ()=>Option<B> ) : Option<B> ;
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            if( this.isEmpty() ) { return f() ;}
+            else {return none() ; } }   
+            
+        public toString() : string {
+            if( this.isEmpty() ) {
+                return "()" ; }
+            else {
+                return "( " +
+                    this.fold( 
+                        ( h : A, x : string ) : string => h.toString() + " " + x,
+                        () : string => ")" ) ; } }
     }
         
     /** A list of more than one thing. */
@@ -280,13 +309,96 @@ module collections {
             return f() ;
         }
     }
-    
+
+    class LazyCat<A> extends List<A> {
+        private _front : List<A> ;
+        private _back : List<A> ;
+
+        constructor( front : List<A>, back : List<A>  ) {
+            super() ;
+            this._front = front ;
+            this._back = back ;
+        }
+        
+        public isEmpty() : boolean {
+            return this._front.isEmpty && this._back.isEmpty() ; }
+        
+        public size() : number {
+            return this._front.size() + this._back.size() ; }
+
+        public first() : A {
+            if( ! this._front.isEmpty() ) { 
+                return this._front.first()  ; }
+            else {
+                return this._back.first() ; } }
+        
+        public rest() : List<A> { 
+            if( ! this._front.isEmpty() ) {
+                if( this._back.isEmpty() ) {
+                    // Front not empty. Back is empty.
+                    return this._front.rest() ; }
+                else {
+                    // Front is not empty. Back is not empty
+                    const frontRest = this._front.rest() ;
+                    if( frontRest.isEmpty() ) {
+                        return this._back ; }
+                    else {
+                        return new LazyCat( frontRest, this._back ) ; } } }
+            else {
+                // Front is empty
+                return this._back.rest() ; } }
+        
+        public map<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCat( this._front.map(f), this._back.map(f) ) ; }
+    }
+
+    class LazyCons<A> extends List<A> {
+        private _head : A ;
+        private _tail : List<A>|undefined ;
+        private _tailFunc : ()=>List<A> ;
+
+        constructor( head : A, tailFunc : ()=>List<A> ) {
+            super() ;
+            this._head = head ;
+            this._tail = undefined ;
+            this._tailFunc = tailFunc ;
+        }
+        
+        public isEmpty() : boolean { return false ; }
+        
+        public size() : number { return 1 + this.rest().size() ; }
+
+        public first() : A {
+            return this._head ; }
+        
+        public rest() : List<A> { 
+            if( this._tail === undefined ) {
+                this._tail = this._tailFunc() ; }
+            return this._tail ; }
+
+        public map<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCons<B>( f( this.first() ),
+                                    ()=>this.rest().map(f) ) ; }
+
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
+            return f(this.first(), this.rest()) ; }
+
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            return none() ; }
+    }
+
     /** Make a list out of any numner of arguments. */
     export function list<A>( ...args : Array<A> ) : List<A> {
         let acc : List<A> = new Nil<A>() ;
         let i = args.length ;
         while( i > 0 ) {  i -= 1 ; acc = new Cons( args[i], acc ) ; }
         return acc ;
+    }
+
+    /** Make a lazy list of integers */
+    export function lazyIntSeq( start : number, len : number ) : List<number> {
+        if( len === 0 ) return nil() ;
+        else return lazyCons( start, ()=>lazyIntSeq( start+1, len-1 )) ;
     }
 
     /** Make a list from  an array. */
@@ -296,6 +408,18 @@ module collections {
     /* Construct a nonempty list from a head and a rest. */
     export function cons<A>( head : A, tail : List<A> ) : List<A> {
             return new Cons<A>( head, tail ) ; }
+
+    /* Construct a nonempty list from a head and a rest. */
+    export function lazyCons<A>( head : A, tail : ()=>List<A> ) : List<A> {
+            return new LazyCons<A>( head, tail ) ; }
+
+    export function cat<A>( front : List<A>, back : List<A>) : List<A> {
+        return front.cat( back ) ;
+    }
+
+    export function lazyCat<A>( front : List<A>, back : List<A>) : List<A> {
+        return front.lazyCat( back ) ;
+    }
 
     /** Make an empty list. */
     export function nil<A>() : List<A> { return new Nil<A>() ; }
@@ -328,253 +452,37 @@ module collections {
      */
     export function last<A>( xs : List<A> ) : A {
         if( xs.rest().isEmpty() ) return xs.first() ;
-        else return last( xs.rest() ) ;  }
+        else return last( xs.rest() ) ; }
 
-    abstract class LazyList<A> implements Collection<A> {
+    export function match<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : B {
+        const opt = optMatch( a, ...cases ) ;
+        if( opt.isEmpty() ) throw new Error( "No case succeded in match." ) ;
+        return opt.first() ; }
 
-        /** Fold right.
-         * <p> <code>list(a,b,c,d).fold( f, g)</code> is the same
-         * as <code>f( a, f( b, f( c, g() ) ) )</code>.*/
-        public abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
-        
-        /** Choose an action based on whether the list is empty.
-         * <p> <code> l.choose(f, g) </code> is the same as <code>g()</code>
-         *  if the list is empty.  Othewise, it is the same as <code>f(h, r)</code>
-         * where <code>h</code> is the first item and <code>r</code> is the rest of
-         * the list.
-         */
-        public abstract choose<B>( f: (h:A, r:LazyList<A>) => B, g : () => B ) : B ;
-
-        /** Map across the list.
-         * <p> <code> list(a,b,c).map(f)</code> means <code>list( f(a), f(b, f(c) )</code>.
-         */
-        public abstract map<B>(f : (a:A) => B ) : LazyList<B> ;
-        
-        /** Is the list empty> */
-        public abstract isEmpty() : boolean ;
-        
-        /** What is the size (length) of the list? */
-        public abstract size() : number ;
-        
-        /** What is the first item of the list.
-         * <p> Precondition: <code> ! isEmpty() </code>
-         */
-        public abstract first() : A ;
-        
-        /** What is rest of the list.
-         * <p> Precondition: <code> ! isEmpty() </code>
-         */
-        public abstract rest() : LazyList<A> ;
-                                
-        /** The monadic bind or flat map.
-         * <p> This function applies maps the given function, which must map
-         * each element to a list and then flattens the result.
-         * <p> For example if <code>list(a,b,c).map(f)</code> gives
-         * <code>list([a0,a1],[], [c0,c1,c3])</code>, then
-         * <code>list(a,b,c).bind(f)</code> gives <code>list(a0,a1,c0,c1,c3)</code>.
-         */
-        public bind<B>(f : (a:A) => LazyList<B> ) : LazyList<B> {
-            return this.map(f).fold( (a:LazyList<B>, b:LazyList<B>) => a.cat(b),
-                                    () => nil<B>() ); }
-
-        /** Concatenate one list with another. */
-        public cat( other : LazyList<A> ) : LazyList<A> {
-            return this.fold( (a : A, b : LazyList<A>) => cons(a,b),
-                            () => other  ) ; }
-        
-        /** Compare for equality using === on the items*/
-        public abstract equals( other : LazyList<A> ) : boolean ;
-
-        public abstract exCons<B>( f : (x:A, xs:LazyList<A>)=>Option<B> ) : Option<B> ;
-
-        public abstract exNil<B>( f : ()=>Option<B> ) : Option<B> ;
+    export function optMatch<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : Option<B> {
+        for( let i = 0 ; i<cases.length ; ++i ) {
+            const f = cases[i] ;
+            const b = f(a) ;
+            if( !b.isEmpty() ) return b;
+        }
+        return none<B>() ;
     }
 
-    class LazyCat<A> extends LazyList<A> {
-        private _front : LazyList<A> ;
-        private _back : LazyList<A> ;
-
-        constructor( front : LazyList<A>, back : LazyList<A>  ) {
-            super() ;
-            this._front = front ;
-            this._back = back ;
-        }
-        
-        public isEmpty() : boolean {
-            return this._front.isEmpty && this._back.isEmpty() ; }
-        
-        public size() : number {
-            return this._front.size() + this._back.size() ; }
-
-        public first() : A {
-            if( ! this._front.isEmpty() ) { 
-                return this._front.first()  ; }
-            else {
-                return this._back.first() ; } }
-        
-        public rest() : LazyList<A> { 
-            if( ! this._front.isEmpty() ) {
-                if( this._back.isEmpty() ) {
-                    // Front not empty. Back is empty.
-                    return this._front.rest() ; }
-                else {
-                    // Front is not empty. Back is not empty
-                    const frontRest = this._front.rest() ;
-                    if( frontRest.isEmpty() ) {
-                        return this._back ; }
-                    else {
-                        return new LazyCat( frontRest, this._back ) ; } } }
-            else {
-                // Front is empty
-                return this._back.rest() ; } }
-
-        public choose<B>( f: (h:A, r:LazyList<A>) => B, g : () => B ) : B {
-            if( this.isEmpty() ) { return g() ; }
-            else { return f( this.first(), this.rest() ) ; } }
-        
-        public map<B>(f : (a:A) => B ) : LazyList<B> {
-            if( this.isEmpty() ) { return new LazyNil() ; }
-            else { return new LazyCons<B>( f( this.first() ),
-                                           ()=>this.rest().map(f) ) ; } }
-        
-        public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
-            if( this.isEmpty() ) { return g() ; }
-            else { return f( this.first(), this.rest().fold( f, g ) ) ; } }
-            
-        public toString() : string {
-            if( this.isEmpty() ) {
-                return "<>" ; }
-            else {
-                return "< " +
-                    this.fold( 
-                        ( h : A, x : string ) : string => h.toString() + " " + x,
-                        () : string => ">" ) ; } }
-
-        /** Compare for equality using === on the items*/
-        public equals( other : LazyList<A> ) : boolean {
-            if( this.isEmpty() ) {
-                return other.isEmpty() ; }
-            else {
-                if( other.isEmpty() ) {
-                    return false ; }
-                else {
-                    return this.first() === other.first() 
-                        && this.rest().equals( other.rest() ) ; } }
-        }
-
-        public exCons<B>( f : (x:A, xs:LazyList<A>)=>Option<B> ) : Option<B> {
-            if( this.isEmpty() ) { return none() ;}
-            else {return f(this.first() , this.rest()) ; } }
-
-        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
-            if( this.isEmpty() ) { return f() ;}
-            else {return none() ; } }
+    export function guard<B>( b : boolean, f : () => B ) : Option<B> {
+        if( b ) return some( f() ) ;
+        else return none() ;
     }
 
-    class LazyCons<A> extends LazyList<A> {
-        private _head : A ;
-        private _tail : LazyList<A>|undefined ;
-        private _tailFunc : ()=>LazyList<A> ;
+    export function caseAlways<A,B>( f : () => Option<B> ) : (a:A)=>Option<B> {
+        return (a:A) => f() ;    }
 
-        constructor( head : A, tailFunc : ()=>LazyList<A> ) {
-            super() ;
-            this._head = head ;
-            this._tail = undefined ;
-            this._tailFunc = tailFunc ;
-        }
-        
-        public isEmpty() : boolean { return false ; }
-        
-        public size() : number { return 1 + this.rest().size() ; }
-
-        public first() : A { return this._head ; }
-        
-        public rest() : LazyList<A> { 
-            if( this._tail === undefined ) {
-                this._tail = this._tailFunc() ; }
-            return this._tail ; }
-
-        public choose<B>( f: (h:A, r:LazyList<A>) => B, g : () => B ) : B {
-            return f( this._head, this.rest() ) ; }
-        
-        public map<B>(f : (a:A) => B ) : LazyList<B> {
-            return new LazyCons<B>( f( this._head ),
-                                    ()=>this.rest().map(f) ) ; }
-        
-        public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
-            return f( this._head, this.rest().fold( f, g ) ) ; }
-            
-        public toString() : string {
-            return "< " +
-                this.fold( 
-                    ( h : A, x : string ) : string => h.toString() + " " + x,
-                    () : string => ">" ) ; }
-
-        /** Compare for equality using === on the items*/
-        public equals( other : LazyList<A> ) : boolean {
-            return other.choose( (h1, t1) => (this._head===h1 && this.rest().equals(t1)),
-                                 () => false ) ;
-        }
-
-        public exCons<B>( f : (x:A, xs:LazyList<A>)=>Option<B> ) : Option<B> {
-            return f(this._head, this.rest()) ; }
-
-        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
-            return none() ; }
+    export function caseCons<A,B>( f : (h:A,r:List<A>) => Option<B> ) : (l:List<A>) => Option<B> {
+        return (l:List<A>) => l.exCons( f ) ;
     }
 
-    /** A lazy list of 0 things. */
-    class LazyNil<A> extends LazyList<A> {
-
-        constructor( ) { super() ; }
-    
-        public isEmpty() : boolean { return true ; }
-        
-        public size() : number { return 0 ; }
-
-        public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B {
-            return g() ;
-        }
-        
-        public choose<B>( f: (h:A, r:LazyList<A>) => B, g : () => B ) : B {
-            return g() ; }
-
-        public map<B>( f : (a:A) => B ) : LazyList<B> {
-            return new LazyNil<B>( ) ; }
-        
-        public first() : A { throw Error("first applied to an empty lazy list") ; }
-            
-        public rest() : LazyList<A> { throw Error("rest applied to an empty lazy list") ; }
-
-        /** Compare for equality using === on the items*/
-        public equals( other : LazyList<A> ) : boolean {
-            return other.choose( (h1, t1) => false,
-                                 () => true ) ;
-        }
-    
-        public toString() : string { return "<>" ; }
-
-        public exCons<B>( f : (x:A, xs:LazyList<A>)=>Option<B> ) : Option<B> {
-            return none() ;
-        }
-
-        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
-            return f() ;
-        }
-
+    export function caseNil<A,B>( f : () => Option<B> ) : (l:List<A>) => Option<B> {
+        return (l:List<A>) => l.exNil( f ) ;
     }
-    
-    /** Make a list out of any number of arguments. */
-    export function lazyList<A>( ...args : Array<A> ) : LazyList<A> {
-        let acc : LazyList<A> = new LazyNil<A>() ;
-        let i = args.length ;
-        while( i > 0 ) {  i -= 1 ; acc = new LazyCons( args[i], ()=>acc ) ; }
-        return acc ;
-    }
-    
-
-
 }
-
 export = collections ;
 
