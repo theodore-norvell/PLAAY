@@ -354,8 +354,8 @@ module collections {
 
     class LazyCons<A> extends List<A> {
         private _head : A ;
-        private _tail : List<A>|undefined ;
-        private _tailFunc : ()=>List<A> ;
+        private _tail : List<A> | undefined ;
+        private _tailFunc : (()=>List<A>) | undefined;
 
         constructor( head : A, tailFunc : ()=>List<A> ) {
             super() ;
@@ -373,7 +373,8 @@ module collections {
         
         public rest() : List<A> { 
             if( this._tail === undefined ) {
-                this._tail = this._tailFunc() ; }
+                this._tail = (this._tailFunc as ()=>List<A>)() ;
+                this._tailFunc = undefined ; }
             return this._tail ; }
 
         public map<B>(f : (a:A) => B ) : List<B> {

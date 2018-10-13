@@ -97,7 +97,7 @@ module assert {
      * @param b  another thing
      */
     /* tslint:disable:no-any */
-    export function checkEqual( a : any, b : any ) : void  {
+    export function checkEqual<A>( a : A, b : A ) : void  {
     /* tslint:enable:no-any */
         if( !( a===b) ) {
             let message = "Assertion failed:\nExpected " ;
