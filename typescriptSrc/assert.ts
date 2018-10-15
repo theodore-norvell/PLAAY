@@ -96,9 +96,7 @@ module assert {
      * @param expected a thing
      * @param actual  another thing
      */
-    /* tslint:disable:no-any */
-    export function checkEqual( expected : any, actual : any ) : void  {
-    /* tslint:enable:no-any */
+    export function checkEqual<A>( expected : A, actual : A ) : void  {
         if( !( expected===actual) ) {
             let message = "Assertion failed:\nExpected " ;
             if( expected===undefined ) message += "undefined" ;

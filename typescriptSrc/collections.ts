@@ -101,6 +101,7 @@ module collections {
         public toString() : string { return "Some(" + this._val.toString() + ")" ; }
 
         public recoverBy( backup : () => Option<A> ) : Option<A> { return this ; }
+
     }
 
     /** A collection of 0 things as an Option */
@@ -141,7 +142,9 @@ module collections {
         /** Fold right.
          * <p> <code>list(a,b,c,d).fold( f, g)</code> is the same
          * as <code>f( a, f( b, f( c, g() ) ) )</code>.*/
-        public abstract fold<B>( f: (a:A, b:B) => B, g : () => B ) : B ; 
+        public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
+            if( this.isEmpty() ) { return g() ; }
+            else { return f( this.first(), this.rest().fold( f, g ) ) ; } }
         
         /** Choose an action based on whether the list is empty.
          * <p> <code> l.choose(f, g) </code> is the same as <code>g()</code>
@@ -149,7 +152,9 @@ module collections {
          * where <code>h</code> is the first item and <code>r</code> is the rest of
          * the list.
          */
-        public abstract choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B ;
+        public choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B {
+            if( this.isEmpty() ) { return g() ; }
+            else { return f( this.first(), this.rest() ) ; } }
 
         /** Map across the list.
          * <p> <code> list(a,b,c).map(f)</code> means <code>list( f(a), f(b, f(c) )</code>.
@@ -187,15 +192,38 @@ module collections {
         public cat( other : List<A> ) : List<A> {
             return this.fold( (a : A, b : List<A>) => cons(a,b),
                               () => other  ) ; }
+
+        /** Concatenate one list with another. */
+        public lazyCat( other : List<A> ) : List<A> {
+            return new LazyCat( this, other ) ; }
         
         /** Compare for equality using === on the items*/
         public equals( other : List<A> ) : boolean {
-            return this.choose(
-                (h0, r0) => other.choose( (h1, r1) => (h0===h1 && r0.equals(r1)),
-                                          () => false ),
-                () => other.choose( (h1, r1) => false,
-                                    () => true ) ) ;
-        }
+            if( this.isEmpty() ) {
+                return other.isEmpty() ; }
+            else {
+                if( other.isEmpty() ) {
+                    return false ; }
+                else {
+                    return this.first() === other.first() 
+                        && this.rest().equals( other.rest() ) ; } } }
+
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B>  {
+            if( this.isEmpty() ) { return none() ;}
+            else {return f(this.first() , this.rest()) ; } }
+
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            if( this.isEmpty() ) { return f() ;}
+            else {return none() ; } }   
+            
+        public toString() : string {
+            if( this.isEmpty() ) {
+                return "()" ; }
+            else {
+                return "( " +
+                    this.fold( 
+                        ( h : A, x : string ) : string => h.toString() + " " + x,
+                        () : string => ")" ) ; } }
     }
         
     /** A list of more than one thing. */
@@ -230,6 +258,18 @@ module collections {
                 this.fold( 
                     ( h : A, x : string ) : string => h.toString() + " " + x,
                     () : string => ")" ) ; }
+
+        /** Compare for equality using === on the items*/
+        public equals( other : List<A> ) : boolean {
+            return other.choose( (h1, t1) => (this._head===h1 && this._tail.equals(t1)),
+                                 () => false ) ;
+        }
+
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
+            return f(this._head, this._tail) ; }
+
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            return none() ; }
     }
     
     /** A list of 0 things. */
@@ -252,17 +292,114 @@ module collections {
         public first() : A { throw Error("first applied to an empty list") ; }
         
         public rest() : List<A> { throw Error("rest applied to an empty list") ; }
+        
+        /** Compare for equality using === on the items*/
+        public equals( other : List<A> ) : boolean {
+            return other.choose( (h1, t1) => false,
+                                 () => true ) ;
+        }
     
         public toString() : string { return "()" ; }
-        
+
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
+            return none() ;
+        }
+
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            return f() ;
+        }
     }
-    
+
+    class LazyCat<A> extends List<A> {
+        private _front : List<A> ;
+        private _back : List<A> ;
+
+        constructor( front : List<A>, back : List<A>  ) {
+            super() ;
+            this._front = front ;
+            this._back = back ;
+        }
+        
+        public isEmpty() : boolean {
+            return this._front.isEmpty && this._back.isEmpty() ; }
+        
+        public size() : number {
+            return this._front.size() + this._back.size() ; }
+
+        public first() : A {
+            if( ! this._front.isEmpty() ) { 
+                return this._front.first()  ; }
+            else {
+                return this._back.first() ; } }
+        
+        public rest() : List<A> { 
+            if( ! this._front.isEmpty() ) {
+                if( this._back.isEmpty() ) {
+                    // Front not empty. Back is empty.
+                    return this._front.rest() ; }
+                else {
+                    // Front is not empty. Back is not empty
+                    const frontRest = this._front.rest() ;
+                    if( frontRest.isEmpty() ) {
+                        return this._back ; }
+                    else {
+                        return new LazyCat( frontRest, this._back ) ; } } }
+            else {
+                // Front is empty
+                return this._back.rest() ; } }
+        
+        public map<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCat( this._front.map(f), this._back.map(f) ) ; }
+    }
+
+    class LazyCons<A> extends List<A> {
+        private _head : A ;
+        private _tail : List<A> | undefined ;
+        private _tailFunc : (()=>List<A>) | undefined;
+
+        constructor( head : A, tailFunc : ()=>List<A> ) {
+            super() ;
+            this._head = head ;
+            this._tail = undefined ;
+            this._tailFunc = tailFunc ;
+        }
+        
+        public isEmpty() : boolean { return false ; }
+        
+        public size() : number { return 1 + this.rest().size() ; }
+
+        public first() : A {
+            return this._head ; }
+        
+        public rest() : List<A> { 
+            if( this._tail === undefined ) {
+                this._tail = (this._tailFunc as ()=>List<A>)() ;
+                this._tailFunc = undefined ; }
+            return this._tail ; }
+
+        public map<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCons<B>( f( this.first() ),
+                                    ()=>this.rest().map(f) ) ; }
+
+        public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
+            return f(this.first(), this.rest()) ; }
+
+        public exNil<B>( f : ()=>Option<B> ) : Option<B> {
+            return none() ; }
+    }
+
     /** Make a list out of any numner of arguments. */
     export function list<A>( ...args : Array<A> ) : List<A> {
-        let acc = new Nil<A>() ;
+        let acc : List<A> = new Nil<A>() ;
         let i = args.length ;
         while( i > 0 ) {  i -= 1 ; acc = new Cons( args[i], acc ) ; }
         return acc ;
+    }
+
+    /** Make a lazy list of integers */
+    export function lazyIntSeq( start : number, len : number ) : List<number> {
+        if( len === 0 ) return nil() ;
+        else return lazyCons( start, ()=>lazyIntSeq( start+1, len-1 )) ;
     }
 
     /** Make a list from  an array. */
@@ -272,6 +409,18 @@ module collections {
     /* Construct a nonempty list from a head and a rest. */
     export function cons<A>( head : A, tail : List<A> ) : List<A> {
             return new Cons<A>( head, tail ) ; }
+
+    /* Construct a nonempty list from a head and a rest. */
+    export function lazyCons<A>( head : A, tail : ()=>List<A> ) : List<A> {
+            return new LazyCons<A>( head, tail ) ; }
+
+    export function cat<A>( front : List<A>, back : List<A>) : List<A> {
+        return front.cat( back ) ;
+    }
+
+    export function lazyCat<A>( front : List<A>, back : List<A>) : List<A> {
+        return front.lazyCat( back ) ;
+    }
 
     /** Make an empty list. */
     export function nil<A>() : List<A> { return new Nil<A>() ; }
@@ -304,9 +453,37 @@ module collections {
      */
     export function last<A>( xs : List<A> ) : A {
         if( xs.rest().isEmpty() ) return xs.first() ;
-        else return last( xs.rest() ) ;  }
-    
-}
+        else return last( xs.rest() ) ; }
 
+    export function match<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : B {
+        const opt = optMatch( a, ...cases ) ;
+        if( opt.isEmpty() ) throw new Error( "No case succeded in match." ) ;
+        return opt.first() ; }
+
+    export function optMatch<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : Option<B> {
+        for( let i = 0 ; i<cases.length ; ++i ) {
+            const f = cases[i] ;
+            const b = f(a) ;
+            if( !b.isEmpty() ) return b;
+        }
+        return none<B>() ;
+    }
+
+    export function guard<B>( b : boolean, f : () => B ) : Option<B> {
+        if( b ) return some( f() ) ;
+        else return none() ;
+    }
+
+    export function caseAlways<A,B>( f : () => Option<B> ) : (a:A)=>Option<B> {
+        return (a:A) => f() ;    }
+
+    export function caseCons<A,B>( f : (h:A,r:List<A>) => Option<B> ) : (l:List<A>) => Option<B> {
+        return (l:List<A>) => l.exCons( f ) ;
+    }
+
+    export function caseNil<A,B>( f : () => Option<B> ) : (l:List<A>) => Option<B> {
+        return (l:List<A>) => l.exNil( f ) ;
+    }
+}
 export = collections ;
 
