@@ -51,7 +51,6 @@ module types {
         equals : ( ty : Type ) => boolean;
         exBottom : <A> ( f : () => Option<A> ) => Option<A> ;
         exJoin : <A> ( f : (left:Type, right:Type) => Option<A> ) => Option<A> ;
-        caseJoin : <B> ( f : ( left : Type, right : Type ) => Option<B> )=> Option<B>);
     }
 
     abstract class AbstractType implements Type {
@@ -127,10 +126,6 @@ module types {
         public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
             return none() ;
         }
-        public caseJoinT<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
-            return ( t : Type ) => t.exJoin( f ) ;
-       }
-
     }   
 
     export class BottomType extends AbstractType {
@@ -143,6 +138,8 @@ module types {
             super();
         }
 
+        public static readonly theBottomType = new BottomType() ;
+
         public toString() : string {
             return "Bottom" ;
         }
@@ -152,17 +149,9 @@ module types {
         }
 
         public exBottom <A> ( f : () => Option<A> ) : Option<A> {
-            
-            return none();
+            return f() ;
 
         }
-        public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
-            return none() ;
-        }
-
-        public caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
-            return none ;
-       }
     }
 
     export class JoinType extends AbstractType {
@@ -203,23 +192,9 @@ module types {
             return this.children[i];
         }
 
-        public exBottom <A> ( f : (ty:Type,) => Option<A> ) : Option<A> 
-        {
-            //If t is a BottomT object
-            if (t.exBottomT(f)){
-                return f(this.children[0]);
-            }
-            else{
-                return f(this.children[1]);
-            }
-
-        }    
-        
-        
-
         //Override
         public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
-            return f( this.children[0], this.children[1]) ;
+            return f( this.children[0], this.children[1] ) ;
         }
     }
 
@@ -238,22 +213,6 @@ module types {
             assert.todo() ;
             return false ;
         }
-
-        public exBottomT () : boolean{
-            assert.todo();
-            return false;
-        }
-
-        public exJoinT () : boolean{
-            assert.todo();
-            return false;
-        }
-
-        public caseJoinT () : boolean{
-            assert.todo();
-            return false;
-        }
-
 
     }
 
@@ -303,24 +262,6 @@ module types {
             assert.todo() ;
             return false ;
         }
-
-        public exBottomT () : boolean{
-            assert.todo();
-            return false;
-        }
-
-        public exJoinT () : boolean{
-            assert.todo();
-            return false;
-        }
-
-        public caseJoinT () : boolean{
-            assert.todo();
-            return false;
-        }
-
-
-
     }
 
     abstract class TypeFactor extends TypeTerm {
@@ -570,6 +511,15 @@ module types {
         else {
             return JoinType.createJoinType( makeMeet((left as JoinType).getChild(0),right), makeMeet((left as JoinType).getChild(1),right));
         }
+    }
+
+    
+
+    export function caseBottom<B>( f : ( ) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exBottom( f ) ;
+    }
+    export function caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exJoin( f ) ;
     }
 
 }
