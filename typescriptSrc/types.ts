@@ -2,12 +2,16 @@
 
 
 import assert = require( './assert' ) ;
+import collections = require('./collections') ;
 import labels  = require('./labels') ;
 import pnode = require( './pnode' ) ;
 
 module types {
 
     import PNode = pnode.PNode ;
+    import Option = collections.Option ;
+    import some = collections.some ;
+    import none = collections.none ;
 
     export enum TypeKind {
         BOTTOM,
@@ -45,6 +49,9 @@ module types {
         isNatT : () => boolean;
         isNullT : () => boolean;
         equals : ( ty : Type ) => boolean;
+        exBottom : <A> ( f : () => Option<A> ) => Option<A> ;
+        exJoin : <A> ( f : (left:Type, right:Type) => Option<A> ) => Option<A> ;
+        caseJoin : <B> ( f : ( left : Type, right : Type ) => Option<B> )=> Option<B>);
     }
 
     abstract class AbstractType implements Type {
@@ -112,6 +119,18 @@ module types {
         public abstract equals( ty : Type ) : boolean ;
 
         public abstract toString() : string ;
+        
+        public exBottom <A> ( f : () => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+        public caseJoinT<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
+            return ( t : Type ) => t.exJoin( f ) ;
+       }
+
     }   
 
     export class BottomType extends AbstractType {
@@ -132,7 +151,18 @@ module types {
             return ty.isBottomT() ;
         }
 
-        public static readonly theBottomType : BottomType = new BottomType();
+        public exBottom <A> ( f : () => Option<A> ) : Option<A> {
+            
+            return none();
+
+        }
+        public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
+            return none ;
+       }
     }
 
     export class JoinType extends AbstractType {
@@ -158,6 +188,7 @@ module types {
         }
 
 
+
         private constructor(left : Type, right : Type) {
             super();
             this.children = [left,right];
@@ -170,6 +201,25 @@ module types {
         public getChild(i:number) : Type {
             assert.checkPrecondition(i === 0  || i === 1);
             return this.children[i];
+        }
+
+        public exBottom <A> ( f : (ty:Type,) => Option<A> ) : Option<A> 
+        {
+            //If t is a BottomT object
+            if (t.exBottomT(f)){
+                return f(this.children[0]);
+            }
+            else{
+                return f(this.children[1]);
+            }
+
+        }    
+        
+        
+
+        //Override
+        public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
+            return f( this.children[0], this.children[1]) ;
         }
     }
 
@@ -187,6 +237,21 @@ module types {
         public equals(ty: Type) : boolean {
             assert.todo() ;
             return false ;
+        }
+
+        public exBottomT () : boolean{
+            assert.todo();
+            return false;
+        }
+
+        public exJoinT () : boolean{
+            assert.todo();
+            return false;
+        }
+
+        public caseJoinT () : boolean{
+            assert.todo();
+            return false;
         }
 
 
@@ -237,6 +302,21 @@ module types {
         public equals(ty: Type) : boolean {
             assert.todo() ;
             return false ;
+        }
+
+        public exBottomT () : boolean{
+            assert.todo();
+            return false;
+        }
+
+        public exJoinT () : boolean{
+            assert.todo();
+            return false;
+        }
+
+        public caseJoinT () : boolean{
+            assert.todo();
+            return false;
         }
 
 
