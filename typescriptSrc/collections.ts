@@ -457,7 +457,7 @@ module collections {
 
     export function match<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : B {
         const opt = optMatch( a, ...cases ) ;
-        if( opt.isEmpty() ) throw new Error( "No case succeded in match." ) ;
+        if( opt.isEmpty() ) throw new Error( "No case succeeded in match." ) ;
         return opt.first() ; }
 
     export function optMatch<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : Option<B> {

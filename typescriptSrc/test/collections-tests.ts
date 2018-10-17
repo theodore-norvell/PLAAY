@@ -22,6 +22,74 @@ import optMatch = collections.optMatch ;
 import Option = collections.Option ;
 import some = collections.some ;
 
+
+abstract class Notification {
+    
+    // Deconstructors: default implementation
+    public exEmail<A>( f : (sender : String, title : String, body : String) => Option<A> ) : Option<A> {
+        return none() ; }
+
+    public exSMS<A>( f : (caller : String, message : String) => Option<A> ) : Option<A> {
+        return none() ; }
+
+    public exVoiceRecording<A>( f : (contactName : String, link : String) => Option<A> ) : Option<A> {
+        return none() ; }
+    
+}
+
+class Email extends Notification {
+    private sender : String ;
+    private title : String ;
+    private body : String ;
+    constructor( sender : String, title : String, body : String)  {
+        super() ;
+        this.sender = sender; this.title = title; this.body = body ; }
+
+    public exEmail<A>( f : (sender : String, title : String, body : String) => Option<A> ) : Option<A> {
+        return f( this.sender, this.title, this.body ) ; }
+}
+class SMS extends Notification {
+    private caller : String ;
+    private message : String ;
+    constructor( caller : String, message : String)  {
+        super() ;
+        this.caller = caller; this.message = message; }
+
+    public exSMS<A>( f : (caller : String, message : String) => Option<A> ) : Option<A> {
+        return f( this.caller, this.message ) ; }
+}
+class VoiceRecording extends Notification {
+    private contactName : String ;
+    private link : String ;
+    constructor( contactName : String, link : String)  {
+        super() ;
+        this.contactName = contactName; this.link = link; }
+
+    public exVoiceRecording<A>( f : (contactName : String, link : String) => Option<A> ) : Option<A> {
+        return f( this.contactName, this.link) ; }
+}
+
+function caseEMail<A>( f : (sender : String, title : String, body : String) => Option<A> ) : (n:Notification) => Option<A> {
+    return  (n:Notification) => n.exEmail( f ) ; }
+
+function caseSMS<A>( f : (caller : String, message : String) => Option<A> ) : (n:Notification) => Option<A> {
+    return  (n:Notification) => n.exSMS( f ) ; }
+
+function caseVoiceRecording<A>( f : (contactName : String, link : String) => Option<A> ) : (n:Notification) => Option<A> {
+    return  (n:Notification) => n.exVoiceRecording( f ) ; }
+
+function showNotification( notification : Notification ) : String {
+    return match(
+            notification,
+            caseEMail( (sender, title, _) =>
+                some( `You got an email from ${sender} with title ${title}`)  ),
+            caseSMS( (caller, message) =>
+                some( `You got an SMS from ${caller}! Message: ${message}` )  ),
+            caseVoiceRecording( (name, link) =>
+                some( `You received a Voice Recording from ${name}. Click the link to hear it: ${link}` )  )
+    ) ;
+}
+
 describe( "match", function() : void {
     it( "should fail if no match", function() : void {
         let ok = true ;
@@ -94,6 +162,42 @@ describe( "match", function() : void {
         assert.checkEqual( "A", classify(100) ) ;
     } ) ;
 
+    it( "should work with example from scala.org", function() : void {
+        const someSms = new SMS("12345", "Are you there?")
+        const someVoiceRecording = new VoiceRecording("Tom", "voicerecording.org/id/123") ;
+        let r = showNotification( someVoiceRecording ) ;
+        assert.checkEqual( "You received a Voice Recording from Tom. Click the link to hear it: voicerecording.org/id/123",
+                           r ) ;
+        r = showNotification( someSms ) ;
+        assert.checkEqual( "You got an SMS from 12345! Message: Are you there?",
+                           r ) ;
+
+        r = match(
+                someVoiceRecording,
+                caseEMail( (sender, title, _) =>
+                    some( `You got an email from ${sender} with title ${title}`)  ),
+                (_) =>
+                    some( `You received a notification` )
+        ) ;
+        assert.checkEqual( "You received a notification",
+                           r ) ;
+        const someEmail = new Email("Alice", "options", "See my latest blog post") ;
+        r = match(
+            someEmail,
+            caseEMail( (sender, title, _) => guard( sender==="Alice", () =>
+                `PRIORITY email from ${sender} with title ${title}`) ),
+            caseEMail( (sender, title, _) =>
+                some( `You got an email from ${sender} with title ${title}`)  ),
+            caseSMS( (caller, message) =>
+                some( `You got an SMS from ${caller}! Message: ${message}` )  ),
+            caseVoiceRecording( (name, link) =>
+                some( `You received a Voice Recording from ${name}. Click the link to hear it: ${link}` )  )
+        ) ;
+        assert.checkEqual( "PRIORITY email from Alice with title options",
+                           r ) ;
+    }
+    ) ;
+
 } ) ;
 
 describe( "matchOpt", function() : void {
@@ -127,10 +231,10 @@ describe( "matchOpt", function() : void {
     it( "should match cons", function() : void {
         const aList = cons( "abc", nil<string>() ) ;
         const x = optMatch( aList,
-                         caseNil( () =>
-                            some( "nil")),
-                         caseCons( (h:string, r:List<string>) =>
-                            some(  h + r.size() ) ) ) ;
+                            caseNil( () =>
+                                some( "nil")),
+                            caseCons( (h:string, r:List<string>) =>
+                                some(  h + r.size() ) ) ) ;
         assert.checkEqual("abc0", x.first() ) ;
 
         // Try the other way around

@@ -162,7 +162,7 @@ listOfMaybeToMaybeList (x:xs) =
 
 proveClause :: Sequent -> Maybe Proof
 proveClause subgoal =
-    let rule = combineRules [,
+    let rule = combineRules [
                     everyBoth reflexive ,
                     everyBoth primNatInt ,
                     everyBoth primNatNumber ,
@@ -233,9 +233,9 @@ simplify1 (theta :<: delta) =
             everyLeft leftTop,
             everyRight rightTop,
             everyLeft leftMeet,
+            everyRight rightJoin,
             everyRight rightMeet,
-            everyLeft leftJoin,
-            everyRight rightJoin ]
+            everyLeft leftJoin ]
     in firstSuccess simplificationRules (theta :<: delta)
 
 firstSuccess :: Rule -> Rule
@@ -552,3 +552,4 @@ otherDisjointnessAL i j (theta :<: delta) =
                | otherwise -> [ ]
     where f :: [Proof] -> Proof
           f [] = LeafProof (theta :<: delta) "Other disjointness AL"
+
