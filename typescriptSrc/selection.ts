@@ -1,17 +1,19 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="edits.ts" />
-/// <reference path="pnode.ts" />
+/// <reference path="dnode.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
-import pnode = require( './pnode' ) ;
+import dnode = require( './dnode' ) ;
+import { LocLabel } from './labels';
 
 /** Module selection exports the Selection class q.v.
  */
 module selection {
     import List = collections.List ;
-    import PNode = pnode.PNode ;
+    import DNode = dnode.DNode ;
+    import DLabel = dnode.DLabel ;
 
     /** A Selection indicates a set of selected nodes within a tree.
     * The path must identify some node under the root in the following way.
@@ -38,14 +40,14 @@ module selection {
     * * The focus and anchor must both be integers greater or equal to 0 and
     *     less or equal to the number of children of the node identified by the path.
     */
-    export class Selection {
+    export class Selection<L extends DLabel<L,T>, T extends DNode<L,T>> {
 
-        private readonly _root : PNode ;
+        private readonly _root : T ;
         private readonly _path : List<number> ;
         private readonly _anchor : number ;
         private readonly _focus : number ;
 
-        constructor( root : PNode, path : List<number>,
+        constructor( root : T, path : List<number>,
                      anchor : number, focus : number ) {
             assert.checkPrecondition( checkSelection( root, path, anchor, focus ), 
                                       "Attempt to make a bad selection" ) ;
@@ -55,7 +57,7 @@ module selection {
             this._focus = focus ;
         }
         
-        public root() : PNode { return this._root ; }
+        public root() : T { return this._root ; }
         
         public path() : List<number> { return this._path ; }
         
@@ -67,8 +69,8 @@ module selection {
 
         public end() : number { return Math.max( this._anchor, this._focus ) ; }
 
-        public parent() : PNode {
-            let node : PNode = this._root ;
+        public parent() : T {
+            let node : T = this._root ;
             let path : List<number> = this._path ;
             while( ! path.isEmpty() ) {
                 node = node.child( path.first() ) ;
@@ -77,13 +79,13 @@ module selection {
             return node ;
         }
 
-        public swap() : Selection {
+        public swap() : Selection<L,T> {
             return new Selection( this._root, this._path, this._focus, this._anchor ) ;
         }
 
         public size() : number { return this.end() - this.start() ; }
 
-        public selectedNodes() : Array<PNode> {
+        public selectedNodes() : Array<T> {
             return this.parent().children( this.start(), this.end() ) ;
         }
         
@@ -97,7 +99,7 @@ module selection {
         return isFinite(n) && Math.floor(n) === n ; }
     
     /** Checks the invariant of Selection.  See the documentation of Selection. */
-    export function checkSelection( tree : PNode, path : List<number>,
+    export function checkSelection<L extends DLabel<L,T>, T extends DNode<L,T>>( tree : T, path : List<number>,
                                     anchor : number, focus : number ) : boolean { 
         if( path.isEmpty() ) {
             let start : number ;

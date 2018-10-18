@@ -45,7 +45,7 @@ digraph Depends {
     evaluationManager [style=filled, fillcolor="#ccccff"] ;
     interpreter [style=filled, fillcolor="#ccccff"] ;
     treeManager [style=filled, fillcolor="#ccccff"] ;
-    pnodeEdits [style=filled, fillcolor="#ccccff"] ;
+    dnodeEdits [style=filled, fillcolor="#ccccff"] ;
     
     treeView [style=filled, fillcolor="#ccffcc"] ;
     animationView [style=filled, fillcolor="#ccffcc"] ;
@@ -56,6 +56,7 @@ digraph Depends {
     labels [style=filled, fillcolor="#ffccff"] ;
     selection [style=filled, fillcolor="#ffccff"] ;
     pnode [style=filled, fillcolor="#ffccff"] ;
+    dnode [style=filled, fillcolor="#ffccff"] ;
 
     library [style=filled, fillcolor="#ffffcc"] ;
     seymour [style=filled, fillcolor="#ffffcc"] ;
@@ -110,14 +111,16 @@ digraph Depends {
    main -> editor ;
    main -> userRelated ;
 
-   pnodeEdits -> edits ;
-   pnodeEdits -> pnode ;
-   pnodeEdits -> selection ;
+   pnode -> dnode ;
+
+   dnodeEdits -> edits ;
+   dnodeEdits -> dnode ;
+   dnodeEdits -> selection ;
    
    types -> pnode [style=dashed];
    types -> labels ;
 
-   selection -> pnode ;
+   selection -> dnode ;
 
    seymour -> backtracking ;
 
@@ -131,7 +134,7 @@ digraph Depends {
    treeManager -> edits ;
    treeManager -> labels ;
    treeManager -> pnode ;
-   treeManager -> pnodeEdits ;
+   treeManager -> dnodeEdits ;
    treeManager -> selection ;
    treeManager -> treeView ;
 
