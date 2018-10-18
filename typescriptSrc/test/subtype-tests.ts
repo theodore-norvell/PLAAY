@@ -12,10 +12,10 @@ import types = require('../types') ;
 import some = collections.some ;
 import none = collections.none ;
 import Sequent = subtype.Sequent ;
-import leftBottomRule = subtype.leftBottomRule ;
-import rightBottomRule = subtype.rightBottomRule ;
-import leftJoinRule = subtype.leftJoinRule ;
-import rightJoinRule = subtype.rightJoinRule ;
+const leftBottomRule = subtype.forTestingOnly.leftBottomRule ;
+const rightBottomRule = subtype.forTestingOnly.rightBottomRule ;
+const leftJoinRule = subtype.forTestingOnly.leftJoinRule ;
+const rightJoinRule = subtype.forTestingOnly.rightJoinRule ;
 
 import JoinType = types.JoinType ;
 

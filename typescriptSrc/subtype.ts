@@ -26,7 +26,13 @@ module subtype {
 
     export type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
-    export function leftBottomRule( i : number ) : Rule {
+    export const forTestingOnly = { leftBottomRule: leftBottomRule,
+                                    rightBottomRule: rightBottomRule,
+                                    leftJoinRule: leftJoinRule,
+                                    rightJoinRule: rightJoinRule
+    } ;
+
+    function leftBottomRule( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -38,7 +44,7 @@ module subtype {
         } ;
     }
 
-    export function rightBottomRule( j : number ) : Rule {
+    function rightBottomRule( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -50,7 +56,7 @@ module subtype {
         } ;
     }
 
-    export function leftJoinRule( i : number ) : Rule {
+    function leftJoinRule( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -64,7 +70,7 @@ module subtype {
         } ;
     }
 
-    export function rightJoinRule( j : number ) : Rule {
+    function rightJoinRule( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
