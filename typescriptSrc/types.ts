@@ -9,7 +9,6 @@ import assert = require( './assert' ) ;
 import collections = require('./collections') ;
 import labels  = require('./labels') ;
 import pnode = require( './pnode' ) ;
-
 module types {
 
     import PNode = pnode.PNode ;
@@ -522,6 +521,7 @@ module types {
     export function caseBottom<B>( f : ( ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exBottom( f ) ;
     }
+    
     export function caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exJoin( f ) ;
     }

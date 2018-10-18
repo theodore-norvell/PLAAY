@@ -26,7 +26,7 @@ module subtype {
 
     type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
-    function leftBottomRule( i : number ) : Rule {
+    export function leftBottomRule( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -38,7 +38,7 @@ module subtype {
         } ;
     }
 
-    function rightBottomRule( j : number ) : Rule {
+    export function rightBottomRule( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -50,20 +50,21 @@ module subtype {
         } ;
     }
 
-    function leftJoinRule( i : number ) : Rule {
+    export function leftJoinRule( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
                 theta[i],
-                caseJoin( (t0 : Type, t1 : Type) =>
-                    some( list( [{theta: [t0].concat( omit(i, theta) ), delta: delta},
-                                 {theta: [t1].concat( omit(i, theta) ), delta: delta}] ) ) ),
+                caseJoin( (t0 : Type, t1 : Type) => {
+                    const thetaPrime = omit(i, theta) ;
+                    return some( list( [{theta: [t0].concat( thetaPrime ), delta: delta},
+                                        {theta: [t1].concat( thetaPrime ), delta: delta}] ) ) } ),
                 (_) => some( list() )
             ) ;
         } ;
     }
 
-    function rightJoinRule( j : number ) : Rule {
+    export function rightJoinRule( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -80,4 +81,4 @@ module subtype {
     }
 
 }
-export = types;
+export = subtype ;
