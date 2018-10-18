@@ -229,6 +229,10 @@ module types {
             super();
         }
 
+        public toString() : string {
+            return "Top" ;
+        }
+
         public static readonly theTopType : TopType = new TopType();
 
     }
@@ -521,7 +525,7 @@ module types {
     export function caseBottom<B>( f : ( ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exBottom( f ) ;
     }
-    
+
     export function caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exJoin( f ) ;
     }

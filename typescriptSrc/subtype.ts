@@ -22,9 +22,9 @@ module subtype {
     import caseJoin = types.caseJoin ;
     import caseBottom = types.caseBottom ;
 
-    type Sequent = {theta:Array<Type>, delta: Array<Type>} ;
+    export type Sequent = {theta:Array<Type>, delta: Array<Type>} ;
 
-    type Rule = (goal : Sequent) => List<Array<Sequent>> ;
+    export type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
     export function leftBottomRule( i : number ) : Rule {
         return (goal : Sequent) => {
