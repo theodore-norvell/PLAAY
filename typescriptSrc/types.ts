@@ -208,13 +208,17 @@ module types {
         }
 
         public toString() : string {
-            assert.todo() ;
-            return "todo" ;
+            return "Join(" + this.children[0].toString() + ", " 
+                           + this.children[1].toString() + ")" ;
         }
 
         public equals(ty: Type) : boolean {
-            assert.todo() ;
-            return false ;
+            if( ty.isJoinT() ) {
+                const ty1 = ty as JoinType ;
+                return this.children[0].equals( ty1.children[0] )
+                &&  this.children[1].equals( ty1.children[1] ) ;
+            }
+            else return false  ;
         }
 
     }
@@ -257,13 +261,17 @@ module types {
 
 
         public toString() : string {
-            assert.todo() ;
-            return "todo" ;
+            return "Join(" + this.children[0].toString() + ", " 
+                           + this.children[1].toString() + ")" ;
         }
 
         public equals(ty: Type) : boolean {
-            assert.todo() ;
-            return false ;
+            if( ty.isJoinT() ) {
+                const ty1 = ty as JoinType ;
+                return this.children[0].equals( ty1.children[0] )
+                &&  this.children[1].equals( ty1.children[1] ) ;
+            }
+            else return false  ;
         }
     }
 
