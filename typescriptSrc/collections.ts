@@ -193,6 +193,10 @@ module collections {
             return this.fold( (a : A, b : List<A>) => cons(a,b),
                               () => other  ) ; }
 
+        public lazyBind<B>(f : (a:A) => List<B> ) : List<B> {
+            return this.map(f).fold( (a:List<B>, b:List<B>) => a.lazyCat(b),
+                                     () => nil<B>() ); }
+
         /** Concatenate one list with another. */
         public lazyCat( other : List<A> ) : List<A> {
             return new LazyCat( this, other ) ; }

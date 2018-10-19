@@ -82,8 +82,13 @@ module subtype {
         } ;
     }
 
-    function omit<A>( i : number, a : Array<A>) : Array<A>{
+    function omit<A>( i : number, a : Array<A>) : Array<A> {
         return a.slice(0,i).concat( a.slice(i+1) ) ;
+    }
+
+    
+    function combineRules( rules : List<Rule> ) : Rule {
+        return (goal : Sequent) => rules.lazyBind( (r:Rule) => r(goal)) ;
     }
 
 }
