@@ -26,13 +26,13 @@ module subtype {
 
     export type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
-    export const forTestingOnly = { leftBottomRule: leftBottomRule,
-                                    rightBottomRule: rightBottomRule,
-                                    leftJoinRule: leftJoinRule,
-                                    rightJoinRule: rightJoinRule
+    export const forTestingOnly = { leftBottomRuleFactory: leftBottomRuleFactory,
+                                    rightBottomRuleFactory: rightBottomRuleFactory,
+                                    leftJoinRuleFactory: leftJoinRuleFactory,
+                                    rightJoinRuleFactory: rightJoinRuleFactory
     } ;
 
-    function leftBottomRule( i : number ) : Rule {
+    function leftBottomRuleFactory( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -44,7 +44,7 @@ module subtype {
         } ;
     }
 
-    function rightBottomRule( j : number ) : Rule {
+    function rightBottomRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -56,7 +56,7 @@ module subtype {
         } ;
     }
 
-    function leftJoinRule( i : number ) : Rule {
+    function leftJoinRuleFactory( i : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -70,7 +70,7 @@ module subtype {
         } ;
     }
 
-    function rightJoinRule( j : number ) : Rule {
+    function rightJoinRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -81,19 +81,7 @@ module subtype {
             ) ;
         } ;
     }
-    export function leftMeetRule( j : number ) : Rule {
-        return (goal : Sequent) => {
-            const {theta, delta} : Sequent = goal ;
-            return match(
-                delta[j],
-                caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
-            ) ;
-        } ;
-    }
-
-    export function rightMeetRule( j : number ) : Rule {
+    export function leftMeetRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -105,7 +93,7 @@ module subtype {
         } ;
     }
 
-    export function leftTopRule( j : number ) : Rule {
+    export function rightMeetRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -117,7 +105,7 @@ module subtype {
         } ;
     }
 
-    export function rightTopRule( j : number ) : Rule {
+    export function leftTopRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -129,7 +117,7 @@ module subtype {
         } ;
     }
 
-    export function reflexiveRule( j : number ) : Rule {
+    export function rightTopRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -141,7 +129,7 @@ module subtype {
         } ;
     }
 
-    export function primitiveRule( j : number ) : Rule {
+    export function reflexiveRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -153,7 +141,7 @@ module subtype {
         } ;
     }
 
-    export function tupleRule( j : number ) : Rule {
+    export function primitiveRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -165,7 +153,7 @@ module subtype {
         } ;
     }
 
-    export function functionRule( j : number ) : Rule {
+    export function tupleRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -177,7 +165,7 @@ module subtype {
         } ;
     }
 
-    export function fieldRule( j : number ) : Rule {
+    export function functionRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -189,7 +177,7 @@ module subtype {
         } ;
     }
 
-    export function locationRule( j : number ) : Rule {
+    export function fieldRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -201,7 +189,7 @@ module subtype {
         } ;
     }
 
-    export function lengthDisjointnessRule( j : number ) : Rule {
+    export function locationRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -213,7 +201,7 @@ module subtype {
         } ;
     }
 
-    export function primitiveDisjointnessRule( j : number ) : Rule {
+    export function lengthDisjointnessRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -225,7 +213,19 @@ module subtype {
         } ;
     }
 
-    export function tupleDisjointnessRule( j : number ) : Rule {
+    export function primitiveDisjointnessRuleFactory( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function tupleDisjointnessRuleFactory( j : number ) : Rule {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             return match(
@@ -249,4 +249,3 @@ module subtype {
 
 }
 export = subtype ;
-e

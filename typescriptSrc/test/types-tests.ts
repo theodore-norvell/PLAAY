@@ -14,18 +14,30 @@ import caseAlways = collections.caseAlways ;
 
 import Type = types.Type ;
 
+const bottom = types.BottomType.theBottomType ;
+const top = types.TopType.theTopType ;
+
 describe( "Type.toString()", function() : void {
     it( "should work for Bottom", function() : void {
-        const ty = types.BottomType.theBottomType ;
+        const ty = bottom ;
         const result = ty.toString() ;
         assert.checkEqual( "Bottom", result ) ;
     } ) ;
 
 
     it( "should work for Top", function() : void {
-        const ty = types.TopType.theTopType ;
+        const ty = top ;
         const result = ty.toString() ;
         assert.checkEqual( "Top", result ) ;
+    } ) ;
+
+
+    it( "should work for Join", function() : void {
+        const ty0 = types.JoinType.createJoinType( top, bottom ) ;
+        const ty1 = types.JoinType.createJoinType( bottom, top ) ;
+        const ty = types.JoinType.createJoinType( ty0, ty1) ;
+        const result = ty.toString() ;
+        assert.checkEqual( "Join(Join(Top, Bottom), Join(Bottom, Top))", result ) ;
     } ) ;
 } ) ;
 
@@ -42,20 +54,20 @@ describe( "Type.exBottom() and types.caseBottom", function() : void {
 
 
     it( "deconstructor should return some for the right type", function() : void {
-        const ty = types.BottomType.theBottomType  ;
+        const ty = bottom  ;
         const result = ty.exBottom( f ) ;
         assert.checkEqual( 4, result.first() ) ;
     } ) ;
 
     it( "case function should return none if sent to the wrong type", function() : void {
-        const ty = types.TopType.theTopType  ;
+        const ty = top  ;
         const result = types.caseBottom( f )( ty )  ;
         assert.check(  result.isEmpty() ) ;
     } ) ;
 
 
     it( "case function should return some for the right type", function() : void {
-        const ty = types.BottomType.theBottomType  ;
+        const ty = bottom  ;
         const result = types.caseBottom( f )( ty ) ;
         assert.checkEqual( 4, result.first() ) ;
     } ) ;
@@ -80,13 +92,13 @@ describe( "match on types", function() : void {
     } ) ;
 
     it( "match join", function() : void {
-        const ty = types.JoinType.createJoinType( types.BottomType.theBottomType, types.TopType.theTopType ) ;  ;
+        const ty = types.JoinType.createJoinType( bottom, top ) ;  ;
         const result = testFunc( ty ) ;
         assert.checkEqual( "Join", result ) ;
     } ) ;
 
     it( "match top", function() : void {
-        const ty = types.TopType.theTopType   ;
+        const ty = top   ;
         const result = testFunc( ty ) ;
         assert.checkEqual( "other", result ) ;
     } ) ;

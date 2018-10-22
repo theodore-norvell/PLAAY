@@ -12,20 +12,21 @@ import types = require('../types') ;
 import some = collections.some ;
 import none = collections.none ;
 import Sequent = subtype.Sequent ;
-const leftBottomRule = subtype.forTestingOnly.leftBottomRule ;
-const rightBottomRule = subtype.forTestingOnly.rightBottomRule ;
-const leftJoinRule = subtype.forTestingOnly.leftJoinRule ;
-const rightJoinRule = subtype.forTestingOnly.rightJoinRule ;
+
+const leftBottomRuleFactory = subtype.forTestingOnly.leftBottomRuleFactory ;
+const rightBottomRuleFactory = subtype.forTestingOnly.rightBottomRuleFactory ;
+const leftJoinRuleFactory = subtype.forTestingOnly.leftJoinRuleFactory ;
+const rightJoinRuleFactory = subtype.forTestingOnly.rightJoinRuleFactory ;
 
 import JoinType = types.JoinType ;
 
 const top = types.TopType.theTopType ;
 const bottom = types.BottomType.theBottomType  ;
 
-describe( "leftBottomRule", function() : void {
+describe( "leftBottomRuleFactory", function() : void {
     it( "should succeed for Bottom", function() : void {
         const goal = { theta: [top, bottom], delta: [] } ;
-        const rule = leftBottomRule( 1 ) ;
+        const rule = leftBottomRuleFactory( 1 ) ;
         const result = rule( goal ) ;
         // Expect one array of subgoals.
         assert.checkEqual( 1, result.size() ) ;
@@ -36,17 +37,17 @@ describe( "leftBottomRule", function() : void {
 
     it( "should fail for top", function() : void {
         const goal = { theta: [top, bottom], delta: [] } ;
-        const rule = leftBottomRule( 0 ) ;
+        const rule = leftBottomRuleFactory( 0 ) ;
         const result = rule( goal ) ;
         // Expect an empty list.
         assert.checkEqual( 0, result.size() ) ;
     } ) ;
 } ) ;
 
-describe( "rightBottomRule", function() : void {
+describe( "rightBottomRuleFactory", function() : void {
     it( "should succeed for Bottom", function() : void {
         const goal = { theta: [], delta: [top, bottom] } ;
-        const rule = rightBottomRule( 1 ) ;
+        const rule = rightBottomRuleFactory( 1 ) ;
         const result = rule( goal ) ;
         // Expect one array of subgoals.
         assert.checkEqual( 1, result.size() ) ;
@@ -63,18 +64,18 @@ describe( "rightBottomRule", function() : void {
 
     it( "should fail for top", function() : void {
         const goal = { theta: [top, bottom], delta: [] } ;
-        const rule = leftBottomRule( 0 ) ;
+        const rule = leftBottomRuleFactory( 0 ) ;
         const result = rule( goal ) ;
         // Expect an empty list.
         assert.checkEqual( 0, result.size() ) ;
     } ) ;
 } ) ;
 
-describe( "leftJoinRule", function() : void {
+describe( "leftJoinRuleFactory", function() : void {
     it( "should succeed for Join", function() : void {
         // Try Top, Join(Top, Bottom) <: empty
         const goal = { theta: [top, JoinType.createJoinType(top, bottom)], delta: [] } ;
-        const rule = leftJoinRule( 1 ) ;
+        const rule = leftJoinRuleFactory( 1 ) ;
         const result = rule( goal ) ;
         // Expect one array of subgoals.
         assert.checkEqual( 1, result.size() ) ;
@@ -98,18 +99,18 @@ describe( "leftJoinRule", function() : void {
     it( "should fail for top", function() : void {
         // Try Top, Join(Top, Bottom) <: empty
         const goal = { theta: [top, JoinType.createJoinType(top, bottom)], delta: [] } ;
-        const rule = leftJoinRule( 0 ) ;
+        const rule = leftJoinRuleFactory( 0 ) ;
         const result = rule( goal ) ;
         // Expect failure
         assert.checkEqual( 0, result.size() ) ;
     } ) ;
 } ) ;
 
-describe( "rightJoinRule", function() : void {
+describe( "rightJoinRuleFactory", function() : void {
     it( "should succeed for Join", function() : void {
         // Try  empty <: Top, Join(Top, Bottom)
         const goal = {  theta: [], delta: [top, JoinType.createJoinType(top, bottom)] } ;
-        const rule = rightJoinRule( 1 ) ;
+        const rule = rightJoinRuleFactory( 1 ) ;
         const result = rule( goal ) ;
         // Expect one array of subgoals.
         assert.checkEqual( 1, result.size() ) ;
@@ -127,7 +128,7 @@ describe( "rightJoinRule", function() : void {
     it( "should fail for top", function() : void {
         // Try  empty <: Top, Join(Top, Bottom)
         const goal = {  theta: [], delta: [top, JoinType.createJoinType(top, bottom)] } ;
-        const rule = rightJoinRule( 0 ) ;
+        const rule = rightJoinRuleFactory( 0 ) ;
         const result = rule( goal ) ;
         // Expect failure
         assert.checkEqual( 0, result.size() ) ;
