@@ -96,7 +96,7 @@ module dnode {
          * @param label A DLabel for the node.
          * @param children: A list (Array) of children
          */
-        constructor(label:L, children:Array<T>) {
+        protected constructor(label:L, children:Array<T>) {
             //Precondition  would not need to be checked if the constructor were private.
             assert.check( label.isValid(children),
                           "Attempted to make an invalid program node");
