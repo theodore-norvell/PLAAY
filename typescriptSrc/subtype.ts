@@ -75,6 +75,162 @@ module subtype {
             ) ;
         } ;
     }
+    export function leftMeetRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function rightMeetRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function leftTopRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function rightTopRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function reflexiveRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function primitiveRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function tupleRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function functionRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function fieldRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function locationRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function lengthDisjointnessRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function primitiveDisjointnessRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
+    export function tupleDisjointnessRule( j : number ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseJoin( (u0 : Type, u1 : Type) =>
+                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
 
     function omit<A>( i : number, a : Array<A>) : Array<A>{
         return a.slice(0,i).concat( a.slice(i+1) ) ;
@@ -82,3 +238,4 @@ module subtype {
 
 }
 export = subtype ;
+e
