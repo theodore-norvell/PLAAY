@@ -207,20 +207,6 @@ module types {
             super();
         }
 
-        public toString() : string {
-            return "Join(" + this.children[0].toString() + ", " 
-                           + this.children[1].toString() + ")" ;
-        }
-
-        public equals(ty: Type) : boolean {
-            if( ty.isJoinT() ) {
-                const ty1 = ty as JoinType ;
-                return this.children[0].equals( ty1.children[0] )
-                &&  this.children[1].equals( ty1.children[1] ) ;
-            }
-            else return false  ;
-        }
-
     }
 
     export class TopType extends TypeTerm {
@@ -236,6 +222,11 @@ module types {
         public toString() : string {
             return "Top" ;
         }
+
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+        
 
         public static readonly theTopType : TopType = new TopType();
 
@@ -270,8 +261,8 @@ module types {
         }
 
         public equals(ty: Type) : boolean {
-            if( ty.isJoinT() ) {
-                const ty1 = ty as JoinType ;
+            if( ty.isMeetT() ) {
+                const ty1 = ty as MeetType ;
                 return this.children[0].equals( ty1.children[0] )
                 &&  this.children[1].equals( ty1.children[1] ) ;
             }
@@ -312,6 +303,14 @@ module types {
             this.kind = type;
         }
 
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+
+        public toString() : string {
+            return assert.todo()  ;
+        }
+
     }
 
     export class TupleType extends TypeFactor {
@@ -334,6 +333,14 @@ module types {
         private constructor(tys:Array<Type>) {
             super();
             this.childTypes = tys.slice();
+        }
+
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+        
+        public toString() : string {
+            return assert.todo()  ;
         }
 
         public static readonly theZeroTupleType = new TupleType([]);
@@ -361,6 +368,14 @@ module types {
             super();
             this.valueType = valueT;
             this.returnType = returnT;
+        }
+
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+        
+        public toString() : string {
+            return assert.todo()  ;
         }
 
         public static createFunctionType(valueT:Type,returnT:Type) : FunctionType {
@@ -396,6 +411,14 @@ module types {
             this.identifier = identifier;
         }
 
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+        
+        public toString() : string {
+            return assert.todo()  ;
+        }
+
         public static  createFieldType(type:Type,identifier:string) : FieldType {
             return new FieldType(type,identifier);
         }
@@ -424,6 +447,14 @@ module types {
         private constructor(type:Type)  {
             super();
             this.type = type;
+        }
+
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
+        }
+        
+        public toString() : string {
+            return assert.todo()  ;
         }
 
         public static createLocationType(type:Type) : LocationType {
