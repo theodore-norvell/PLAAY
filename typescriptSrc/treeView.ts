@@ -24,6 +24,8 @@ module treeView
     import Selection = selection.Selection;
     import PNode = pnode.PNode;
 
+    type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
+
     export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
     export const FALSEMARK = "\u2718" ; // HEAVY BALLOT X
     export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
@@ -716,7 +718,7 @@ module treeView
         return result ;
     }
 
-    export function  highlightSelection( sel : Selection, jq : JQuery ) : void {
+    export function  highlightSelection( sel : PSelection, jq : JQuery ) : void {
         assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
         localHighlightSelection( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
     }
@@ -780,7 +782,7 @@ module treeView
         }
     }
 
-    export function getPathToNode(root : PNode, self : JQuery ) : Option<Selection>
+    export function getPathToNode(root : PNode, self : JQuery ) : Option<PSelection>
     {
         let anchor;
         let focus;
@@ -796,10 +798,10 @@ module treeView
             childNumber = Number(jq.attr("data-childNumber"));
         }
         if( jq.length === 0 ) {
-            return none<Selection>() ;
+            return none<PSelection>() ;
         }
         if( childNumber === -1 ) {
-            return none<Selection>() ;
+            return none<PSelection>() ;
         }
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;

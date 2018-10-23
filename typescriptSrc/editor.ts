@@ -34,18 +34,20 @@ module editor {
 
     import Actions = treeManager.Actions ;
 
+    type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
+
     enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE }
 
-    const redostack : Array<Selection> = [];
-    const undostack  : Array<Selection> = [];
-    const trashArray : Array<Selection> = [];
+    const redostack : Array<PSelection> = [];
+    const undostack  : Array<PSelection> = [];
+    const trashArray : Array<PSelection> = [];
 
     // Invariant: draggedObject===undefined if and only if dragKind===DragEnum.NONE 
     let draggedObject : string|undefined ; 
-    let draggedSelection : Selection ;
+    let draggedSelection : PSelection ;
     let dragKind : DragEnum  = DragEnum.NONE ;
 
-    let currentSelection = new Selection(labels.mkExprSeq([]),list<number>(),0,0);
+    let currentSelection = new  Selection(labels.mkExprSeq([]),list<number>(),0,0);
 
     const treeMgr = new treeManager.TreeManager(); // TODO Rename
 
@@ -96,19 +98,19 @@ module editor {
 		return obj;
 	}
 
-    function addToTrash( sel : Selection ) : void {                
+    function addToTrash( sel : PSelection ) : void {                
         trashArray.unshift( sel ) ;
         if( trashArray.length > 10 ) trashArray.length = 10 ;
         refreshTheTrash() ;
     }
 
-    function getFromTrash( ) : Option< Selection > {
-        if( trashArray.length === 0 ) return none<Selection>() ;
+    function getFromTrash( ) : Option< PSelection > {
+        if( trashArray.length === 0 ) return none<PSelection>() ;
         else return some( trashArray[0] ) ;
     }
 
-    function getFromDeepTrash( depth : number ) : Option< Selection > {
-        if( trashArray.length <= depth ) return none<Selection>() ;
+    function getFromDeepTrash( depth : number ) : Option< PSelection > {
+        if( trashArray.length <= depth ) return none<PSelection>() ;
         else return some( trashArray[depth] ) ;
     }
 
@@ -176,7 +178,7 @@ module editor {
                 console.log(">> Dropping into trash" );
                 if( dragKind !== DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   ui is " + ui.draggable.toString()  );
-                const optSelectionToDelete : Option<Selection>
+                const optSelectionToDelete : Option<PSelection>
                     = treeView.getPathToNode(currentSelection.root(), ui.draggable);
                 console.log("   Dropping selection. " + optSelectionToDelete.toString() );
                 const opt = optSelectionToDelete.bind(
@@ -196,7 +198,7 @@ module editor {
         });
     }
 
-    function showAlternativesDialog(selectionArray : Array< [string, string, Selection] >)  : void
+    function showAlternativesDialog(selectionArray : Array< [string, string, PSelection] >)  : void
     {
         if( selectionArray.length < 1 ) return ;
 
@@ -246,7 +248,7 @@ module editor {
                 console.log( "dragKind is " + dragKind ) ;
                 console.log( "draggedObject is " + draggedObject ) ;
                 console.log( "draggedSelection is " + draggedSelection ) ;
-                const optDropTarget : Option<Selection>  = treeView.getPathToNode(currentSelection.root(), $(this)) ;
+                const optDropTarget : Option<PSelection>  = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                 console.log("  on current selection " + optDropTarget.toString() ) ;
                 // Case: Dragged object is dropped on a node or drop zone of the current tree.
                 optDropTarget.map( dropTarget => {
@@ -301,7 +303,7 @@ module editor {
             opacity: 0.5, 
             start: function(event : Event, ui : JQueryUI.DraggableEventUIParams) : void {
                 console.log( ">> Drag handler for things in or in the trash" ) ;   
-                const optDraggedSelection : Option<Selection> = treeView.getPathToNode(currentSelection.root(), $(this));
+                const optDraggedSelection : Option<PSelection> = treeView.getPathToNode(currentSelection.root(), $(this));
                 optDraggedSelection.map( ds => {
                     dragKind = DragEnum.CURRENT_TREE ;            
                     draggedObject = undefined ;
@@ -330,7 +332,7 @@ module editor {
             $("#container .selectable").click(
                 function(this : HTMLElement, evt : Event) : void {
                     console.log( ">> Click Handler") ;
-                    const optClickTarget :  Option<Selection>
+                    const optClickTarget :  Option<PSelection>
                     = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => update( clickTarget ) ) ;
                     evt.stopPropagation(); 
@@ -342,11 +344,11 @@ module editor {
             $("#container .click").dblclick(
                 function(this : HTMLElement, evt : Event) : void {
                     console.log( ">> Double Click Handler") ;
-                    const optClickTarget : Option<Selection> 
+                    const optClickTarget : Option<PSelection> 
                     = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => {
                         const opt = treeMgr.openLabel(clickTarget) ;
-                        opt.map( (sel : Selection) => update( sel ) ) ; } ) ;
+                        opt.map( (sel : PSelection) => update( sel ) ) ; } ) ;
                     evt.stopPropagation(); 
                     console.log( "<< Double Click Handler") ;
                 });
@@ -356,13 +358,13 @@ module editor {
     function updateLabelHelper( element: HTMLElement, tabDirection : number ) : void {
         //console.log( ">>updateLabelHelper") ;
         const text = $(element).val();
-        const optLocationOfTarget : Option<Selection>
+        const optLocationOfTarget : Option<PSelection>
             = treeView.getPathToNode(currentSelection.root(), $(element) )  ;
         //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
         
         optLocationOfTarget.bind(
             locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text, tabDirection ) )
-        .map( (result : Selection) => update( result ) ) ;
+        .map( (result : PSelection) => update( result ) ) ;
         //console.log( "<< updateLabelHelper " + result.toString() ) ;
     }
 
@@ -396,7 +398,7 @@ module editor {
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
             {
                 const opt = treeMgr.delete( currentSelection ) ;
-                opt.map( (sel : Selection) => {
+                opt.map( (sel : PSelection) => {
                     addToTrash(currentSelection) ;
                     update( sel ) ;
                 } ) ;
@@ -413,8 +415,8 @@ module editor {
             // Paste: Cntl-V or Cmd-V
             else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
-                getFromTrash().map( (src : Selection) =>
-                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
+                getFromTrash().map( (src : PSelection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -428,8 +430,8 @@ module editor {
                     num -= 48; //Convert numpad key to number key
                 }
                 num -= 48; //convert from ASCII code to the number
-                getFromDeepTrash(num).map( (src : Selection) =>
-                     treeMgr.paste( src, currentSelection ).map( (sel : Selection) =>
+                getFromDeepTrash(num).map( (src : PSelection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -439,8 +441,8 @@ module editor {
             else if ((e.ctrlKey || e.metaKey) && e.which === 66) 
             {
             
-                getFromTrash().map( (src : Selection) =>
-                     treeMgr.swap( src, currentSelection ).map( (sel : Selection) =>
+                getFromTrash().map( (src : PSelection) =>
+                     treeMgr.swap( src, currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -448,7 +450,7 @@ module editor {
             // Select all: Cntl-A or Cmd-A
             else if ((e.ctrlKey || e.metaKey) && e.which === 65) 
             {
-                treeMgr.selectAll( currentSelection ).map( (sel : Selection) =>
+                treeMgr.selectAll( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -469,76 +471,76 @@ module editor {
             }
             else if (e.which === 32) // space bar
             {
-                treeMgr.moveOut( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveOut( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.which === 38 && ! e.shiftKey ) // up arrow
             {
-                treeMgr.moveUp( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveUp( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.which === 40 && ! e.shiftKey) // down arrow
             {
-                treeMgr.moveDown( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveDown( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.which === 37 && ! e.shiftKey) // left arrow
             {
-                treeMgr.moveLeft( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveLeft( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
             else if (e.which === 39 && ! e.shiftKey) // right arrow
             {
-                treeMgr.moveRight( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveRight( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
             {
-                treeMgr.moveFocusUp( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveFocusUp( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.which === 40 && e.shiftKey) // shifted down arrow
             {
-                treeMgr.moveFocusDown( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveFocusDown( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.which === 37 && e.shiftKey) // shifted left arrow
             {
-                treeMgr.moveFocusLeft( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveFocusLeft( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }            
             else if (e.which === 39 && e.shiftKey) // shifted right arrow
             {
-                treeMgr.moveFocusRight( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveFocusRight( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (!e.shiftKey && e.which === 9) // tab
             {
-                treeMgr.moveTabForward( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveTabForward( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             else if (e.shiftKey && e.which === 9) // shift+tab
             {
-                treeMgr.moveTabBack( currentSelection ).map( (sel : Selection) =>
+                treeMgr.moveTabBack( currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
@@ -546,7 +548,7 @@ module editor {
             else if (! e.shiftKey && e.which === 13) // enter
             {
                 const opt = treeMgr.openLabel( currentSelection ) ;
-                opt.map( (sel : Selection) => update( sel ) ) ;
+                opt.map( (sel : PSelection) => update( sel ) ) ;
                 e.stopPropagation() ;
                 e.preventDefault() ;
             }
@@ -737,7 +739,7 @@ module editor {
             return;
     }
 
-    export function update( sel : Selection ) : void {
+    export function update( sel : PSelection ) : void {
             undostack.push(currentSelection);
             currentSelection = sel ;
             redostack.length = 0 ;
@@ -747,7 +749,7 @@ module editor {
             }
     }
 
-    export function getCurrentSelection() : Selection {
+    export function getCurrentSelection() : PSelection {
         return currentSelection ;
     }
 
@@ -756,9 +758,9 @@ module editor {
         createNode( action, getCurrentSelection(), nodeText) ;
     }
 
-    function createNode(action : Actions, sel : Selection, nodeText?: string) : void
+    function createNode(action : Actions, sel : PSelection, nodeText?: string) : void
     {
-        const opt : Option<Selection> =
+        const opt : Option<PSelection> =
             (nodeText !== undefined) 
             ? treeMgr.createNodeWithText(action, sel, nodeText)
             : treeMgr.createNode(action, sel );
@@ -774,7 +776,7 @@ module editor {
     function undo() : void {
         if (undostack.length !== 0)  {
             redostack.push(currentSelection);
-            currentSelection = undostack.pop() as Selection ;
+            currentSelection = undostack.pop() as PSelection ;
             generateHTMLSoon();
         }
     }
@@ -782,7 +784,7 @@ module editor {
     function redo() : void {
         if (redostack.length !== 0) {
             undostack.push(currentSelection);
-            currentSelection = redostack.pop() as Selection ;
+            currentSelection = redostack.pop() as PSelection ;
             generateHTMLSoon();
         }
     }
@@ -820,10 +822,10 @@ module editor {
     //It skips open nodes, which would otherwise reopen themselves and disable keyboard shortcuts until closed.
     function keyboardUndo() : void {
         let finished : boolean = false;
-        let sel : Selection = currentSelection;
+        let sel : PSelection = currentSelection;
         while (undostack.length !== 0 && !finished)  {
             redostack.push(sel);
-            sel = undostack.pop() as Selection ;
+            sel = undostack.pop() as PSelection ;
             finished = hasOpenNodes(sel) ;
         }
         currentSelection = sel;
@@ -834,10 +836,10 @@ module editor {
     //This version of redo is meant to be called by the keyboard shortcut.
     function keyboardRedo() : void {
         let finished : boolean = false;
-        let sel : Selection = currentSelection;
+        let sel : PSelection = currentSelection;
         while (redostack.length !== 0 && !finished)  {
             undostack.push(sel);
-            sel = redostack.pop() as Selection;
+            sel = redostack.pop() as PSelection;
             finished = hasOpenNodes(sel) ;
         }
         currentSelection = sel;
@@ -845,7 +847,7 @@ module editor {
         return;
     }
 
-    function hasOpenNodes(sel: Selection) : boolean
+    function hasOpenNodes(sel: PSelection) : boolean
     {
             if(Math.abs(sel.anchor() - sel.focus()) === 1)
             {
