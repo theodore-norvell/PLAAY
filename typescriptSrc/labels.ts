@@ -14,7 +14,7 @@ import pnode = require( './pnode' ) ;
  */
 module labels {
     import PNode = pnode.PNode ;
-    import Label = pnode.Label ;
+    import PLabel = pnode.PLabel ;
     import make = pnode.make ;
     import Option = collections.Option;
     import Some = collections.Some;
@@ -23,7 +23,7 @@ module labels {
     import some = collections.some;
 
     /** Abstract base class for all Labels. */
-    abstract class AbstractLabel implements Label {
+    abstract class AbstractLabel implements PLabel {
 
         /*private*/
         constructor() {
@@ -36,22 +36,22 @@ module labels {
 
         public isOpen() : boolean { return false ; }
 
-        public open() : Option<Label>  { return none<Label>() ; }
+        public open() : Option<PLabel>  { return none<PLabel>() ; }
 
         public getString() : Option<string> {
             return none<string>() ;
         }
 
-        public changeString (newString : string) : Option<Label> {
-            return none<Label>();
+        public changeString (newString : string) : Option<PLabel> {
+            return none<PLabel>();
         }
 
         public getBoolean() : Option<boolean> {
             return none<boolean>() ;
         }
 
-        public changeBoolean (newBoolean : boolean) : Option<Label> {
-            return none<Label>();
+        public changeBoolean (newBoolean : boolean) : Option<PLabel> {
+            return none<PLabel>();
         }
 
         public abstract isValid(children:Array<PNode>) : boolean ;
@@ -183,11 +183,11 @@ module labels {
             return "variable["+this._val+"]" ;
         }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return some( new VariableLabel( this._val, true ) ) ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
             const newLabel = new VariableLabel(newString, false);
             return new Some(newLabel);
         }
@@ -238,7 +238,7 @@ module labels {
             return some( this._isConst ) ;
         }
 
-        public changeBoolean (newBoolean : boolean) : Option<Label> {
+        public changeBoolean (newBoolean : boolean) : Option<PLabel> {
             return some( new VarDeclLabel( newBoolean ) ) ;
         }
 
@@ -307,11 +307,11 @@ module labels {
             return "callVar";
         }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return some( new CallVarLabel( this._val, true ) ) ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
             const newLabel = new CallVarLabel(newString, false);
             return new Some(newLabel);
         }
@@ -684,11 +684,11 @@ module labels {
             super( val, open );
         }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return some( new DotLabel( this._val, true ) ) ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
              const newLabel = new DotLabel(newString, false);
              return new Some(newLabel);
          }
@@ -748,11 +748,11 @@ module labels {
         public isValid( children : Array<PNode> )  : boolean {
             return children.length === 0 ; }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return some( new StringLiteralLabel( this._val, true ) ) ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
              const newLabel = new StringLiteralLabel(newString, false);
              return new Some(newLabel);
          }
@@ -785,11 +785,11 @@ module labels {
             return children.length === 0 ;
         }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return some( new NumberLiteralLabel( this._val, true ) ) ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
             const newLabel = new NumberLiteralLabel(newString, false);
             return new Some(newLabel);
         }
@@ -815,11 +815,11 @@ module labels {
 
         constructor( val : string, open : boolean) { super(val, open) ; }
 
-        public open() : Option<Label> {
+        public open() : Option<PLabel> {
             return none() ;
         }
 
-        public changeString (newString : string) : Option<Label> {
+        public changeString (newString : string) : Option<PLabel> {
                 return none() ;
         }
 

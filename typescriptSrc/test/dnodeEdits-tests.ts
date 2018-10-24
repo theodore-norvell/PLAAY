@@ -2,16 +2,16 @@
 
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
+/// <reference path="../dnodeEdits.ts" />
 /// <reference path="../labels.ts" />
 /// <reference path="../pnode.ts" />
-/// <reference path="../pnodeEdits.ts" />
 /// <reference path="../selection.ts" />
 
 import assert = require( '../assert' ) ;
 import collections = require( '../collections' ) ;
+import dnodeEdits = require( '../dnodeEdits' ) ;
 import labels = require( '../labels' ) ;
 import pnode = require( '../pnode' ) ;
-import pnodeEdits = require( '../pnodeEdits' ) ;
 import selection = require( '../selection');
 
 const list = collections.list ;
@@ -102,7 +102,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should insert a single if-then-else node at ((),0,0)', () => {
         const p0 = collections.list<number>( ) ;
         const sel0 = new Selection( t0, p0, 0, 0 ) ;
-        const edit0 = pnodeEdits.insertChildrenEdit( [ ite0 ] ) ;
+        const edit0 = dnodeEdits.insertChildrenEdit( [ ite0 ] ) ;
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "Add an if expression as a new child to the root at position 0" ) ;
@@ -123,7 +123,7 @@ describe( 'pnodeEdits.InsertChildrenEdit', () => {
     it( 'should replace a node at at ((0),0,1)', () => {
         const sel1 = new Selection( t1, collections.list(0), 0, 1 ) ;
         //console.log( sel1.toString() ) ;
-        const edit1 = pnodeEdits.insertChildrenEdit( [ c ] ) ;
+        const edit1 = dnodeEdits.insertChildrenEdit( [ c ] ) ;
         //console.log( edit1.toString() ) ;
         const editResult1 = edit1.applyEdit( sel1 ) ;
         //console.log( "Replace the guard with c" ) ;
@@ -148,7 +148,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         // Select the  first child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p1, 0, 1 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -163,7 +163,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         // Select the  second child of the second child
         const p1 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -178,7 +178,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         // Select the  first child of the if
         const empty = list<number>( ) ;
         const sel0 = new Selection( ite0, empty, 0, 1 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -194,7 +194,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         // Select the  first child of the if
         const empty = list<number>( ) ;
         const sel0 = new Selection( varDecl, empty, 2, 3 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -211,7 +211,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
             // make an empty selection
             const p1 = list<number>( 1 ) ;
             const sel0 = new Selection( ite0, p1, k, k ) ;
-            const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+            const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
             //console.log( edit0.toString() ) ;
             const editResult0 = edit0.applyEdit( sel0 ) ;
             //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -227,7 +227,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         const p1 = list<number>( 1 ) ;
         // Select both children of the second child
         const sel0 = new Selection( ite0, p1, 0, 2 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -244,7 +244,7 @@ describe( 'pnodeEdits.replaceWithOneOf', () => {
         const p1 = list<number>( ) ;
         // Select the first seq under the if node.
         const sel0 = new Selection( ite0, p1, 1, 2 ) ;
-        const edit0 = pnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
+        const edit0 = dnodeEdits.replaceWithOneOf( [[], [labels.mkNoExpNd()], [labels.mkExprPH()]] );
         //console.log( edit0.toString() ) ;
         const editResult0 = edit0.applyEdit( sel0 ) ;
         //console.log( "editResult0 is " + editResult0.toString() ) ;
@@ -262,7 +262,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the the second child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 1, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the third child of the if
         const sel1 = new Selection( ite0, p0, 2, 3 ) ;
         // Copy the second child over the third
@@ -281,7 +281,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the the third child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 2, 3 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the second child of the if
         const sel1 = new Selection( ite0, p0, 1, 2 ) ;
         // Copy the third child over the second
@@ -299,7 +299,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the the second child of the second child
         const p0 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p0, 1, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the first child of the if
         const p1 = list<number>() ;
         const sel1 = new Selection( ite0, p1, 0, 1 ) ;
@@ -318,7 +318,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 0, 1 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the position before the first child of the then part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 0, 0 ) ;
@@ -337,7 +337,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 0, 1 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the position before the second child of the then part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 1, 1 ) ;
@@ -356,7 +356,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 0, 1 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the position after all children of the then-part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 2, 2 ) ;
@@ -375,7 +375,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the first child of the if
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 0, 1 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select all the nodes of the then part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 0, 2 ) ;
@@ -394,7 +394,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the first and second nodes of the then part
         const p0 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p0, 0, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the second node of the then part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 1, 2 ) ;
@@ -413,7 +413,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // An empty selection
         const p0 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p0, 2, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the second node of the then part
         const p1 = list<number>(1) ;
         const sel1 = new Selection( ite0, p1, 1, 2 ) ;
@@ -432,7 +432,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // An empty selection
         const p0 = list<number>( 1 ) ;
         const sel0 = new Selection( ite0, p0, 2, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the guard
         const p1 = list<number>() ;
         const sel1 = new Selection( ite0, p1, 0, 1 ) ;
@@ -451,7 +451,7 @@ describe( 'pnodeEdits.pasteEdit', function() : void {
         // Select the then part
         const p0 = list<number>( ) ;
         const sel0 = new Selection( ite0, p0, 1, 2 ) ;
-        const edit = pnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.pasteEdit( sel0, standardBackFillList ) ;
         // Select the guard
         const p1 = list<number>() ;
         const sel1 = new Selection( ite0, p1, 0, 1 ) ;
@@ -471,7 +471,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move 0 nodes of 0', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq0, p0, 0, 0 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq0, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -485,7 +485,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,0) to (0,0) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -499,7 +499,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,0) to (1,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -513,7 +513,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,0) to (0,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -527,7 +527,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,1) to (0,0) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 1, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -541,7 +541,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,1) to (1,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 1, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -555,7 +555,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (0,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq1, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -569,7 +569,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -583,7 +583,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -597,7 +597,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -611,7 +611,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -625,7 +625,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,1) to (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -639,7 +639,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,2) to (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -653,7 +653,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,2) to (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -667,7 +667,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,2) to (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -681,7 +681,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,2) to (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -695,7 +695,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (2,1) to (1,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 2, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -709,7 +709,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (1,2) to (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -723,7 +723,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -737,7 +737,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -751,7 +751,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -765,7 +765,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -779,7 +779,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -793,7 +793,7 @@ describe( 'pnodeEdits.MoveEdit with common parent', () => {
     it( 'should move (0,2) to (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -811,7 +811,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap 0 nodes of 0', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq0, p0, 0, 0 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq0, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -825,7 +825,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,0) and (0,0) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -839,7 +839,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,0) and (1,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -853,7 +853,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,0) and (0,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 0 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -867,7 +867,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,1) and (0,0) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 1, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -881,7 +881,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,1) and (1,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 1, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -895,7 +895,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (0,1) and (0,1) in seq1', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq1, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq1, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.map(
@@ -906,7 +906,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,1) and (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -920,7 +920,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,1) and (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -934,7 +934,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,1) and (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -948,7 +948,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (0,1) and (0,1) in seq2', () => {
       const p0 = list<number>( ) ;
       const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-      const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+      const edit = new dnodeEdits.SwapEdit( sel0 ) ;
       const sel1 = new Selection( seq2, p0, 0, 1 ) ;
       const editResult = edit.applyEdit( sel1 ) ;
       editResult.map(
@@ -959,7 +959,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,1) and (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -973,7 +973,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,2) and (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -987,7 +987,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,2) and (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1001,7 +1001,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,2) and (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1015,7 +1015,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (1,2) and (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1029,7 +1029,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (2,1) and (1,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 2, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1043,7 +1043,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (1,2) and (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.map(
@@ -1054,7 +1054,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,2) and (0,0) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 0 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1068,7 +1068,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,2) and (1,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1082,7 +1082,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should swap (0,2) and (2,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 2, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1096,7 +1096,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (0,2) and (0,1) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.map(
@@ -1107,7 +1107,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (0,2) and (1,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.map(
@@ -1118,7 +1118,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
     it( 'should fail to swap (0,2) and (0,2) in seq2', () => {
         const p0 = list<number>( ) ;
         const sel0 = new Selection( seq2, p0, 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( seq2, p0, 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.map(
@@ -1131,7 +1131,7 @@ describe( 'pnodeEdits.SwapEdit with common parent', () => {
 describe( 'swap without common parent', function() : void {
     it( 'should swap (1) (0,..1) with (2) (0,..1)', () => {
         const sel0 = new Selection( ite1, list(1), 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( ite1, list(2), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1146,7 +1146,7 @@ describe( 'swap without common parent', function() : void {
 
     it( 'should swap (2) (0,..1) with (1) (0,..1)', function() : void {
         const sel0 = new Selection( ite1, list(2), 0, 1 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( ite1, list(1), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1161,7 +1161,7 @@ describe( 'swap without common parent', function() : void {
 
     it( 'should swap (0) (0,..2) with (1) (1,..2)', function() : void {
         const sel0 = new Selection( ite1, list(0), 0, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( ite1, list(1), 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1176,7 +1176,7 @@ describe( 'swap without common parent', function() : void {
 
     it( 'should swap (1) (1,..2) with (0) (0,..2)', function() : void {
         const sel0 = new Selection( ite1, list(1), 1, 2 ) ;
-        const edit = new pnodeEdits.SwapEdit( sel0 ) ;
+        const edit = new dnodeEdits.SwapEdit( sel0 ) ;
         const sel1 = new Selection( ite1, list(0), 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1193,7 +1193,7 @@ describe( 'swap without common parent', function() : void {
 describe( 'move without common parent', function() : void {
     it( 'should move from (1) (0,..1) to (2) (0,..1)', () => {
         const sel0 = new Selection( ite1, list(1), 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( ite1, list(2), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1207,7 +1207,7 @@ describe( 'move without common parent', function() : void {
             () => assert.check( false, "Unexpected failure." ) ) ; } ) ;
     it( 'should move from (2) (0,..1) to (1) (0,..1)', function() : void {
         const sel0 = new Selection( ite1, list(2), 0, 1 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( ite1, list(1), 0, 1 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1222,7 +1222,7 @@ describe( 'move without common parent', function() : void {
 
     it( 'should move (0) (0,..2) to (1) (1,..2)', function() : void {
         const sel0 = new Selection( ite1, list(0), 0, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( ite1, list(1), 1, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(
@@ -1237,7 +1237,7 @@ describe( 'move without common parent', function() : void {
 
     it( 'should move (1) (1,..2) to (0) (0,..2)', function() : void {
         const sel0 = new Selection( ite1, list(1), 1, 2 ) ;
-        const edit = pnodeEdits.moveEdit( sel0, standardBackFillList ) ;
+        const edit = dnodeEdits.moveEdit( sel0, standardBackFillList ) ;
         const sel1 = new Selection( ite1, list(0), 0, 2 ) ;
         const editResult = edit.applyEdit( sel1 ) ;
         editResult.choose(

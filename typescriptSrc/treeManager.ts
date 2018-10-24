@@ -1,18 +1,18 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="dnodeEdits.ts" />
 /// <reference path="edits.ts" />
 /// <reference path="labels.ts" />
 /// <reference path="pnode.ts" />
-/// <reference path="pnodeEdits.ts" />
 /// <reference path="treeView.ts" />
 /// <reference path="selection.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
+import dnodeEdits = require ('./dnodeEdits');
 import edits = require('./edits');
 import labels = require( './labels' ) ;
 import pnode = require( './pnode' ) ;
-import pnodeEdits = require ('./pnodeEdits');
 import selection = require( './selection');
 import treeView = require( './treeView') ;
 
@@ -28,10 +28,16 @@ module treeManager {
     import testEdit = edits.testEdit ;
     import CallVarLabel = labels.CallVarLabel ;
     import Selection = selection.Selection;
-    import replaceOrEngulfTemplateEdit = pnodeEdits.replaceOrEngulfTemplateEdit ;
+    import replaceOrEngulfTemplateEdit = dnodeEdits.replaceOrEngulfTemplateEdit ;
+    import replaceOrEngulfTemplatesEdit = dnodeEdits.replaceOrEngulfTemplatesEdit ;
     import list = collections.list;
+    import List = collections.List ;
+    import PLabel = pnode.PLabel ;
     import PNode = pnode.PNode;
     import Option = collections.Option;
+
+    type PSelection = Selection<PLabel, PNode> ;
+    type PEdit = Edit<PSelection> ;
 
     export enum Actions { IF, WHILE, STRING, NUMBER, TRUE, FALSE, NULL,
                           OBJECT, ARRAY, VAR, VAR_DECL, ASSIGN, CALL, LOC,
@@ -56,9 +62,9 @@ module treeManager {
 
     export class TreeManager {
 
-        public createNode( action: Actions, sel:Selection) : Option<Selection> {
+        public createNode( action: Actions, sel:PSelection) : Option<PSelection> {
             console.log( "treeManager.createNode action is " + action.toString() ) ;
-            let edit : Edit<Selection> ;
+            let edit : Edit<PSelection> ;
             switch ( action) {
                 //loops & if
                 case Actions.IF:
@@ -211,9 +217,9 @@ module treeManager {
         }
 
         //Only for nodes that can contain text, such as variables and strings.
-        public createNodeWithText( action: Actions, sel: Selection, text: string ) : Option<Selection> {
+        public createNodeWithText( action: Actions, sel: PSelection, text: string ) : Option<PSelection> {
             console.log( "treeManager.createNodeWithText action is " + action.toString() + " text is " + text ) ;
-            let edit : Edit<Selection> ;
+            let edit : Edit<PSelection> ;
             switch (action) {
                 case Actions.STRING:
                     edit = this.makeStringLiteralNode(text);
@@ -239,135 +245,135 @@ module treeManager {
             return edit.applyEdit(sel) ;
         }
 
-        private makeVarNode(text : string = "") : Edit<Selection> {
+        private makeVarNode(text : string = "") : Edit<PSelection> {
             const varNode = labels.mkVar(text) ;
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = labels.mkNoExpNd();
             const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
-            const edit0 = pnodeEdits.insertChildrenEdit( [varNode] ) ;
-            const edit1 = pnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
+            const edit0 = dnodeEdits.insertChildrenEdit( [varNode] ) ;
+            const edit1 = dnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
             return alt([edit0,edit1]) ;
         }
 
         // While nodes
-        private makeWhileNode() : Edit<Selection> {
+        private makeWhileNode() : Edit<PSelection> {
 
             const seq = labels.mkExprSeq([]);
 
             const whilenode = pnode.make(labels.WhileLabel.theWhileLabel, [placeHolder, seq]);
-            const template0 = new Selection( whilenode, list<number>(), 0, 1 ) ;
-            const template1 = new Selection( whilenode, list<number>(0), 0, 0 ) ;
-            return replaceOrEngulfTemplateEdit( [template0, template1] ) ;
+            const template0 = makeSelection( whilenode, list<number>(), 0, 1 ) ;
+            const template1 = makeSelection( whilenode, list<number>(0), 0, 0 ) ;
+            return replaceOrEngulfTemplatesEdit( [template0, template1] ) ;
         }
 
         //objects
-        private makeObjectLiteralNode() : Edit<Selection> {
+        private makeObjectLiteralNode() : Edit<PSelection> {
             const objectnode = labels.mkObject([]);
-            const template = new Selection( objectnode, list<number>(), 0, 0 ) ;
+            const template = makeSelection( objectnode, list<number>(), 0, 0 ) ;
             return replaceOrEngulfTemplateEdit( template ) ;
         }
 
         //arrays
-        private makeArrayLiteralNode() : Edit<Selection> {
+        private makeArrayLiteralNode() : Edit<PSelection> {
             const arraynode = pnode.make(labels.ArrayLiteralLabel.theArrayLiteralLabel, []);
-            const template = new Selection( arraynode, list<number>(), 0, 0 ) ;
+            const template = makeSelection( arraynode, list<number>(), 0, 0 ) ;
             return replaceOrEngulfTemplateEdit( template ) ;
         }
 
         //Object accessor
-        private makeAccessorNode() : Edit<Selection> {
+        private makeAccessorNode() : Edit<PSelection> {
 
             const opt = pnode.tryMake(labels.AccessorLabel.theAccessorLabel,
                                       [placeHolder, placeHolder]);
 
             const accessorNode = opt.first() ;
 
-            const template = new Selection( accessorNode, list<number>(), 0, 1 ) ;
+            const template = makeSelection( accessorNode, list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template ) ;
 
         }
 
         //Object accessor
-        private makeDotNode() : Edit<Selection> {
+        private makeDotNode() : Edit<PSelection> {
 
             const dotNode = labels.mkDot( "", true, placeHolder ) ;
 
-            const template = new Selection( dotNode, list<number>(), 0, 1 ) ;
+            const template = makeSelection( dotNode, list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template ) ;
 
         }
 
-        private makeTupleNode() : Edit<Selection> {
+        private makeTupleNode() : Edit<PSelection> {
             const tuplenode = labels.mkTuple([placeHolder,placeHolder]);
-            const template0 = new Selection( tuplenode, list<number>(), 0, 1 ) ;
-            return replaceOrEngulfTemplateEdit( [template0] ) ;
+            const template0 = makeSelection( tuplenode, list<number>(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( template0 ) ;
         }
 
-        private makeTupleType() : Edit<Selection> {
+        private makeTupleType() : Edit<PSelection> {
             const tupleType = labels.mkTupleType([placeHolder,placeHolder]);
-            const template1 = new Selection( tupleType, list<number>(), 0, 1 ) ;
-            return replaceOrEngulfTemplateEdit( [template1] ) ;
+            const template1 = makeSelection( tupleType, list<number>(), 0, 1 ) ;
+            return replaceOrEngulfTemplateEdit( template1 ) ;
         }
 
         // If nodes
-        private makeIfNode() : Edit<Selection> {
+        private makeIfNode() : Edit<PSelection> {
 
             const emptSeq = labels.mkExprSeq([]);
 
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [placeHolder, emptSeq, emptSeq]);
 
             // console.log( "makeIfNode: Making template") ;
-            const template0 = new Selection( ifNode, list<number>(), 0, 1 ) ;
-            const template1 = new Selection( ifNode, list<number>(1), 0, 0 ) ;
+            const template0 = makeSelection( ifNode, list<number>(), 0, 1 ) ;
+            const template1 = makeSelection( ifNode, list<number>(1), 0, 0 ) ;
             // console.log( "makeIfNode: Making edit") ;
-            return replaceOrEngulfTemplateEdit( [template0, template1]  ) ;
+            return replaceOrEngulfTemplatesEdit( [template0, template1]  ) ;
         }
 
-        private makeLambdaNode() : Edit<Selection> {
+        private makeLambdaNode() : Edit<PSelection> {
             const noTypeNode = labels.mkNoTypeNd() ;
             const paramList = labels.mkParameterList([]);
             const body : PNode =labels.mkExprSeq([]);
             const lambdanode = labels.mkLambda( paramList, noTypeNode, body ) ;
-            const template = new Selection( lambdanode, list(2), 0, 0 ) ;
+            const template = makeSelection( lambdanode, list(2), 0, 0 ) ;
             return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeAssignNode() : Edit<Selection> {
+        private makeAssignNode() : Edit<PSelection> {
 
             const assignnode = labels.mkAssign( placeHolder, placeHolder ) ;
 
-            const template0 = new Selection( assignnode, list<number>(), 0, 1 ) ;
-            const template1 = new Selection( assignnode, list<number>(), 0, 2 ) ;
-            return replaceOrEngulfTemplateEdit( [template0, template1] ) ;
+            const template0 = makeSelection( assignnode, list<number>(), 0, 1 ) ;
+            const template1 = makeSelection( assignnode, list<number>(), 0, 2 ) ;
+            return replaceOrEngulfTemplatesEdit( [template0, template1] ) ;
         }
 
-        private makeLocNode() : Edit<Selection> {
+        private makeLocNode() : Edit<PSelection> {
             // We either make a new location operator or toggle a variable
             // declaration between being loc or nonloc.
-            const operatorTempl = new Selection( labels.mkLoc(placeHolder),                                                list<number>(), 0, 1 ) ;
-            return alt( [ compose( pnodeEdits.toggleBooleanEdit,
-                                   pnodeEdits.tabForwardEdit ),
+            const operatorTempl = makeSelection( labels.mkLoc(placeHolder),                                                list<number>(), 0, 1 ) ;
+            return alt( [ compose( dnodeEdits.toggleBooleanEdit(),
+                                   dnodeEdits.tabForwardEdit() ),
                           replaceOrEngulfTemplateEdit( operatorTempl ),
-                          compose( pnodeEdits.moveOutNormal,
-                                   pnodeEdits.toggleBooleanEdit,
-                                   pnodeEdits.tabForwardEdit) ] ) ;
+                          compose( dnodeEdits.moveOutNormal(),
+                                   dnodeEdits.toggleBooleanEdit(),
+                                   dnodeEdits.tabForwardEdit() ) ] ) ;
         }
 
-        private makeVarDeclNode( ) : Edit<Selection> {
+        private makeVarDeclNode( ) : Edit<PSelection> {
             const varNode : PNode = labels.mkVar("");
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = labels.mkNoExpNd();
 
             const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
 
-            const template0 = new Selection( vardeclnode, list<number>(), 0, 1 ) ;
-            const template1 = new Selection( vardeclnode, list<number>(), 2, 3 ) ;
+            const template0 = makeSelection( vardeclnode, list<number>(), 0, 1 ) ;
+            const template1 = makeSelection( vardeclnode, list<number>(), 2, 3 ) ;
             const templates = [template0, template1] ;
 
-            return replaceOrEngulfTemplateEdit( templates  ) ;
+            return replaceOrEngulfTemplatesEdit( templates  ) ;
         }
 
-        private makeCallVarNode(name : string, argCount : number ) : Edit<Selection> {
+        private makeCallVarNode(name : string, argCount : number ) : Edit<PSelection> {
             // console.log( ">> Calling makeCallVarNode") ;
             const args = new Array<PNode>() ;
             for( let i = 0 ; i < argCount ; ++i ) {
@@ -378,68 +384,68 @@ module treeManager {
             {
                 callVarNode = labels.mkOpenCallVar( name, args);
                 const template = argCount === 0
-                    ? new Selection( callVarNode, list<number>(), 0, 0 )
-                    : new Selection( callVarNode, list<number>(), 0, 1 ) ;
+                    ? makeSelection( callVarNode, list<number>(), 0, 0 )
+                    : makeSelection( callVarNode, list<number>(), 0, 1 ) ;
                 return replaceOrEngulfTemplateEdit( template  ) ;
             }
             else
             {
                 callVarNode = labels.mkClosedCallVar(name, args);
                 const template = argCount===0
-                    ? new Selection( callVarNode, list<number>(), 0, 0 )
-                    : new Selection( callVarNode, list<number>(), 0, 1 );
+                    ? makeSelection( callVarNode, list<number>(), 0, 0 )
+                    : makeSelection( callVarNode, list<number>(), 0, 1 );
                 return replaceOrEngulfTemplateEdit( template  ) ;
             }
         }
 
-        private makeCallNode() : Edit<Selection> {
+        private makeCallNode() : Edit<PSelection> {
 
             const callnode = labels.mkCall(placeHolder) ;
 
-            const template = new Selection( callnode, list<number>(), 0, 1 ) ;
+            const template = makeSelection( callnode, list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeNoTypeNode() : Edit<Selection> {
+        private makeNoTypeNode() : Edit<PSelection> {
 
             const typenode = labels.mkNoTypeNd() ;
-            return pnodeEdits.insertChildrenEdit([typenode]);
+            return dnodeEdits.insertChildrenEdit([typenode]);
         }
 
-        private makeStringLiteralNode(text : string = "") : Edit<Selection> {
+        private makeStringLiteralNode(text : string = "") : Edit<PSelection> {
             const literalnode = labels.mkStringLiteral(text);
-            return pnodeEdits.insertChildrenEdit([literalnode]);
+            return dnodeEdits.insertChildrenEdit([literalnode]);
 
         }
 
-        private makeNumberLiteralNode(text : string = "0") : Edit<Selection> {
+        private makeNumberLiteralNode(text : string = "0") : Edit<PSelection> {
             const literalnode = labels.mkNumberLiteral(text);
-            return pnodeEdits.insertChildrenEdit([literalnode]);
+            return dnodeEdits.insertChildrenEdit([literalnode]);
 
         }
 
-        private makeTrueBooleanLiteralNode() : Edit<Selection> {
+        private makeTrueBooleanLiteralNode() : Edit<PSelection> {
             const literalnode = labels.mkTrueBooleanLiteral() ;
-            return pnodeEdits.insertChildrenEdit([literalnode]);
+            return dnodeEdits.insertChildrenEdit([literalnode]);
         }
 
-        private makeFalseBooleanLiteralNode() : Edit<Selection> {
+        private makeFalseBooleanLiteralNode() : Edit<PSelection> {
             const literalnode = labels.mkFalseBooleanLiteral() ;
             const edit0 = this.makePrimitiveTypeNode("booleanType");
-            const edit1 = pnodeEdits.insertChildrenEdit([literalnode]);
+            const edit1 = dnodeEdits.insertChildrenEdit([literalnode]);
             return edits.alt([edit0,edit1]);
         }
 
-        private makeNullLiteralNode(isTypeNode:boolean) : Edit<Selection> {
+        private makeNullLiteralNode(isTypeNode:boolean) : Edit<PSelection> {
             const opt = pnode.tryMake(labels.NullLiteralLabel.theNullLiteralLabel, []);
             const literalnode = opt.first() ;
-            const edit0 = pnodeEdits.insertChildrenEdit([literalnode]);
+            const edit0 = dnodeEdits.insertChildrenEdit([literalnode]);
             const edit1 = this.makePrimitiveTypeNode("nullType");
             return edits.alt([edit0,edit1]);
             
         }
 
-        private makeNumberTypeNode( digit : string )  : Edit<Selection> {
+        private makeNumberTypeNode( digit : string )  : Edit<PSelection> {
             switch( digit ) {
                 case "0" : return this.makePrimitiveTypeNode( "natType" ) ;
                 case "1" : return this.makePrimitiveTypeNode( "integerType" ) ;
@@ -447,56 +453,57 @@ module treeManager {
             }
         }
 
-        private makePrimitiveTypeNode( type : string ) : Edit<Selection> {
+        private makePrimitiveTypeNode( type : string ) : Edit<PSelection> {
             const typeNode = labels.mkPrimitiveTypeLabel(type);
-            //return edits.compose( pnodeEdits.insertChildrenEdit([typeNode]),
-            //                      edits.optionally(pnodeEdits.tabForwardEdit)) ;
-            return pnodeEdits.insertChildrenEdit([typeNode]) ; }
+            //return edits.compose( dNodeEdits.insertChildrenEdit([typeNode]),
+            //                      edits.optionally(dNodeEdits.tabForwardEdit())) ;
+            return dnodeEdits.insertChildrenEdit([typeNode]) ; }
 
-        private makeLocType() : Edit<Selection> {
-            const typeTempl = new Selection( labels.mkLocationType( placeHolder ),
+        private makeLocType() : Edit<PSelection> {
+            const typeTempl = makeSelection( labels.mkLocationType( placeHolder ),
                                              list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( typeTempl ) ;
         }
 
-        private makeFieldTypeNode() : Edit<Selection> {
+        private makeFieldTypeNode() : Edit<PSelection> {
             const typeNode = labels.mkFieldType([placeHolder, placeHolder]);
-            const template0 = new Selection(typeNode,list<number>(),0,1);
-            const template1 = new Selection(typeNode,list<number>(),1,2);
-            return replaceOrEngulfTemplateEdit([template0,template1]);
+            const template0 = makeSelection(typeNode,list<number>(),0,1);
+            const template1 = makeSelection(typeNode,list<number>(),1,2);
+            return replaceOrEngulfTemplatesEdit([template0,template1]);
         }
 
-        private makeFunctionType() : Edit<Selection> {
+        private makeFunctionType() : Edit<PSelection> {
             const typenode = labels.mkFunctionType(placeHolder, placeHolder);
-            const template = new Selection( typenode, list(), 0, 1 ) ;
+            const template = makeSelection( typenode, list(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeJoinTypeNode() : Edit<Selection> {
+        private makeJoinTypeNode() : Edit<PSelection> {
             const typeNode = labels.mkJoinType([placeHolder, placeHolder]);
-            const template = new Selection(typeNode,list<number>(),0,1);
+            const template = makeSelection(typeNode,list<number>(),0,1);
             return replaceOrEngulfTemplateEdit( template ) ; 
         }
 
-        private makeMeetTypeNode() : Edit<Selection> {
+        private makeMeetTypeNode() : Edit<PSelection> {
             const typeNode = labels.mkMeetType([placeHolder, placeHolder]);
-            const template = new Selection(typeNode,list<number>(),0,1);
+            const template = makeSelection(typeNode,list<number>(),0,1);
             return replaceOrEngulfTemplateEdit( template ) ; 
         }
 
-        public openLabel( sel: Selection ) : Option<Selection> {
-            return pnodeEdits.openLabelEdit().applyEdit( sel ) ;
+        public openLabel( sel: PSelection ) : Option<PSelection> {
+            const ed : Edit<PSelection> = dnodeEdits.openLabelEdit() ;
+            return ed.applyEdit( sel ) ;
         }
 
-        public changeNodeString(sel: Selection, newString: string, tabDirection: number ) : Option<Selection> {
+        public changeNodeString(sel: PSelection, newString: string, tabDirection: number ) : Option<PSelection> {
             // First change the label
             const oldLabelEmpty = sel.size() === 1
                                && sel.selectedNodes()[0].label().getVal() === "" ;
-            const changeLabel = new pnodeEdits.ChangeStringEdit(newString);
+            const changeLabel : Edit<PSelection> = new dnodeEdits.ChangeStringEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test0 = testEdit<Selection>(
-                (s:Selection) => {
+            const test0 = testEdit<PSelection>(
+                (s:PSelection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
                     const p = nodes[0] ;
@@ -505,12 +512,12 @@ module treeManager {
                           && p.label().kind() === CallVarLabel.kindConst 
                           && p.count() === 0 ; } ) ;
             // ... then add two placeholders as children and select callVar node.
-            const addPlaceholders = pnodeEdits.insertChildrenEdit(
+            const addPlaceholders = dnodeEdits.insertChildrenEdit(
                                         [ placeHolder, placeHolder ] ) ;
             // Otherwise if the new string is not an infix operator, the node is a callVar
             // with no children, and the old string was empty ...
-            const test1 = testEdit<Selection>(
-                (s:Selection) => {
+            const test1 = testEdit<PSelection>(
+                (s:PSelection) => {
                     const nodes = s.selectedNodes() ;
                     if( nodes.length === 0 ) return false ;
                     const p = nodes[0] ;
@@ -520,94 +527,97 @@ module treeManager {
                           && p.count() === 0 ; } ) ;
             // ... then add one placeholder.
             // Othewise leave it alone.
-            const add1Placeholder = pnodeEdits.insertChildrenEdit( [ placeHolder ] ) ;
+            const add1Placeholder = dnodeEdits.insertChildrenEdit( [ placeHolder ] ) ;
             // Finally we do an optional tab left or right or neither.
-            const tab = tabDirection < 0
-                      ? optionally(pnodeEdits.tabBackEdit)
+            const tab : Edit<PSelection> = tabDirection < 0
+                      ? optionally(dnodeEdits.tabBackEdit())
                       : tabDirection > 0
-                      ? optionally(pnodeEdits.tabForwardEdit)
-                      : id<Selection>() ;
-            const edit =  compose( changeLabel,
-                                   alt( [compose( test0,
-                                                  pnodeEdits.rightEdit,
-                                                  addPlaceholders,
-                                                  pnodeEdits.selectParentEdit ),
-                                         compose( test1,
-                                                  pnodeEdits.rightEdit,
-                                                  add1Placeholder,
-                                                  pnodeEdits.selectParentEdit ),
-                                         id()] ),
-                                   tab ) ;
+                      ? optionally(dnodeEdits.tabForwardEdit())
+                      : id<PSelection>() ;
+            const a : Edit<PSelection> = compose( test0,
+                dnodeEdits.rightEdit(),
+                addPlaceholders,
+                dnodeEdits.selectParentEdit() ) ;
+            const b : Edit<PSelection> = compose( test1,
+                dnodeEdits.rightEdit(),
+                add1Placeholder,
+                dnodeEdits.selectParentEdit() ) ;
+            const c : Edit<PSelection>= id() ;
+            const d : Edit<PSelection> = alt( [a, b, c] ) ;
+            const edit : Edit<PSelection> =  compose( changeLabel,
+                                                      d,
+                                                      tab ) ;
             return edit.applyEdit( sel ) ;
         }
 
-        public selectAll( sel:Selection ) : Option<Selection> {
+        public selectAll( sel:PSelection ) : Option<PSelection> {
             const root = sel.root() ;
             const n = root.count() ;
-            return collections.some( new Selection( root, list<number>(), 0, n ) ) ;
+            return collections.some( makeSelection( root, list<number>(), 0, n ) ) ;
         }
 
-        public moveOut( sel:Selection ) : Option<Selection> {
-            return pnodeEdits.moveOutNormal.applyEdit(sel) ;
+        public moveOut( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.moveOutNormal() ;
+            return edit.applyEdit(sel) ;
         }
 
-        public moveLeft( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.leftEdit;
+        public moveLeft( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.leftEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveRight( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.rightEdit;
+        public moveRight( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.rightEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveUp( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.upEdit;
+        public moveUp( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.upEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveDown( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.downEdit;
+        public moveDown( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection>  = dnodeEdits.downEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveFocusLeft( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.moveFocusLeftEdit;
+        public moveFocusLeft( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.moveFocusLeftEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveFocusRight( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.moveFocusRightEdit;
+        public moveFocusRight( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.moveFocusRightEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveFocusUp( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.moveFocusUpEdit;
+        public moveFocusUp( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.moveFocusUpEdit();
             return edit.applyEdit(sel);
         }
 
-        public moveFocusDown( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.moveFocusDownEdit;
+        public moveFocusDown( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.moveFocusDownEdit() ;
             return edit.applyEdit(sel);
         }
 
-        public moveTabForward( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.tabForwardEdit;
+        public moveTabForward( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.tabForwardEdit() ;
             return edit.applyEdit(sel);
         }
          
-        public moveTabBack( sel:Selection ) : Option<Selection> {
-            const edit = pnodeEdits.tabBackEdit;
+        public moveTabBack( sel:PSelection ) : Option<PSelection> {
+            const edit : Edit<PSelection> = dnodeEdits.tabBackEdit() ;
             return edit.applyEdit(sel);
         }
 
         private standardBackFillList = [[labels.mkNoExpNd()], [placeHolder], [placeHolder], [labels.mkNoTypeNd()]] ;
 
-        private deleteEdit = pnodeEdits.replaceWithOneOf( [[] as Array<PNode> ].concat(this.standardBackFillList) );
+        private deleteEdit = dnodeEdits.replaceWithOneOf( [[] as Array<PNode> ].concat(this.standardBackFillList) );
 
-        private otherDeleteEdit = pnodeEdits.replaceWithOneOf( [[], [placeHolder], [labels.mkNoTypeNd()]] );
+        private otherDeleteEdit = dnodeEdits.replaceWithOneOf( [[], [placeHolder], [labels.mkNoTypeNd()]] );
 
-        public delete(sel:Selection) : Option<Selection> {
+        public delete(sel:PSelection) : Option<PSelection> {
             const nodes : Array<PNode> = sel.selectedNodes() ;
             if(nodes.length === 1 && nodes[0].label() instanceof labels.NoExprLabel ) {
                 return this.otherDeleteEdit.applyEdit( sel ) ; }
@@ -615,31 +625,31 @@ module treeManager {
                 return this.deleteEdit.applyEdit(sel); }
         }
 
-        public paste( srcSelection: Selection, trgSelection: Selection ) : Option<Selection> {
-            const pasteEdit = pnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
+        public paste( srcSelection: PSelection, trgSelection: PSelection ) : Option<PSelection> {
+            const pasteEdit = dnodeEdits.pasteEdit(srcSelection, this.standardBackFillList );
             return pasteEdit.applyEdit( trgSelection ) ;
         }
 
-        public swap( srcSelection : Selection, trgSelection : Selection ) : Option<Selection> {
-            const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
+        public swap( srcSelection : PSelection, trgSelection : PSelection ) : Option<PSelection> {
+            const swapEdit = new dnodeEdits.SwapEdit(srcSelection);
             return swapEdit.applyEdit( trgSelection ) ;
         }
 
         /** Create a list of up to three possible actions. */
-        public pasteMoveSwapEditList(srcSelection : Selection, trgSelection : Selection) : Array< [string, string, Selection] > {
+        public pasteMoveSwapEditList(srcSelection : PSelection, trgSelection : PSelection) : Array< [string, string, PSelection] > {
 
-            const selectionList : Array< [string, string, Selection] > = [];
+            const selectionList : Array< [string, string, PSelection] > = [];
 
-            const pasteEdit = pnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
+            const pasteEdit = dnodeEdits.pasteEdit( srcSelection, this.standardBackFillList );
             const pasteResult = pasteEdit.applyEdit( trgSelection ) ;
             pasteResult.map( newSel => selectionList.push(['Pasted', "Paste", newSel]) ) ;
 
-            const moveEdit = pnodeEdits.moveEdit(srcSelection, this.standardBackFillList );
+            const moveEdit = dnodeEdits.moveEdit(srcSelection, this.standardBackFillList );
             const moveResult = moveEdit.applyEdit(trgSelection);
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
 
-            const swapEdit = new pnodeEdits.SwapEdit(srcSelection);
+            const swapEdit = new dnodeEdits.SwapEdit(srcSelection);
             const swapResult = swapEdit.applyEdit( trgSelection ) ;
             // TODO: Suppress the push if newSel equals an earlier result
             swapResult.map( newSel => selectionList.push(['Swapped', "Swap", newSel]) ) ;
@@ -647,6 +657,10 @@ module treeManager {
             return selectionList;
 
         }
+    }
+
+    function makeSelection( root : PNode, path : List<number>, anchor : number, focus : number ) : PSelection {
+        return new Selection<PLabel,PNode>( root, path, anchor, focus ) ;
     }
 }
 

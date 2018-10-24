@@ -18,6 +18,8 @@ module userRelated
     import fromJSONToPNode = pnode.fromJSONToPNode;
     import Selection = selection.Selection;
 
+    type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
+
     export function userRelatedActions () : void
     {
         sessionStorage.removeItem("programId");
@@ -346,12 +348,12 @@ module userRelated
         return false;
     }
 
-    function serialize(select : Selection) : string
+    function serialize(select : PSelection) : string
     {
         return pnode.fromPNodeToJSON(select.root());
     }
 
-    function unserialize(str:string) : Selection
+    function unserialize(str:string) : PSelection
     {
         const path = list<number>();
         return new Selection(fromJSONToPNode(str), path, 0, 0) ;

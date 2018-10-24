@@ -1,21 +1,21 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
+/// <reference path="dnode.ts" />
 /// <reference path="edits.ts" />
-/// <reference path="pnode.ts" />
 /// <reference path="selection.ts" />
 
 import assert = require( './assert' ) ;
 import collections = require( './collections' ) ;
+import dnode = require( './dnode' ) ;
 import edits = require( './edits' ) ;
-import pnode = require( './pnode' ) ;
 import selection = require( './selection' ) ;
 
-/** pnodeEdits is responsible for edits that operate on selections.
- * This module also includes the Selection class as well as
+/** dnodeEdits is responsible for edits that operate on selections.
+ * This module also includes the Selection<L,T> class as well as
  * various edit classes.  Each edit class represents some
  * operation on Selections that might succeed or fail.
  */
-module pnodeEdits {
+module dnodeEdits {
     import Option = collections.Option;
     import none = collections.none;
     import some = collections.some;
@@ -25,7 +25,8 @@ module pnodeEdits {
     import snoc = collections.snoc;
     import last = collections.last;
     import butLast = collections.butLast;
-    import PNode = pnode.PNode ;
+    import DNode = dnode.DNode ;
+    import DLabel = dnode.DLabel ;
     import Edit = edits.Edit ;
     import AbstractEdit = edits.AbstractEdit ;
     import compose = edits.compose ;
@@ -38,13 +39,13 @@ module pnodeEdits {
      * @param selection
      * @param normal iff the anchor preceeds the focus.
     */
-    function moveOut( selection : Selection, normal : boolean ) : Option<Selection> {
+    function moveOut<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T>, normal : boolean ) : Option<Selection<L,T>> {
         const root = selection.root();
         const path = selection.path();
-        if( path.isEmpty() ) { return none<Selection>() ; }
+        if( path.isEmpty() ) { return none<Selection<L,T>>() ; }
         else {
             const l = collections.last(path) ;
-            return some( new Selection( root, collections.butLast( path ),
+            return some( new Selection<L,T>( root, collections.butLast( path ),
                                         normal ? l : l+1,
                                         normal ? l+1 : l ) ) ;
         }
@@ -52,7 +53,7 @@ module pnodeEdits {
     }
 
     /** Move left. */
-    function moveLeft( selection : Selection ) : Option<Selection> {
+    function moveLeft<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         const start = selection.start() ;
         const end = selection.end() ;
         const root = selection.root();
@@ -67,28 +68,28 @@ module pnodeEdits {
                 // Select the right most point under that node.
                 const newPath : List<number> = snoc(path, start-1);
                 const numOfChildren : number = root.get(newPath).count();
-                return some( new Selection(root, newPath, numOfChildren, numOfChildren));            
+                return some( new Selection<L,T>(root, newPath, numOfChildren, numOfChildren));            
             }
             //If there is no node to the left and the parent is the root.
             else if (path.isEmpty())
             {
                 // This is the start of the line. Fail
-                return none<Selection>();
+                return none<Selection<L,T>>();
             }
             //If there is no node to the point's left. Select the parent of the point.
             else {
-                return some( new Selection(root, butLast(path), last(path), last(path)+1));
+                return some( new Selection<L,T>(root, butLast(path), last(path), last(path)+1));
             }
         }      
         else // This is a nonempty selection.
         {
             //return a selection representing the position to the left of the leftmost selected node
-            return some( new Selection(root, path, start, start));
+            return some( new Selection<L,T>(root, path, start, start));
         } 
     }
 
     /** Move right. */
-    function moveRight( selection : Selection ) : Option<Selection> {
+    function moveRight<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         const start = selection.start() ;
         const end = selection.end() ;
         const root = selection.root();
@@ -101,51 +102,51 @@ module pnodeEdits {
             if(root.get(path).count() > start)
             {
                 // Select that node
-                return some( new Selection(root, path, start, start+1));
+                return some( new Selection<L,T>(root, path, start, start+1));
             }
             //If there is no node to the right and the parent is the root"
             else if (path.isEmpty())
             {
                 // This is the end of the line. Fail.
-                return none<Selection>();
+                return none<Selection<L,T>>();
             }
             //If there is no node to the right and the parent is
             // not the root.
             else {
                 //return a selection representing the position to the right of the parent
-                return some( new Selection(root, butLast(path), last(path) + 1, last(path) + 1));
+                return some( new Selection<L,T>(root, butLast(path), last(path) + 1, last(path) + 1));
             }
         }      
         else // This is a nonempty selection
         {
             // Go to the first point under the first node
-            return some( new Selection(root, snoc(path, start), 0, 0));
+            return some( new Selection<L,T>(root, snoc(path, start), 0, 0));
         }
     }
 
     /** Move up. */
-    function moveUp( selection : Selection ) : Option<Selection> {
+    function moveUp<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Move down. */
-    function moveDown( selection : Selection ) : Option<Selection> {
+    function moveDown<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         return moveRight(selection) ; //In our case this is the same.
     }
     
     /** Move Tab forward. */
-    function moveTabForward( selection : Selection ) : Option<Selection> {
+    function moveTabForward<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         return moveRight(selection) ; //In our case this is the same.
     }
 
     /** Move Tab back. */
-    function moveTabBack( selection : Selection ) : Option<Selection> {
+    function moveTabBack<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         return moveLeft(selection) ; //In our case this is the same.
     }
 
     /** Move the focus one place to the right if possible.
      * Otherwise, move up the tree.*/
-    function moveFocusRight( selection : Selection ) : Option<Selection> {
+    function moveFocusRight<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         const anchor = selection.anchor() ;
         const focus = selection.focus() ;
         const root = selection.root();
@@ -155,61 +156,62 @@ module pnodeEdits {
                      " focus is " +focus+ 
                      " parent.count() is " +parent.count() ) ;
         if( focus < parent.count() ) {
-            return some( new Selection(root, path, anchor, focus+1) ) ; }
+            return some( new Selection<L,T>(root, path, anchor, focus+1) ) ; }
         else {
             return moveOut( selection, true ) ; }
     }
 
     /** Move the focus one place to the left if possible.
      * Otherwise, move up the tree.*/
-    function moveFocusLeft( selection : Selection ) : Option<Selection> {
+    function moveFocusLeft<L extends DLabel<L,T>, T extends DNode<L,T>>( selection : Selection<L,T> ) : Option<Selection<L,T>> {
         const anchor = selection.anchor() ;
         const focus = selection.focus() ;
         const root = selection.root();
         const path = selection.path();
         if( focus > 0 ) {
-            return some( new Selection(root, path, anchor, focus-1) ) ; }
+            return some( new Selection<L,T>(root, path, anchor, focus-1) ) ; }
         else {
             return moveOut( selection, false ) ; }
     }
 
     /** Replace all selected nodes with another set of nodes. */
-    function singleReplace( selection : Selection, newNodes : Array<PNode> ) : Option<Selection> {
+    function singleReplace<L extends DLabel<L,T>, T extends DNode<L,T>>(
+            selection : Selection<L,T>, newNodes : Array<T> ) : Option<Selection<L,T>> {
         const start = selection.start() ;
         const end = selection.end() ;
         return singleReplaceHelper( selection.root(), selection.path(), start, end, newNodes ) ;
     }
     
-    function singleReplaceHelper( node : PNode, path : List<number>,
-                                  start : number, end : number, newNodes : Array<PNode> ) : Option<Selection>
+    function singleReplaceHelper<L extends DLabel<L,T>, T extends DNode<L,T>>( node : T, path : List<number>,
+                                  start : number, end : number, newNodes : Array<T> ) : Option<Selection<L,T>>
     {
         if( path.isEmpty() ) {
             assert.checkPrecondition( 0 <= start && start <= end && end <= node.count() ) ;
             const newChildren = node.children(0, start).concat( newNodes, node.children(end, node.count()) ) ;
-            const opt =  pnode.tryMake( node.label(), newChildren ) ;
-            return opt.map( newNode => new Selection( newNode, path, start, start+newNodes.length ) ) ;
+            const opt =  node.tryMake( node.label(), newChildren ) ;
+            return opt.map( newNode => new Selection<L,T>( newNode, path, start, start+newNodes.length ) ) ;
         } else {
             const k = path.first() ;
             const len = node.count() ;
             assert.check( 0 <= k, "Bad Path. k < 0" ) ;
             assert.check( k < len, "Bad Path. k >= len" ) ;
             const opt = singleReplaceHelper( node.child(k), path.rest(), start, end, newNodes ) ;
-            return opt.bind<Selection>( (newSeln : Selection) => {
+            return opt.bind<Selection<L,T>>( (newSeln : Selection<L,T>) => {
                 const p0 = node.children(0, k ) ;
                 const p1 = [ newSeln.root() ] ;
                 const p2 = node.children( k+1, len ) ;
                 const newChildren = p0.concat( p1, p2 ) ;
-                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
-                return opt0.map( (newNode : PNode) => new Selection( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
+                const opt0 = node.tryMake( node.label(), newChildren ) ;
+                return opt0.map( (newNode : T) => new Selection<L,T>( newNode, path, newSeln.anchor(), newSeln.focus() ) ) ;
             } ) ;
         }
     }
 
     /** Replace all selected nodes with another set of nodes. */
-    function doubleReplace( srcSelection : Selection, newNodes4Src : Array<PNode>,
-                            trgSelection : Selection, newNodes4Trg : Array<PNode>,
+    function doubleReplace<L extends DLabel<L,T>, T extends DNode<L,T>>( srcSelection : Selection<L,T>, newNodes4Src : Array<T>,
+                            trgSelection : Selection<L,T>, newNodes4Trg : Array<T>,
                             allowSrcAncestorOverwrite : boolean = true, 
-                            allowTrgAncestorOverwrite : boolean = true ) : Option<Selection> {
+                            allowTrgAncestorOverwrite : boolean = true ) : Option<Selection<L,T>> {
         const srcStart = srcSelection.start() ;
         const srcEnd = srcSelection.end() ;
 
@@ -228,12 +230,12 @@ module pnodeEdits {
      * The selection return either comprise the new nodes at the source or the
      * new nodes at the target depending on the value of returnNewTargetSeln .
     */
-    function doubleReplaceOnePathEmpty(
-                            node : PNode,
-                            srcStart : number, srcEnd : number, newNodes4Src : Array<PNode>,
-                            trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<PNode>,
+    function doubleReplaceOnePathEmpty<L extends DLabel<L,T>, T extends DNode<L,T>> (
+                            node : T,
+                            srcStart : number, srcEnd : number, newNodes4Src : Array<T>,
+                            trgPath : List<number>, trgStart : number, trgEnd : number, newNodes4Trg : Array<T>,
                             allowTrgAncestorOverwrite : boolean, returnNewTargetSeln : boolean )
-    : Option< Selection >
+    : Option< Selection<L,T> >
     {
         const k = trgPath.first() ;
         const len = node.count() ;
@@ -242,34 +244,34 @@ module pnodeEdits {
         const child = node.child(k) ;
         if( k < srcStart ) {
             const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind<Selection>( newSeln => {
+            return opt.bind<Selection<L,T>>( newSeln => {
                 const p0 = node.children(0, k) ;
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children(k+1, srcStart ) ;
                 const p3 = newNodes4Src ;
                 const p4 = node.children( srcEnd, len ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                const opt0 = pnode.tryMake( node.label(), newChildren ) ; 
+                const opt0 = node.tryMake( node.label(), newChildren ) ; 
                 return opt0.map( newNode =>
                     returnNewTargetSeln
-                    ? new Selection( newNode, trgPath, newSeln.anchor(), newSeln.focus() ) 
-                    : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
+                    ? new Selection<L,T>( newNode, trgPath, newSeln.anchor(), newSeln.focus() ) 
+                    : new Selection<L,T>( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
             } ) ;
         } else if( srcEnd <= k ) {
             const opt = singleReplaceHelper( child, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
-            return opt.bind<Selection>( newSeln => {
+            return opt.bind<Selection<L,T>>( newSeln => {
                 const p0 = node.children(0, srcStart) ;
                 const p1 = newNodes4Src ;
                 const p2 = node.children( srcEnd, k ) ;
                 const p3 = [newSeln.root()];
                 const p4 = node.children( k+1, len ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;    
-                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
+                const opt0 = node.tryMake( node.label(), newChildren ) ;
                 const kNew = k + newNodes4Src.length - (srcEnd-srcStart);
                 return opt0.map( newNode => 
                     returnNewTargetSeln
-                    ? new Selection( newNode, cons( kNew, trgPath.rest()), newSeln.anchor(), newSeln.focus() )
-                    : new Selection( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
+                    ? new Selection<L,T>( newNode, cons( kNew, trgPath.rest()), newSeln.anchor(), newSeln.focus() )
+                    : new Selection<L,T>( newNode, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
                 } ) ;
         } else if( allowTrgAncestorOverwrite ) {
             // The target is within the source selection. We delete the target and
@@ -279,28 +281,28 @@ module pnodeEdits {
             const p1 = newNodes4Src ;
             const p2 = node.children( srcEnd, len ) ;
             const newChildren = p0.concat( p1, p2 ) ;
-            const opt = pnode.tryMake( node.label(), newChildren ) ;
+            const opt = node.tryMake( node.label(), newChildren ) ;
             return opt.map( newNode =>
-                new Selection( node, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
+                new Selection<L,T>( node, collections.nil<number>(), srcStart, srcStart+newNodes4Src.length ) ) ;
         } else {
-            return none<Selection>() ;
+            return none<Selection<L,T>>() ;
         }
     }
     
     /** Replace all selected nodes in two places with two other sequences */
-    function doubleReplaceHelper(
-                            node : PNode,
+    function doubleReplaceHelper<L extends DLabel<L,T>, T extends DNode<L,T>> (
+                            node : T,
                             srcPath : List<number>,
                             srcStart : number,
                             srcEnd : number,
-                            newNodes4Src : Array<PNode>,
+                            newNodes4Src : Array<T>,
                             trgPath : List<number>,
                             trgStart : number,
                             trgEnd : number,
-                            newNodes4Trg : Array<PNode>,
+                            newNodes4Trg : Array<T>,
                             allowSrcAncestorOverwrite : boolean = true,
                             allowTrgAncestorOverwrite : boolean = true )
-    : Option<Selection>
+    : Option<Selection<L,T>>
     {
         if( srcPath.isEmpty() && trgPath.isEmpty() ) {
             // Common parent
@@ -312,11 +314,11 @@ module pnodeEdits {
                 const p3 = newNodes4Trg ;
                 const p4 = node.children( trgEnd , node.count() ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const opt = node.tryMake( node.label(), newChildren ) ;
                 const newStart = trgStart + newNodes4Src.length - (srcEnd-srcStart) ;
                 const newEnd = newStart + newNodes4Trg.length ;
                 return opt.map( newNode =>
-                                    new Selection( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
+                                    new Selection<L,T>( newNode, collections.nil<number>(), newStart, newEnd ) ) ;
             } else if( trgEnd <= srcStart ) {
                 // Target region is before source region
                 const p0 = node.children( 0, trgStart ) ;
@@ -325,26 +327,26 @@ module pnodeEdits {
                 const p3 = newNodes4Src ;
                 const p4 = node.children( srcEnd , node.count() ) ;
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const opt = node.tryMake( node.label(), newChildren ) ;
                 const newEnd = trgStart + newNodes4Trg.length ;
-                return opt.map( newNode => new Selection( newNode, collections.nil<number>(), trgStart, newEnd ) ) ;
+                return opt.map( newNode => new Selection<L,T>( newNode, collections.nil<number>(), trgStart, newEnd ) ) ;
             } else {
                 // Overlaping src and target ranges.  This is ambiguous unless either the new source nodes
                 // or the new target nodes are empty.
                 if( newNodes4Src.length !== 0 && newNodes4Trg.length !== 0 ) {
                     // Ambiguous case. This might happen if we swap a node with itself.
                     // It should fail.
-                    return none<Selection>() ;
+                    return none<Selection<L,T>>() ;
                 }
                 const start = Math.min( srcStart, trgStart ) ;
                 const end = Math.max( srcEnd, trgEnd ) ;
                 const p0 = node.children( 0, start ) ;
                 const p1 = node.children( end , node.count() ) ;
                 const newChildren = p0.concat( newNodes4Trg, newNodes4Src, p1 ) ;
-                const opt = pnode.tryMake( node.label(), newChildren ) ;
+                const opt = node.tryMake( node.label(), newChildren ) ;
                 const newEnd = start + newNodes4Trg.length ;
                 return opt.map( newNode =>
-                    new Selection( newNode, collections.nil<number>(), start, newEnd ) )  ;
+                    new Selection<L,T>( newNode, collections.nil<number>(), start, newEnd ) )  ;
             }
         } else if( srcPath.isEmpty() ) {
             return doubleReplaceOnePathEmpty( node,
@@ -369,9 +371,9 @@ module pnodeEdits {
                 const p1 = [newSeln.root()] ;
                 const p2 = node.children( k+1, node.count()) ;
                 const newChildren = p0.concat( p1, p2 ) ;
-                const opt0 = pnode.tryMake( node.label(), newChildren ) ;
+                const opt0 = node.tryMake( node.label(), newChildren ) ;
                 return opt0.map( newNode => 
-                    new Selection( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
+                    new Selection<L,T>( newNode, cons( k, newSeln.path()), newSeln.anchor(), newSeln.focus() ) ) ;
              } ) ;
         } else {
             // Neither path is empty and they disagree. 
@@ -388,11 +390,11 @@ module pnodeEdits {
             const optSrc = singleReplaceHelper( childSrc, srcPath.rest(), srcStart, srcEnd, newNodes4Src ) ;
             const optTrg = singleReplaceHelper( childTrg, trgPath.rest(), trgStart, trgEnd, newNodes4Trg ) ;
             return optSrc.bind( newSrcSeln => optTrg.bind( newTrgSeln  => {
-                let p0 : Array<PNode> ;
-                let p1 : Array<PNode> ;
-                let p2 : Array<PNode> ;
-                let p3 : Array<PNode> ;
-                let p4 : Array<PNode> ;
+                let p0 : Array<T> ;
+                let p1 : Array<T> ;
+                let p2 : Array<T> ;
+                let p3 : Array<T> ;
+                let p4 : Array<T> ;
                 if( kSrc < kTrg ) {
                     p0 = node.children( 0, kSrc ) ;
                     p1 = [newSrcSeln.root()] ;
@@ -406,42 +408,42 @@ module pnodeEdits {
                     p3 = [newSrcSeln.root()] ;
                     p4 = node.children( kSrc+1, len ) ; }
                 const newChildren = p0.concat( p1, p2, p3, p4 ) ;
-                const opt =  pnode.tryMake( node.label(), newChildren ) ;
+                const opt =  node.tryMake( node.label(), newChildren ) ;
                 return opt.map( newNode =>
-                    new Selection( newNode, cons( kTrg, newTrgSeln.path()), newTrgSeln.anchor(), newTrgSeln.focus() ) ) ;
+                    new Selection<L,T>( newNode, cons( kTrg, newTrgSeln.path()), newTrgSeln.anchor(), newTrgSeln.focus() ) ) ;
             } ) ) ; }
     }
 
     /** Replace all selected nodes with another sequence of nodes. 
      * The resulting selection should comprise the inserted children.
      */
-    class InsertChildrenEdit extends AbstractEdit<Selection> {
-        private _newNodes : Array<PNode> ;
+    class InsertChildrenEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+        private _newNodes : Array<T> ;
 
-        constructor( newNodes : Array<PNode> ) {
+        constructor( newNodes : Array<T> ) {
             super() ;
             this._newNodes = newNodes ; }
 
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
 
             // Try to make the replacement.
             return singleReplace( selection, this._newNodes ) ;
         }
     }
 
-    export function insertChildrenEdit( newNodes : Array<PNode> ) : Edit<Selection> {
+    export function insertChildrenEdit<L extends DLabel<L,T>, T extends DNode<L,T>>( newNodes : Array<T> ) : Edit<Selection<L,T>> {
         return new InsertChildrenEdit( newNodes ) ;
     }
 
     /** Replace with one of a sequence of choices. Picks the first that succeeds. */
-    export function replaceWithOneOf( choices : Array<Array<PNode>>  ) : AbstractEdit<Selection> {
+    export function replaceWithOneOf<L extends DLabel<L,T>, T extends DNode<L,T>>( choices : Array<Array<T>>  ) : AbstractEdit<Selection<L,T>> {
         return alt( choices.map( (choice) => new InsertChildrenEdit( choice ) ) ) ;
     }
 
     /**  Changes the string value of a node's label.
      *  
      */
-    export class ChangeStringEdit extends AbstractEdit<Selection> {
+    export class ChangeStringEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
         private _newString:string;
 
         constructor(newString:string) {
@@ -449,21 +451,21 @@ module pnodeEdits {
             this._newString = newString;
         }
 
-        public applyEdit(selection:Selection):Option<Selection> {
+        public applyEdit(selection:Selection<L,T>):Option<Selection<L,T>> {
             const nodes = selection.selectedNodes() ;
-            const newNodes : Array<PNode> = [] ;
+            const newNodes : Array<T> = [] ;
             let count = 0 ;
             // Loop through all the nodes, attempting to change the label on each.
             for( let i = 0 ; i < nodes.length; ++i ) {
                 const optLabel = nodes[i].label().changeString( this._newString ) ;
                 const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
                 optNode.choose(
-                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    (node:T) => {newNodes.push( node ); count++ ;},
                     () => { newNodes.push( nodes[i] ) ; }
                 ) ;
             }
             // Fail if no labels changed.
-            if( count === 0 ) return none<Selection>() ;
+            if( count === 0 ) return none<Selection<L,T>>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
@@ -474,15 +476,15 @@ module pnodeEdits {
     /**  Changes the string value of a node's label.
      *  
      */
-    export class ToggleBooleanEdit extends AbstractEdit<Selection> {
+    export class ToggleBooleanEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() {
             super();
         }
 
-        public applyEdit(selection:Selection):Option<Selection> {
+        public applyEdit(selection:Selection<L,T>):Option<Selection<L,T>> {
             const nodes = selection.selectedNodes() ;
-            const newNodes : Array<PNode> = [] ;
+            const newNodes : Array<T> = [] ;
             let count = 0 ;
             // Loop through all the nodes, attempting to change the label on each.
             for( let i = 0 ; i < nodes.length; ++i ) {
@@ -490,53 +492,54 @@ module pnodeEdits {
                 .bind( (q:boolean) => nodes[i].label().changeBoolean( !q ) )
                 .bind( l => nodes[i].tryModifyLabel(l) ) ;
                 optNode.choose(
-                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    (node:T) => {newNodes.push( node ); count++ ;},
                     () => { newNodes.push( nodes[i] ) ; } ) ;
             }
             // Fail if no labels changed.
-            if( count === 0 ) return none<Selection>() ;
+            if( count === 0 ) return none<Selection<L,T>>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
 
-    export const toggleBooleanEdit = new ToggleBooleanEdit() ;
+    export function toggleBooleanEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new ToggleBooleanEdit() ; }
 
     /**  Open the labels of a selection.  Opening a label will make it editable in the editor.
      *  
      */
-    export class OpenLabelEdit extends AbstractEdit<Selection> {
+    export class OpenLabelEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() {
             super();
         }
 
-        public applyEdit(selection:Selection):Option<Selection> {
+        public applyEdit(selection:Selection<L,T>):Option<Selection<L,T>> {
             const nodes = selection.selectedNodes() ;
-            const newNodes : Array<PNode> = [] ;
+            const newNodes : Array<T> = [] ;
             let count = 0 ;
             // Loop through all the nodes, attempting to open the label on each.
             for( let i = 0 ; i < nodes.length; ++i ) {
                 const optLabel = nodes[i].label().open() ;
                 const optNode = optLabel.bind( l => nodes[i].tryModifyLabel(l) ) ;
                 optNode.choose(
-                    (node:PNode) => {newNodes.push( node ); count++ ;},
+                    (node:T) => {newNodes.push( node ); count++ ;},
                     () => { newNodes.push( nodes[i] ) ; }
                 ) ;
             }
             // Fail if no labels changed.
-            if( count === 0 ) return none<Selection>() ;
+            if( count === 0 ) return none<Selection<L,T>>() ;
             else return singleReplace( selection, newNodes ) ;
         }
     }
 
-    export function openLabelEdit() : Edit<Selection> {
+    export function openLabelEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return new OpenLabelEdit() ; }
         
     /** Copy all nodes in the src selection over the selected nodes of the target selection.
      * The selection returned indicates the newly added nodes.
      * If the src selection is empty, also try replacing the target with something from the backfill list.
     */
-    export function pasteEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
+    export function pasteEdit<L extends DLabel<L,T>, T extends DNode<L,T>>(srcSelection:Selection<L,T>, backFillList : Array<Array<T>> ) : Edit<Selection<L,T>> {
         const srcNodes = srcSelection.selectedNodes() ;
         if( srcNodes.length === 0 ) {
             return alt( [ insertChildrenEdit( srcNodes ), replaceWithOneOf( backFillList ) ] ) ; }
@@ -551,26 +554,26 @@ module pnodeEdits {
      * The source and target selections must share the same tree. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
      */
-    class MoveEdit extends AbstractEdit<Selection> {
-        private _srcSelection : Selection ;
-        private replacementNodes : Array<PNode> ;
+    class MoveEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+        private _srcSelection : Selection<L,T> ;
+        private replacementNodes : Array<T> ;
 
-        constructor( srcSelection:Selection, replacementNodes : Array<PNode> ) {
+        constructor( srcSelection:Selection<L,T>, replacementNodes : Array<T> ) {
             super();
             this._srcSelection = srcSelection ;
             this.replacementNodes = replacementNodes ;
         }
 
-        public applyEdit( trgSelection:Selection ) : Option<Selection> {
-            if( this._srcSelection.root() !== trgSelection.root() ) return none<Selection>() ;
+        public applyEdit( trgSelection:Selection<L,T> ) : Option<Selection<L,T>> {
+            if( this._srcSelection.root() !== trgSelection.root() ) return none<Selection<L,T>>() ;
             const newNodes = this._srcSelection.selectedNodes();
             return doubleReplace( this._srcSelection, this.replacementNodes, trgSelection, newNodes, true, false ) ;
         }
     }
 
-    export function moveEdit(srcSelection:Selection, backFillList : Array<Array<PNode>> ) : Edit<Selection> {
+    export function moveEdit<L extends DLabel<L,T>, T extends DNode<L,T>>(srcSelection:Selection<L,T>, backFillList : Array<Array<T>> ) : Edit<Selection<L,T>> {
         // First try filling place where the source was with no nodes
-        const listOfReplacements = [[] as Array<PNode>].concat( backFillList ) ;
+        const listOfReplacements = [[] as Array<T>].concat( backFillList ) ;
         const moveEdits = listOfReplacements.map( replacements => new MoveEdit(srcSelection, replacements)) ;
         return alt( moveEdits ) ;
     }
@@ -582,18 +585,18 @@ module pnodeEdits {
      * The source and target selections must share the same tree. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
     */
-    export class SwapEdit extends AbstractEdit<Selection> {
-        private _srcSelection:Selection;
+    export class SwapEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+        private _srcSelection:Selection<L,T>;
 
-        constructor(srcSelection:Selection) {
+        constructor(srcSelection:Selection<L,T>) {
             super();
 
             this._srcSelection = srcSelection;
         }
 
-        public applyEdit(trgSelection:Selection) : Option<Selection> {
+        public applyEdit(trgSelection:Selection<L,T>) : Option<Selection<L,T>> {
             if( this._srcSelection.root() !== trgSelection.root() ) {
-                return none<Selection>() ; }
+                return none<Selection<L,T>>() ; }
             const newNodes4Trg = this._srcSelection.selectedNodes() ;
             const newNodes4Src = trgSelection.selectedNodes() ;
             return doubleReplace( this._srcSelection, newNodes4Src,
@@ -605,7 +608,7 @@ module pnodeEdits {
     /** Is this a suitable selection to stop at for the left and right arrow keys.
      * 
     */
-    function leftRightSuitable( opt : Option<Selection> ) : boolean {
+    function leftRightSuitable<L extends DLabel<L,T>, T extends DNode<L,T>>( opt : Option<Selection<L,T>> ) : boolean {
         // Need to stop when we can go no further to the left or right.
         if( opt.isEmpty() ) return true ;
         // Otherwise stop on dropzones or placeholders and similar nodes.
@@ -626,7 +629,7 @@ module pnodeEdits {
     /** Is this a suitable selection to stop at for the up and down arrow keys.
      * 
     */
-    function upDownSuitable( opt : Option<Selection> ) : boolean {
+    function upDownSuitable<L extends DLabel<L,T>, T extends DNode<L,T>>( opt : Option<Selection<L,T>> ) : boolean {
         // Need to stop when we can go no further to the up or down.
         if( opt.isEmpty() ) return true ;
         // Otherwise stop only on point selections whose
@@ -649,7 +652,7 @@ module pnodeEdits {
 
     /** Is this a suitable selection to stop at for the shift-up arrow and shift-down arrow keys are used to move the focus.
     */
-    function upDownFocusMoveSuitable( opt : Option<Selection> ) : boolean {
+    function upDownFocusMoveSuitable<L extends DLabel<L,T>, T extends DNode<L,T>>( opt : Option<Selection<L,T>> ) : boolean {
         // Need to stop when we can go no further to the up or down.
         if( opt.isEmpty() ) return true ;
         // Otherwise stop only on selections whose
@@ -661,7 +664,7 @@ module pnodeEdits {
     /** Is this a suitable selection to stop at for tab keys.
      * 
     */
-    function tabSuitable( opt : Option<Selection> ) : boolean {
+    function tabSuitable<L extends DLabel<L,T>, T extends DNode<L,T>>( opt : Option<Selection<L,T>> ) : boolean {
         // Need to stop when we can go no further to the left or right.
         if( opt.isEmpty() ) return true ;
         // Otherwise stop on dropzones or placeholders and similar nodes.
@@ -688,92 +691,98 @@ module pnodeEdits {
     /** 
      * OutEdit
      */
-    class OutEdit extends AbstractEdit<Selection> {
+    class OutEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
         private readonly normal : boolean ;
 
         constructor(normal : boolean ) { super() ; this.normal = normal ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             return moveOut( selection, this.normal ) ;
         }
     }
 
-    export const moveOutNormal = new OutEdit( true ) ;
+    export function moveOutNormal<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new OutEdit( true ) ; }
 
-    export const moveOutReversed = new OutEdit( false ) ;
+    export function moveOutReversed<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new OutEdit( false ) ; }
 
     /** 
      * Left edit
      */
-    class LeftEdit extends AbstractEdit<Selection> {
+    class LeftEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = moveLeft( selection ) ;
             while( ! leftRightSuitable(opt) ) opt = moveLeft( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const leftEdit = new LeftEdit() ;
+    export function leftEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new LeftEdit() ; }
 
     /** 
      * Right edit
      */
-    class RightEdit extends AbstractEdit<Selection> {
+    class RightEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = moveRight( selection ) ;
             while( ! leftRightSuitable(opt) ) opt = moveRight( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const rightEdit = new RightEdit() ;
+    export function rightEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new RightEdit() ; }
 
     /** 
      * Up edit
      */
-    class UpEdit extends AbstractEdit<Selection> {
+    class UpEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = moveUp( selection ) ;
             while( ! upDownSuitable(opt) ) opt = moveUp( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const upEdit = new UpEdit() ;
+    export function upEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new UpEdit() ; }
 
     /** 
      * Down edit
      */
-    export class DownEdit extends AbstractEdit<Selection> {
+    export class DownEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = moveDown( selection ) ;
             while( ! upDownSuitable(opt) ) opt = moveDown( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const downEdit = new DownEdit() ;
+    export function downEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new DownEdit() ; }
 
     /** 
      * Move Focus Left edit
      */
-    class MoveFocusLeftEdit extends AbstractEdit<Selection> {
+    class MoveFocusLeftEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             if( selection.anchor() + 1 === selection.focus() ) {
                 selection = selection.swap() ;
             }
@@ -785,16 +794,17 @@ module pnodeEdits {
         }
     }
 
-    export const moveFocusLeftEdit = new MoveFocusLeftEdit() ;
+    export function moveFocusLeftEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new MoveFocusLeftEdit() ; }
 
     /** 
      * Move Focus Right edit
      */
-    class MoveFocusRightEdit extends AbstractEdit<Selection> {
+    class MoveFocusRightEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             if( selection.anchor() === selection.focus() + 1) {
                 selection = selection.swap() ;
             }
@@ -806,16 +816,17 @@ module pnodeEdits {
         }
     }
 
-    export const moveFocusRightEdit = new MoveFocusRightEdit() ;
+    export function moveFocusRightEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new MoveFocusRightEdit() ; }
 
     /** 
      * Move Focus Up edit
      */
-    class MoveFocusUpEdit extends AbstractEdit<Selection> {
+    class MoveFocusUpEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             if( selection.anchor() +1  === selection.focus()) {
                 selection = selection.swap() ;
             }
@@ -827,16 +838,17 @@ module pnodeEdits {
         }
     }
 
-    export const moveFocusUpEdit = new MoveFocusUpEdit() ;
+    export function moveFocusUpEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new MoveFocusUpEdit() ; }
 
     /** 
      * Move Focus Down edit
      */
-    class MoveFocusDownEdit extends AbstractEdit<Selection> {
+    class MoveFocusDownEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             if( selection.anchor() === selection.focus() + 1) {
                 selection = selection.swap() ;
             }
@@ -848,66 +860,71 @@ module pnodeEdits {
         }
     }
 
-    export const moveFocusDownEdit = new MoveFocusDownEdit() ;
+    export function moveFocusDownEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new MoveFocusDownEdit() ; }
 
     /** 
      * Tab edit
      */
-    class TabForwardEdit extends AbstractEdit<Selection> {
+    class TabForwardEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         private readonly moveFirst : boolean;
         constructor(moveFirst : boolean ) { super() ; this.moveFirst = moveFirst ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = this.moveFirst ? moveTabForward( selection ) : some( selection ) ;
             while( ! tabSuitable(opt) ) opt = moveTabForward( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const tabForwardEdit = new TabForwardEdit( true ) ;
+    export function tabForwardEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new TabForwardEdit( true ) ; }
 
-    export const tabForwardIfNeededEdit = new TabForwardEdit( false ) ;
+    export function tabForwardIfNeededEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new TabForwardEdit( false ) ; }
 
     /** 
      * Tab edit
      */
-    class TabBackEdit extends AbstractEdit<Selection> {
+    class TabBackEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             let opt = moveTabBack( selection ) ;
             while( ! tabSuitable(opt) ) opt = moveTabBack( opt.first() ) ;
             return opt ;
         }
     }
 
-    export const tabBackEdit = new TabBackEdit() ;
+    export function tabBackEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new TabBackEdit() ; }
 
     /** 
      * Select Parent Edit
      */
-    class SelectParentEdit extends AbstractEdit<Selection> {
+    class SelectParentEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             const path = selection.path() ;
-            if( path.isEmpty() ) { return none<Selection>() ; }
-            else { return some( new Selection( selection.root(),
+            if( path.isEmpty() ) { return none<Selection<L,T>>() ; }
+            else { return some( new Selection<L,T>( selection.root(),
                                                butLast( path ),
                                                last(path),
                                                last(path)+1 ) ) ; }
         }
     }
 
-    export const selectParentEdit = new SelectParentEdit() ;
+    export function selectParentEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return  new SelectParentEdit() ; }
 
     /** replaceWithTemplateEdit is basically an InsertChidren 
      */
-    export function replaceWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
-        const editList : Array<Edit<Selection>>
+    export function replaceWithTemplateEdit<L extends DLabel<L,T>, T extends DNode<L,T>>( templates : Array<Selection<L,T>> ) : Edit<Selection<L,T>> {
+        const editList : Array<Edit<Selection<L,T>>>
            = templates.map( (template) =>
                             new InsertChildrenEdit( [ template.root() ] ) ) ;
         return alt( editList )  ;
@@ -916,15 +933,15 @@ module pnodeEdits {
     /** 
      * Engulf the selected nodes with a template
      */
-    class EngulfEdit extends AbstractEdit<Selection> {
+    class EngulfEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
-        private  t : Selection ;
+        private  t : Selection<L,T> ;
 
-        constructor(template : Selection ) {
+        constructor(template : Selection<L,T> ) {
             super() ;
             this.t = template ; }
         
-        public applyEdit( selection : Selection ) : Option<Selection> {
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
             // console.log( ">> EngulfEdit.applyEdit") ;
             const nodes = selection.selectedNodes() ;
             // First step: Insert the selected nodes into the template.
@@ -946,7 +963,7 @@ module pnodeEdits {
                     assert.check( sel1Nodes.length === 1 && sel1Nodes[0] === sel0.root() ) ;
                     const path2 = sel1.path().cat( list( sel1.start() ) ).cat( sel0.path() ) ;
                     const anchor2 = sel0.end() ;
-                    return new Selection( sel1.root(), path2, anchor2, anchor2 ) ;
+                    return new Selection<L,T>( sel1.root(), path2, anchor2, anchor2 ) ;
                 }) ; } ) ;
             // console.log( "<< EngulfEdit.applyEdit") ;
             return res ;
@@ -954,8 +971,8 @@ module pnodeEdits {
     }
 
     /** Engulf the selected nodes with a template. */
-    export function engulfWithTemplateEdit( templates : Array<Selection> ) : Edit<Selection> {
-        const editList : Array<Edit<Selection>>
+    export function engulfWithTemplateEdit<L extends DLabel<L,T>, T extends DNode<L,T>>( templates : Array<Selection<L,T>> ) : Edit<Selection<L,T>> {
+        const editList : Array<Edit<Selection<L,T>>>
             = templates.map( (template) => new EngulfEdit( template ) ) ;
         return alt( editList )  ;
     }
@@ -967,13 +984,23 @@ module pnodeEdits {
      * 
      * @param template 
      */
-    export function replaceOrEngulfTemplateEdit( template : Selection | Array<Selection> ) : Edit<Selection> {
-        const templates = (template instanceof Selection) ? [template] : template ;
-        const replace = compose( replaceWithTemplateEdit( templates ), optionally( tabForwardEdit ) ) ;
-        const engulf = compose( engulfWithTemplateEdit( templates ), optionally( tabForwardIfNeededEdit ) ) ;
-        const selectionIsAllPlaceHolder
-            = testEdit( (sel:Selection) =>
-                           sel.selectedNodes().every( (p : PNode) =>
+    export function replaceOrEngulfTemplateEdit<L extends DLabel<L,T>, T extends DNode<L,T>>( template : Selection<L,T> ) : Edit<Selection<L,T>> {
+        return replaceOrEngulfTemplatesEdit( [template] ) ;
+    }
+
+    /** Either replace the current seletion with a given template or
+     * engulf the current selection with the template.
+     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * preferred.
+     * 
+     * @param template 
+     */
+    export function replaceOrEngulfTemplatesEdit<L extends DLabel<L,T>, T extends DNode<L,T>>( templates : Array<Selection<L,T>> ) : Edit<Selection<L,T>> {
+        const replace : Edit<Selection<L,T>> = compose( replaceWithTemplateEdit( templates ), optionally( tabForwardEdit() ) ) ;
+        const engulf : Edit<Selection<L,T>> = compose( engulfWithTemplateEdit( templates ), optionally( tabForwardIfNeededEdit() ) ) ;
+        const selectionIsAllPlaceHolder : Edit<Selection<L,T>>
+            = testEdit( (sel:Selection<L,T>) =>
+                           sel.selectedNodes().every( (p : T) =>
                                                        p.isPlaceHolder() ) ) ;
         return  alt( [compose( selectionIsAllPlaceHolder, replace ),
                       engulf,
@@ -982,4 +1009,4 @@ module pnodeEdits {
 
 }
 
-export = pnodeEdits ;
+export = dnodeEdits ;
