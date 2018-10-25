@@ -51,7 +51,6 @@ module types {
         isNatT : () => boolean;
         isNullT : () => boolean;
         equals : ( ty : Type ) => boolean;
-        toString : (ty : Type ) => String; 
         exBottom : <A> ( f : () => Option<A> ) => Option<A> ;
         exJoin : <A> ( f : (left:Type, right:Type) => Option<A> ) => Option<A> ;
     }
@@ -118,7 +117,6 @@ module types {
             return this.getKind() === TypeKind.NULL;
         }
 
-        // work in progress
         public abstract equals( ty : Type ) : boolean ;
 
         public abstract toString() : string ;
@@ -160,7 +158,7 @@ module types {
 
     export class JoinType extends AbstractType {
 
-        private readonly children : [AbstractType,AbstractType] ;
+        private readonly children : [Type,Type] ;
 
         public getKind() : TypeKind {
             return TypeKind.JOIN;
@@ -180,12 +178,12 @@ module types {
             else return false  ;
         }
 
-        private constructor(left : AbstractType, right : AbstractType) {
+        private constructor(left : Type, right : Type) {
             super();
             this.children = [left,right];
         }
 
-        public static createJoinType(left:AbstractType, right:AbstractType) : JoinType {
+        public static createJoinType(left:Type, right:Type) : JoinType {
             return new JoinType(left,right);
         }
 
@@ -202,24 +200,8 @@ module types {
 
     abstract class TypeTerm extends AbstractType {
 
-        private readonly children :[AbstractType,AbstractType];
-
         constructor() {
             super();
-        }
-
-        public toString() : string {
-            return "Join(" + this.children[0].toString() + ", " 
-                           + this.children[1].toString() + ")" ;
-        }
-        
-        public equals(ty: Type) : boolean {
-            if( ty.isJoinT() ) {
-                const ty1 = ty as JoinType ;
-                return this.children[0].equals( ty1.children[0] )
-                &&  this.children[1].equals( ty1.children[1] ) ;
-            }
-            else return false  ;
         }
 
     }
@@ -235,11 +217,13 @@ module types {
         }
 
         public toString() : string {
-            return "Top";
+            return "Top" ;
         }
-        public equals(ty: Type) : boolean {
-            return ty.isTopT() ;
+
+        public equals( ty : Type ) : boolean {
+            return assert.todo() ;
         }
+        
 
         public static readonly theTopType : TopType = new TopType();
 
@@ -254,11 +238,17 @@ module types {
         }
 
         public toString() : string {
-            return "MeetType";
+            return "Meet(" + this.children[0].toString() + ", " 
+                           + this.children[1].toString() + ")" ;
         }
 
         public equals(ty: Type) : boolean {
-            return ty.isMeetT() ;
+            if( ty.isMeetT() ) {
+                const ty1 = ty as MeetType ;
+                return this.children[0].equals( ty1.children[0] )
+                &&  this.children[1].equals( ty1.children[1] ) ;
+            }
+            else return false  ;
         }
 
         private constructor(left:TypeTerm, right:TypeTerm)  {
@@ -273,15 +263,6 @@ module types {
         public getChild(i:number) : TypeTerm {
             assert.checkPrecondition(i === 0 || i === 1);
             return this.children[i];
-        }
-
-        public equals(ty: Type) : boolean {
-            if( ty.isMeetT() ) {
-                const ty1 = ty as MeetType ;
-                return this.children[0].equals( ty1.children[0] )
-                &&  this.children[1].equals( ty1.children[1] ) ;
-            }
-            else return false  ;
         }
     }
 
@@ -320,15 +301,11 @@ module types {
         }
 
         public toString() : string {
-            return "PrimitiveType";
+            return this.kind.toString() ;
         }
 
         public equals(ty: Type) : boolean {
-            if(ty.getKind === this.getKind) {
-                return true;
-            } else {
-                return false;
-            }
+            return ty.getKind() === this.getKind();
         }
 
     }
@@ -356,28 +333,34 @@ module types {
         }
 
         public toString() : string {
-            return "TupleType";
+            return "TupleType(" + this.childTypes.toString() + ")" ;
         }
 
         public equals(ty: Type) : boolean {
-            if(ty.getKind === this.getKind) {
-                return true;
+            if(ty.getKind() !== TypeKind.TUPLE ) {
+                return false ;
             } else {
-                return false;
-            }
+                const other : TupleType = ty as TupleType ;
+                if( other.getLength() !== this.getLength() ) {
+                    return false ;
+                } else {
+                    function isTheSameType( t : Type, i : number ) : boolean {
+                        return t.equals( other.childTypes[i] ) ;
+                    }
+                    return this.childTypes.every( isTheSameType ) ; }  }
         }
 
         public static readonly theZeroTupleType = new TupleType([]);
 
         public static createTupleType(tys:Array<Type>) : TupleType {
-            return new TupleType(tys);
+            return new TupleType(tys); }
 
         
     }
 
     export class FunctionType extends TypeFactor {
 
-        private readonly valueType : Type;
+        private readonly parameterType : Type;
         private readonly returnType : Type;
 
         public getKind() : TypeKind {
@@ -389,10 +372,24 @@ module types {
             return 1;
         }
 
-        private constructor(valueT:Type, returnT:Type) {
+        private constructor(prameterType:Type, returnType:Type) {
             super();
-            this.valueType = valueT;
-            this.returnType = returnT;
+            this.parameterType = prameterType;
+            this.returnType = returnType;
+        }
+
+        public toString() : string {
+            return "Function(" + this.parameterType.toString() + ", " 
+                           + this.returnType.toString() + ")" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            if( ty.isFunctionT() ) {
+                const ty1 = ty as FunctionType ;
+                return this.parameterType.equals( ty1.parameterType )
+                &&  this.returnType.equals( ty1.returnType ) ;
+            }
+            else return false  ;
         }
 
         public static createFunctionType(valueT:Type,returnT:Type) : FunctionType {
@@ -400,30 +397,18 @@ module types {
         }
 
         public getSource() : Type {
-            return this.valueType;
+            return this.parameterType;
         }
 
         public getTarget() : Type {
             return this.returnType;
         }
 
-        public toString() : string {
-            return "FunctionType";
-        }
-
-        public equals(ty: Type) : boolean {
-            if(ty.getKind === this.getKind) {
-                return true;
-            } else {
-                return false;
-            }
-        }
-
     }
 
     export class FieldType extends TypeFactor {
 
-        private readonly type : Type;
+        private readonly childType : Type;
         private readonly identifier : string;
 
         public getKind() : TypeKind {
@@ -434,10 +419,23 @@ module types {
             return 1;
         }
 
-        private constructor(type:Type, identifier : string) {
+        private constructor(childType:Type, identifier : string) {
             super();
-            this.type = type;
+            this.childType = childType;
             this.identifier = identifier;
+        }
+
+        public toString() : string {
+            return "FieldType[" + this.identifier + "](" + this.childType.toString() + ")" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            if(ty.getKind() === TypeKind.FIELD ) {
+                const other = ty as FieldType ;
+                return this.childType.equals( other.childType ) ;
+            } else {
+                return false;
+            }
         }
 
         public static  createFieldType(type:Type,identifier:string) : FieldType {
@@ -449,25 +447,13 @@ module types {
         }
 
         public getType() : Type {
-            return this.type;
-        }
-
-        public toString() : string {
-            return "FieldType";
-        }
-
-        public equals(ty: Type) : boolean {
-            if(ty.getKind === this.getKind) {
-                return true;
-            } else {
-                return false;
-            }
+            return this.childType;
         }
     } 
     
     export class LocationType extends TypeFactor {
 
-        private readonly type: Type;
+        private readonly childType: Type;
 
         public getKind() : TypeKind {
             return TypeKind.LOCATION;
@@ -479,23 +465,24 @@ module types {
 
         private constructor(type:Type)  {
             super();
-            this.type = type;
+            this.childType = type;
+        }
+
+        public toString() : string {
+            return "LocationType(" + this.childType.toString() + ")" ;
+        }
+
+        public equals(ty: Type) : boolean {
+            if(ty.getKind() === TypeKind.LOCATION ) {
+                const other = ty as LocationType ;
+                return this.childType.equals( other.childType );
+            } else {
+                return false;
+            }
         }
 
         public static createLocationType(type:Type) : LocationType {
             return new LocationType(type);
-        }
-
-        public toString() : string {
-            return "LocationType";
-        }
-
-        public equals(ty: Type) : boolean {
-            if(ty.getKind === this.getKind) {
-                return true;
-            } else {
-                return false;
-            }
         }
     }
 
@@ -601,7 +588,7 @@ module types {
     export function caseBottom<B>( f : ( ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exBottom( f ) ;
     }
-    
+
     export function caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exJoin( f ) ;
     }
