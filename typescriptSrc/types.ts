@@ -434,7 +434,8 @@ module types {
         public equals(ty: Type) : boolean {
             if(ty.getKind() === TypeKind.FIELD ) {
                 const other = ty as FieldType ;
-                return this.childType.equals( other.childType ) ;
+                return this.identifier === other.identifier
+                    && this.childType.equals( other.childType ) ;
             } else {
                 return false;
             }
