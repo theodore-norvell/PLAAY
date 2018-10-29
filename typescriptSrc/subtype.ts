@@ -17,6 +17,7 @@ module subtype {
     import none = collections.none ;
     import Option = collections.Option ;
     import some = collections.some ;
+    import lazyIntSeq = collections.lazyIntSeq ;
 
     import Type = types.Type ;
     import caseJoin = types.caseJoin ;
@@ -31,6 +32,51 @@ module subtype {
                                     leftJoinRuleFactory: leftJoinRuleFactory,
                                     rightJoinRuleFactory: rightJoinRuleFactory
     } ;
+
+    function makeLeftRule( factory : (i : number) => Rule ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            const len = theta.length ;
+            const ruleList = lazyIntSeq(0, len).map( factory ) ;
+            const rule = combineRules( ruleList ) ;
+            return rule(goal) ;
+        } ;
+    }
+
+    function makeRightRule( factory : (j : number) => Rule ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            const len = delta.length ;
+            const ruleList = lazyIntSeq(0, len).map( factory ) ;
+            const rule = combineRules( ruleList ) ;
+            return rule(goal) ;
+        } ;
+    }
+
+    function makeLeftRightRule( factory : (i : number, j : number) => Rule ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            const leftLen = theta.length ;
+            const rightLen = delta.length ;
+            const ruleList = lazyIntSeq(0, leftLen).lazyBind(
+                (i:number) => lazyIntSeq(0, rightLen).map( 
+                    (j:number) => factory(i,j) ) ) ;
+            const rule = combineRules( ruleList ) ;
+            return rule(goal) ;
+        } ;
+    }
+
+    function makeLeftLeftRule( factory : (i0 : number, i1 : number) => Rule ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            const leftLen = theta.length ;
+            const ruleList = lazyIntSeq(0, leftLen).lazyBind(
+                (i0:number) => lazyIntSeq(0, leftLen).map( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+            const rule = combineRules( ruleList ) ;
+            return rule(goal) ;
+        } ;
+    }
 
     function leftBottomRuleFactory( i : number ) : Rule {
         return (goal : Sequent) => {
