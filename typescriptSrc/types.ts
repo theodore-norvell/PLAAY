@@ -221,7 +221,7 @@ module types {
         }
 
         public equals( ty : Type ) : boolean {
-            return assert.todo() ;
+            return ty.isTopT() ;
         }
         
 
@@ -301,7 +301,9 @@ module types {
         }
 
         public toString() : string {
-            return this.kind.toString() ;
+            let ret : string = TypeKind[this.kind].toString();
+            ret = ret.charAt(0).toUpperCase() + ret.slice(1).toLowerCase();
+            return ret;
         }
 
         public equals(ty: Type) : boolean {
