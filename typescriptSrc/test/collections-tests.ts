@@ -13,6 +13,7 @@ import cons = collections.cons ;
 import guard = collections.guard ;
 import lazyCat = collections.lazyCat ;
 import lazyCons = collections.lazyCons ;
+import lazyIntSeq = collections.lazyIntSeq ;
 import list = collections.list ;
 import List = collections.List ;
 import match = collections.match ;
@@ -133,15 +134,31 @@ describe( "match", function() : void {
                          caseCons( (h:string, r:List<string>) =>
                             some(  h + r.size() ) ) ) ;
         assert.checkEqual("abc0", x) ;
+    } ) ;
 
-        // Try the other way around
-        const bList = lazyCons( "five", () => aList ) ;
+    it( "should match lazy cons", function() : void {
+        // Try with lazyCons
+        const aList = cons( "abc", nil<string>() ) ;
+        const bList = lazyCons( () => "five", () => aList ) ;
         const y = match( bList,
                          caseCons( (h:string, r:List<string>) =>
                             some(  h + r.size() ) ),
                          caseNil( () =>
                             some( "nil") ) ) ;
         assert.checkEqual("five1", y) ;
+    } ) ;
+
+    it( "should match lazyCat", function() : void {
+        // Try with lazyCons
+        const aList = cons( "abc", nil<string>() ) ;
+        const bList = lazyCons( () => "def", () => nil<string>() ) ;
+        const cList = aList.lazyCat( bList ) ;
+        const y = match( cList,
+                         caseCons( (h:string, r:List<string>) =>
+                            some(  h + r.size() ) ),
+                         caseNil( () =>
+                            some( "nil") ) ) ;
+        assert.checkEqual("abc1", y) ;
     } ) ;
 
     function classify( n : number ) : string {
@@ -236,15 +253,19 @@ describe( "matchOpt", function() : void {
                             caseCons( (h:string, r:List<string>) =>
                                 some(  h + r.size() ) ) ) ;
         assert.checkEqual("abc0", x.first() ) ;
+    } ) ;
 
-        // Try the other way around
-        const bList = lazyCons( "five", () => aList ) ;
-        const y = optMatch( bList,
+    it( "should match lazyCons", function() : void {
+        // Try with lazyCons
+        const aList = cons( "abc", nil<string>() ) ;
+        const bList = lazyCons( () => "def", () => nil<string>() ) ;
+        const cList = aList.lazyCat( bList ) ;
+        const y = optMatch( cList,
                             caseCons( (h:string, r:List<string>) =>
                                 some(  h + r.size() ) ),
                             caseNil( () =>
                                 some( "nil") ) ) ;
-        assert.checkEqual( "five1", y.first() ) ;
+        assert.checkEqual( "abc1", y.first() ) ;
     } ) ;
 
     function classify( n : number ) : Option<string> {
@@ -266,6 +287,292 @@ describe( "matchOpt", function() : void {
         assert.checkEqual( "A", classify(100).first() ) ;
         assert.check( classify( -10 ).isEmpty() ) ;
         assert.check( classify( 110 ).isEmpty() ) ;
+    } ) ;
+
+} ) ;
+
+
+describe( "lazyIntSeq", function() : void {
+    it( "should map in a lazy way", function() : void {
+        const l = lazyIntSeq( 0, 5 ) ;
+        let s = "" ;
+        function f( i : number ) : number {
+            s = s + i.toString() + ";" ;
+            return 2*i ;
+        }
+        let l2 = l.lazyMap( f ) ;
+        assert.checkEqual( "", s ) ;
+
+        let a = l2.first() ;
+        assert.checkEqual( 0, a ) ;
+        assert.checkEqual( "0;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 2, a ) ;
+        assert.checkEqual( "0;1;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 4, a ) ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 6, a ) ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 8, a ) ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        assert.check( l2.isEmpty() ) ;
+    } ) ;
+
+    it( "should map when made with lazyCat", function() : void {
+        const l0 = lazyIntSeq( 0, 2 ) ;
+        const l1 = lazyIntSeq( 2, 3 ) ;
+        const l = l0.lazyCat( l1 ) ;
+
+        let s = "" ;
+        function f( i : number ) : number {
+            s = s + i.toString() + ";" ;
+            return 2*i ;
+        }
+        let l2 = l.lazyMap( f ) ;
+        assert.checkEqual( "", s ) ;
+
+        let a = l2.first() ;
+        assert.checkEqual( 0, a ) ;
+        assert.checkEqual( "0;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 2, a ) ;
+        assert.checkEqual( "0;1;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 4, a ) ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 6, a ) ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 8, a ) ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        assert.check( l2.isEmpty() ) ;
+    } ) ;
+
+    it( "should be lazy if mapped and then catted", function() : void {
+        const l0 = lazyIntSeq( 0, 2 ) ;
+        const l1 = lazyIntSeq( 2, 3 ) ;
+
+        let s = "" ;
+        function f( i : number ) : number {
+            s = s + i.toString() + ";" ;
+            return 2*i ;
+        }
+        const l0a = l0.lazyMap( f ) ;
+        const l1a = l1.lazyMap( f ) ;
+        let l2 = l0a.lazyCat( l1a ) ;
+        assert.checkEqual( "", s ) ;
+
+        let a = l2.first() ;
+        assert.checkEqual( 0, a ) ;
+        assert.checkEqual( "0;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 2, a ) ;
+        assert.checkEqual( "0;1;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 4, a ) ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 6, a ) ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;", s ) ;
+        a = l2.first() ;
+        assert.checkEqual( 8, a ) ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        
+        l2 = l2.rest() ;
+        assert.checkEqual( "0;1;2;3;4;", s ) ;
+        assert.check( l2.isEmpty() ) ;
+    } ) ;
+
+
+    it( "should work with eager map and eager bind", function() : void {
+        let s = "" ;
+        function factory( i0 : number, i1 : number ) : number {
+            s = s + "(" + i0 + "," + i1 + ")" ; 
+            return 10*i0 + i1 ;
+        }
+        const listOfNumbers : List<number> 
+            = lazyIntSeq(0, 3).bind(
+                (i0:number) => lazyIntSeq(0, 3).map( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+        
+        
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+        assert.checkEqual("( 0 1 2 10 11 12 20 21 22 )", listOfNumbers.toString() ) ;
+        assert.checkEqual(9 , listOfNumbers.size() ) ;
+    } ) ;
+
+    it( "should work with eager map and lazy bind", function() : void {
+        let s = "" ;
+        function factory( i0 : number, i1 : number ) : number {
+            s = s + "(" + i0 + "," + i1 + ")" ; 
+            return 10*i0 + i1 ;
+        }
+        const listOfNumbers : List<number> 
+            = lazyIntSeq(0, 3).lazyBind(
+                (i0:number) => lazyIntSeq(0, 3).map( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+        
+        
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+        assert.checkEqual("( 0 1 2 10 11 12 20 21 22 )", listOfNumbers.toString() ) ;
+        assert.checkEqual(9 , listOfNumbers.size() ) ;
+    } ) ;
+
+    it( "should work with lazy map and eager bind", function() : void {
+        let s = "" ;
+        function factory( i0 : number, i1 : number ) : number {
+            s = s + "(" + i0 + "," + i1 + ")" ; 
+            return 10*i0 + i1 ;
+        }
+        const listOfNumbers : List<number> 
+            = lazyIntSeq(0, 3).bind(
+                (i0:number) => lazyIntSeq(0, 3).lazyMap( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+        
+        
+        assert.checkEqual( "(2,0)(2,1)(2,2)(1,0)(1,1)(1,2)(0,0)(0,1)(0,2)", s ) ;
+        assert.checkEqual("( 0 1 2 10 11 12 20 21 22 )", listOfNumbers.toString() ) ;
+        assert.checkEqual( "(2,0)(2,1)(2,2)(1,0)(1,1)(1,2)(0,0)(0,1)(0,2)", s ) ;
+        assert.checkEqual(9 , listOfNumbers.size() ) ;
+    } ) ;
+
+
+    it( "should work with map and bind", function() : void {
+        let s = "" ;
+        function factory( i0 : number, i1 : number ) : number {
+            s = s + "(" + i0 + "," + i1 + ")" ; 
+            return 10*i0 + i1 ;
+        }
+        const listOfNumbers : List<number> 
+            = lazyIntSeq(0, 3).lazyBind(
+                (i0:number) => lazyIntSeq(0, 3).lazyMap( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+        
+        assert.checkEqual( "", s ) ;
+
+        assert.checkEqual("( 0 1 2 10 11 12 20 21 22 )", listOfNumbers.toString() ) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+
+        assert.checkEqual(9 , listOfNumbers.size() ) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+
+    } ) ;
+
+    it( "should be lazy with map and bind", function() : void {
+        let s = "" ;
+        function factory( i0 : number, i1 : number ) : number {
+            s = s + "(" + i0 + "," + i1 + ")" ; 
+            return 10*i0 + i1 ;
+        }
+        const listOfNumbers : List<number> 
+            = lazyIntSeq(0, 3).lazyBind(
+                (i0:number) => lazyIntSeq(0, 3).lazyMap( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+        
+        assert.checkEqual( "", s ) ;
+
+        let l = listOfNumbers ;
+        let a = l.first() ;
+        assert.checkEqual( a, 0) ;
+        assert.checkEqual( "(0,0)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 1) ;
+        assert.checkEqual( "(0,0)(0,1)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 2) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 10) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 11) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 12) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 20) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 21) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)", s ) ;
+
+        a = l.first() ;
+        assert.checkEqual( a, 22) ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+        l = l.rest() ;
+        assert.checkEqual( "(0,0)(0,1)(0,2)(1,0)(1,1)(1,2)(2,0)(2,1)(2,2)", s ) ;
+
+        assert.check( l.isEmpty() ) ;
     } ) ;
 
 } ) ;

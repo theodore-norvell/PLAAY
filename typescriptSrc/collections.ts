@@ -160,6 +160,12 @@ module collections {
          * <p> <code> list(a,b,c).map(f)</code> means <code>list( f(a), f(b, f(c) )</code>.
          */
         public abstract map<B>(f : (a:A) => B ) : List<B> ;
+
+        /** Map across the list.
+         * <p> <code> l.lazyMap(f)</code> constucts a list equivalent to
+         *  <code>l.map(f)</code>, but does so in a lazy fashion.
+         */
+        public abstract lazyMap<B>(f : (a:A) => B ) : List<B> ;
         
         /** Is the list empty> */
         public abstract isEmpty() : boolean ;
@@ -253,6 +259,10 @@ module collections {
         public map<B>(f : (a:A) => B ) : List<B> {
             return new Cons<B>( f( this._head ),
                                 this._tail.map(f) ) ; }
+
+        public lazyMap<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCons<B>( () => f( this.first() ),
+                                    () => this.rest().map(f) ) ; }
         
         public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
             return f( this._head, this._tail.fold( f, g ) ) ; }
@@ -292,6 +302,9 @@ module collections {
 
         public map<B>( f : (a:A) => B ) : List<B> {
             return new Nil<B>( ) ; }
+
+        public lazyMap<B>( f : (a:A) => B ) : List<B> {
+            return new Nil<B>( ) ; }
         
         public first() : A { throw Error("first applied to an empty list") ; }
         
@@ -302,8 +315,6 @@ module collections {
             return other.choose( (h1, t1) => false,
                                  () => true ) ;
         }
-    
-        public toString() : string { return "()" ; }
 
         public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
             return none() ;
@@ -325,7 +336,7 @@ module collections {
         }
         
         public isEmpty() : boolean {
-            return this._front.isEmpty && this._back.isEmpty() ; }
+            return this._front.isEmpty() && this._back.isEmpty() ; }
         
         public size() : number {
             return this._front.size() + this._back.size() ; }
@@ -353,18 +364,24 @@ module collections {
                 return this._back.rest() ; } }
         
         public map<B>(f : (a:A) => B ) : List<B> {
-            return new LazyCat( this._front.map(f), this._back.map(f) ) ; }
+            return cons( f( this.first() ), this.rest().map(f) ) ; }
+
+        public lazyMap<B>(f : (a:A) => B ) : List<B> {
+            return new LazyCat<B>( this._front.lazyMap(f),
+                                   this._back.lazyMap(f) ) ; }
     }
 
     class LazyCons<A> extends List<A> {
-        private _head : A ;
+        private _head : A | undefined ;
         private _tail : List<A> | undefined ;
+        private _headFunc : (()=>A) | undefined;
         private _tailFunc : (()=>List<A>) | undefined;
 
-        constructor( head : A, tailFunc : ()=>List<A> ) {
+        constructor( headFunc : () => A, tailFunc : ()=>List<A> ) {
             super() ;
-            this._head = head ;
+            this._head = undefined ;
             this._tail = undefined ;
+            this._headFunc = headFunc ;
             this._tailFunc = tailFunc ;
         }
         
@@ -373,17 +390,23 @@ module collections {
         public size() : number { return 1 + this.rest().size() ; }
 
         public first() : A {
+            if( this._head === undefined ) {
+                this._head = (this._headFunc as () => A)() ;
+                this._headFunc = undefined ;
+            }
             return this._head ; }
         
-        public rest() : List<A> { 
+        public rest() : List<A> {
             if( this._tail === undefined ) {
                 this._tail = (this._tailFunc as ()=>List<A>)() ;
                 this._tailFunc = undefined ; }
             return this._tail ; }
-
+        
         public map<B>(f : (a:A) => B ) : List<B> {
-            return new LazyCons<B>( f( this.first() ),
-                                    ()=>this.rest().map(f) ) ; }
+            return cons<B>( f( this.first() ), this.rest().map(f) ) ; }
+
+        public lazyMap<B>(f : (a:A) => B ) : List<B> {
+            return lazyCons<B>( () => f( this.first() ), () => this.rest().lazyMap(f) ) ; }
 
         public exCons<B>( f : (x:A, xs:List<A>)=>Option<B> ) : Option<B> {
             return f(this.first(), this.rest()) ; }
@@ -403,7 +426,7 @@ module collections {
     /** Make a lazy list of integers */
     export function lazyIntSeq( start : number, len : number ) : List<number> {
         if( len === 0 ) return nil() ;
-        else return lazyCons( start, ()=>lazyIntSeq( start+1, len-1 )) ;
+        else return lazyCons( () => start, ()=>lazyIntSeq( start+1, len-1 )) ;
     }
 
     /** Make a list from  an array. */
@@ -415,7 +438,7 @@ module collections {
             return new Cons<A>( head, tail ) ; }
 
     /* Construct a nonempty list from a head and a rest. */
-    export function lazyCons<A>( head : A, tail : ()=>List<A> ) : List<A> {
+    export function lazyCons<A>( head : () => A, tail : ()=>List<A> ) : List<A> {
             return new LazyCons<A>( head, tail ) ; }
 
     export function cat<A>( front : List<A>, back : List<A>) : List<A> {

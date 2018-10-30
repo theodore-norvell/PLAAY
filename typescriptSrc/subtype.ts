@@ -37,7 +37,7 @@ module subtype {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             const len = theta.length ;
-            const ruleList = lazyIntSeq(0, len).map( factory ) ;
+            const ruleList = lazyIntSeq(0, len).lazyMap( factory ) ;
             const rule = combineRules( ruleList ) ;
             return rule(goal) ;
         } ;
@@ -47,7 +47,7 @@ module subtype {
         return (goal : Sequent) => {
             const {theta, delta} : Sequent = goal ;
             const len = delta.length ;
-            const ruleList = lazyIntSeq(0, len).map( factory ) ;
+            const ruleList = lazyIntSeq(0, len).lazyMap( factory ) ;
             const rule = combineRules( ruleList ) ;
             return rule(goal) ;
         } ;
@@ -59,7 +59,7 @@ module subtype {
             const leftLen = theta.length ;
             const rightLen = delta.length ;
             const ruleList = lazyIntSeq(0, leftLen).lazyBind(
-                (i:number) => lazyIntSeq(0, rightLen).map( 
+                (i:number) => lazyIntSeq(0, rightLen).lazyMap( 
                     (j:number) => factory(i,j) ) ) ;
             const rule = combineRules( ruleList ) ;
             return rule(goal) ;
@@ -71,7 +71,7 @@ module subtype {
             const {theta, delta} : Sequent = goal ;
             const leftLen = theta.length ;
             const ruleList = lazyIntSeq(0, leftLen).lazyBind(
-                (i0:number) => lazyIntSeq(0, leftLen).map( 
+                (i0:number) => lazyIntSeq(0, leftLen).lazyMap( 
                     (i1:number) => factory(i0,i1) ) ) ;
             const rule = combineRules( ruleList ) ;
             return rule(goal) ;
