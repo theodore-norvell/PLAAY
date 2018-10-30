@@ -475,6 +475,7 @@ describe( "lazyIntSeq", function() : void {
                 (i0:number) => lazyIntSeq(0, 3).lazyMap( 
                     (i1:number) => factory(i0,i1) ) ) ;
         
+        // Note that the function calls are in a strange order.
         
         assert.checkEqual( "(2,0)(2,1)(2,2)(1,0)(1,1)(1,2)(0,0)(0,1)(0,2)", s ) ;
         assert.checkEqual("( 0 1 2 10 11 12 20 21 22 )", listOfNumbers.toString() ) ;
@@ -483,7 +484,7 @@ describe( "lazyIntSeq", function() : void {
     } ) ;
 
 
-    it( "should work with map and bind", function() : void {
+    it( "should work with lazy map and bind -- 0", function() : void {
         let s = "" ;
         function factory( i0 : number, i1 : number ) : number {
             s = s + "(" + i0 + "," + i1 + ")" ; 
@@ -504,7 +505,7 @@ describe( "lazyIntSeq", function() : void {
 
     } ) ;
 
-    it( "should be lazy with map and bind", function() : void {
+    it( "should be lazy with map and bind -- 1", function() : void {
         let s = "" ;
         function factory( i0 : number, i1 : number ) : number {
             s = s + "(" + i0 + "," + i1 + ")" ; 
