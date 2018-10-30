@@ -27,11 +27,13 @@ module subtype {
 
     export type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
-    export const forTestingOnly = { leftBottomRuleFactory: leftBottomRuleFactory,
-                                    rightBottomRuleFactory: rightBottomRuleFactory,
-                                    leftJoinRuleFactory: leftJoinRuleFactory,
-                                    rightJoinRuleFactory: rightJoinRuleFactory
-    } ;
+    function omit<A>( i : number, a : Array<A>) : Array<A> {
+        return a.slice(0,i).concat( a.slice(i+1) ) ;
+    }
+
+    function combineRules( rules : List<Rule> ) : Rule {
+        return (goal : Sequent) => rules.lazyBind( (r:Rule) => r(goal)) ;
+    }
 
     function makeLeftRule( factory : (i : number) => Rule ) : Rule {
         return (goal : Sequent) => {
@@ -77,6 +79,8 @@ module subtype {
             return rule(goal) ;
         } ;
     }
+
+    // The rule factories
 
     function leftBottomRuleFactory( i : number ) : Rule {
         return (goal : Sequent) => {
@@ -128,63 +132,44 @@ module subtype {
         } ;
     }
 
-    export function leftMeetRuleFactory( j : number ) : Rule {
-        return (goal : Sequent) => {
-            const {theta, delta} : Sequent = goal ;
-            return match(
-                delta[j],
-                caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
-            ) ;
-        } ;
+    export function leftMeetRuleFactory( i : number ) : Rule {
+        return assert.todo() ;
     }
 
     export function rightMeetRuleFactory( j : number ) : Rule {
-        return (goal : Sequent) => {
-            const {theta, delta} : Sequent = goal ;
-            return match(
-                delta[j],
-                caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
-            ) ;
-        } ;
+        return assert.todo() ;
     }
 
-    export function leftTopRuleFactory( j : number ) : Rule {
-        return (goal : Sequent) => {
-            const {theta, delta} : Sequent = goal ;
-            return match(
-                delta[j],
-                caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
-            ) ;
-        } ;
+    export function leftTopRuleFactory( i : number ) : Rule {
+        return assert.todo() ;
     }
 
     export function rightTopRuleFactory( j : number ) : Rule {
-        return (goal : Sequent) => {
-            const {theta, delta} : Sequent = goal ;
-            return match(
-                delta[j],
-                caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
-            ) ;
-        } ;
+        return assert.todo() ;
     }
 
+    // Invertable rules
 
-    function omit<A>( i : number, a : Array<A>) : Array<A> {
-        return a.slice(0,i).concat( a.slice(i+1) ) ;
-    }
+    const leftBottomRule = makeLeftRule( leftBottomRuleFactory ) ;
+    const rightBottomRule = makeRightRule( rightBottomRuleFactory ) ;
+    const leftJoinRule = makeLeftRule( leftJoinRuleFactory ) ;
+    const rightJoinRule = makeRightRule( rightJoinRuleFactory ) ;
+    const leftTopRule = makeLeftRule( leftTopRuleFactory ) ;
+    const rightTopRule = makeRightRule( rightTopRuleFactory ) ;
+    const leftMeetRule = makeLeftRule( leftMeetRuleFactory ) ;
+    const rightMeetRule = makeRightRule( rightMeetRuleFactory ) ;
 
-    
-    function combineRules( rules : List<Rule> ) : Rule {
-        return (goal : Sequent) => rules.lazyBind( (r:Rule) => r(goal)) ;
-    }
 
+    export const forTestingOnly = {
+        leftBottomRule: leftBottomRule,
+        rightBottomRule: rightBottomRule,
+        leftJoinRule: leftJoinRule,
+        rightJoinRule: rightJoinRule,
+        leftTopRule: leftTopRule,
+        rightTopRule: rightTopRule,
+        leftMeetRule: leftMeetRule,
+        rightMeetRule: rightMeetRule,
+        combineRules: combineRules,
+    } ;
 }
 export = subtype ;
