@@ -9,6 +9,7 @@ import assert = require( './assert' ) ;
 import collections = require('./collections') ;
 import labels  = require('./labels') ;
 import pnode = require( './pnode' ) ;
+
 module types {
 
     import PNode = pnode.PNode ;
@@ -51,6 +52,7 @@ module types {
         isNatT : () => boolean;
         isNullT : () => boolean;
         equals : ( ty : Type ) => boolean;
+        length : () => Option<number> ;
         exBottom : <A> ( f : () => Option<A> ) => Option<A> ;
         exJoin : <A> ( f : (left:Type, right:Type) => Option<A> ) => Option<A> ;
     }
@@ -120,6 +122,10 @@ module types {
         public abstract equals( ty : Type ) : boolean ;
 
         public abstract toString() : string ;
+
+        public length() : Option<number> {
+            // Default implementation.
+            return none() ; }
         
         public exBottom <A> ( f : () => Option<A> ) : Option<A> {
             return none() ;
@@ -268,8 +274,6 @@ module types {
 
     abstract class TypeFactor extends TypeTerm {
 
-        public abstract getLength() : number;
-
         constructor() {
             super();
         }
@@ -287,9 +291,8 @@ module types {
 
         public readonly kind : TypeKind;
 
-        public getLength() : number {
-            return 1;
-        }
+        public length() : Option<number> {
+            return some(1) ; }
 
         public getKind() : TypeKind {
             return this.kind;
@@ -320,9 +323,8 @@ module types {
             return TypeKind.TUPLE;
         }
 
-        public getLength() : number {
-            return this.childTypes.length;
-        }
+        public length() : Option<number> {
+            return some( this.childTypes.length ) ; }
 
         public getTypeByIndex( index : number ) : Type {
             assert.checkPrecondition( 0 <= index && index < this.childTypes.length ) ;
@@ -343,7 +345,7 @@ module types {
                 return false ;
             } else {
                 const other : TupleType = ty as TupleType ;
-                if( other.getLength() !== this.getLength() ) {
+                if( other.length().first() !== this.childTypes.length ) {
                     return false ;
                 } else {
                     function isTheSameType( t : Type, i : number ) : boolean {
@@ -370,9 +372,8 @@ module types {
 
         }
 
-        public getLength() : number {
-            return 1;
-        }
+        public length() : Option<number> {
+            return some(1) ; }
 
         private constructor(prameterType:Type, returnType:Type) {
             super();
@@ -417,9 +418,8 @@ module types {
             return TypeKind.FIELD;
         }
 
-        public getLength() : number {
-            return 1;
-        }
+        public length() : Option<number> {
+            return some(1) ; }
 
         private constructor(childType:Type, identifier : string) {
             super();
@@ -462,9 +462,8 @@ module types {
             return TypeKind.LOCATION;
         }
 
-        public getLength() : number {
-            return 1;
-        }
+        public length() : Option<number> {
+            return some(1) ; }
 
         private constructor(type:Type)  {
             super();

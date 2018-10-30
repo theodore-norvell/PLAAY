@@ -2826,7 +2826,7 @@ describe('TupleTypeLabel', function(): void {
         const tupleTypeNode = labels.mkTupleType([numberNode,stringNode]);
         const type = types.createType(tupleTypeNode);
         assert.check( type.getKind() === types.TypeKind.TUPLE);
-        assert.check( (type as types.TupleType).getLength() === 2 );
+        assert.check( (type as types.TupleType).length().first() === 2 );
         assert.check( (type as types.TupleType).getTypeByIndex(0).getKind() === types.TypeKind.NUMBER);
         assert.check( (type as types.TupleType).getTypeByIndex(1).getKind() === types.TypeKind.STRING);
     }) ;
