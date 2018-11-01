@@ -2838,8 +2838,8 @@ describe('LocationTypeLabel', function(): void {
         const locationTypeNode = labels.mkLocationType(numberNode);
         const type = types.createType(locationTypeNode);
         assert.check( type.getKind() === types.TypeKind.LOCATION);
-        assert.check( (type as types.LocationType).getLength() === 1 );
         assert.check( type instanceof types.LocationType);
+        assert.check( (type as types.LocationType).length().first() === 1 );
     }) ;
 });
 
