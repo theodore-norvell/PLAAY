@@ -34,30 +34,7 @@ module types {
         NULL
     }
 
-    export interface Type {
-
-        getKind : () => TypeKind;
-        isBottomT : () => boolean;
-        isTopT : () => boolean;
-        isMeetT : () => boolean;
-        isJoinT : () => boolean;
-        isLocationT : () => boolean;
-        isFieldT : () => boolean;
-        isFunctionT : () => boolean;
-        isTupleT : () => boolean;
-        isBoolT : () => boolean;
-        isStringT : () => boolean;
-        isNumberT : () => boolean;
-        isIntT : () => boolean;
-        isNatT : () => boolean;
-        isNullT : () => boolean;
-        equals : ( ty : Type ) => boolean;
-        length : () => Option<number> ;
-        exBottom : <A> ( f : () => Option<A> ) => Option<A> ;
-        exJoin : <A> ( f : (left:Type, right:Type) => Option<A> ) => Option<A> ;
-    }
-
-    abstract class AbstractType implements Type {
+    export abstract class Type {
 
         public abstract getKind() : TypeKind;
 
@@ -136,7 +113,7 @@ module types {
         }
     }   
 
-    export class BottomType extends AbstractType {
+    export class BottomType extends Type {
 
         public getKind() : TypeKind {
             return TypeKind.BOTTOM;
@@ -162,7 +139,7 @@ module types {
         }
     }
 
-    export class JoinType extends AbstractType {
+    export class JoinType extends Type {
 
         private readonly children : [Type,Type] ;
 
@@ -204,7 +181,7 @@ module types {
         }
     }
 
-    abstract class TypeTerm extends AbstractType {
+    abstract class TypeTerm extends Type {
 
         constructor() {
             super();
