@@ -14,6 +14,7 @@ module subtype {
     import List = collections.List ;
     import list = collections.list ;
     import match = collections.match ;
+    import optMatch = collections.optMatch ;
     import none = collections.none ;
     import Option = collections.Option ;
     import some = collections.some ;
@@ -22,6 +23,13 @@ module subtype {
     import Type = types.Type ;
     import caseJoin = types.caseJoin ;
     import caseBottom = types.caseBottom ;
+    import caseMeet = types.caseMeet ;
+    import caseTop = types.caseMeet ;
+    import casePrimitive = types.casePrimitive ;
+    import caseTuple = types.caseTuple ;
+    import caseFunction = types.caseFunction ;
+    import caseField = types.caseField ;
+    import caseLocation = types.caseLocation ;
 
     export type Sequent = {theta:Array<Type>, delta: Array<Type>} ;
 
@@ -114,7 +122,7 @@ module subtype {
                 caseJoin( (t0 : Type, t1 : Type) => {
                     const thetaPrime = omit(i, theta) ;
                     return some( list( [{theta: [t0].concat( thetaPrime ), delta: delta},
-                                        {theta: [t1].concat( thetaPrime ), delta: delta}] ) ) } ),
+                                        {theta: [t1].concat( thetaPrime ), delta: delta}] ) ) ; } ),
                 (_) => some( list() )
             ) ;
         } ;
@@ -126,27 +134,236 @@ module subtype {
             return match(
                 delta[j],
                 caseJoin( (u0 : Type, u1 : Type) =>
-                    some( list( [{theta: theta, delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
+                    some( list( [{theta: theta,
+                                  delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
                 (_) => some( list() )
             ) ;
         } ;
     }
 
-    export function leftMeetRuleFactory( i : number ) : Rule {
-        return assert.todo() ;
+    function leftMeetRuleFactory( i : number ) : Rule {
+        return ( goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseMeet( (t0, t1) =>
+                    some( list( [{theta: [t0,t1].concat( omit(i, theta)),
+                                  delta: delta }]))),
+                (_) => some( list() ) ) ;
+        } ;
     }
 
-    export function rightMeetRuleFactory( j : number ) : Rule {
-        return assert.todo() ;
+    function rightMeetRuleFactory( j : number ) : Rule {
+        return ( goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseMeet( (u0, u1) => {
+                    const deltaPrime = omit(j, delta ) ;
+                    return some( list( [ { theta: theta,
+                                           delta: [u0].concat( deltaPrime ) },
+                                         { theta: theta,
+                                           delta: [u1].concat( deltaPrime ) }
+                                       ] ) ) ; } ),
+                (_) => some( list() ) ) ;
+        } ;
     }
 
-    export function leftTopRuleFactory( i : number ) : Rule {
-        return assert.todo() ;
+    function leftTopRuleFactory( i : number ) : Rule {
+        return ( goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseTop( () => 
+                    some( list( [ { theta: omit(i,theta),
+                                    delta: delta } ] ) ) ),
+                (_) => some( list() ) ) ;
+        } ;
     }
 
-    export function rightTopRuleFactory( j : number ) : Rule {
-        return assert.todo() ;
+    function rightTopRuleFactory( j : number ) : Rule {
+        return ( goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                delta[j],
+                caseTop( () => 
+                    some( list( [] ) ) ),
+                (_) => some( list() ) ) ;
+        } ;
     }
+
+    function reflexiveRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            if( theta[i].equals( delta[j] ) ) {
+                return list( [] ) ; }
+            else {
+                return list( )  ; }
+        } ;
+    }
+
+    function primitiveRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            const t = theta[i] ;
+            const u = delta[j] ;
+            if( t.isIntT() && u.isNumberT()
+            ||  t.isNatT() && (u.isIntT() || u.isNumberT() ) ) {
+                return list( [] ) ; }
+            else {
+                return list( )  ; }
+        } ;
+    }
+
+    function tupleRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseTuple( (ts) => 
+                    delta[j].exTuple( (us) => {
+                        if( ts.length === us.length ) {
+                            const subgoals = ts.map( (t,k) =>
+                                ({theta: [t], delta: [us[k]]}) ) ;
+                            return some(list(subgoals)) ;
+                        } else {
+                            return none() ;
+                        } } ) ),
+                (_) => some( list() ) ) ;
+        } ;
+    }
+
+    function functionRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseFunction( (t0, t1) => 
+                    delta[j].exFunction( (u0, u1) => {
+                        const subgoals = [ {theta: [u0], delta:[u1]},
+                                           {theta: [t1], delta:[u1]} ] ;
+                        return some(list(subgoals)) ; } ) ),
+                (_) => some( list() ) ) ;
+        } ;
+    }
+
+    function fieldRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseField( (id0, t) => 
+                    delta[j].exField( (id1, u) => {
+                        if( id0 === id1 ) {
+                            const subgoals = [ {theta:[t], delta:[u]} ] ;
+                            return some(list(subgoals)) ;
+                        } else {
+                            return none() ;
+                        } } ) ),
+                (_) => some( list() ) ) ;
+        } ;
+    }
+
+    function locationRuleFactory( i : number, j : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            return match(
+                theta[i],
+                caseLocation( (t) => 
+                    delta[j].exLocation( (u) => {
+                        const subgoals = [ {theta:[t], delta:[u]},
+                                           {theta:[u], delta:[u]} ] ;
+                        return some(list(subgoals)) ;
+                     } ) ),
+                (_) => some( list() ) ) ;
+        } ;
+    }
+
+    function lengthDisjointnessRuleFactory( i0 : number, i1 : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            const t0 = theta[i0] ;
+            const t1 = theta[i1] ;
+            const opt : Option<List<Array<Sequent>>> =
+                t0.length().bind( (t0Length) =>
+                    t1.length().bind( (t1Length) =>
+                        t0Length===t1Length ? none() : some( list([]) ) ) ) ;
+            return opt.choose( (lst) => lst, () => list() ) ;
+        } ;
+    }
+
+    function primitiveDisjointnessRuleFactory( i0 : number, i1 : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            const t0 = theta[i0] ;
+            const t1 = theta[i1] ;
+            if( t0.isBoolT() && ( t1.isNumberT()
+                                || t1.isIntT() 
+                                || t1.isNatT()
+                                || t1.isStringT()
+                                || t1.isNullT() )
+            || t0.isStringT() && ( t1.isNumberT() 
+                               ||  t1.isIntT()
+                               || t1.isNatT() 
+                               || t1.isNullT() )
+            || t0.isNullT() && ( t1.isNumberT() 
+                               || t1.isIntT() 
+                               || t1.isNatT() )
+
+             ) {
+                return list( [] ) ; }
+            else {
+                return list( )  ; }
+        } ;
+    }
+
+    function tupleDisjointnessRuleFactory( i0 : number, i1 : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            const t0 = theta[i0] ;
+            const t1 = theta[i1] ;
+            return match(
+                t0,
+                caseTuple( (ts) => 
+                    t1.exTuple( (us) => {
+                        if( ts.length === us.length ) {
+                            // Two tuples of the same length.
+                            const sequents : Array<Sequent> = 
+                                ts.map( (t, k) => ({theta: [t,us[k]],
+                                                    delta: [] }) ) ;
+                            const subgoals = sequents.map( (g) => [g]) ;
+                            const listOfSubgoals : List<Array<Sequent>> = list( ...subgoals ) ;
+                            return some( listOfSubgoals ) ;
+                        } else {
+                            return some( list() ) ; } } ) ),
+                (_) => some( list() )
+            ) ; } ;
+    }
+
+    function otherDisjointnessRulesFactory( i0 : number, i1 : number ) : Rule {
+        return (goal : Sequent ) => {
+            const {theta, delta} : Sequent = goal ;
+            const t0 = theta[i0] ;
+            const t1 = theta[i1] ;
+            return match( 
+                t0,
+                casePrimitive( (kind) =>
+                    optMatch( 
+                        t1,
+                        caseFunction( (t1s,t1t) => some( list([]) ) ),
+                        caseField( (t1id,t1ct) => some( list([]) ) ),
+                        caseLocation( (t1ct) => some(list([]) ) ) )
+                ),
+                caseFunction( (t0s, t0t) => 
+                    optMatch(
+                        t1,
+                        caseLocation( (t1ct) => some(list([]) ) ) )
+                ),
+                (_) => some( list() )
+            ) ;
+        } ;
+    }
+
 
     // Invertable rules
 
