@@ -111,6 +111,34 @@ module types {
         public exJoin <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
             return none() ;
         }
+        
+        public exTop <A> ( f : () => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exMeet <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exPrimitive <A> ( f : (kind:TypeKind) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exTuple <A> ( f : (children:Array<Type>) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exFunction <A> ( f : (source:Type, target:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exField <A> ( f : (id:String, childType:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
+
+        public exLocation <A> ( f : (contentsType:Type) => Option<A> ) : Option<A> {
+            return none() ;
+        }
     }   
 
     export class BottomType extends Type {
@@ -207,6 +235,11 @@ module types {
             return ty.isTopT() ;
         }
         
+        // Override
+        public exTop <A> ( f : () => Option<A> ) : Option<A> {
+            return f() ;
+        }
+        
 
         public static readonly theTopType : TopType = new TopType();
 
@@ -246,6 +279,11 @@ module types {
         public getChild(i:number) : TypeTerm {
             assert.checkPrecondition(i === 0 || i === 1);
             return this.children[i];
+        }
+
+        //Override
+        public exMeet <A> ( f : (left:Type, right:Type) => Option<A> ) : Option<A> {
+            return f( this.children[0], this.children[1] ) ;
         }
     }
 
@@ -290,6 +328,11 @@ module types {
             return ty.getKind() === this.getKind();
         }
 
+        //Override
+        public exPrimitive <A> ( f : (kind:TypeKind) => Option<A> ) : Option<A> {
+            return f( this.kind ) ;
+        }
+
     }
 
     export class TupleType extends TypeFactor {
@@ -329,6 +372,11 @@ module types {
                         return t.equals( other.childTypes[i] ) ;
                     }
                     return this.childTypes.every( isTheSameType ) ; }  }
+        }
+        
+        //Override
+        public exTuple <A> ( f : (children:Array<Type>) => Option<A> ) : Option<A> {
+            return f( this.childTypes.slice() ) ;
         }
 
         public static readonly theZeroTupleType = new TupleType([]);
@@ -384,6 +432,11 @@ module types {
             return this.returnType;
         }
 
+        // Override
+        public exFunction <A> ( f : (source:Type, target:Type) => Option<A> ) : Option<A> {
+            return f( this.parameterType, this.returnType ) ;
+        }
+
     }
 
     export class FieldType extends TypeFactor {
@@ -429,6 +482,10 @@ module types {
         public getType() : Type {
             return this.childType;
         }
+
+        public exField <A> ( f : (id:String, childType:Type) => Option<A> ) : Option<A> {
+            return f( this.identifier, this.childType ) ;
+        }
     } 
     
     export class LocationType extends TypeFactor {
@@ -462,6 +519,10 @@ module types {
 
         public static createLocationType(type:Type) : LocationType {
             return new LocationType(type);
+        }
+
+        public exLocation <A> ( f : (contentsType:Type) => Option<A> ) : Option<A> {
+            return f( this.childType ) ;
         }
     }
 
@@ -570,6 +631,34 @@ module types {
 
     export function caseJoin<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
         return ( t : Type ) => t.exJoin( f ) ;
+    }
+
+    export function caseTop<B>( f : () => Option<B> ) : (t:Type) => Option<B> {
+        return (t : Type ) => t.exTop( f ) ;
+    }
+
+    export function caseMeet<B>( f : ( left : Type, right : Type ) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exMeet( f ) ;
+    }
+
+    export function casePrimitive<B>( f : (kind:TypeKind) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exPrimitive( f ) ;
+    }
+
+    export function caseTuple<B>( f : (children:Array<Type>) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exTuple( f ) ;
+    }
+
+    export function caseFunction<B>( f : (source:Type, target:Type) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exFunction( f ) ;
+    }
+
+    export function caseField<B>( f : (id:String, childType:Type) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exField( f ) ;
+    }
+
+    export function caseLocation<B>( f : (contentsType:Type) => Option<B> ) : (t:Type) => Option<B> {
+        return ( t : Type ) => t.exLocation( f ) ;
     }
 
 }
