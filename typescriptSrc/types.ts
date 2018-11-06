@@ -239,7 +239,6 @@ module types {
         public exTop <A> ( f : () => Option<A> ) : Option<A> {
             return f() ;
         }
-        
 
         public static readonly theTopType : TopType = new TopType();
 

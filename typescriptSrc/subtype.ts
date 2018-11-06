@@ -24,7 +24,7 @@ module subtype {
     import caseJoin = types.caseJoin ;
     import caseBottom = types.caseBottom ;
     import caseMeet = types.caseMeet ;
-    import caseTop = types.caseMeet ;
+    import caseTop = types.caseTop ;
     import casePrimitive = types.casePrimitive ;
     import caseTuple = types.caseTuple ;
     import caseFunction = types.caseFunction ;
