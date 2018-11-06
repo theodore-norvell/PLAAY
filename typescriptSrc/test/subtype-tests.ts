@@ -11,6 +11,7 @@ import types = require('../types') ;
 
 import some = collections.some ;
 import none = collections.none ;
+import List = collections.List ;
 import Sequent = subtype.Sequent ;
 
 const leftBottomRule = subtype.forTestingOnly.leftBottomRule ;
@@ -41,46 +42,49 @@ const top = types.TopType.theTopType ;
 const bottom = types.BottomType.theBottomType  ;
 const meet_tb = MeetType.createMeetType(top, bottom) ;
 const join_tb = JoinType.createJoinType(top, bottom) ;
+const meet_bt = MeetType.createMeetType(bottom, top) ;
+const join_bt = JoinType.createJoinType(bottom, top) ;
+
+function expectFailure( result : List<Array<Sequent>> ) {
+    assert.checkEqual( 0, result.size() );
+}
+
+function expectSuccess( result : List<Array<Sequent>> ) {
+    assert.checkEqual( 1, result.size() );
+    const subgoals = result.first() ;
+    assert.checkEqual( 0, subgoals.length ) ;
+}
 
 describe( "leftBottomRule", function() : void {
     it( "should succeed for Bottom -- 0", function() : void {
         const goal = { theta: [top, bottom], delta: [] } ;
         const result = leftBottomRule( goal ) ;
-        // Expect one array of subgoals.
-        assert.checkEqual( 1, result.size() ) ;
-        const subgoals = result.first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals.length ) ;
+        expectSuccess( result ) ;
     } ) ;
 
     it( "should succeed for Bottom -- 1", function() : void {
         const goal = { theta: [top, bottom], delta: [] } ;
         const result = leftBottomRule( goal ) ;
-        // Expect one array of subgoals.
-        assert.checkEqual( 1, result.size() ) ;
-        const subgoals = result.first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals.length ) ;
+        expectSuccess( result ) ;
     } ) ;
 
     it( "should succeed twice for two Bottoms", function() : void {
         const goal = { theta: [bottom, top, bottom], delta: [] } ;
         const result = leftBottomRule( goal ) ;
-        // Expect one array of subgoals.
+        // Expect two array of subgoals.
         assert.checkEqual( 2, result.size() ) ;
         const subgoals0 = result.first() ;
-        // Expect zero subgoals in the array
+        // Expect zero subgoals in the first array
         assert.checkEqual( 0, subgoals0.length ) ;
         const subgoals1 = result.rest().first() ;
-        // Expect zero subgoals in the array
+        // Expect zero subgoals in the second array
         assert.checkEqual( 0, subgoals1.length ) ;
     } ) ;
 
     it( "should fail for Top", function() : void {
         const goal = { theta: [top, top, top], delta: [] } ;
         const result = leftBottomRule( goal ) ;
-        // Expect failure.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -133,15 +137,13 @@ describe( "rightBottomRule", function() : void {
     it( "should fail for top", function() : void {
         const goal = { theta: [top, bottom], delta: [top, top, top] } ;
         const result = rightBottomRule( goal ) ;
-        // Expect an empty list.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 
     it( "should fail for empty", function() : void {
         const goal = { theta: [bottom, bottom, bottom], delta: [] } ;
         const result = rightBottomRule( goal ) ;
-        // Expect an empty list.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -173,8 +175,7 @@ describe( "leftJoinRule", function() : void {
         // Try Top, Join(Top, Bottom) <: empty
         const goal = { theta: [top, top], delta: [] } ;
         const result = leftJoinRule( goal ) ;
-        // Expect failure
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -200,8 +201,7 @@ describe( "rightJoinRule", function() : void {
         // Try  empty <: Top, Join(Top, Bottom)
         const goal = {  theta: [], delta: [bottom, bottom, top] } ;
         const result = rightJoinRule( goal ) ;
-        // Expect failure
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -209,21 +209,13 @@ describe( "rightTopRule", function() : void {
     it( "should succeed for Top -- 0", function() : void {
         const goal = { theta: [], delta: [bottom, top] } ;
         const result = rightTopRule( goal ) ;
-        // Expect one array of subgoals.
-        assert.checkEqual( 1, result.size() ) ;
-        const subgoals = result.first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals.length ) ;
+        expectSuccess( result ) ;
     } ) ;
 
     it( "should succeed for Top -- 1", function() : void {
         const goal = { theta: [], delta: [top] } ;
         const result = rightTopRule( goal ) ;
-        // Expect one array of subgoals.
-        assert.checkEqual( 1, result.size() ) ;
-        const subgoals = result.first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals.length ) ;
+        expectSuccess( result ) ;
     } ) ;
 
     it( "should succeed twice for two Tops", function() : void {
@@ -242,8 +234,7 @@ describe( "rightTopRule", function() : void {
     it( "should fail for Bottom", function() : void {
         const goal = { theta: [], delta: [bottom, bottom, bottom] } ;
         const result = rightTopRule( goal ) ;
-        // Expect failure.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -296,15 +287,13 @@ describe( "leftTopRule", function() : void {
     it( "should fail for bottom", function() : void {
         const goal = { theta: [bottom, bottom], delta: [top, top, top] } ;
         const result = leftTopRule( goal ) ;
-        // Expect an empty list.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 
     it( "should fail for empty", function() : void {
         const goal = { theta: [], delta: [top, top, top] } ;
         const result = leftTopRule( goal ) ;
-        // Expect an empty list.
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -336,8 +325,7 @@ describe( "rightMeetRule", function() : void {
         // Try Top, Join(Top, Bottom) <: empty
         const goal = { theta: [], delta: [top, top] } ;
         const result = rightMeetRule( goal ) ;
-        // Expect failure
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
     } ) ;
 } ) ;
 
@@ -359,11 +347,62 @@ describe( "leftMeetRule", function() : void {
         assert.checkEqual( "", delta0.toString() ) ;
     } ) ;
 
-    it( "should fail when no meet on left", function() : void {
+    it( "should fail when no meet on left -- 0", function() : void {
         // Try  empty <: Top, Join(Top, Bottom)
         const goal = { theta: [join_tb, bottom, top], delta: [] } ;
         const result = leftMeetRule( goal ) ;
-        // Expect failure
-        assert.checkEqual( 0, result.size() ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when no meet on left -- 1", function() : void {
+        // Try  empty <: Top, Join(Top, Bottom)
+        const goal = { theta: [], delta: [meet_tb] } ;
+        const result = leftMeetRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+} ) ;
+
+describe( "reflexiveRule", function() : void {
+    it( "should fail on empty", function() : void {
+        // Try  empty <: empty
+        const goal = {  theta: [], delta: [] } ;
+        const result = reflexiveRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when no match", function() : void {
+        const goal = {  theta: [top, meet_tb, join_bt],
+                        delta: [bottom, meet_bt, join_tb] } ;
+        const result = reflexiveRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed -- for top", function() : void {
+        const goal = {  theta: [top, meet_tb, join_bt],
+                        delta: [bottom, meet_bt, top] } ;
+        const result = reflexiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed -- for bottom", function() : void {
+        const goal = {  theta: [top, meet_tb, bottom],
+                        delta: [bottom, meet_bt, join_tb] } ;
+        const result = reflexiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed -- for meet", function() : void {
+        const goal = {  theta: [top, meet_tb, join_bt],
+                        delta: [bottom, meet_tb, join_tb] } ;
+        const result = reflexiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+
+    it( "should succeed -- for join", function() : void {
+        const goal = {  theta: [top, meet_tb, join_bt],
+                        delta: [bottom, meet_bt, join_bt] } ;
+        const result = reflexiveRule( goal ) ;
+        expectSuccess( result ) ;
     } ) ;
 } ) ;
