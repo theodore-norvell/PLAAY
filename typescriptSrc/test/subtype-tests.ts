@@ -37,6 +37,7 @@ const otherDisjointnessRules = subtype.forTestingOnly.otherDisjointnessRules ;
 
 import JoinType = types.JoinType ;
 import MeetType = types.MeetType ;
+import PrimitiveType = types.PrimitiveType ;
 
 const top = types.TopType.theTopType ;
 const bottom = types.BottomType.theBottomType  ;
@@ -44,15 +45,20 @@ const meet_tb = MeetType.createMeetType(top, bottom) ;
 const join_tb = JoinType.createJoinType(top, bottom) ;
 const meet_bt = MeetType.createMeetType(bottom, top) ;
 const join_bt = JoinType.createJoinType(bottom, top) ;
+const natT = PrimitiveType.natType ;
+const intT = PrimitiveType.intType ;
+const numberT = PrimitiveType.numberType ;
+const nullT = PrimitiveType.nullType ;
+const stringT = PrimitiveType.stringType ;
+const boolT = PrimitiveType.boolType ;
 
-function expectFailure( result : List<Array<Sequent>> ) {
+function expectFailure( result : List<Array<Sequent>> ) : void {
     assert.checkEqual( 0, result.size() );
 }
 
-function expectSuccess( result : List<Array<Sequent>> ) {
-    assert.checkEqual( 1, result.size() );
-    const subgoals = result.first() ;
-    assert.checkEqual( 0, subgoals.length ) ;
+function expectSuccess( result : List<Array<Sequent>>, count : number = 1 ) : void {
+    assert.checkEqual( count, result.size() );
+    result.map( (subgoals) => assert.checkEqual( 0, subgoals.length ) ) ;
 }
 
 describe( "leftBottomRule", function() : void {
@@ -71,14 +77,7 @@ describe( "leftBottomRule", function() : void {
     it( "should succeed twice for two Bottoms", function() : void {
         const goal = { theta: [bottom, top, bottom], delta: [] } ;
         const result = leftBottomRule( goal ) ;
-        // Expect two array of subgoals.
-        assert.checkEqual( 2, result.size() ) ;
-        const subgoals0 = result.first() ;
-        // Expect zero subgoals in the first array
-        assert.checkEqual( 0, subgoals0.length ) ;
-        const subgoals1 = result.rest().first() ;
-        // Expect zero subgoals in the second array
-        assert.checkEqual( 0, subgoals1.length ) ;
+        expectSuccess( result, 2 ) ;
     } ) ;
 
     it( "should fail for Top", function() : void {
@@ -221,14 +220,7 @@ describe( "rightTopRule", function() : void {
     it( "should succeed twice for two Tops", function() : void {
         const goal = { theta: [], delta: [top, bottom, top] } ;
         const result = rightTopRule( goal ) ;
-        // Expect one array of subgoals.
-        assert.checkEqual( 2, result.size() ) ;
-        const subgoals0 = result.first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals0.length ) ;
-        const subgoals1 = result.rest().first() ;
-        // Expect zero subgoals in the array
-        assert.checkEqual( 0, subgoals1.length ) ;
+        expectSuccess( result, 2 ) ;
     } ) ;
 
     it( "should fail for Bottom", function() : void {
@@ -398,11 +390,47 @@ describe( "reflexiveRule", function() : void {
         expectSuccess( result ) ;
     } ) ;
 
-
     it( "should succeed -- for join", function() : void {
         const goal = {  theta: [top, meet_tb, join_bt],
                         delta: [bottom, meet_bt, join_bt] } ;
         const result = reflexiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+} ) ;
+
+describe( "primitiveRule", function() : void {
+    it( "should fail on empty", function() : void {
+        // Try  empty <: empty
+        const goal = {  theta: [], delta: [] } ;
+        const result = primitiveRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when no match", function() : void {
+        const goal = {  theta: [top, meet_tb, join_bt, boolT, stringT, nullT, numberT, intT],
+                        delta: [bottom, meet_bt, join_tb, boolT, stringT, nullT, intT, natT] } ;
+        const result = primitiveRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed -- for nat and int", function() : void {
+        const goal = {  theta: [top, meet_tb, natT],
+                        delta: [bottom, intT, top] } ;
+        const result = primitiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed -- for nat and number", function() : void {
+        const goal = {  theta: [top, meet_tb, natT],
+                        delta: [bottom, meet_bt, numberT] } ;
+        const result = primitiveRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed -- for int and number", function() : void {
+        const goal = {  theta: [intT, meet_tb, join_bt],
+                        delta: [bottom, meet_bt, numberT] } ;
+        const result = primitiveRule( goal ) ;
         expectSuccess( result ) ;
     } ) ;
 } ) ;
