@@ -371,13 +371,27 @@ module subtype {
     const rightBottomRule = makeRightRule( rightBottomRuleFactory ) ;
     const leftJoinRule = makeLeftRule( leftJoinRuleFactory ) ;
     const rightJoinRule = makeRightRule( rightJoinRuleFactory ) ;
-    const leftTopRule = makeLeftRule( leftTopRuleFactory ) ;
-    const rightTopRule = makeRightRule( rightTopRuleFactory ) ;
     const leftMeetRule = makeLeftRule( leftMeetRuleFactory ) ;
     const rightMeetRule = makeRightRule( rightMeetRuleFactory ) ;
+    const leftTopRule = makeLeftRule( leftTopRuleFactory ) ;
+    const rightTopRule = makeRightRule( rightTopRuleFactory ) ;
 
+    // Uninvertable rules
+    const reflexiveRule = makeLeftRightRule( reflexiveRuleFactory ) ;
+    const primitiveRule = makeLeftRightRule( primitiveRuleFactory ) ;
+    const tupleRule = makeLeftRightRule( tupleRuleFactory ) ;
+    const functionRule = makeLeftRightRule( functionRuleFactory ) ;
+    const fieldRule = makeLeftRightRule( fieldRuleFactory ) ;
+    const locationRule = makeLeftRightRule( locationRuleFactory ) ;
+
+    // Uninvertable disjointness rules
+    const lengthDisjointnessRule = makeLeftLeftRule( lengthDisjointnessRuleFactory ) ;
+    const primitiveDisjointnessRule = makeLeftLeftRule( primitiveDisjointnessRuleFactory ) ;
+    const tupleDisjointnessRule = makeLeftLeftRule( tupleDisjointnessRuleFactory ) ;
+    const otherDisjointnessRules = makeLeftLeftRule( otherDisjointnessRulesFactory ) ;
 
     export const forTestingOnly = {
+        // Invertable rules
         leftBottomRule: leftBottomRule,
         rightBottomRule: rightBottomRule,
         leftJoinRule: leftJoinRule,
@@ -386,7 +400,18 @@ module subtype {
         rightTopRule: rightTopRule,
         leftMeetRule: leftMeetRule,
         rightMeetRule: rightMeetRule,
-        combineRules: combineRules,
+        // Uninvertable
+        reflexiveRule: reflexiveRule,
+        primitiveRule: primitiveRule,
+        tupleRule: tupleRule,
+        functionRule: functionRule,
+        fieldRule: fieldRule,
+        locationRule: locationRule,
+        // Uninvertable disjointness rules
+        lengthDisjointnessRule: lengthDisjointnessRule,
+        primitiveDisjointnessRule: primitiveDisjointnessRule,
+        tupleDisjointnessRule: tupleDisjointnessRule,
+        otherDisjointnessRules: otherDisjointnessRules,
     } ;
 }
 export = subtype ;
