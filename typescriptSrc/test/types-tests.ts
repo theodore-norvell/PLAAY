@@ -184,7 +184,7 @@ describe( "Type.toString()", function() : void {
         assert.checkEqual("Function(Function(Top, Bottom), Function(Top, Bottom))", result);
      });
     it("should work for Field" , function() : void {
-        const ty =types.FieldType.createFieldType(bottom , "bottom");
+        const ty =types.FieldType.createFieldType("bottom", bottom);
         const result = ty.toString();
         assert.checkEqual("FieldType[bottom](Bottom)", result ) ;
          });

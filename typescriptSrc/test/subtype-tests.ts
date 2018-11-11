@@ -38,11 +38,17 @@ const otherDisjointnessRules = subtype.forTestingOnly.otherDisjointnessRules ;
 import JoinType = types.JoinType ;
 import MeetType = types.MeetType ;
 import PrimitiveType = types.PrimitiveType ;
+import TupleType = types.TupleType ;
+import FunctionType = types.FunctionType ;
+import FieldType = types.FieldType ;
+import LocationType = types.LocationType ;
 
 const top = types.TopType.theTopType ;
 const bottom = types.BottomType.theBottomType  ;
 const meet_tb = MeetType.createMeetType(top, bottom) ;
+const meet_tb1 = MeetType.createMeetType(top, bottom) ;
 const join_tb = JoinType.createJoinType(top, bottom) ;
+const join_tb1 = JoinType.createJoinType(top, bottom) ;
 const meet_bt = MeetType.createMeetType(bottom, top) ;
 const join_bt = JoinType.createJoinType(bottom, top) ;
 const natT = PrimitiveType.natType ;
@@ -51,6 +57,23 @@ const numberT = PrimitiveType.numberType ;
 const nullT = PrimitiveType.nullType ;
 const stringT = PrimitiveType.stringType ;
 const boolT = PrimitiveType.boolType ;
+const tuple0 = TupleType.createTupleType( [] ) ;
+const tuple2 = TupleType.createTupleType( [natT, meet_bt] ) ;
+const tuple2a = TupleType.createTupleType( [natT, meet_bt] ) ;
+const tuple2b = TupleType.createTupleType( [natT, intT] ) ;
+const tuple3 = TupleType.createTupleType( [natT, intT, top] ) ;
+const tuple3a = TupleType.createTupleType( [natT, intT, top] ) ;
+const tuple3b = TupleType.createTupleType( [stringT, boolT, nullT] ) ;
+const funcT = FunctionType.createFunctionType( numberT, boolT ) ;
+const funcTa = FunctionType.createFunctionType( numberT, boolT ) ;
+const funcTb = FunctionType.createFunctionType( nullT, stringT ) ;
+const fieldT = FieldType.createFieldType( "x", boolT ) ;
+const fieldTa = FieldType.createFieldType( "x", boolT ) ;
+const fieldTb = FieldType.createFieldType( "x", stringT ) ;
+const fieldTc = FieldType.createFieldType( "y", stringT ) ;
+const locT = LocationType.createLocationType( natT ) ;
+const locTa =  LocationType.createLocationType( natT ) ;
+const locTb =  LocationType.createLocationType( intT ) ;
 
 function expectFailure( result : List<Array<Sequent>> ) : void {
     assert.checkEqual( 0, result.size() );
@@ -396,6 +419,21 @@ describe( "reflexiveRule", function() : void {
         const result = reflexiveRule( goal ) ;
         expectSuccess( result ) ;
     } ) ;
+
+    it( "should succeed -- in many ways", function() : void {
+        const goal = {  theta: [top, bottom, meet_tb, meet_tb1, join_tb,
+                                join_tb1, meet_bt, join_bt, natT, intT, numberT,
+                                nullT, stringT, boolT, tuple0, tuple2, tuple2a,
+                                tuple2b, tuple3, tuple3a, funcT, funcTa, funcTb, fieldT,
+                                fieldTa, fieldTb, fieldTc, locT, locTa, locTb],
+                        delta: [top, bottom, meet_tb, meet_tb1, join_tb,
+                                join_tb1, meet_bt, join_bt, natT, intT, numberT,
+                                nullT, stringT, boolT, tuple0, tuple2, tuple2a,
+                                tuple2b, tuple3, tuple3a, funcT, funcTa, funcTb, fieldT,
+                                fieldTa, fieldTb, fieldTc, locT, locTa, locTb] } ;
+        const result = reflexiveRule( goal ) ;
+        expectSuccess( result, 44 ) ;
+    } ) ;
 } ) ;
 
 describe( "primitiveRule", function() : void {
@@ -432,5 +470,233 @@ describe( "primitiveRule", function() : void {
                         delta: [bottom, meet_bt, numberT] } ;
         const result = primitiveRule( goal ) ;
         expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed in many ways", function() : void {
+        const goal = {  theta: [intT, natT, numberT],
+                        delta: [intT, natT, numberT] } ;
+        const result = primitiveRule( goal ) ;
+        expectSuccess( result, 3 ) ;
+    } ) ;
+} ) ;
+
+describe( "tupleRule", function() : void {
+    it( "should fail on empty", function() : void {
+        // Try  empty <: empty
+        const goal = {  theta: [], delta: [] } ;
+        const result = tupleRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when tuple is only on one side -- 0", function() : void {
+        const goal = {  theta: [tuple2],
+                        delta: [top] } ;
+        const result = tupleRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when tuple is only on one side -- 1", function() : void {
+        const goal = {  theta: [top],
+                        delta: [tuple2] } ;
+        const result = tupleRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when no length match", function() : void {
+        const goal = {  theta: [tuple0, tuple2],
+                        delta: [tuple3] } ;
+        const result = tupleRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed tuple0s involved", function() : void {
+        const goal = {  theta: [tuple0, tuple2],
+                        delta: [tuple0] } ;
+        const result = tupleRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed when there is a length match -- 0", function() : void {
+        const goal = {  theta: [tuple0, tuple2],
+                        delta: [tuple3, tuple2b] } ;
+        const result = tupleRule( goal ) ;
+        assert.checkEqual(1, result.size() ) ;
+        const subgoals = result.first() ;
+        assert.checkEqual( 2, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 1, theta0.length ) ;
+        assert.checkEqual( natT, theta0[0] ) ;
+        assert.checkEqual( 1, delta0.length ) ;
+        assert.checkEqual( natT, delta0[0] ) ;
+        
+        const theta1 = subgoals[1].theta ;
+        const delta1 = subgoals[1].delta ;
+        assert.checkEqual( 1, theta1.length ) ;
+        assert.checkEqual( meet_bt, theta1[0] ) ;
+        assert.checkEqual( 1, delta1.length ) ;
+        assert.checkEqual( intT, delta1[0] ) ;
+    } ) ;
+
+    it( "should succeed when there is a length match -- 1", function() : void {
+        const goal = {  theta: [tuple3, tuple2],
+                        delta: [top, tuple3b] } ;
+        const result = tupleRule( goal ) ;
+        assert.checkEqual(1, result.size() ) ;
+        const subgoals = result.first() ;
+        assert.checkEqual( 3, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 1, theta0.length ) ;
+        assert.checkEqual( natT, theta0[0] ) ;
+        assert.checkEqual( 1, delta0.length ) ;
+        assert.checkEqual( stringT, delta0[0] ) ;
+        
+        const theta1 = subgoals[1].theta ;
+        const delta1 = subgoals[1].delta ;
+        assert.checkEqual( 1, theta1.length ) ;
+        assert.checkEqual( intT, theta1[0] ) ;
+        assert.checkEqual( 1, delta1.length ) ;
+        assert.checkEqual( boolT, delta1[0] ) ;
+        
+        const theta2 = subgoals[2].theta ;
+        const delta2 = subgoals[2].delta ;
+        assert.checkEqual( 1, theta2.length ) ;
+        assert.checkEqual( top, theta2[0] ) ;
+        assert.checkEqual( 1, delta2.length ) ;
+        assert.checkEqual( nullT, delta2[0] ) ;
+    } ) ;
+} ) ;
+
+describe( "functionRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = functionRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when function type is only on one side -- 0", function() : void {
+        const goal = {  theta: [top, bottom], delta: [funcT, funcTa] } ;
+        const result = functionRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when function type is only on one side -- 1", function() : void {
+        const goal = {  theta: [funcT, funcTa], delta: [top, bottom] } ;
+        const result = functionRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed when function types are present", function() : void {
+        const goal = {  theta: [funcT],
+                        delta: [funcTb] } ;
+        const result = functionRule( goal ) ;
+
+        assert.checkEqual(1, result.size() ) ;
+        const subgoals = result.first() ;
+        assert.checkEqual( 2, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 1, theta0.length ) ;
+        assert.checkEqual( nullT, theta0[0] ) ;
+        assert.checkEqual( 1, delta0.length ) ;
+        assert.checkEqual( numberT, delta0[0] ) ;
+        
+        const theta1 = subgoals[1].theta ;
+        const delta1 = subgoals[1].delta ;
+        assert.checkEqual( 1, theta1.length ) ;
+        assert.checkEqual( boolT, theta1[0] ) ;
+        assert.checkEqual( 1, delta1.length ) ;
+        assert.checkEqual( stringT, delta1[0] ) ;
+    } ) ;
+} ) ;
+
+describe( "fieldRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = fieldRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when field type is only on one side -- 0", function() : void {
+        const goal = {  theta: [top, fieldT], delta: [funcT, funcTa] } ;
+        const result = fieldRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when field type is only on one side -- 1", function() : void {
+        const goal = {  theta: [funcT, funcTa], delta: [fieldTb, bottom] } ;
+        const result = fieldRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when identifiers differ", function() : void {
+        const goal = {  theta: [fieldTb, funcTa], delta: [fieldTc, bottom] } ;
+        const result = fieldRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed when identifiers are the same", function() : void {
+        const goal = {  theta: [fieldT],
+                        delta: [fieldTb] } ;
+        const result = fieldRule( goal ) ;
+
+        assert.checkEqual(1, result.size() ) ;
+        const subgoals = result.first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 1, theta0.length ) ;
+        assert.checkEqual( boolT, theta0[0] ) ;
+        assert.checkEqual( 1, delta0.length ) ;
+        assert.checkEqual( stringT, delta0[0] ) ;
+    } ) ;
+} ) ;
+
+describe( "locationRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = locationRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when location type is only on one side -- 0", function() : void {
+        const goal = {  theta: [locT, fieldT], delta: [funcT, funcTa] } ;
+        const result = locationRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when field type is only on one side -- 1", function() : void {
+        const goal = {  theta: [funcT, funcTa], delta: [fieldTb, locT] } ;
+        const result = locationRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed locations on both sides", function() : void {
+        const goal = {  theta: [locT],
+                        delta: [locTb] } ;
+        const result = locationRule( goal ) ;
+
+        assert.checkEqual(1, result.size() ) ;
+        const subgoals = result.first() ;
+        assert.checkEqual( 2, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 1, theta0.length ) ;
+        assert.checkEqual( natT, theta0[0] ) ;
+        assert.checkEqual( 1, delta0.length ) ;
+        assert.checkEqual( intT, delta0[0] ) ;
+        
+        const theta1 = subgoals[1].theta ;
+        const delta1 = subgoals[1].delta ;
+        assert.checkEqual( 1, theta1.length ) ;
+        assert.checkEqual( intT, theta1[0] ) ;
+        assert.checkEqual( 1, delta1.length ) ;
+        assert.checkEqual( natT, delta1[0] ) ;
     } ) ;
 } ) ;

@@ -380,10 +380,10 @@ module types {
 
         public static readonly theZeroTupleType = new TupleType([]);
 
-        public static createTupleType(tys:Array<Type>) : TupleType {
+        public static createTupleType(tys:Array<Type>) : Type {
+            if( tys.length === 0 ) return this.theZeroTupleType ;
+            if( tys.length === 1 ) return tys[0] ;
             return new TupleType(tys); }
-
-        
     }
 
     export class FunctionType extends TypeFactor {
@@ -419,10 +419,6 @@ module types {
             else return false  ;
         }
 
-        public static createFunctionType(valueT:Type,returnT:Type) : FunctionType {
-            return new FunctionType(valueT,returnT);
-        }
-
         public getSource() : Type {
             return this.parameterType;
         }
@@ -436,6 +432,9 @@ module types {
             return f( this.parameterType, this.returnType ) ;
         }
 
+        public static createFunctionType(valueT:Type,returnT:Type) : FunctionType {
+            return new FunctionType(valueT,returnT);
+        }
     }
 
     export class FieldType extends TypeFactor {
@@ -470,7 +469,7 @@ module types {
             }
         }
 
-        public static  createFieldType(type:Type,identifier:string) : FieldType {
+        public static  createFieldType(identifier:string, type:Type) : FieldType {
             return new FieldType(type,identifier);
         }
 
@@ -564,7 +563,7 @@ module types {
                 const identifier = node.child(0).label().getVal(); 
                 const typeNode = node.child(1);
                 const type = createType(typeNode);
-                return FieldType.createFieldType(type,identifier);
+                return FieldType.createFieldType(identifier, type);
             }
 
             case labels.FunctionTypeLabel.kindConst : {
