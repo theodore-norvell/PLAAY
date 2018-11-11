@@ -33,11 +33,34 @@ module subtype {
 
     export type Sequent = {theta:Array<Type>, delta: Array<Type>} ;
 
+    // A Rule is a function that takes a goal (theta <: delta) and
+    // produces a list of arrays of sequents.
+    //  (  [theta00 <: delta00, theta01 <: delta01, ... ],
+    //     [theta10 <: delta10, theta11 <: delta11, ... ],
+    //     ...
+    //     [theta_n0 <: delta_n0, theta_n1 <: delta_n1, ... ] )
+    //
+    // A Rule f is sound if the following is true for every goal (theta <: delta)
+    // with f(theta <: delta) = (a_0, a_1, ... a_n):
+    //    (there exists an item a_i of the list such that
+    //     every goal in array a_i is true)
+    //   implies that (theta <: delta) is true
+    //
+    // Less formally if a sound rule returns a list of length n, it is telling you that
+    // it "knows of" n ways to prove the goal. Each of those ways consists of
+    // proving each subgoal in one of the arrays.
+    //
+    // Two special cases:  (a) When a rule returns an empty list it has failed. It
+    // knows of no way to prove the goal.  (b) When a rule returns a list of
+    // length 1 or more consisting entirely of empty arrays, it is telling you
+    // that it has proved the goal.
+    //
+    // In addition to being sound, a good rule should ensure that all the subgoals it
+    // returns are simpler than the original goal.
     export type Rule = (goal : Sequent) => List<Array<Sequent>> ;
 
-    function omit<A>( i : number, a : Array<A>) : Array<A> {
-        return a.slice(0,i).concat( a.slice(i+1) ) ;
-    }
+    const success : List<Array<Sequent>> = list( [] ) ;
+    const failure : List<Array<Sequent>> = list() ;
 
     function combineRules( rules : List<Rule> ) : Rule {
         return (goal : Sequent) => rules.lazyBind( (r:Rule) => r(goal)) ;
@@ -88,6 +111,22 @@ module subtype {
         } ;
     }
 
+    function makeOrderedLeftLeftRule( factory : (i0 : number, i1 : number) => Rule ) : Rule {
+        return (goal : Sequent) => {
+            const {theta, delta} : Sequent = goal ;
+            const leftLen = theta.length ;
+            const ruleList = lazyIntSeq(0, leftLen-1).lazyBind(
+                (i0:number) => lazyIntSeq(i0+1, leftLen-i0-1).lazyMap( 
+                    (i1:number) => factory(i0,i1) ) ) ;
+            const rule = combineRules( ruleList ) ;
+            return rule(goal) ;
+        } ;
+    }
+
+    function omit<A>( i : number, a : Array<A>) : Array<A> {
+        return a.slice(0,i).concat( a.slice(i+1) ) ;
+    }
+
     // The rule factories
 
     function leftBottomRuleFactory( i : number ) : Rule {
@@ -96,8 +135,8 @@ module subtype {
             return match(
                 theta[i],
                 caseBottom( () =>
-                    some( list( [] ) ) ),
-                (_) => some( list() )
+                    some( success ) ),
+                (_) => some( failure )
             ) ;
         } ;
     }
@@ -109,7 +148,7 @@ module subtype {
                 delta[j],
                 caseBottom( () =>
                     some( list( [ {theta: theta, delta: omit(j, delta)} ] ) ) ),
-                (_) => some( list() )
+                (_) => some( failure )
             ) ;
         } ;
     }
@@ -123,7 +162,7 @@ module subtype {
                     const thetaPrime = omit(i, theta) ;
                     return some( list( [{theta: [t0].concat( thetaPrime ), delta: delta},
                                         {theta: [t1].concat( thetaPrime ), delta: delta}] ) ) ; } ),
-                (_) => some( list() )
+                (_) => some( failure )
             ) ;
         } ;
     }
@@ -136,7 +175,7 @@ module subtype {
                 caseJoin( (u0 : Type, u1 : Type) =>
                     some( list( [{theta: theta,
                                   delta: [u0,u1].concat(omit(j,delta))}] ) ) ),
-                (_) => some( list() )
+                (_) => some( failure )
             ) ;
         } ;
     }
@@ -149,7 +188,7 @@ module subtype {
                 caseMeet( (t0, t1) =>
                     some( list( [{theta: [t0,t1].concat( omit(i, theta)),
                                   delta: delta }]))),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -165,7 +204,7 @@ module subtype {
                                          { theta: theta,
                                            delta: [u1].concat( deltaPrime ) }
                                        ] ) ) ; } ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -177,7 +216,7 @@ module subtype {
                 caseTop( () => 
                     some( list( [ { theta: omit(i,theta),
                                     delta: delta } ] ) ) ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -187,8 +226,8 @@ module subtype {
             return match(
                 delta[j],
                 caseTop( () => 
-                    some( list( [] ) ) ),
-                (_) => some( list() ) ) ;
+                    some( success ) ),
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -196,9 +235,9 @@ module subtype {
         return (goal : Sequent ) => {
             const {theta, delta} : Sequent = goal ;
             if( theta[i].equals( delta[j] ) ) {
-                return list( [] ) ; }
+                return success ; }
             else {
-                return list( )  ; }
+                return failure  ; }
         } ;
     }
 
@@ -209,9 +248,9 @@ module subtype {
             const u = delta[j] ;
             if( t.isIntT() && u.isNumberT()
             ||  t.isNatT() && (u.isIntT() || u.isNumberT() ) ) {
-                return list( [] ) ; }
+                return success ; }
             else {
-                return list( )  ; }
+                return failure  ; }
         } ;
     }
 
@@ -229,7 +268,7 @@ module subtype {
                         } else {
                             return none() ;
                         } } ) ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -240,10 +279,10 @@ module subtype {
                 theta[i],
                 caseFunction( (t0, t1) => 
                     delta[j].exFunction( (u0, u1) => {
-                        const subgoals = [ {theta: [u0], delta:[u1]},
+                        const subgoals = [ {theta: [u0], delta:[t0]},
                                            {theta: [t1], delta:[u1]} ] ;
                         return some(list(subgoals)) ; } ) ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -260,7 +299,7 @@ module subtype {
                         } else {
                             return none() ;
                         } } ) ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -272,10 +311,10 @@ module subtype {
                 caseLocation( (t) => 
                     delta[j].exLocation( (u) => {
                         const subgoals = [ {theta:[t], delta:[u]},
-                                           {theta:[u], delta:[u]} ] ;
+                                           {theta:[u], delta:[t]} ] ;
                         return some(list(subgoals)) ;
                      } ) ),
-                (_) => some( list() ) ) ;
+                (_) => some( failure ) ) ;
         } ;
     }
 
@@ -287,8 +326,8 @@ module subtype {
             const opt : Option<List<Array<Sequent>>> =
                 t0.length().bind( (t0Length) =>
                     t1.length().bind( (t1Length) =>
-                        t0Length===t1Length ? none() : some( list([]) ) ) ) ;
-            return opt.choose( (lst) => lst, () => list() ) ;
+                        t0Length===t1Length ? none() : some( success ) ) ) ;
+            return opt.choose( (lst) => lst, () => failure ) ;
         } ;
     }
 
@@ -311,9 +350,9 @@ module subtype {
                                || t1.isNatT() )
 
              ) {
-                return list( [] ) ; }
+                return success ; }
             else {
-                return list( )  ; }
+                return failure  ; }
         } ;
     }
 
@@ -335,8 +374,8 @@ module subtype {
                             const listOfSubgoals : List<Array<Sequent>> = list( ...subgoals ) ;
                             return some( listOfSubgoals ) ;
                         } else {
-                            return some( list() ) ; } } ) ),
-                (_) => some( list() )
+                            return some( failure ) ; } } ) ),
+                (_) => some( failure )
             ) ; } ;
     }
 
@@ -350,16 +389,16 @@ module subtype {
                 casePrimitive( (kind) =>
                     optMatch( 
                         t1,
-                        caseFunction( (t1s,t1t) => some( list([]) ) ),
-                        caseField( (t1id,t1ct) => some( list([]) ) ),
-                        caseLocation( (t1ct) => some(list([]) ) ) )
+                        caseFunction( (t1s,t1t) => some( success ) ),
+                        caseField( (t1id,t1ct) => some( success ) ),
+                        caseLocation( (t1ct) => some(success ) ) )
                 ),
                 caseFunction( (t0s, t0t) => 
                     optMatch(
                         t1,
-                        caseLocation( (t1ct) => some(list([]) ) ) )
+                        caseLocation( (t1ct) => some(success ) ) )
                 ),
-                (_) => some( list() )
+                (_) => some( failure )
             ) ;
         } ;
     }
@@ -376,6 +415,16 @@ module subtype {
     const leftTopRule = makeLeftRule( leftTopRuleFactory ) ;
     const rightTopRule = makeRightRule( rightTopRuleFactory ) ;
 
+    const simplificationRules = combineRules( list(
+        leftBottomRule,
+        rightTopRule,
+        rightBottomRule,
+        leftTopRule,
+        leftMeetRule,
+        rightJoinRule,
+        rightMeetRule,
+        leftJoinRule ) ) ;
+
     // Uninvertable rules
     const reflexiveRule = makeLeftRightRule( reflexiveRuleFactory ) ;
     const primitiveRule = makeLeftRightRule( primitiveRuleFactory ) ;
@@ -385,10 +434,63 @@ module subtype {
     const locationRule = makeLeftRightRule( locationRuleFactory ) ;
 
     // Uninvertable disjointness rules
-    const lengthDisjointnessRule = makeLeftLeftRule( lengthDisjointnessRuleFactory ) ;
+    const lengthDisjointnessRule = makeOrderedLeftLeftRule( lengthDisjointnessRuleFactory ) ;
     const primitiveDisjointnessRule = makeLeftLeftRule( primitiveDisjointnessRuleFactory ) ;
-    const tupleDisjointnessRule = makeLeftLeftRule( tupleDisjointnessRuleFactory ) ;
+    const tupleDisjointnessRule = makeOrderedLeftLeftRule( tupleDisjointnessRuleFactory ) ;
     const otherDisjointnessRules = makeLeftLeftRule( otherDisjointnessRulesFactory ) ;
+
+    const otherRules = combineRules( list(
+        reflexiveRule,
+        primitiveRule,
+        tupleRule,
+        functionRule,
+        fieldRule,
+        locationRule,
+        lengthDisjointnessRule,
+        primitiveDisjointnessRule,
+        tupleDisjointnessRule,
+        otherDisjointnessRules,
+    )) ;
+
+    function arrayFlatten<A>( a : Array<Array<A>> ) : Array<A> {
+        return ([] as Array<A>).concat( ...a ) ;
+    }
+
+    // Simplification
+    // Given a goal, produce an equivalent array of goals
+    function simplify( goal : Sequent ) : Array<Sequent> {
+        const possibleSimplifications = simplificationRules( goal ) ;
+        if( possibleSimplifications.isEmpty() ) {
+            return [goal] ;
+        } else {
+            const subgoals = possibleSimplifications.first() ;
+            const simplifiedSubgoals = subgoals.map( simplify ) ;
+            return arrayFlatten( simplifiedSubgoals ) ;
+        }
+    }
+
+    function proveSimplified( goal : Sequent ) : boolean {
+        let possiblities = otherRules( goal ) ;
+        while( ! possiblities.isEmpty() ) {
+            const subgoals = possiblities.first() ;
+            if( subgoals.every( isProvable ) ) return true ;
+            possiblities = possiblities.rest() ;
+        }
+        return false ;
+    }
+
+    function isProvable( goal : Sequent ) : boolean {
+        const subgoals = simplify( goal ) ;
+        return subgoals.every( proveSimplified ) ;
+    }
+
+    export function isSubType( t : Type, u : Type ) : boolean {
+        return isProvable( {theta:[t], delta: [u]} ) ;
+    }
+
+    export function areDisjoint( t : Type, u : Type ) : boolean {
+        return isProvable( {theta:[t,u], delta: []} ) ;
+    }
 
     export const forTestingOnly = {
         // Invertable rules
@@ -412,6 +514,8 @@ module subtype {
         primitiveDisjointnessRule: primitiveDisjointnessRule,
         tupleDisjointnessRule: tupleDisjointnessRule,
         otherDisjointnessRules: otherDisjointnessRules,
+        simplify: simplify,
+        proveSimplified: proveSimplified,
     } ;
 }
 export = subtype ;

@@ -425,7 +425,7 @@ module collections {
 
     /** Make a lazy list of integers */
     export function lazyIntSeq( start : number, len : number ) : List<number> {
-        if( len === 0 ) return nil() ;
+        if( len <= 0 ) return nil() ;
         else return lazyCons( () => start, ()=>lazyIntSeq( start+1, len-1 )) ;
     }
 

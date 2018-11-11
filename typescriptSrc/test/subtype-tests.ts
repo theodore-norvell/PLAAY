@@ -35,6 +35,9 @@ const primitiveDisjointnessRule = subtype.forTestingOnly.primitiveDisjointnessRu
 const tupleDisjointnessRule = subtype.forTestingOnly.tupleDisjointnessRule ;
 const otherDisjointnessRules = subtype.forTestingOnly.otherDisjointnessRules ;
 
+const simplify = subtype.forTestingOnly.simplify ;
+const proveSimplified = subtype.forTestingOnly.proveSimplified ;
+
 import JoinType = types.JoinType ;
 import MeetType = types.MeetType ;
 import PrimitiveType = types.PrimitiveType ;
@@ -42,6 +45,13 @@ import TupleType = types.TupleType ;
 import FunctionType = types.FunctionType ;
 import FieldType = types.FieldType ;
 import LocationType = types.LocationType ;
+
+const createMeetType = MeetType.createMeetType ;
+const createJoinType = JoinType.createJoinType ;
+const createFieldType = FieldType.createFieldType ;
+const createTupleType = TupleType.createTupleType ;
+const createFunctionType = FunctionType.createFunctionType ;
+const createLocationType = LocationType.createLocationType ;
 
 const top = types.TopType.theTopType ;
 const bottom = types.BottomType.theBottomType  ;
@@ -61,6 +71,7 @@ const tuple0 = TupleType.createTupleType( [] ) ;
 const tuple2 = TupleType.createTupleType( [natT, meet_bt] ) ;
 const tuple2a = TupleType.createTupleType( [natT, meet_bt] ) ;
 const tuple2b = TupleType.createTupleType( [natT, intT] ) ;
+const tuple2c = TupleType.createTupleType( [stringT, nullT] ) ;
 const tuple3 = TupleType.createTupleType( [natT, intT, top] ) ;
 const tuple3a = TupleType.createTupleType( [natT, intT, top] ) ;
 const tuple3b = TupleType.createTupleType( [stringT, boolT, nullT] ) ;
@@ -75,6 +86,9 @@ const locT = LocationType.createLocationType( natT ) ;
 const locTa =  LocationType.createLocationType( natT ) ;
 const locTb =  LocationType.createLocationType( intT ) ;
 
+
+
+
 function expectFailure( result : List<Array<Sequent>> ) : void {
     assert.checkEqual( 0, result.size() );
 }
@@ -82,6 +96,10 @@ function expectFailure( result : List<Array<Sequent>> ) : void {
 function expectSuccess( result : List<Array<Sequent>>, count : number = 1 ) : void {
     assert.checkEqual( count, result.size() );
     result.map( (subgoals) => assert.checkEqual( 0, subgoals.length ) ) ;
+}
+
+function sequent2String( sequent : Sequent ) : string {
+    return sequent.theta.toString() + " <: " + sequent.delta.toString() ;
 }
 
 describe( "leftBottomRule", function() : void {
@@ -698,5 +716,735 @@ describe( "locationRule", function() : void {
         assert.checkEqual( intT, theta1[0] ) ;
         assert.checkEqual( 1, delta1.length ) ;
         assert.checkEqual( natT, delta1[0] ) ;
+    } ) ;
+} ) ;
+
+describe( "lengthDisjointnessRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types on left have same length or no length--0 ", function() : void {
+        const goal = {  theta: [boolT, stringT, nullT, intT, fieldT, locT, top, bottom, join_bt, meet_bt ],
+                        delta: [] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types on left have same length or no length--1 ", function() : void {
+        const goal = {  theta: [ tuple2, tuple2a, tuple2b, top, bottom, join_bt, meet_bt ],
+                        delta: [] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed when two types have different length -- 0", function() : void {
+        const goal = {  theta: [ tuple2, tuple3 ], delta: [funcT, funcTa] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed when two types have different length -- 1", function() : void {
+        const goal = {  theta: [ tuple2, tuple0 ], delta: [funcT, funcTa] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed when two types have different length -- 2", function() : void {
+        const goal = {  theta: [ tuple2, nullT ], delta: [funcT, funcTa] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "should succeed when two types have different length -- 3", function() : void {
+        const goal = {  theta: [ tuple0, nullT ], delta: [funcT, funcTa] } ;
+        const result = lengthDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+} ) ;
+
+describe( "primitiveDisjointnessRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types on are nonprimitive of not disjoint", function() : void {
+        const goal = {  theta: [intT, natT, numberT, natT, numberT, fieldT, locT, top, bottom, join_bt, meet_bt ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "succeed for Bool and Number", function() : void {
+        const goal = {  theta: [ boolT, numberT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Number and Bool", function() : void {
+        const goal = {  theta: [ numberT, boolT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Bool and Int", function() : void {
+        const goal = {  theta: [ boolT, intT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Int and Bool", function() : void {
+        const goal = {  theta: [ intT, boolT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Bool and Nat", function() : void {
+        const goal = {  theta: [ boolT, natT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Nat and Bool", function() : void {
+        const goal = {  theta: [ natT, boolT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Bool and String", function() : void {
+        const goal = {  theta: [ boolT, stringT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for String and Bool", function() : void {
+        const goal = {  theta: [ stringT, boolT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Bool and Null", function() : void {
+        const goal = {  theta: [ boolT, nullT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Null and Bool", function() : void {
+        const goal = {  theta: [ nullT, boolT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Number and String", function() : void {
+        const goal = {  theta: [ numberT, stringT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for String and Number", function() : void {
+        const goal = {  theta: [ stringT, numberT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Int and String", function() : void {
+        const goal = {  theta: [ intT, stringT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for String and Int", function() : void {
+        const goal = {  theta: [ stringT, intT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Nat and String", function() : void {
+        const goal = {  theta: [ natT, stringT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for String and Nat", function() : void {
+        const goal = {  theta: [ stringT, natT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Number and Null", function() : void {
+        const goal = {  theta: [ numberT, nullT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Null and Number", function() : void {
+        const goal = {  theta: [ nullT, numberT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Int and Null", function() : void {
+        const goal = {  theta: [ intT, nullT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Null and Int", function() : void {
+        const goal = {  theta: [ nullT, intT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Nat and Null", function() : void {
+        const goal = {  theta: [ natT, nullT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Null and Nat", function() : void {
+        const goal = {  theta: [ nullT, natT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for String and Null", function() : void {
+        const goal = {  theta: [ stringT, nullT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for Null and String", function() : void {
+        const goal = {  theta: [ nullT, stringT ],
+                        delta: [] } ;
+        const result = primitiveDisjointnessRule( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+} ) ;
+
+describe( "tupleDisjointnessRule", function() : void {
+    it( "should fail on empty", function() : void {
+        // Try  empty <: empty
+        const goal = {  theta: [], delta: [] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when no length match", function() : void {
+        const goal = {  theta: [tuple0, tuple2, tuple3],
+                        delta: [] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when tuple0s involved", function() : void {
+        const goal = {  theta: [tuple0, tuple0],
+                        delta: [] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should succeed when there is a length match -- 0", function() : void {
+        const goal = {  theta: [tuple2b, tuple2c],
+                        delta: [] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        assert.checkEqual(2, result.size() ) ;
+        let subgoals = result.first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta0.length ) ;
+        assert.checkEqual( natT, theta0[0] ) ;
+        assert.checkEqual( stringT, theta0[1] ) ;
+        assert.checkEqual( 0, delta0.length ) ;
+
+        subgoals = result.rest().first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+
+        const theta1 = subgoals[0].theta ;
+        const delta1 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta1.length ) ;
+        assert.checkEqual( intT, theta1[0] ) ;
+        assert.checkEqual( nullT, theta1[1] ) ;
+        assert.checkEqual( 0, delta1.length ) ;
+    } ) ;
+
+    it( "should succeed when there is a length match -- 1", function() : void {
+        const goal = {  theta: [tuple3, tuple3b],
+                        delta: [top, tuple3b] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        assert.checkEqual(3, result.size() ) ;
+        let subgoals = result.first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta0.length ) ;
+        assert.checkEqual( natT, theta0[0] ) ;
+        assert.checkEqual( stringT, theta0[1] ) ;
+        assert.checkEqual( 0, delta0.length ) ;
+        
+        subgoals = result.rest().first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+        const theta1 = subgoals[0].theta ;
+        const delta1 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta1.length ) ;
+        assert.checkEqual( intT, theta1[0] ) ;
+        assert.checkEqual( boolT, theta1[1] ) ;
+        assert.checkEqual( 0, delta1.length ) ;
+        
+        subgoals = result.rest().rest().first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+        const theta2 = subgoals[0].theta ;
+        const delta2 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta2.length ) ;
+        assert.checkEqual( top, theta2[0] ) ;
+        assert.checkEqual( nullT, theta2[1] ) ;
+        assert.checkEqual( 0, delta2.length ) ;
+    } ) ;
+
+    it( "should succeed when there is a length match -- 2", function() : void {
+        const goal = {  theta: [tuple3b, tuple3],
+                        delta: [top, tuple3b] } ;
+        const result = tupleDisjointnessRule( goal ) ;
+        assert.checkEqual(3, result.size() ) ;
+        let subgoals = result.first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+
+        const theta0 = subgoals[0].theta ;
+        const delta0 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta0.length ) ;
+        assert.checkEqual( stringT, theta0[0] ) ;
+        assert.checkEqual( natT, theta0[1] ) ;
+        assert.checkEqual( 0, delta0.length ) ;
+        
+        subgoals = result.rest().first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+        const theta1 = subgoals[0].theta ;
+        const delta1 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta1.length ) ;
+        assert.checkEqual( boolT, theta1[0] ) ;
+        assert.checkEqual( intT, theta1[1] ) ;
+        assert.checkEqual( 0, delta1.length ) ;
+        
+        subgoals = result.rest().rest().first() ;
+        assert.checkEqual( 1, subgoals.length ) ;
+        const theta2 = subgoals[0].theta ;
+        const delta2 = subgoals[0].delta ;
+        assert.checkEqual( 2, theta2.length ) ;
+        assert.checkEqual( nullT, theta2[0] ) ;
+        assert.checkEqual( top, theta2[1] ) ;
+        assert.checkEqual( 0, delta2.length ) ;
+    } ) ;
+} ) ;
+
+
+describe( "otherDisjointnessRule", function() : void {
+    it( "should fail on empty", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types are primitive", function() : void {
+        const goal = {  theta: [intT, natT, numberT, natT, numberT, stringT, nullT, boolT ],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types are functions", function() : void {
+        const goal = {  theta: [funcT, funcTb],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "should fail when all types are locations", function() : void {
+        const goal = {  theta: [locT, locTb],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectFailure( result ) ;
+    } ) ;
+
+    it( "succeed for primitive and function", function() : void {
+        const goal = {  theta: [ boolT, funcT, ],
+                        delta: [] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for function and primitive", function() : void {
+        const goal = {  theta: [ funcT, boolT,  ],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for primitive and field", function() : void {
+        const goal = {  theta: [ intT, fieldT, ],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for fieldT and primitive", function() : void {
+        const goal = {  theta: [ fieldT, intT,  ],
+                        delta: [] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for primitive and location", function() : void {
+        const goal = {  theta: [ stringT, locT, ],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for location and primitive", function() : void {
+        const goal = {  theta: [ locT, stringT,  ],
+                        delta: [intT, natT] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for function and location", function() : void {
+        const goal = {  theta: [ funcT, locT, ],
+                        delta: [] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+
+    it( "succeed for location and function", function() : void {
+        const goal = {  theta: [ locT, funcT,  ],
+                        delta: [] } ;
+        const result = otherDisjointnessRules( goal ) ;
+        expectSuccess( result ) ;
+    } ) ;
+} ) ;
+
+
+describe( "simplify", function() : void {
+    it( "empty input ", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 1, result.length ) ;
+        assert.checkEqual( goal, result[0] ) ;
+    } ) ;
+
+    it( "simple input", function() : void {
+        const goal = {  theta: [natT,funcT,fieldT,locT, stringT],
+                        delta: [natT,funcT,fieldT,locT, stringT] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 1, result.length ) ;
+        assert.checkEqual( goal, result[0] ) ;
+    } ) ;
+
+    it( "joins", function() : void {
+        const join_1 = JoinType.createJoinType(stringT, boolT) ;
+        const join_2 = JoinType.createJoinType(natT, nullT) ;
+        const goal = {  theta: [join_1],
+                        delta: [join_2] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 2, result.length ) ;
+        assert.checkEqual( "String <: Nat,Null", sequent2String(result[0]) ) ;
+        assert.checkEqual( "Bool <: Nat,Null", sequent2String(result[1]) ) ;
+    } ) ;
+
+    it( "meets", function() : void {
+        const meet_1 = MeetType.createMeetType(stringT, boolT) ;
+        const meet_2 = MeetType.createMeetType(natT, nullT) ;
+        const goal = {  theta: [meet_1,intT],
+                        delta: [meet_2,numberT] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 2, result.length ) ;
+        assert.checkEqual( "String,Bool,Int <: Nat,Number", sequent2String(result[0]) ) ;
+        assert.checkEqual( "String,Bool,Int <: Null,Number", sequent2String(result[1]) ) ;
+    } ) ;
+
+    it( "bottom left", function() : void {
+        const goal = {  theta: [bottom,intT],
+                        delta: [natT] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 0, result.length ) ;
+    } ) ;
+
+    it( "bottom right", function() : void {
+        const goal = {  theta: [intT],
+                        delta: [bottom,natT,bottom] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 1, result.length ) ;
+        assert.checkEqual( "Int <: Nat", sequent2String(result[0]) ) ;
+    } ) ;
+
+    it( "top left", function() : void {
+        const goal = {  theta: [nullT,top],
+                        delta: [natT] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 1, result.length ) ;
+        assert.checkEqual( "Null <: Nat", sequent2String(result[0]) ) ;
+    } ) ;
+
+    it( "top right", function() : void {
+        const goal = {  theta: [intT],
+                        delta: [natT,top] } ;
+        const result = simplify( goal ) ;
+        assert.checkEqual( 0, result.length ) ;
+    } ) ;
+} ) ;
+describe( "proveSimplified", function() : void {
+    it( "empty input ", function() : void {
+        const goal = {  theta: [], delta: [] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+
+    it( "nat,int <: number is provable", function() : void {
+        const goal = {  theta: [natT,intT],
+                        delta: [numberT] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+
+    it( "nat,int <: number,string is provable", function() : void {
+        const goal = {  theta: [natT,intT],
+                        delta: [numberT,stringT] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+
+    it( "nat,int <: string is not provable", function() : void {
+        const goal = {  theta: [natT,intT],
+                        delta: [stringT] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+
+    it( "(Int,Nat) <: (Nat,Number) is not provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([intT, natT])],
+                        delta: [TupleType.createTupleType([natT, numberT])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+
+    it( "(Int,Nat) <: (Number,Nat) is provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([intT, natT])],
+                        delta: [TupleType.createTupleType([numberT, natT])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+
+    it( "(Int,Nat) <: (Number,Join(Number,Null)) is provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([intT, natT])],
+                        delta: [TupleType.createTupleType([
+                            numberT,
+                            JoinType.createJoinType(numberT,nullT)])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+
+    it( "(Int,Number) <: (Nat,Nat) is not provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([intT, numberT])],
+                        delta: [TupleType.createTupleType([natT, natT])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+
+    it( "(Number,Nat) <: (Int,Nat) is not provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([numberT, natT])],
+                        delta: [TupleType.createTupleType([intT, natT])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+
+    it( "(Int,Join(Number,Null)) <: (Number,Nat) is not provable", function() : void {
+        const goal = {  theta: [ TupleType.createTupleType([
+                            intT,
+                            JoinType.createJoinType(numberT,nullT)])],
+                        delta: [TupleType.createTupleType([
+                            numberT,
+                            natT])] } ;
+        const result = proveSimplified( goal ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+} ) ;
+
+
+describe( "isSubType", function() : void {
+    it( "Meet(Int,Null) <: StringT is provable", function() : void {
+        const t = MeetType.createMeetType( intT, nullT ) ;
+        const u = stringT ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "StringT <: Meet(Int,Null) is not provable", function() : void {
+        const t = stringT ;
+        const u = MeetType.createMeetType( intT, nullT ) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "Meet(Int,Null) <: Meet(String,Loc[]) is provable", function() : void {
+        const t = MeetType.createMeetType( intT, nullT ) ;
+        const u = MeetType.createMeetType( stringT, locT ) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "Meet( x:Nat,y:Int, z:Int ) <: Meet(x:Int, y:Int ) is provable", function() : void {
+        const t = createMeetType( createFieldType( "x", natT ),
+                                  createMeetType(
+                                    createFieldType( "y", intT ),
+                                    createFieldType( "z", intT )  ) ) ;
+        const u = createMeetType( createFieldType( "x", intT ),
+                                  createFieldType( "y", intT ) ) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "Meet( x:Nat,y:Int ) <: Meet(x:Int, y:Int, z:Int ) is not provable", function() : void {
+        const t = createMeetType( createFieldType( "x", natT ),
+                                  createFieldType( "y", intT ) ) ;
+        const u = createMeetType( createFieldType( "x", intT ),
+                                  createMeetType(createFieldType( "y", intT ),
+                                                 createFieldType( "z", intT ))
+                                   ) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "Null <: Join(Int, Null ) is provable", function() : void {
+        const t = nullT ;
+        const u = createJoinType( intT, nullT) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "Nat <: Join(Int, Null ) is provable", function() : void {
+        const t = natT ;
+        const u = createJoinType( intT, nullT) ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "Join(Int, Null ) <: Null is not provable", function() : void {
+        const t = createJoinType( intT, nullT) ;
+        const u = nullT ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "Join(Int, Null ) <: Int is not provable", function() : void {
+        const t = createJoinType( intT, nullT) ;
+        const u = intT ;
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "Loc( Meet( x:Nat,y:Int ) ) <: Loc( Meet( y:Int, x:Nat ) ) is provable ", function() : void {
+        const t = createLocationType(
+                        createMeetType( createFieldType( "x", natT ),
+                                        createFieldType( "y", intT ) )  );
+        const u = createLocationType(
+                        createMeetType( createFieldType( "y", intT ),
+                                        createFieldType( "x", natT ) )  );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "Loc( Meet( x:Nat, y:Int ) ) <: Loc( Meet( y:Int, x:Int ) ) is not provable ", function() : void {
+        const t = createLocationType(
+                        createMeetType( createFieldType( "x", natT ),
+                                        createFieldType( "y", intT ) )  );
+        const u = createLocationType(
+                        createMeetType( createFieldType( "y", intT ),
+                                        createFieldType( "x", intT ) )  );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "(Int -> Int) Meet (length:Nat) <: (Nat -> Number) Meet (length:Int) is provable ", function() : void {
+        const t = createMeetType(
+                        createFunctionType( intT, intT),
+                        createFieldType( "length", natT ) );
+        const u = createMeetType(
+                        createFunctionType( natT, numberT),
+                        createFieldType( "length", intT ) );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( true, result ) ;
+    } ) ;
+    it( "(Int -> Int) Meet (length:Int) <: (Nat -> Number) Meet (length:Nat) is not provable ", function() : void {
+        const t = createMeetType(
+                        createFunctionType( intT, intT),
+                        createFieldType( "length", intT ) );
+        const u = createMeetType(
+                        createFunctionType( natT, numberT),
+                        createFieldType( "length", natT ) );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "(Int -> Int) Meet (length:Nat) <: (Nat -> Nat) Meet (length:Int) is not provable ", function() : void {
+        const t = createMeetType(
+                        createFunctionType( intT, intT),
+                        createFieldType( "length", natT ) );
+        const u = createMeetType(
+                        createFunctionType( natT, natT),
+                        createFieldType( "length", intT ) );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "(Int -> Int) Meet (length:Nat) <: (Number -> Number) Meet (length:Int) is not provable ", function() : void {
+        const t = createMeetType(
+                        createFunctionType( intT, intT),
+                        createFieldType( "length", natT ) );
+        const u = createMeetType(
+                        createFunctionType( numberT, numberT),
+                        createFieldType( "length", intT ) );
+        const result = subtype.isSubType( t, u ) ;
+        assert.checkEqual( false, result ) ;
+    } ) ;
+    it( "a:Nat MEET (b:nat JOIN c:nat) <:  (a:Nat MEET b:nat) JOIN (a:Nat MEET c:nat) is provable and conversely", function() : void {
+        const a = createFieldType( "a", natT ) ;
+        const b = createFieldType( "b", natT ) ;
+        const c = createFieldType( "c", natT ) ;
+        const t = createMeetType(
+                        a,
+                        createJoinType( b, c ) );
+        const u = createJoinType(
+                        createMeetType( a, b),
+                        createMeetType( a, c ) );
+        assert.checkEqual( true, subtype.isSubType( t, u ) ) ;
+        assert.checkEqual( true, subtype.isSubType( u, t ) ) ;
+    } ) ;
+    it( "a:Nat JOIN (b:nat MEET c:nat) <:  (a:Nat JOIN b:nat) MEET (a:Nat JOIN c:nat) is provable and conversely", function() : void {
+        const a = createFieldType( "a", natT ) ;
+        const b = createFieldType( "b", natT ) ;
+        const c = createFieldType( "c", natT ) ;
+        const t = createJoinType(
+                        a,
+                        createMeetType( b, c ) );
+        const u = createMeetType(
+                        createJoinType( a, b),
+                        createJoinType( a, c ) );
+        assert.checkEqual( true, subtype.isSubType( t, u ) ) ;
+        assert.checkEqual( true, subtype.isSubType( u, t ) ) ;
     } ) ;
 } ) ;
