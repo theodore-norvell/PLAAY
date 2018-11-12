@@ -585,7 +585,7 @@ module dnodeEdits {
      * The source and target selections must share the same tree. Otherwise the edit will fail.
      * The resuling selection will select the nodes inserted to overwrite the target selection.
     */
-    export class SwapEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+    class SwapEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
         private _srcSelection:Selection<L,T>;
 
         constructor(srcSelection:Selection<L,T>) {
@@ -603,6 +603,11 @@ module dnodeEdits {
                                   trgSelection, newNodes4Trg,
                                   false, false ) ;
         }
+    }
+
+
+    export function swapEdit<L extends DLabel<L,T>, T extends DNode<L,T>>(srcSelection:Selection<L,T> ) : Edit<Selection<L,T>> {
+        return new SwapEdit( srcSelection ) ;
     }
 
     /** Is this a suitable selection to stop at for the left and right arrow keys.

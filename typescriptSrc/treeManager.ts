@@ -630,8 +630,13 @@ module treeManager {
             return pasteEdit.applyEdit( trgSelection ) ;
         }
 
+        public move( srcSelection : PSelection, trgSelection : PSelection ) : Option<PSelection> {
+            const swapEdit = dnodeEdits.moveEdit(srcSelection, this.standardBackFillList);
+            return swapEdit.applyEdit( trgSelection ) ;
+        }
+
         public swap( srcSelection : PSelection, trgSelection : PSelection ) : Option<PSelection> {
-            const swapEdit = new dnodeEdits.SwapEdit(srcSelection);
+            const swapEdit = dnodeEdits.swapEdit(srcSelection);
             return swapEdit.applyEdit( trgSelection ) ;
         }
 
@@ -649,7 +654,7 @@ module treeManager {
             // TODO: Suppress the push if newSel equals an earlier result
             moveResult.map( newSel => selectionList.push(['Moved', "Move", newSel]) ) ;
 
-            const swapEdit = new dnodeEdits.SwapEdit(srcSelection);
+            const swapEdit = dnodeEdits.swapEdit(srcSelection);
             const swapResult = swapEdit.applyEdit( trgSelection ) ;
             // TODO: Suppress the push if newSel equals an earlier result
             swapResult.map( newSel => selectionList.push(['Swapped', "Swap", newSel]) ) ;
