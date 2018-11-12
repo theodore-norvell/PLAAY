@@ -4,6 +4,7 @@
 /* Star trek mauve: rgb(190, 133, 197) */
 /* Star trek dark orange: rgb(182, 78, 78) */
 /* Blue: rgb(135,206,250);  */
+/* Yellow: rgb(242, 231, 21) */
 #stackval {
 	border: thin solid black;
 }
@@ -274,16 +275,6 @@ html, body
     overflow-x: hidden;
 }
 
-.typePalette
-{
-    flex: 10 1 auto;
-    width:  auto;
-    margin: 1em 1em 1em 1em ;
-    background-color:#a6a6a6 ;
-    overflow-y: auto; 
-    overflow-x: hidden;   
-}
-
 .buttonArea
 {
     flex: 1 1 auto ;
@@ -298,11 +289,11 @@ html, body
 .leftSideButton
 {
     height: 30px;
-    width: 75px;
+    width: 70px;
     margin: 2px 5px ;
     color: white ;
     background-color: black ;
-    border: 1px solid #a6a6a6 ;
+    border: 3px solid #a6a6a6 ;
 }
 .leftSideButton:hover
 {
@@ -315,10 +306,25 @@ html, body
     line-height: 30px;
     font-weight: bold;
     background-color: black;
-    box-shadow: 0px 0px 3px;
+    /*box-shadow: 0px 0px 3px;*/
     color: rgb(190, 133, 197);
-    border: 1px solid rgb(190, 133, 197);
 }
+
+.typeItem
+{
+    color: rgb(242, 231, 21) ;
+}
+
+.dataItem
+{
+    color: ghostwhite ;
+}
+
+.varItem
+{
+    color: rgb(244, 140, 0) ;
+}
+
 .paletteItem:hover
 {
     border: 1px solid black;
@@ -469,7 +475,7 @@ div.doBox { /*Used with both whiles and lambdas */
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.lambdaBox { content: "\03bb";
+div.lambdaBox { 
     border-top: medium solid rgb(135,206,250) ;
     border-bottom: medium solid rgb(135,206,250) ;
     border-left: 10px solid rgb(135,206,250) ;
@@ -487,36 +493,39 @@ div.lambdaHeader {
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.paramlistOuter {
-    border: none ;
-}
-
-
-div.paramlistOuter:before { content: "\03bb" ;
+div.lambdaResult:before {
+    content: "\002192" ; /* RIGHTWARDS ARROW */
     display: inline ;
     vertical-align: top ;
     color: rgb(135,206,250) ;
     font-size: large ;
 }
 
-div.paramlistInner {
-    margin: 2px 0px 2px 5px ;
-    border: thin solid rgb(135,206,250) ;
+div.paramlistOuter {
+    border: none ;
+}
+
+
+div.paramlistOuter:before {
+    content: "\0003bb" ; /* Lower case Lambda */
+    display: inline ;
+    vertical-align: top ;
+    color: rgb(135,206,250) ;
+    font-size: large ;
 }
 
 div.noType {
-    border: thin solid #999 ;
+    /*border: thin solid rgb(242, 231, 21) ;*/
     border-radius: 5px ;
     margin: 2px 0px 2px 0px ;
-    min-height: 1ex ;
-    min-width: 2ex ;
+    min-height: 2ex ;
+    min-width: 1ex ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
 div.noType:hover {
-    background-color: lightgrey;
-    min-height: 2ex ;
+    border-color: white;
 }
 
 div.seqBox {
@@ -563,16 +572,18 @@ div.placeHolder {
     border-radius: 5px ;
 }
 
-div.expOp {
-    border: thin solid ghostwhite ;
-    margin: 2px 0px 2px 0px ;
-    min-width: 2ex ;
-    min-height: 10px ;
-    width: auto ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: ghostwhite ;
+div.noExp {
+    /*border: thin solid rgb(242, 231, 21) ;*/
     border-radius: 5px ;
+    margin: 2px 0px 2px 0px ;
+    min-height: 2ex ;
+    min-width: 1ex ;
+    border-radius: 5px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.noExp:hover {
+    border-color: white;
 }
 
 div.hCont, div.var, div.assign, div.loc {
@@ -597,16 +608,16 @@ div.locdecl:before {
     content: "loc" ;
     display: inline ;
     vertical-align: top ;
-    color: ghostwhite ;
+    color: rgb(244, 140, 0) ; /* Orange */
     font-size: large ;
 }
 
 div.locdecl, div.condecl {
-    border: thin solid ghostwhite ; /* Orange */
+    border: thin solid rgb(244, 140, 0) ; /* Orange */
     border-radius: 5px ;
     font-weight: normal ;
     font-size: medium ;
-    color: ghostwhite ; /* Orange */
+    color: rgb(244, 140, 0) ; /* Orange */
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
 }
@@ -782,7 +793,7 @@ div.literal {
     font-style: normal ;
     font-weight: normal ;
     font-size: medium ;
-    color: rgb(255,255,255);
+    color: ghostwhite;
     min-width: 1ex ;
     min-height: 1em ;
     max-width: 200px ;

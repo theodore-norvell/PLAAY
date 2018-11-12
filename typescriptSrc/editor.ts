@@ -57,6 +57,12 @@ module editor {
         $("#redo").click( redo ) ;
         $("#trash").click( toggleTrash ) ;
         $("#toggleOutput").click( createHTMLElements.toggleOutput ) ;
+        $("#cut").click( cut );
+        $("#copy").click( copy );
+        $("#paste").click( paste );
+        $("#move").click( move );
+        $("#swap").click( swap );
+        
 
         makeTrashDroppable( $("#trash") ) ;
         $( ".paletteItem" ).draggable( {
@@ -397,27 +403,21 @@ module editor {
             // Cut: Control X, command X, delete, backspace, etc.
             if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
             {
-                const opt = treeMgr.delete( currentSelection ) ;
-                opt.map( (sel : PSelection) => {
-                    addToTrash(currentSelection) ;
-                    update( sel ) ;
-                } ) ;
+                cut();
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             // Copy: Cntl-C or Cmd-C
             else if ((e.ctrlKey || e.metaKey) && e.which === 67 ) 
             {
-                addToTrash(currentSelection);
+                copy();
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
             // Paste: Cntl-V or Cmd-V
             else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
             {
-                getFromTrash().map( (src : PSelection) =>
-                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ) ;
+                paste();
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -441,9 +441,7 @@ module editor {
             else if ((e.ctrlKey || e.metaKey) && e.which === 66) 
             {
             
-                getFromTrash().map( (src : PSelection) =>
-                     treeMgr.swap( src, currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ) ;
+                swap();
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -787,6 +785,36 @@ module editor {
             currentSelection = redostack.pop() as PSelection ;
             generateHTMLSoon();
         }
+    }
+
+    function cut() : void {
+        const opt = treeMgr.delete(currentSelection);
+        opt.map((sel: PSelection) => {
+            addToTrash(currentSelection);
+            update(sel);
+        });
+    }
+
+    function copy() : void {
+        addToTrash(currentSelection);
+    }
+
+    function paste() : void {
+        getFromTrash().map((src: PSelection) =>
+            treeMgr.paste(src, currentSelection)
+                   .map( update ));
+    }
+
+    function move() : void {
+        getFromTrash().map((src: PSelection) =>
+            treeMgr.move(src, currentSelection)
+                   .map(update));
+    }
+    
+    function swap() : void {
+        getFromTrash().map((src: PSelection) =>
+            treeMgr.swap(src, currentSelection)
+                   .map(update));
     }
 
     // Scroll container to make a selected element fully visible

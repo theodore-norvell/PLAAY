@@ -374,11 +374,21 @@ module treeView
             break ;
             case labels.LambdaLabel.kindConst :
             {
+                //  div.{lambdaBox V candrag droppable workplace}
+                //      div.{lambdaHeader, V}
+                //          child 0 (see ParamList)
+                //          div.{lambdaResult H}
+                //              child 1
+
+                const lambdaResult = $( document.createElement("div") ) ;
+                lambdaResult.addClass( "lambdaResult" ) ;
+                lambdaResult.addClass( "H" ) ;
+                lambdaResult.append( children[1] ) ;
                 const lambdahead : JQuery = $( document.createElement("div") ) ;
                 lambdahead.addClass( "lambdaHeader") ;
                 lambdahead.addClass( "V") ;
                 lambdahead.append( children[0] ) ;
-                lambdahead.append( children[1] ) ;
+                lambdahead.append( lambdaResult ) ;
 
                 const doBox : JQuery = $( document.createElement("div") ) ;
                 doBox.addClass( "doBox") ;
@@ -503,7 +513,7 @@ module treeView
             case labels.NoExprLabel.kindConst :
             {
                 result  = $(document.createElement("div")) ;
-                result.addClass( "expOp" ) ; // Need a better class for this, I think.
+                result.addClass( "noExp" ) ; // Need a better class for this, I think.
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
@@ -522,13 +532,14 @@ module treeView
                 const colon : JQuery = $( document.createElement("div") );
                 colon.text(":") ;
 
-                const becomes : JQuery = $( document.createElement("div") );
-                becomes.text(":=") ;
-
                 result.append(children[0]);
                 result.append(colon);
                 result.append(children[1]);
-                result.append(becomes);
+                if( node.child(2).isExprNode() ) {
+                    const becomes : JQuery = $( document.createElement("div") );
+                    becomes.text(":=") ;
+                    result.append(becomes);
+                }
                 result.append(children[2]);
             }
             break ;
@@ -563,6 +574,7 @@ module treeView
                 result.addClass( "types" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "droppable" ) ;
+                result.addClass( "canDrag" ) ;
                 
                 const label = node.label() as labels.PrimitiveTypesLabel;
                 switch(label.type) {
@@ -625,6 +637,7 @@ module treeView
                 result = $(document.createElement("div")) ;
                 result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
                 const arrow : JQuery = $( document.createElement("div") );
@@ -641,6 +654,7 @@ module treeView
                 result = $(document.createElement("div")) ;
                 result.addClass( "locationType" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
                 result.append(children[0]);
@@ -651,6 +665,7 @@ module treeView
                 result = $(document.createElement("div")) ;
                 result.addClass( "types" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
                 const colon : JQuery = $( document.createElement("div") );
@@ -667,6 +682,7 @@ module treeView
                 result = $(document.createElement("div")) ;
                 result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {
@@ -687,6 +703,7 @@ module treeView
                 result = $(document.createElement("div")) ;
                 result.addClass( "typesBorder" ) ;
                 result.addClass( "H" ) ;
+                result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {

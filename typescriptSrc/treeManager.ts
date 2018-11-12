@@ -362,7 +362,7 @@ module treeManager {
         private makeVarDeclNode( ) : Edit<PSelection> {
             const varNode : PNode = labels.mkVar("");
             const typeNode : PNode = labels.mkNoTypeNd();
-            const initNode : PNode = labels.mkNoExpNd();
+            const initNode : PNode = placeHolder;
 
             const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
 

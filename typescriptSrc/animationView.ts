@@ -41,6 +41,7 @@ module animationView
     import WHILEMARK = treeView.WHILEMARK ;
     import LAMBDAMARK = treeView.LAMBDAMARK ;
     import NULLMARK = treeView.NULLMARK ;
+    import FUNCTIONMARK = treeView.FUNCTIONTYPE ;
 
     const MAUVE : string = "rgb(190, 133, 197)";
     const ORANGE : string = "rgb(244, 140, 0)";
@@ -702,6 +703,9 @@ module animationView
             {
 
                 const childArray = element.children();
+                const paramterList: svg.Element = childArray[0] ;
+                const returnType: svg.Element = childArray[1] ;
+                const functionBody : svg.Element = childArray[2]
                 element.dmove(10, 10) ;
                 const padding : number = 15;
                 let y : number = 0;
@@ -711,12 +715,16 @@ module animationView
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
                 const textElement = lambdahead.text(LAMBDAMARK);
-                lambdahead.add( childArray[0].dmove(20, 10) ) ;
-                y += childArray[0].bbox().height + padding;
+                lambdahead.add( paramterList.dmove(20, 10) ) ;
+                y += paramterList.bbox().height + padding;
                 if(y === padding) {y += padding;} //i.e. there are no arguments. This prevents the type from overlapping with the lambda symbol.
-                lambdahead.add( childArray[1].dmove(0, y) ) ;
+                const arrowSymbol = lambdahead.text( FUNCTIONMARK ) ;
+                arrowSymbol.fill(LIGHT_BLUE); 
+                arrowSymbol.style( textBoldStyle );
+                lambdahead.add( arrowSymbol.dmove( 0, y ) ) ;
+                lambdahead.add( returnType.dmove( arrowSymbol.bbox().width+5, y ) ) ;
                 const len = findWidthOfLargestChild(childArray)+padding;
-                y += childArray[1].bbox().height + padding;
+                y += returnType.bbox().height + padding;
                 // lambdahead.addClass( "lambdaHeader") ;
                 // lambdahead.addClass( "V") ;
 
@@ -726,7 +734,7 @@ module animationView
                 const doBox :  svg.G = element.group().dmove(10, y) ;
                 // doBox.addClass( "doBox") ;
                 // doBox.addClass( "H") ;
-                doBox.add( childArray[2] ) ;
+                doBox.add( functionBody ) ;
 
                 drawHighlightOn = makeFancyBorderSVG(parent, element, LIGHT_BLUE);
 
@@ -829,38 +837,42 @@ module animationView
             {
 
                 const childArray = element.children();
+                const variableSVG = childArray[0] ;
+                const typeSVG = childArray[1] ;
+                const initialValueSVG = childArray[2] ;
 
-                const padding : number = 10;
+                const padding : number = 5;
                 let x : number = 0;
 
                 const label = node.label() as labels.VarDeclLabel ;
                 const isConst = label.declaresConstant() ;
                 const delta : svg.Text = element.text(isConst ? "" : "loc");
-                delta.fill(GHOSTWHITE);
+                delta.fill(ORANGE);
 
                 x += delta.bbox().width + padding;
-                childArray[0].dmove(x, 0); 
+                variableSVG.dmove(x, 0); 
 
-                x += childArray[0].bbox().width + padding;
+                x += variableSVG.bbox().width + padding;
                 const colon : svg.Text = element.text(":");
-                colon.fill(GHOSTWHITE).dmove(x, -5);
+                colon.fill(ORANGE).dmove(x, -10);
 
                 x += colon.bbox().width + padding;
-                childArray[1].dmove(x, 7);
+                typeSVG.dmove(x, 0);
+                x += typeSVG.bbox().width + padding;
 
-                x += childArray[1].bbox().width + padding;
-                const becomes : svg.Text = element.text(":=");
-                becomes.fill(GHOSTWHITE).dmove(x, -5);
-
-                x += becomes.bbox().width + padding;
-                childArray[2].dmove(x, 0);
-                const childBBox : svg.BBox = childArray[2].bbox();
+                if( node.child(2).isExprNode() ) {
+                    const becomes : svg.Text = element.text(":=");
+                    becomes.fill(ORANGE).dmove(x, -10);
+                    x += becomes.bbox().width + padding;
+                }
+                initialValueSVG.dmove(x, 0);
+                const childBBox : svg.BBox = initialValueSVG.bbox();
                 if(childBBox.x < x)
                 {
-                    childArray[2].dx(-childBBox.x);
+                    initialValueSVG.dx(-childBBox.x);
                 }
 
-                makeSimpleBorder(element, GHOSTWHITE, 10 );
+                makeSimpleBorder(element, ORANGE, 10 );
 
                 // result.addClass( "vardecl" ) ;
                 // result.addClass( "H" ) ;;
@@ -1416,18 +1428,18 @@ module animationView
 
     function makeNoTypeLabelSVG(el: svg.Container) : void
     {
-        const label = el.rect(20,20);
+        const label = el.rect(10,10);
         label.radius(5);
         label.fill({opacity: 0});
-        label.stroke({color: GRAY, opacity: 1, width: 1.5});
+        label.stroke({color: YELLOW, opacity: 0, width: 1});
     }
 
     function makeNoExprLabelSVG(el: svg.Container) : void
     {
-        const label = el.rect(20,20);
-        label.radius(5);
-        label.fill({opacity: 0});
-        label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
+        // const label = el.rect(20,20);
+        // label.radius(5);
+        // label.fill({opacity: 0});
+        // label.stroke({color: GHOSTWHITE, opacity: 1, width: 1.5});
     }
 
     function makeObjectBorderSVG(base : svg.Container, el : svg.Element) : svg.Rect
@@ -1481,12 +1493,12 @@ module animationView
         textElement.dy(-5);
         textElement.fill(YELLOW);
         textElement.style("font-family:'Lucida Console', monospace;font-weight: bold ;font-size: large ;");
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: YELLOW, opacity: 1, width: 1.5});
+        // const bounds : svg.BBox = textElement.bbox();
+        // const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
+        // outline.center(bounds.cx, bounds.cy);
+        // outline.radius(5);
+        // outline.fill({opacity: 0});
+        // outline.stroke({color: YELLOW, opacity: 1, width: 1.5});
     }
 
     function findWidthOfLargestChild(arr : svg.Element[]) : number
