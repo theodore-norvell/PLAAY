@@ -189,11 +189,15 @@ module editor {
                 console.log("   Dropping selection. " + optSelectionToDelete.toString() );
                 const opt = optSelectionToDelete.bind(
                     selectionToDelete => treeMgr.delete( selectionToDelete ) ) ;
-                assert.check( opt !== undefined ) ;
                 opt.map(
                     sel => {
                         console.log("   Dropping into trash a" );
                         console.log("   New selection is. " + sel.toString() );
+                        
+                        // Note that:
+                        //   optSelectionToDelete.isEmpty() ===>  opt.isEmpty()
+                        // Therefore the use of optSelectionToDelete.first() below
+                        // can not fail.
                         addToTrash( optSelectionToDelete.first() ) ;
                         update( sel ) ;
                         console.log("   Dropping into trash b" );
