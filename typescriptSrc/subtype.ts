@@ -484,7 +484,7 @@ module subtype {
         return subgoals.every( proveSimplified ) ;
     }
 
-    export function isSubType( t : Type, u : Type ) : boolean {
+    export function isSubtype( t : Type, u : Type ) : boolean {
         return isProvable( {theta:[t], delta: [u]} ) ;
     }
 
@@ -516,6 +516,7 @@ module subtype {
         otherDisjointnessRules: otherDisjointnessRules,
         simplify: simplify,
         proveSimplified: proveSimplified,
+        isProvable: isProvable,
     } ;
 }
 export = subtype ;

@@ -37,6 +37,7 @@ const otherDisjointnessRules = subtype.forTestingOnly.otherDisjointnessRules ;
 
 const simplify = subtype.forTestingOnly.simplify ;
 const proveSimplified = subtype.forTestingOnly.proveSimplified ;
+const isProvable = subtype.forTestingOnly.isProvable ;
 
 import JoinType = types.JoinType ;
 import MeetType = types.MeetType ;
@@ -1298,23 +1299,23 @@ describe( "proveSimplified", function() : void {
 } ) ;
 
 
-describe( "isSubType", function() : void {
+describe( "isSubtype", function() : void {
     it( "Meet(Int,Null) <: StringT is provable", function() : void {
         const t = MeetType.createMeetType( intT, nullT ) ;
         const u = stringT ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "StringT <: Meet(Int,Null) is not provable", function() : void {
         const t = stringT ;
         const u = MeetType.createMeetType( intT, nullT ) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "Meet(Int,Null) <: Meet(String,Loc[]) is provable", function() : void {
         const t = MeetType.createMeetType( intT, nullT ) ;
         const u = MeetType.createMeetType( stringT, locT ) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "Meet( x:Nat,y:Int, z:Int ) <: Meet(x:Int, y:Int ) is provable", function() : void {
@@ -1324,7 +1325,7 @@ describe( "isSubType", function() : void {
                                     createFieldType( "z", intT )  ) ) ;
         const u = createMeetType( createFieldType( "x", intT ),
                                   createFieldType( "y", intT ) ) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "Meet( x:Nat,y:Int ) <: Meet(x:Int, y:Int, z:Int ) is not provable", function() : void {
@@ -1334,31 +1335,31 @@ describe( "isSubType", function() : void {
                                   createMeetType(createFieldType( "y", intT ),
                                                  createFieldType( "z", intT ))
                                    ) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "Null <: Join(Int, Null ) is provable", function() : void {
         const t = nullT ;
         const u = createJoinType( intT, nullT) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "Nat <: Join(Int, Null ) is provable", function() : void {
         const t = natT ;
         const u = createJoinType( intT, nullT) ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "Join(Int, Null ) <: Null is not provable", function() : void {
         const t = createJoinType( intT, nullT) ;
         const u = nullT ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "Join(Int, Null ) <: Int is not provable", function() : void {
         const t = createJoinType( intT, nullT) ;
         const u = intT ;
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "Loc( Meet( x:Nat,y:Int ) ) <: Loc( Meet( y:Int, x:Nat ) ) is provable ", function() : void {
@@ -1368,7 +1369,7 @@ describe( "isSubType", function() : void {
         const u = createLocationType(
                         createMeetType( createFieldType( "y", intT ),
                                         createFieldType( "x", natT ) )  );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "Loc( Meet( x:Nat, y:Int ) ) <: Loc( Meet( y:Int, x:Int ) ) is not provable ", function() : void {
@@ -1378,7 +1379,7 @@ describe( "isSubType", function() : void {
         const u = createLocationType(
                         createMeetType( createFieldType( "y", intT ),
                                         createFieldType( "x", intT ) )  );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "(Int -> Int) Meet (length:Nat) <: (Nat -> Number) Meet (length:Int) is provable ", function() : void {
@@ -1388,7 +1389,7 @@ describe( "isSubType", function() : void {
         const u = createMeetType(
                         createFunctionType( natT, numberT),
                         createFieldType( "length", intT ) );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( true, result ) ;
     } ) ;
     it( "(Int -> Int) Meet (length:Int) <: (Nat -> Number) Meet (length:Nat) is not provable ", function() : void {
@@ -1398,7 +1399,7 @@ describe( "isSubType", function() : void {
         const u = createMeetType(
                         createFunctionType( natT, numberT),
                         createFieldType( "length", natT ) );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "(Int -> Int) Meet (length:Nat) <: (Nat -> Nat) Meet (length:Int) is not provable ", function() : void {
@@ -1408,7 +1409,7 @@ describe( "isSubType", function() : void {
         const u = createMeetType(
                         createFunctionType( natT, natT),
                         createFieldType( "length", intT ) );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "(Int -> Int) Meet (length:Nat) <: (Number -> Number) Meet (length:Int) is not provable ", function() : void {
@@ -1418,7 +1419,7 @@ describe( "isSubType", function() : void {
         const u = createMeetType(
                         createFunctionType( numberT, numberT),
                         createFieldType( "length", intT ) );
-        const result = subtype.isSubType( t, u ) ;
+        const result = subtype.isSubtype( t, u ) ;
         assert.checkEqual( false, result ) ;
     } ) ;
     it( "a:Nat MEET (b:nat JOIN c:nat) <:  (a:Nat MEET b:nat) JOIN (a:Nat MEET c:nat) is provable and conversely", function() : void {
@@ -1431,8 +1432,8 @@ describe( "isSubType", function() : void {
         const u = createJoinType(
                         createMeetType( a, b),
                         createMeetType( a, c ) );
-        assert.checkEqual( true, subtype.isSubType( t, u ) ) ;
-        assert.checkEqual( true, subtype.isSubType( u, t ) ) ;
+        assert.checkEqual( true, subtype.isSubtype( t, u ) ) ;
+        assert.checkEqual( true, subtype.isSubtype( u, t ) ) ;
     } ) ;
     it( "a:Nat JOIN (b:nat MEET c:nat) <:  (a:Nat JOIN b:nat) MEET (a:Nat JOIN c:nat) is provable and conversely", function() : void {
         const a = createFieldType( "a", natT ) ;
@@ -1444,7 +1445,67 @@ describe( "isSubType", function() : void {
         const u = createMeetType(
                         createJoinType( a, b),
                         createJoinType( a, c ) );
-        assert.checkEqual( true, subtype.isSubType( t, u ) ) ;
-        assert.checkEqual( true, subtype.isSubType( u, t ) ) ;
+        assert.checkEqual( true, subtype.isSubtype( t, u ) ) ;
+        assert.checkEqual( true, subtype.isSubtype( u, t ) ) ;
     } ) ;
+
+    it( "(Int,String) MEET (Int, String, Nat) is equivalent to bottom", function() : void {
+        const u = createTupleType( [intT, stringT] );
+        const v = createTupleType( [intT, stringT, natT] );
+        const t = createMeetType( u, v ) ;
+        assert.check( subtype.isSubtype( t, bottom ), "t <: bottom" ) ;
+        assert.check( subtype.isSubtype( bottom, t ), "bottom <: t" ) ;
+    } ) ;
+
+    it( "(Int -> Nat) MEET (Bool -> Bool) is subtype of many things", function() : void {
+        const t = createMeetType( createFunctionType( intT, natT), createFunctionType( boolT, boolT) ) ;
+        const u0 = createFunctionType( intT, natT ) ;
+        const u1 = createFunctionType( boolT, boolT ) ;
+        const u2 = createFunctionType( createMeetType( intT, boolT), 
+                                       createJoinType( natT, boolT) ) ;
+        const u3 = createFunctionType( createMeetType( intT, boolT),
+                                       createMeetType( natT, boolT) ) ;
+        const u4 = createFunctionType( createJoinType( intT, boolT), 
+                                       createJoinType( natT, boolT) ) ;
+        assert.check( subtype.isSubtype( t, u0 ), "t <: u0" ) ;
+        assert.check( subtype.isSubtype( t, u1 ), "t <: u1" ) ;
+        assert.check( subtype.isSubtype( t, u2 ), "t <: u2" ) ;
+        assert.check( ! subtype.isSubtype( t, u3 ), "NOT t <: u3" ) ;
+        assert.check( ! subtype.isSubtype( t, u3 ), "NOT t <: u4" ) ;
+    } ) ;
+
+    it( "(Int -> Nat) <: (Int -> (String JOIN Nat)) MEET (Int -> (Nat JOIN Null))", function() : void {
+        const t = createFunctionType( intT, natT)  ;
+        const u = createMeetType( createFunctionType( intT, createJoinType(stringT, natT)), 
+                                  createFunctionType( intT, createJoinType(natT, nullT)) ) ;
+        assert.check( subtype.isSubtype( t, u ), "t <: u" ) ;
+        assert.check( ! subtype.isSubtype( u, t ), "NOT u <: t" ) ;
+    } ) ;
+
+    it( "(Int -> Nat) MEET (Bool -> Int) <: (Bottom -> Nat) is provable", function() : void {
+        const t = createMeetType( createFunctionType( intT, natT), 
+                                  createFunctionType( boolT, intT) ) ;
+        const u = createFunctionType( bottom, natT)  ;
+        assert.check( subtype.isSubtype( t, u ), "t <: u" ) ;
+    } ) ;
+
+    it( "(Int -> Nat) MEET (Bool -> Int) <: (Bottom -> Bottom) is NOT provable", function() : void {
+        const t = createMeetType( createFunctionType( intT, natT), 
+                                  createFunctionType( boolT, intT) ) ;
+        const u = createFunctionType( bottom, bottom)  ;
+        assert.check( ! subtype.isSubtype( t, u ), " not t <: u" ) ;
+    } ) ;
+
+    it( "(t0 JOIN t1 -> u ) <: (t0 -> u) MEET (t1 -> u) is provable, but not the converse", function() : void {
+        const t0 = createFieldType( "t0", natT) ;
+        const t1 = createFieldType( "t1", natT) ;
+        const u = createFieldType( "u", natT) ;
+        const theta = createFunctionType( createJoinType( t0, t1), u) ;
+        const delta = createMeetType( createFunctionType(t0, u),
+                                      createFunctionType( t1, u ) )  ;
+        assert.check( subtype.isSubtype( theta, delta), " theta <: delta" ) ;
+        assert.check( ! subtype.isSubtype( delta, theta), "NOT  delta <: theta" ) ;
+    } ) ;
+
+
 } ) ;

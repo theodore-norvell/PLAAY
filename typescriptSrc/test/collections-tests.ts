@@ -293,6 +293,16 @@ describe( "matchOpt", function() : void {
 
 
 describe( "lazyIntSeq", function() : void {
+    it( "ordered tuples", function() : void {
+
+        function factory( i0 : number, i1 : number ) : string {
+            return  "(" + i0 + "," + i1 + ")" ; 
+        }
+        const lst = lazyIntSeq(0, 2-1).lazyBind(
+            (i0:number) => lazyIntSeq(i0+1, 2-i0-1).lazyMap( 
+                (i1:number) => factory(i0,i1) ) ) ;
+        assert.checkEqual( "( (0,1) )", lst.toString()) ;
+    } ) ;
     it( "should map in a lazy way", function() : void {
         const l = lazyIntSeq( 0, 5 ) ;
         let s = "" ;
