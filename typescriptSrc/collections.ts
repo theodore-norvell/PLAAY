@@ -364,7 +364,8 @@ module collections {
                 return this._back.rest() ; } }
         
         public map<B>(f : (a:A) => B ) : List<B> {
-            return cons( f( this.first() ), this.rest().map(f) ) ; }
+            if( this.isEmpty() ) return nil<B>() ;
+            else return cons( f( this.first() ), this.rest().map(f) ) ; }
 
         public lazyMap<B>(f : (a:A) => B ) : List<B> {
             return new LazyCat<B>( this._front.lazyMap(f),
