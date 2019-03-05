@@ -8,7 +8,7 @@
     "build": "npm run build-ts && npm run copy-static-assets",
     "build-ts": "tsc",
     "copy-static-assets": "ts-node copyStaticAssets.ts",
-    "serve": "node dist/server.js"
+    "serve": "node dist/server.js &"
   },
   "dependencies": {
     "bcryptjs": "^2.4.3",
