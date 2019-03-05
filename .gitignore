@@ -47,7 +47,6 @@ tsServer/.env
 tsServer/dist
 tsServer/node-modules
 tsServer/node_modules
-tsServer/package-lock.json
 *.code-workspace
 Subtype-Prototype/PlaayTypes.hi
 Subtype-Prototype/PlaayTypes.o
