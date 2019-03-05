@@ -12,7 +12,7 @@ const server = app.listen(app.get("port"), () => {
         app.get("port"),
         app.get("env")
     );
-    console.log("Press CTRL-C to stop\n");
+    console.log("Use 'kill -9 %d' to stop.\n", process.pid);
 });
 
 export default server;
