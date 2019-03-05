@@ -6,12 +6,15 @@
   "scripts": {
     "pretest": "tsc",
     "test": "mocha",
-    "preinstall": "tsc && browserify -o plaay.js -s main main.js",
+    "build": "tsc && browserify -o plaay.js -s main main.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
     "lint": "tslint --project tsconfig.json"
   },
-  "author": "",
+  "author": "Theodore Norvell",
   "license": "Copyright of the developers",
+  "devDependencies": {
+    "browserify": "^16.2.0"
+  },
   "dependencies": {
     "svg.js": "^2.6.4"
   }
