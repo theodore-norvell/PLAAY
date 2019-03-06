@@ -67,6 +67,7 @@ module animator
         $("#evalStepInto").click(stepInto);
         $("#evalStepToReturn").click(stepToReturn);
         $("#run").click(stepTillDone);
+        $("#restart").click(evaluate);
         $("#edit").click(switchToEditor);
         $("#evalToggleOutput").click( createHTMLElements.toggleOutput ) ;
 	}

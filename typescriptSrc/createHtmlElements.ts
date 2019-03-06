@@ -168,7 +168,8 @@ module createHtmlElements {
 		createButton("leftSideButton", "evalUndo", evalButtonsPalette, "undo-48x24.png", "Undo", null );
 		createButton("leftSideButton", "evalRedo", evalButtonsPalette, "redo-48x24.png", "Redo", null );
 		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonsPalette, "Output", null );
-		createButton("leftSideButton", "edit", evalButtonsPalette, "edit-48x24.png", "Edit", null);
+		createButton( "leftSideButton", "restart", evalButtonsPalette, "play-48x24.png", "Restart Animator", null);
+		createButton( "leftSideButton", "edit", evalButtonsPalette, "edit-48x24.png", "Edit", null);
 
 		create("div", "vms", "vms", animatorDiv) ;
 
