@@ -11,3 +11,4 @@ shell.cp("-R", "../docs/drawings/faviconit/favicon-96.png", "dist/public/");
 shell.cp("-R", "../docs/drawings/faviconit/favicon-64.png", "dist/public/");
 shell.cp("-R", "../docs/drawings/faviconit/favicon-32.png", "dist/public/");
 shell.cp("-R", "../docs/drawings/faviconit/favicon-16.png", "dist/public/");
+shell.cp("-R", "../icons/*.png", "dist/public/");

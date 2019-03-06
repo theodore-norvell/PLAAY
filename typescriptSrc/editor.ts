@@ -36,11 +36,11 @@ module editor {
 
     type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
 
-    enum DragEnum { CURRENT_TREE, TRASH, PALLETTE, NONE }
+    enum DragEnum { CURRENT_TREE, CLIPBOARD, PALLETTE, NONE }
 
     const redostack : Array<PSelection> = [];
     const undostack  : Array<PSelection> = [];
-    const trashArray : Array<PSelection> = [];
+    const clipboardArray : Array<PSelection> = [];
 
     // Invariant: draggedObject===undefined if and only if dragKind===DragEnum.NONE 
     let draggedObject : string|undefined ; 
@@ -55,7 +55,7 @@ module editor {
         generateHTMLSoon();
         $("#undo").click( undo );
         $("#redo").click( redo ) ;
-        $("#trash").click( toggleTrash ) ;
+        $("#clipboard").click( toggleClipboard ) ;
         $("#toggleOutput").click( createHTMLElements.toggleOutput ) ;
         $("#cut").click( cut );
         $("#copy").click( copy );
@@ -64,7 +64,7 @@ module editor {
         $("#swap").click( swap );
         
 
-        makeTrashDroppable( $("#trash") ) ;
+        makeClipboardDroppable( $("#clipboard") ) ;
         $( ".paletteItem" ).draggable( {
             helper:"clone",
             revert: true,
@@ -104,29 +104,29 @@ module editor {
 		return obj;
 	}
 
-    function addToTrash( sel : PSelection ) : void {                
-        trashArray.unshift( sel ) ;
-        if( trashArray.length > 10 ) trashArray.length = 10 ;
-        refreshTheTrash() ;
+    function addToClipboard( sel : PSelection ) : void {                
+        clipboardArray.unshift( sel ) ;
+        if( clipboardArray.length > 10 ) clipboardArray.length = 10 ;
+        refreshTheClipboard() ;
     }
 
-    function getFromTrash( ) : Option< PSelection > {
-        if( trashArray.length === 0 ) return none<PSelection>() ;
-        else return some( trashArray[0] ) ;
+    function getFromClipboard( ) : Option< PSelection > {
+        if( clipboardArray.length === 0 ) return none<PSelection>() ;
+        else return some( clipboardArray[0] ) ;
     }
 
-    function getFromDeepTrash( depth : number ) : Option< PSelection > {
-        if( trashArray.length <= depth ) return none<PSelection>() ;
-        else return some( trashArray[depth] ) ;
+    function getFromDeepClipboard( depth : number ) : Option< PSelection > {
+        if( clipboardArray.length <= depth ) return none<PSelection>() ;
+        else return some( clipboardArray[depth] ) ;
     }
 
 
-    function toggleTrash() : void {
-        let dialogDiv : JQuery = $('#trashDialog');
+    function toggleClipboard() : void {
+        let dialogDiv : JQuery = $('#clipboardDialog');
         if( dialogDiv.length === 0 ) {
-            dialogDiv = $("<div id='trashDialog' style='overflow:visible'><div/>") ;
+            dialogDiv = $("<div id='clipboardDialog' style='overflow:visible'><div/>") ;
             dialogDiv.appendTo('body') ;
-            dialogDiv.dialog({ dialogClass : 'no-close success-dialog', title: 'Trash' } );
+            dialogDiv.dialog({ dialogClass : 'no-close success-dialog', title: 'Clipboard' } );
             dialogDiv.dialog( 'close' ) ;
             return ; }
         
@@ -134,29 +134,29 @@ module editor {
             dialogDiv.dialog( 'close' ) ; 
         } else {
             dialogDiv.dialog( 'open' ) ; 
-            refreshTheTrash( ) ; 
-            makeTrashDroppable( dialogDiv ) ;
+            refreshTheClipboard( ) ; 
+            makeClipboardDroppable( dialogDiv ) ;
         }
 	}
 
-    function refreshTheTrash() : void {
-        const dialogDiv : JQuery = $('#trashDialog');
+    function refreshTheClipboard() : void {
+        const dialogDiv : JQuery = $('#clipboardDialog');
         if( dialogDiv.dialog( 'isOpen' )  ) {
             dialogDiv.empty() ;
-            for(let i = 0; i < trashArray.length; i++)
+            for(let i = 0; i < clipboardArray.length; i++)
             {
-                const trashItemDiv = create("div", "trashitem", null, dialogDiv).attr("data-trashitem", i.toString()) ;
-                const trashedSelection = trashArray[i] ;
-                const a : Array<pnode.PNode> =  trashedSelection.selectedNodes()  ;
+                const clipboardItemDiv = create("div", "clipboardItem", null, dialogDiv).attr("data-clipboardItem", i.toString()) ;
+                const clipboardedSelection = clipboardArray[i] ;
+                const a : Array<pnode.PNode> =  clipboardedSelection.selectedNodes()  ;
                 for( let j=0 ; j < a.length; ++j ) {
-                    trashItemDiv.append($(treeView.traverseAndBuild(a[j], -1, false))); }
+                    clipboardItemDiv.append($(treeView.traverseAndBuild(a[j], -1, false))); }
             }
-            installTrashItemDragHandler() ;
+            installClipboardItemDragHandler() ;
         }
     }
 
-    function installTrashItemDragHandler() : void {
-        $(".trashitem").draggable({
+    function installClipboardItemDragHandler() : void {
+        $(".clipboardItem").draggable({
             helper:'clone',
             //appendTo:'body',
             revert: true ,
@@ -165,23 +165,23 @@ module editor {
             appendTo: '#container',
             containment: false,
             start: function(event : Event,ui : JQueryUI.DraggableEventUIParams) : void {
-                console.log( ">> Drag handler for things in trash" ) ;
-                dragKind = DragEnum.TRASH ;
+                console.log( ">> Drag handler for things in clipboard" ) ;
+                dragKind = DragEnum.CLIPBOARD ;
                 draggedObject = $(this).parent().attr("class");
-                draggedSelection = trashArray[$(this).attr("data-trashitem")];
-                console.log( "<< Drag handler for things in trash" ) ;
+                draggedSelection = clipboardArray[$(this).attr("data-clipboardItem")];
+                console.log( "<< Drag handler for things in clipboard" ) ;
             }
         });
     }
 
-    function makeTrashDroppable( trash : JQuery ) : void {
-        trash.droppable({
+    function makeClipboardDroppable( clipboard : JQuery ) : void {
+        clipboard.droppable({
             accept: ".canDrag",
             hoverClass: "hover",
             tolerance:'pointer',
             greedy: true,
             drop: function(event : Event,ui : JQueryUI.DroppableEventUIParam) : void {
-                console.log(">> Dropping into trash" );
+                console.log(">> Dropping into clipboard" );
                 if( dragKind !== DragEnum.CURRENT_TREE ) { return ; }
                 console.log("   ui is " + ui.draggable.toString()  );
                 const optSelectionToDelete : Option<PSelection>
@@ -191,19 +191,19 @@ module editor {
                     selectionToDelete => treeMgr.delete( selectionToDelete ) ) ;
                 opt.map(
                     sel => {
-                        console.log("   Dropping into trash a" );
+                        console.log("   Dropping into clipboard a" );
                         console.log("   New selection is. " + sel.toString() );
                         
                         // Note that:
                         //   optSelectionToDelete.isEmpty() ===>  opt.isEmpty()
                         // Therefore the use of optSelectionToDelete.first() below
                         // can not fail.
-                        addToTrash( optSelectionToDelete.first() ) ;
+                        addToClipboard( optSelectionToDelete.first() ) ;
                         update( sel ) ;
-                        console.log("   Dropping into trash b" );
-                        console.log("   Dropping into trash c" );
+                        console.log("   Dropping into clipboard b" );
+                        console.log("   Dropping into clipboard c" );
                     } );
-                console.log("<< Dropping into trash" );
+                console.log("<< Dropping into clipboard" );
             }
         });
     }
@@ -276,9 +276,9 @@ module editor {
                                 showAlternativesDialog(selectionArray);
                         }
                     }
-                    else if( dragKind === DragEnum.TRASH ) 
+                    else if( dragKind === DragEnum.CLIPBOARD ) 
                     {
-                        console.log("  Second case. (Drag from trash)." ) ;
+                        console.log("  Second case. (Drag from clipboard)." ) ;
                         console.log("  Dragged Selection is " +  draggedSelection.toString() ) ;
                         const opt = treeMgr.paste( draggedSelection, dropTarget ) ;
                         console.log("  opt is " + opt ) ;
@@ -312,7 +312,7 @@ module editor {
             revert: true,
             opacity: 0.5, 
             start: function(event : Event, ui : JQueryUI.DraggableEventUIParams) : void {
-                console.log( ">> Drag handler for things in or in the trash" ) ;   
+                console.log( ">> Drag handler for things in or in the clipboard" ) ;   
                 const optDraggedSelection : Option<PSelection> = treeView.getPathToNode(currentSelection.root(), $(this));
                 optDraggedSelection.map( ds => {
                     dragKind = DragEnum.CURRENT_TREE ;            
@@ -425,7 +425,7 @@ module editor {
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
-            // Paste from deep trash: Cntl-number key or Cmd-number key
+            // Paste from deep clipboard: Cntl-number key or Cmd-number key
             else if ((e.ctrlKey || e.metaKey) && ((e.which >= 49 && e.which <= 57) || e.which >= 97 && e.which <= 105)) 
             {
                 let num : number = e.which;
@@ -434,7 +434,7 @@ module editor {
                     num -= 48; //Convert numpad key to number key
                 }
                 num -= 48; //convert from ASCII code to the number
-                getFromDeepTrash(num).map( (src : PSelection) =>
+                getFromDeepClipboard(num).map( (src : PSelection) =>
                      treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
                          update( sel ) ) ) ;
                 e.stopPropagation(); 
@@ -794,29 +794,29 @@ module editor {
     function cut() : void {
         const opt = treeMgr.delete(currentSelection);
         opt.map((sel: PSelection) => {
-            addToTrash(currentSelection);
+            addToClipboard(currentSelection);
             update(sel);
         });
     }
 
     function copy() : void {
-        addToTrash(currentSelection);
+        addToClipboard(currentSelection);
     }
 
     function paste() : void {
-        getFromTrash().map((src: PSelection) =>
+        getFromClipboard().map((src: PSelection) =>
             treeMgr.paste(src, currentSelection)
                    .map( update ));
     }
 
     function move() : void {
-        getFromTrash().map((src: PSelection) =>
+        getFromClipboard().map((src: PSelection) =>
             treeMgr.move(src, currentSelection)
                    .map(update));
     }
     
     function swap() : void {
-        getFromTrash().map((src: PSelection) =>
+        getFromClipboard().map((src: PSelection) =>
             treeMgr.swap(src, currentSelection)
                    .map(update));
     }

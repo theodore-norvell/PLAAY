@@ -88,17 +88,17 @@ module createHtmlElements {
 
 		//createTexted("div", "stack evalVisible", "stackbar", leftSideArea, null);
 		//create("table", null, "stackVal", $("#stackbar"));
-		createTexted("div", "leftSideButton editButton", "play", leftButtonsPalette, "Play", null);
-		createTexted("div", "leftSideButton editButton", "undo", leftButtonsPalette, "Undo", null);
-		createTexted("div", "leftSideButton editButton", "redo", leftButtonsPalette, "Redo", null);
-		createTexted("div", "leftSideButton editButton", "trash", leftButtonsPalette, "Trash", null);
+		createButton( "leftSideButton", "play", leftButtonsPalette, "play-48x24.png", "Play", null);
+		createButton("leftSideButton", "undo", leftButtonsPalette, "undo-48x24.png", "Undo", null);
+		createButton("leftSideButton", "redo", leftButtonsPalette, "redo-48x24.png", "Redo", null);
+		createButton("leftSideButton", "clipboard", leftButtonsPalette, "clipboard-48x24.png", "Clipboard", null);
 		createTexted("div", "leftSideButton", "toggleOutput", leftButtonsPalette, "Output", null);
 		
-		createTexted("div", "leftSideButton", "cut", rightButtonsPalette, "Cut", null);
-		createTexted("div", "leftSideButton", "copy", rightButtonsPalette, "Copy", null);
-		createTexted("div", "leftSideButton", "paste", rightButtonsPalette, "Paste", null);
-		createTexted("div", "leftSideButton", "move", rightButtonsPalette, "Move", null);
-		createTexted("div", "leftSideButton", "swap", rightButtonsPalette, "Swap", null);
+		createButton("leftSideButton", "cut", rightButtonsPalette, "cut-48x24.png", "Cut", null);
+		createButton("leftSideButton", "copy", rightButtonsPalette, "copy-48x24.png", "Copy", null);
+		createButton("leftSideButton", "paste", rightButtonsPalette, "paste-48x24.png", "Paste", null);
+		createButton("leftSideButton", "move", rightButtonsPalette, "move-48x24.png", "Move", null);
+		createButton("leftSideButton", "swap", rightButtonsPalette, "swap-48x24.png", "Swap",  null);
 		
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
@@ -158,15 +158,17 @@ module createHtmlElements {
 		const animatorLeftSideArea = $("#animatorLeftSideArea");
 		create("div", "buttonArea", "evalButtonArea", animatorLeftSideArea);
 		const evalButtonArea = $("#evalButtonArea");
-		createTexted("div", "leftSideButton", "edit", evalButtonArea, "Edit", null);
-		createTexted("div", "leftSideButton", "advance", evalButtonArea, "Next", null );
-		createTexted("div", "leftSideButton", "evalStepInto", evalButtonArea, "Into", null ) ;
-		createTexted("div", "leftSideButton", "evalStepOver", evalButtonArea, "Over", null );
-		createTexted("div", "leftSideButton", "evalStepToReturn", evalButtonArea, "Return", null );
-		createTexted("div", "leftSideButton", "run", evalButtonArea, "Run", null );
-		createTexted("div", "leftSideButton", "evalUndo", evalButtonArea, "Undo", null );
-		createTexted("div", "leftSideButton", "evalRedo", evalButtonArea, "Redo", null );
-		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonArea, "Output", null );
+		const evalButtonsPalette = create("div", "palette", "evalButtonsPalette", evalButtonArea);
+		
+		createButton("leftSideButton", "run", evalButtonsPalette, "run-48x24.png", "Run", null );
+		createButton("leftSideButton", "advance", evalButtonsPalette, "next-48x24.png", "Step", null );
+		createButton("leftSideButton", "evalStepInto", evalButtonsPalette, "into-48x24.png", "Step Into", null ) ;
+		createButton("leftSideButton", "evalStepOver", evalButtonsPalette, "over-48x24.png", "Step Over", null );
+		createButton("leftSideButton", "evalStepToReturn", evalButtonsPalette, "out-48x24.png", "Step Out", null );
+		createButton("leftSideButton", "evalUndo", evalButtonsPalette, "undo-48x24.png", "Undo", null );
+		createButton("leftSideButton", "evalRedo", evalButtonsPalette, "redo-48x24.png", "Redo", null );
+		createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonsPalette, "Output", null );
+		createButton("leftSideButton", "edit", evalButtonsPalette, "edit-48x24.png", "Edit", null);
 
 		create("div", "vms", "vms", animatorDiv) ;
 
@@ -223,6 +225,20 @@ module createHtmlElements {
 		if (className !== null) { obj.addClass(className); }
 		if (idName !== null) { obj.attr("id", idName); }
 		if (parentElement !== null) { obj.appendTo(parentElement); }
+		return obj;
+	}
+
+	function createButton( className: string|null,
+                           idName: string|null,
+                           parentElement: JQuery|null,
+                           source : string,
+                           altText: string,
+                           action : Actions|null): JQuery {
+		const obj = create("img", className, idName, parentElement);
+		obj.attr( "src", source ) ;
+		obj.attr( "alt", altText);
+		obj.attr( "title", altText ) ;
+		if ( action !== null) { obj.data("action", action) ; }
 		return obj;
 	}
 
