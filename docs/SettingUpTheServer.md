@@ -20,7 +20,7 @@ If necessary create a server. I used an EC2 Amazon Machine Instance on Amazon We
 
 Install `npm`, `node`, and `typescript`.
 
-Use `git clone` to make a clone of PLAAY. In the client source directory run `npm install`.  Do the same in the server directory. 
+Use `git clone` to make a clone of PLAAY. In the client source directory run `npm ci`.  Do the same in the server directory. 
 
 ### Make the .env file
 
