@@ -1769,45 +1769,37 @@ describe('pop built in', function(): void {
 
 describe( 'ExprSeqLabel', function () : void {
     it( 'should evaluate to a NumberV equaling 3', function () : void {
-        const rootLabel = new labels.ExprSeqLabel();
         const op1 = labels.mkNumberLiteral("1");
         const op2 = labels.mkNumberLiteral("2");
-        const root = new PNode(rootLabel, [op1, op2]);
-        const vm = makeStdVMS( root )  ;
+        const root = labels.mkExprSeq( [op1, op2]) ;
+        const vm = makeStdVMS( root ) ;
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ; // select the root
+        vm.advance() ; // select op1
         assert.check(  vm.isReady() ) ;
-        vm.advance() ; // previsits the root
+        vm.advance() ; // step the op1
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ; // select the first child
+        vm.advance() ; // select op2
         assert.check(  vm.isReady() ) ;
-        vm.advance() ; // step the first child
+        vm.advance() ; // step op2
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ; // select the second child
+        vm.advance() ; // select root
         assert.check(  vm.isReady() ) ;
-        vm.advance() ; // step the second child
-        assert.check( ! vm.isReady() ) ;
-        vm.advance() ; // select root again
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ; // step the root again
+        vm.advance() ; // step the root
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
         assert.check( val instanceof NumberV ) ;
         assert.check( ( val as NumberV ).getVal() === 2 ) ;
     } );
+
     it( 'should work when the sequence is empty', function () : void {
         const rootLabel = new labels.ExprSeqLabel();
         const root = new PNode(rootLabel, []);
         const vm = makeStdVMS( root )  ;
         assert.check( ! vm.isReady() ) ;
-        vm.advance() ; // select the root
-        assert.check(  vm.isReady() ) ;
-        vm.advance() ; // previsits the root
-        assert.check( ! vm.isReady() ) ;
         vm.advance() ; // select root again
         assert.check(  vm.isReady() ) ;
-        vm.advance() ; // step the root again
+        vm.advance() ; // step the root
         assert.check( vm.isDone() ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -1858,29 +1850,21 @@ describe('IfLabel', function () : void{
         const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
         const root : PNode = new PNode(ifLabel, ifArray);
         const vm = makeStdVMS( root )  ;
-
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        
         //select condition node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
-
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        
         //step condition node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
-
-        //parse condition node to select the first expr sequence
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        
+        // Select the 5
         vm.advance();
-
-        //step expr seq node
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
 
-        //select number literal 5
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step number literal 5
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        //step the 5
         vm.advance();
 
         //select expr seq node
@@ -1919,38 +1903,29 @@ describe('IfLabel', function () : void{
         const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
         const root : PNode = new PNode(ifLabel, ifArray);
         const vm = makeStdVMS( root )  ;
-
-        //run test
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        
         //select condition node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
-
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        
         //step condition node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
-
-        //parse condition node to select the second expr sequence
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        
+        // Select the 7
         vm.advance();
-
-        //step expr seq node
         assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
-        //select number literal 7
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
 
         //step number literal 7
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
 
         //select expr seq node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
 
         //step expr seq node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
         vm.advance();
 
         //select if node
@@ -1968,6 +1943,35 @@ describe('IfLabel', function () : void{
         const result : number = (val as NumberV).getVal();
         assert.check(result === 7, "It did not return 7 as expected. It returned " + result);
     });
+    
+    it('should select recursively', function() : void {
+        //setup
+        const ifLabel : IfLabel = new labels.IfLabel();
+        const condition : PNode = labels.mkTrueBooleanLiteral();
+        const theTwo : PNode = labels.mkNumberLiteral("2") ;
+        const ifTrue : PNode = labels.mkClosedCallVar(
+                                "+",
+                                [theTwo,
+                                 labels.mkNumberLiteral("3"),] ) ;
+        const ifFalse : PNode = labels.mkNumberLiteral("7");
+        const trueExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifTrue]);
+        const falseExprSeqNode : PNode = new PNode(new labels.ExprSeqLabel(), [ifFalse]);
+        const ifArray : Array<PNode> = [condition, trueExprSeqNode, falseExprSeqNode];
+        const root : PNode = new PNode(ifLabel, ifArray);
+        const vm = makeStdVMS( root )  ;
+
+        //select condition node
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();
+
+        //step condition node
+        assert.check(vm.isReady(), "VMS is not ready when it should be.");
+        vm.advance(); 
+
+        // Select the 2
+        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
+        vm.advance();  
+    });
 });
 
 //test this here since it is needed for while
@@ -1979,14 +1983,7 @@ describe('scrub', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select expr seq node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step expr seq node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
-
+        
         //select number literal node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
         vm.advance();
@@ -2013,13 +2010,6 @@ describe('scrub', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select expr seq node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step expr seq node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
 
         //select number literal node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
@@ -2058,13 +2048,6 @@ describe('scrub', function () : void {
         const vm = makeStdVMS( root )  ;
 
         //run test
-        //select expr seq node
-        assert.check(!vm.isReady(), "VMS is ready when it should not be.");
-        vm.advance();
-
-        //step expr seq node
-        assert.check(vm.isReady(), "VMS is not ready when it should be.");
-        vm.advance();
 
         //select number literal node
         assert.check(!vm.isReady(), "VMS is ready when it should not be.");
@@ -2526,27 +2509,9 @@ describe('WhileLabel', function () : void {
         //run the test
         selectAndStep( vm ) ; // The guard, which is true
 
-        vm.advance() ; // Select the body
-        assert.check( vm.isReady() ) ;
-        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
-        
-        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
-        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
-        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        assert.check( ! vm.hasExtraInformation() ) ;
-
-        vm.advance() ; // Step the body for the first time this iteration
-        assert.check( ! vm.isReady() ) ;
-        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
-        
-        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
-        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
-        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        assert.check( vm.hasExtraInformation() ) ;
-
         selectAndStep( vm ) ; // The number node.
 
-        selectAndStep( vm ) ; // The expression seq again
+        selectAndStep( vm ) ; // The expression seq.
 
         // So the expression seq is now mapped.
         assert.check( ! vm.isReady() ) ;
@@ -2555,8 +2520,7 @@ describe('WhileLabel', function () : void {
         assert.check( vm.getValMap().isMapped( collections.list(0) ) );
         assert.check( vm.getValMap().isMapped( collections.list(1) ) ) ;
         assert.check( vm.getValMap().isMapped( collections.list(1,0) ) );
-        // TODO Check that the expr seq has extra information still
-
+        
         // Select the guard again.  This should have the side effect of scrubbing.
         vm.advance() ;
         assert.check( vm.isReady() ) ;
@@ -2565,32 +2529,13 @@ describe('WhileLabel', function () : void {
         assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
         assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
         assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        // TODO Find a way to check that the extra information on the ExpSeq was scrubbed
-
+        
         //  Run a second iteration 
         vm.advance() ; // Step the guard.
 
-        vm.advance() ; // Select the body
-        assert.check( vm.isReady() ) ;
-        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
-        
-        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
-        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
-        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        assert.check( ! vm.hasExtraInformation() ) ;
-
-        vm.advance() ; // Step the body for the first time this iteration
-        assert.check( ! vm.isReady() ) ;
-        assert.check( vm.getPending().equals( collections.list(1) ) ) ;
-        
-        assert.check( vm.getValMap().isMapped( collections.list(0) ) );
-        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
-        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        assert.check( vm.hasExtraInformation() ) ;
-
         selectAndStep( vm ) ; // The number node.
 
-        selectAndStep( vm ) ; // The expression seq again
+        selectAndStep( vm ) ; // The expression seq
 
         // So the expression seq is now mapped.
         assert.check( ! vm.isReady() ) ;
@@ -2599,18 +2544,8 @@ describe('WhileLabel', function () : void {
         assert.check( vm.getValMap().isMapped( collections.list(0) ) );
         assert.check( vm.getValMap().isMapped( collections.list(1) ) ) ;
         assert.check( vm.getValMap().isMapped( collections.list(1,0) ) );
-        // TODO Check that the expr seq has extra information still
-
-        // Select the guard again.  This should have the side effect of scrubbing.
-        vm.advance() ;
-        assert.check( vm.isReady() ) ;
-        assert.check( vm.getPending().equals( collections.list(0) ) ) ;
         
-        assert.check( ! vm.getValMap().isMapped( collections.list(0) ) );
-        assert.check( ! vm.getValMap().isMapped( collections.list(1) ) ) ;
-        assert.check( ! vm.getValMap().isMapped( collections.list(1,0) ) );
-        // TODO Find a way to check that the extra information on the ExpSeq was scrubbed
-
+        
     });
 
     it('should run one time when flipping the value of the guard in the body', function () : void {
@@ -2630,7 +2565,7 @@ describe('WhileLabel', function () : void {
 
         //run the test.  We expect to select  and step the following nodes.
         const nodes = [root, trueNode, varDeclNode,
-                       guardNode, bodyNode, guardNode, falseNode, assignNode, bodyNode,
+                       guardNode, guardNode, falseNode, assignNode, bodyNode,
                        guardNode, whileNode,
                        guardNode, root ] ;
         

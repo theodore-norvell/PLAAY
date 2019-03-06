@@ -185,7 +185,7 @@ module interpreter {
         // create the stack frame.  Then on a postvisit when the value of
         // the last expression becomes the value of the sequence.
         // TODO Optimize the case where there are no variable declarations.
-        if( ! vm.hasExtraInformation() ) {
+        if( exprSeqNeedsPrevisit(vm) && ! vm.hasExtraInformation() ) {
             // Must previsit.
             vm.setReady( true ) ; }
         else {
@@ -442,8 +442,12 @@ module interpreter {
     }
 
     function exprSeqStepper(vm : VMS) : void {
-        // We must step the node twice. Once on a previsit and once on a postvisit.
-        if( ! vm.hasExtraInformation() ) {
+        const needsPrevisit = exprSeqNeedsPrevisit(vm) ;
+        // When previsit is true, we must step the node twice.
+        // Once on a previsit and once on a postvisit.
+        // The previsit pushes a stack frame.
+        // The postvisit pops it.
+        if( needsPrevisit && ! vm.hasExtraInformation() ) {
           previsitNode(vm);
         }
         else {
@@ -454,7 +458,8 @@ module interpreter {
                                    ? TupleV.theDoneValue
                                    : vm.getChildVal( numberOfChildren - 1) ) ;
             vm.finishStep( value, false );
-            vm.getEval().popFromVarStack() ; }
+            if( needsPrevisit ) {
+                vm.getEval().popFromVarStack() ; } }
     }
 
     function objectStepper(vm : VMS) : void {
@@ -482,6 +487,17 @@ module interpreter {
             array.addField(field) ;
         }
         vm.finishStep(array, false);
+    }
+
+    function exprSeqNeedsPrevisit(vm: VMS) : boolean {
+      const node = vm.getPendingNode() ;
+      const sz = node.count() ;
+      for( let i=0; i < sz ; ++i ) {
+          const childNode = node.child(i) ;
+          if( childNode.label() instanceof labels.VarDeclLabel ) {
+              return true ; }
+      } // end for
+      return false ;
     }
 
     function previsitNode(vm: VMS) : void {
