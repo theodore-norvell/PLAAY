@@ -102,16 +102,8 @@ module createHtmlElements {
 		
 		//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
-		createTexted("div", "leftSideButton paletteItem", "if", palette, "?", Actions.IF );
-		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK, Actions.WHILE );
-		createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": :=", Actions.VAR_DECL );
-		createTexted("div", "leftSideButton paletteItem varItem", "loc", palette, "loc", Actions.LOC);
-		createTexted("div", "leftSideButton paletteItem varItem", "assign", palette, ":=", Actions.ASSIGN);
-		createTexted("div", "leftSideButton paletteItem varItem", "var", palette, "x", Actions.VAR);
 		createTexted("div", "leftSideButton paletteItem", "callvar", palette, "+ - ...", Actions.CALL_VAR);
 		createTexted("div", "leftSideButton paletteItem", "call", palette, "call", Actions.CALL);
-		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", Actions.INDEX);
-		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", Actions.DOT);
 		createTexted("div", "leftSideButton paletteItem dataItem", "stringliteral", palette, '""', Actions.STRING);
 		createTexted("div", "leftSideButton paletteItem dataItem", "numberliteral", palette, '123', Actions.NUMBER);
 		createTexted("div", "leftSideButton paletteItem dataItem", "nullliteral", palette, NULLMARK, Actions.NULL );
@@ -121,7 +113,15 @@ module createHtmlElements {
 		createTexted("div", "leftSideButton paletteItem dataItem", "tuple", palette, "( )", Actions.TUPLE);
 		createTexted("div", "leftSideButton paletteItem greenText", "trueliteral", palette, TRUEMARK, Actions.TRUE);
 		createTexted("div", "leftSideButton paletteItem redText", "falseliteral", palette, FALSEMARK, Actions.FALSE);
-
+		createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": :=", Actions.VAR_DECL );
+		createTexted("div", "leftSideButton paletteItem varItem", "var", palette, "x", Actions.VAR);
+		createTexted("div", "leftSideButton paletteItem varItem", "loc", palette, "loc", Actions.LOC);
+		createTexted("div", "leftSideButton paletteItem varItem", "assign", palette, ":=", Actions.ASSIGN);
+		createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", Actions.INDEX);
+		createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", Actions.DOT);
+		createTexted("div", "leftSideButton paletteItem", "if", palette, "?", Actions.IF );
+		createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK, Actions.WHILE );
+				
 		// type palette items
 		createTexted("div","leftSideButton paletteItem typeItem","booleanType",typePalette,BOOLEANTYPE, Actions.BOOLEAN_TYPE );
 		createTexted("div","leftSideButton paletteItem typeItem","stringType",typePalette,STRINGTYPE, Actions.STRING_TYPE);

@@ -281,7 +281,7 @@ html, body
 {
     flex: 1 1 auto ;
     width: auto;
-    height: 25%;
+    height: auto;
     margin: 1em 1em 1em 1em ;
     background-color: #a6a6a6 ;
     overflow-y: auto;
