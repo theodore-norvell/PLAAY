@@ -84,31 +84,8 @@ module animator
         evaluationMgr.initialize( editor.getCurrentSelection().root(),
                                   libraries, transactionMgr );
         transactionMgr.checkpoint();
-        // $("#vms").empty()
-        // 	.append(traverseAndBuild(evaluationMgr.getVMS().getRoot(), -1, true)) ;
-        $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, animatorHeight);
-        const animation : svg.G = animatorArea.group().move(10, 10);
-        const stack : svg.G = animatorArea.group();
-        animationView.clearObjectDrawingInfo() ;
-        traverseAndBuild( evaluationMgr.getVMS().getRoot(),
-                          animation,
-                          nil(),
-                          list(-1),
-                          evaluationMgr.getVMS().getValMap(),
-                          "",
-                          list(-1));
-        buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
-        const animationBBox : svg.BBox = animation.bbox();
-        const stackBBox : svg.BBox = stack.bbox();
-        let stackOffset : number = 400;
-        //keep stack spacing consistent unless animation too large
-        if (stackOffset < animationBBox.width){
-            stackOffset = animationBBox.width + 100;
-        }
-        stack.dmove(stackOffset, 0);
         
-        animatorArea.size(animationBBox.width + stackBBox.width + stackOffset, animationBBox.height + stackBBox.height + 50);
+        buildSVG() ;
         turtleWorld.redraw() ;
     }
 
@@ -169,31 +146,23 @@ module animator
 
     function buildSVG() : void
     {
-        $("#stackVal").empty();
         $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(1000, 1000);
+        const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, 1000);
         const animation : svg.G = animatorArea.group().move(10, 10);
-        const objectArea : svg.G = animatorArea.group();
-        const stack : svg.G = animatorArea.group();
-        const arrowGroup : svg.G = animatorArea.group();
 
-        let toHighlight : List<number>;
-        let error : string = "";
-        let errorPath : List<number> = list(-1);
-        if (evaluationMgr.getVMS().isReady() ) 
-        {
-            toHighlight = evaluationMgr.getVMS().getPending();
-        }
-        else
-        {
-            toHighlight = list(-1);
-        }
-        
-        if(evaluationMgr.getVMS().hasError())
-        {
-            errorPath = evaluationMgr.getVMS().getPending();
-            error = evaluationMgr.getVMS().getError();
-        }
+        const toHighlight : List<number> = 
+                evaluationMgr.getVMS().isReady()
+            ?   evaluationMgr.getVMS().getPending()
+            :   list(-1) ;
+        const error : string =
+                evaluationMgr.getVMS().hasError()
+            ?   evaluationMgr.getVMS().getError()
+            :   "" ;
+        const errorPath : List<number> = 
+                evaluationMgr.getVMS().hasError()
+            ?   evaluationMgr.getVMS().getPending()
+            :   list( -1 ) ;
+
         animationView.clearObjectDrawingInfo();
         traverseAndBuild( evaluationMgr.getVMS().getRoot(),
                           animation,
@@ -202,15 +171,19 @@ module animator
                           evaluationMgr.getVMS().getValMap(),
                           error,
                           errorPath);
+
+        const stack : svg.G = animatorArea.group();
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
+
+        const objectArea : svg.G = animatorArea.group();
         buildObjectArea(objectArea);
         const animationBBox : svg.BBox = animation.bbox();
         const stackBBox : svg.BBox = stack.bbox();
+        let stackOffset : number = 800;
         const objectAreaBBox : svg.BBox = objectArea.bbox();
         let objectAreaOffset : number = 400;
-        let stackOffset : number = 800;
-        let neededHeight : number = 100;
 
+        let neededHeight : number = 100;
         //keep object area spacing consistent unless animation too large
         if (objectAreaOffset < animationBBox.width){
             objectAreaOffset = animationBBox.width + 100;
@@ -223,6 +196,7 @@ module animator
         }
         stack.dmove(stackOffset, 0);
 
+        const arrowGroup : svg.G = animatorArea.group();
         drawArrows(arrowGroup, animatorArea);
 
         if(neededHeight < animationBBox.height)
