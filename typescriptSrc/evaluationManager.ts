@@ -107,7 +107,9 @@ module evaluationManager {
 
         public shouldStop( vm : VMS ) : boolean {
             return this.count > 0
-                && (vm.isDone() || vm.isReady()) ;
+                && (vm.isDone()
+                    || vm.isReady()
+                       && ! vm.getInterpreter().veryBoring(vm)) ;
         }
         public step( vm : VMS ) : void {
             this.count += 1 ;
@@ -134,8 +136,14 @@ module evaluationManager {
 
     }
 
-    //Stops when the current evaluation is done or when the current expression
-    //is evaluated
+    //Stops when
+    // at least one step has been made
+    // and ()
+    //    the initial evaluation is done
+    // or the initial evaluation has been popped from the stack
+    // or another line in the initial evaluation has been started
+    //    and the vm is ready to be stepped
+    // or a closure is about to be called
     class StepOverStopper extends Stopper {
         protected count : number = 0 ;
         protected stackDepth : number ;
@@ -167,25 +175,32 @@ module evaluationManager {
         public shouldStop( vm : VMS ) : boolean {
             return this.count > 0
                 && (   this.currentEval.isDone() 
-                   ||  this.stackDepth > vm.getEvalStack().getSize() && vm.isReady()
+                   ||  this.stackDepth > vm.getEvalStack().getSize()
+                       && vm.isReady()
+                       && ! vm.getInterpreter().veryBoring(vm)
                    ||  this.currentEval === vm.getEval()
                        && ! this.savedPath.equals( this.pathToLowestInterestingNode(vm) )
-                       && vm.isReady() ) ;
+                       && vm.isReady() && ! vm.getInterpreter().veryBoring(vm)
+                   || this.currentEval === vm.getEval()
+                      && vm.isReady()
+                      && vm.getInterpreter().veryInteresting(vm) ) ;
         }
+
         public step( vm : VMS ) : void {
             this.count += 1 ;
         }
 
     }
 
-    //Stops when the current evaluation is done or when the current expression
-    //is evaluated, or when a new evaluation is popped onto the stack.
+    // Stops when the current evaluation is done or when the current expression
+    // is evaluated, or when a new evaluation is popped onto the stack,
+    // or when a call is about to be made
     class StepIntoStopper extends StepOverStopper {
 
         public shouldStop( vm : VMS ) : boolean {
             return super.shouldStop(vm)
                 || this.stackDepth < vm.getEvalStack().getSize()
-                   && vm.isReady() ;
+                   && vm.isReady()  && ! vm.getInterpreter().veryBoring(vm) ;
         }
 
     }

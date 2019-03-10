@@ -60,6 +60,66 @@ module interpreter {
             selector( vm ) ;
             assert.check( vm.hasError() || vm.canAdvance() && vm.isReady() ) ;
         }
+
+        public veryInteresting( vm : VMS ) : boolean {
+            //console.log(">> veryInteresting") ;
+            if( ! vm.isReady() ) {
+                return false ;
+            } else {
+                const lab = vm.getPendingNode().label() ;
+                //console.log("   lab is ", lab.toString() ) ;
+                if( lab instanceof labels.CallLabel ) {
+                    const func = vm.getChildVal(0) ;
+                    return func instanceof values.ClosureV ;
+                } else if( lab instanceof labels.CallVarLabel ) {
+                    const name = lab.getString().first() ;
+                    //console.log("   name is ", name ) ;
+                    const feild = vm.getStack().getField(name ) ;
+                    if( vm.getStack().hasField( name ) ) {
+                        //console.log("   opt field value is ", feild.getValue().toString() ) ;
+                        const optValue = feild.getValue() ;
+                        if( optValue.isEmpty() ) return false ;
+                        else {
+                            const value = optValue.first() ;
+                            //console.log("   field value is ", value.toString() ) ;
+                            //console.log("   field value kind is ", value.getKind() ) ;
+                            if( value.getKind() === vms.ValueKind.CLOSURE ) {
+                                return true ;
+                            } else if( value.getKind() === vms.ValueKind.LOCATION ) {
+                                const locn : LocationV = value as LocationV ;
+                                const locnValue = locn.getValue() ;
+                                return ! locnValue.isEmpty() && locnValue.first().getKind() === vms.ValueKind.CLOSURE ;
+                            } else {
+                                return false ;
+                            }
+                        }
+                    } else {
+                        return false ; }
+                } else {
+                    return false ;
+                } 
+            }
+        }
+
+        public veryBoring( vm : VMS ) : boolean {
+            if( ! vm.isReady() ) {
+                return false ;
+            } else {
+                const lab = vm.getPendingNode().label() ;
+                if( lab instanceof labels.BooleanLiteralLabel ) {
+                    return true ; }
+                else if( lab instanceof labels.NullLiteralLabel ) {
+                    return true ; }
+                else if( lab instanceof labels.NumberLiteralLabel ) {
+                    return true ; }
+                else if( lab instanceof labels.StringLiteralLabel ) {
+                    return true ; }
+                else if( lab instanceof labels.ExprSeqLabel ) {
+                    return ! exprSeqNeedsPrevisit(vm) ; }
+                else {
+                    return false ; }
+            }
+        }
     }
 
     const theInterpreter = new PlaayInterpreter ;

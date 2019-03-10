@@ -33,6 +33,8 @@ module vms{
     export interface Interpreter {
         step : (vms:VMS) => void ;
         select : (vms:VMS) => void ;
+        veryInteresting : (vms:VMS) => boolean ;
+        veryBoring : (vms:VMS) => boolean ;
     }
 
     /** The execution state of a virtual machine.
