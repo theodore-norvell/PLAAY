@@ -147,7 +147,8 @@ module animator
     function buildSVG() : void
     {
         $("#vms").empty().append("<div id='svgContainer'></div>");
-        const animatorArea : svg.Doc = svg("svgContainer").size(animatorWidth, 1000);
+        const animatorArea : svg.Doc =
+            svg("svgContainer").size(animatorWidth, animatorHeight);
         const animation : svg.G = animatorArea.group().move(10, 10);
 
         const toHighlight : List<number> = 
