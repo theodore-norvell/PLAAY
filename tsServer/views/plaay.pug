@@ -15,25 +15,4 @@ html
         link( rel="icon" type="image/png" sizes="16x16" href="/favicon-16.png")
 
     body(id="body" class="plaay" onload=onLoad)
-        #upperArea
-            #bannerArea
-                img( src="/logo-small.png" alt="PLAAY" align="middle" )
-                | 
-                | -- The Programming Language for Adults and Youngsters
-            div(class="userBar" id="userBar")
-                unless user
-                    div(class="barButtons" id="login")
-                        | Login/Register
-                else
-                    div(class="barButtons" id="logout")
-                        | Logout
-                    div(class="barButtons" id="loadProgram")
-                        | Load Program
-                    div(class="barButtons" id="clearProgram")
-                        | Clear
-                    div(class="barButtons" id="updateProgram")
-                        | Save
-
-                div(class="barButtons" id="saveProgram")
-                    | Save As
 

@@ -55,3 +55,4 @@ Subtype-Prototype/QuickChkTests.hi
 Subtype-Prototype/QuickChkTests.o
 Subtype-Prototype/temp.hs
 typescriptSrc/node_modules
+*.env

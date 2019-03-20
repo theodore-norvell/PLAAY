@@ -25,8 +25,6 @@ module main {
             userRelated.loadProgram(programId);
         }
     }
-
-
 }
 
 export = main ;

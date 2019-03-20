@@ -74,7 +74,6 @@ module animator
 
     function evaluate() : void
     {
-        createHTMLElements.hideEditor() ;
         createHTMLElements.showAnimator() ;
         const libraries : values.ObjectV[] = [] ;
         const transactionMgr = new TransactionManager() ;
@@ -140,7 +139,6 @@ module animator
 
     function switchToEditor() : void
     {
-        createHTMLElements.hideAnimator() ;
         createHTMLElements.showEditor() ;
     }
 

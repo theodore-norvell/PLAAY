@@ -10,6 +10,7 @@ import collections = require( './collections' );
 import editor = require( './editor' );
 import pnode = require('./pnode');
 import selection = require( './selection');
+import createHtmlElements = require('./createHtmlElements');
 
 /** userRelated  provides the UI for communicating with the server. */
 module userRelated 
@@ -26,58 +27,35 @@ module userRelated
         $('#login').click(loginAction);
         $('#logout').click(logoutAction);
         $('#clearProgram').click(clearProgramAction);
-        $('#updateProgram').click(updateProgramAction);
         $('#saveProgram').click(saveProgramAction);
+        $('#saveAsProgram').click(saveAsProgramAction);
         $('#loadProgram').click(loadProgramAction);
     }
 
     function loginAction () : void
     {
-        $("body").append("<div id='dimScreen'></div>");
-        $('#dimScreen').append("<div id='registrationBox'>" +
-            "<div id='loginSection'>" +
-            "Login <br>" +
-            "<form name='loginUser' id='loginUser' method='post' action='/login'>" +
-            "Email: <input type='text' name='email' class='login-textbox' id='loginUsername' required><br>" +
-            "Password: <input type='password' name='password' class='login-textbox' required><br>" +
-            "<input type='submit' value='Login'>" +
-            "</form></div>" +
-            "<div id='registrationSection'>" +
-            "Register <br>" +
-            "<form name='registerNewUser' id='registerNewUser' method='post' action='/signup/'>" +
-            "Email: <input type='text' name='email' class='login-textbox' required><br>" +
-            "Password: <input type='password' name='password' class='login-textbox' required><br>" +
-            "Confirm Password: <input type='password' name='confirmPassword' class='login-textbox' required><br>" +
-            "<input type='submit' value='Register'></form></div>" +
-            "<div class='closewindow'>Close Window</div></div>");
-        $('.login-textbox').each(function (index, elem) {
-            $(elem).keydown(function (e) {
-                e.stopPropagation();
-            });
-        });
-        // $('#loginUser').submit(loginUser);
-        // $('#registerNewUser').submit(registerNewUser);
+        createHtmlElements.showLoginScreen() ;
         $('.closewindow').click(function () : void {
-            $("#dimScreen").remove();
-        });
+            createHtmlElements.showEditor() ;
+         });
     }
 
     function userSettingsAction ()  : void
     {
-        $('body').append("<div id='dimScreen'></div>");
-        $('#dimScreen').append("<div id='userSettingsChange'>" +
-            "<div id='editAccountTitle'>Edit Account Info:</div>" +
-            "<form name='editUserInfo' onSubmit='return editUser()' method='post'>" +
-            "Username: <input type='text' name='username'><br>" +
-            "Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
-            "&emsp;New: <input type='password' name='newpassword'><br>" +
-            "&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
-            "Email: <input> type='text' name='email'><br>" +
-            "<input type='submit' value='Submit Changes'></form>" +
-            "<div class='closewindow'>Close Window</div></div>");
-        $('.closewindow').click(function () : void {
-            $("#dimScreen").remove();
-        });
+        // $('body').append("<div id='dimScreen'></div>");
+        // $('#dimScreen').append("<div id='userSettingsChange'>" +
+        //     "<div id='editAccountTitle'>Edit Account Info:</div>" +
+        //     "<form name='editUserInfo' onSubmit='return editUser()' method='post'>" +
+        //     "Username: <input type='text' name='username'><br>" +
+        //     "Password:<br>&emsp;Old: <input type='password' name='oldpassword'><br>" +
+        //     "&emsp;New: <input type='password' name='newpassword'><br>" +
+        //     "&emsp;Confirm New: <input type='password' name='confirmnewpassword'><br>" +
+        //     "Email: <input> type='text' name='email'><br>" +
+        //     "<input type='submit' value='Submit Changes'></form>" +
+        //     "<div class='closewindow'>Close Window</div></div>");
+        // $('.closewindow').click(function () : void {
+        //     $("#dimScreen").remove();
+        // });
     }
 
     function logoutAction () : void
@@ -90,7 +68,7 @@ module userRelated
         window.location.href = '/';
     }
 
-    function updateProgramAction () : void
+    function saveProgramAction () : void
     {
         if (sessionStorage.length > 0) {
             $.post('/update',
@@ -100,11 +78,11 @@ module userRelated
                 });
         }
         else {
-            saveProgramAction();
+            saveAsProgramAction();
         }
     }
 
-    function saveProgramAction () : void
+    function saveAsProgramAction () : void
     {
         $('body').append("<div id='dimScreen'></div>");
         $('#dimScreen').append("<div id='getProgramList'>" +
@@ -205,7 +183,7 @@ module userRelated
                             id: 'currentUser',
                             value: user
                         }).appendTo('#userSettings');
-                        $("#saveProgram").show();
+                        $("#saveProgramAs").show();
                         $("#loadProgram").show();
                         $("#logout").show();
                         //$("#userSettings").val(user);
@@ -260,7 +238,7 @@ module userRelated
                             id: 'currentUser',
                             value: user
                         }).appendTo('#userSettings');
-                        $("#saveProgram").show();
+                        $("#saveProgramAs").show();
                         $("#loadProgram").show();
                         //$("#userSettings").val(user);
                         //alert(respText.username);
