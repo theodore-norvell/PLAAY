@@ -123,7 +123,6 @@ module animationView
     function drawObject(object : ObjectI, element : svg.Container, y : number, drawNestedObjects : boolean = true) : svg.Rect
     {
         
-        const padding : number = 15;
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
         for (let j = 0; j < numFields; j++){
@@ -142,7 +141,7 @@ module animationView
             subGroup.dmove(10, y + 5);
             y += subGroup.bbox().height + 5;
         }
-        let border;
+        let border : svg.Rect ;
         if(result.children().length !== 0)
         {
             border = makeObjectBorderSVG(element, result);
@@ -171,37 +170,51 @@ module animationView
 
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
-        const seqBox : svg.G = element.group();
-        const leftBracketText : svg.Text= element.text( "(" );
-        leftBracketText.style( textStyle );
-        leftBracketText.fill( LIGHT_BLUE );
-        let seqBoxX : number = 0;
-        seqBox.add(leftBracketText.dmove(seqBoxX, 0)); 
-        seqBoxX += leftBracketText.bbox().width + 2; 
-
+        const children = Array<svg.G>() ;
         const itemCount : number = tuple.itemCount();
         for (let i = 0; i < itemCount; i++) {
             const value : Value = tuple.getItemByIndex(i);
-            const el : svg.G = seqBox.group();
+            const el : svg.G = element.group();
             buildSVGForMappedNode(el, value, true);
-            el.dmove(seqBoxX + 5,0);  
-            seqBoxX += el.bbox().width + 5;
-            if(i !== itemCount - 1) {
-                const comma : svg.Text= element.text( ",");
-                comma.style( textStyle );
-                comma.fill( LIGHT_BLUE );
-                seqBox.add(comma.dmove(seqBoxX+1,0));
-                seqBoxX += comma.bbox().width + 6 ; 
-            }
+            children.push( el ) ; 
         }
-        seqBoxX += 2;
-        const rightBracketText : svg.Text= element.text( ")");
-        rightBracketText.style( textStyle );
-        rightBracketText.fill( LIGHT_BLUE );
-        seqBox.add( rightBracketText.dmove(seqBoxX, 0));
-
+        const seqBox = layOutTuple( element, children, LIGHT_BLUE ) ;
         let border = makeObjectBorderSVG(element, seqBox);
         return border;
+    }
+
+    function layOutTuple(element : svg.Container, children : svg.Element[], colour : string) : svg.G
+    {
+        const spaceInsideBracket = 10 ;
+        const spaceBeforeComma = 1 ;
+        const spaceAfterComma = 7 ;
+        const seqBox : svg.G = element.group();
+        const leftBracketText : svg.Text= element.text( "(" ) ;
+        leftBracketText.style( textStyle ) ;
+        leftBracketText.fill( colour ) ;
+        let seqBoxX : number = 0 ;
+        seqBox.add(leftBracketText.dmove(seqBoxX, 0)) ; 
+        seqBoxX += leftBracketText.bbox().width + spaceInsideBracket ; 
+
+        for (let i = 0; i < children.length; i++) {
+            const el : svg.Element = children[i] ;
+            seqBox.add( el.dmove(seqBoxX, 0) ) ;  
+            seqBoxX += el.bbox().width ;
+            if(i !== children.length - 1) {
+                const comma : svg.Text= element.text( "," ) ;
+                comma.style( textStyle ) ;
+                comma.fill( colour ) ;
+                seqBoxX += spaceBeforeComma ;
+                seqBox.add(comma.dmove(seqBoxX+1,0)) ;
+                seqBoxX += comma.bbox().width + spaceAfterComma ; 
+            }
+        }
+        if( children.length > 0 ) seqBoxX += spaceInsideBracket ;
+        const rightBracketText : svg.Text= element.text( ")") ;
+        rightBracketText.style( textStyle ) ;
+        rightBracketText.fill( colour ) ;
+        seqBox.add( rightBracketText.dmove(seqBoxX, 0)) ;
+        return seqBox ;
     }
 
     function makeObjectFieldSVG(base : svg.Container, name : svg.Text, value : svg.G) : void
@@ -769,33 +782,8 @@ module animationView
             break ;
             case labels.TupleLabel.kindConst :
             {
-                // TODO Combine this code with the code for tuple values.
                 const childArray = element.children();
-                const seqBox :  svg.G = element.group().dmove(0, 0) ;
-                const leftBracketText : svg.Text= element.text( "(" ) ;
-                leftBracketText.style( textStyle );
-                leftBracketText.fill( LIGHT_BLUE );
-                let seqBoxX : number = 0;
-                seqBox.add( leftBracketText.dmove(seqBoxX,0) );
-                seqBoxX += leftBracketText.bbox().width + 2; 
-    
-                for (let i = 0; i < childArray.length; ++i) {
-                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
-                    seqBoxX += childArray[i].bbox().width + 1 ;
-                    if( i !== childArray.length - 1) {
-                        const comma : svg.Text= element.text( ",");
-                        comma.style( textStyle );
-                        comma.fill(LIGHT_BLUE.toString());
-                        seqBox.add(comma.dmove(seqBoxX+1, 0));
-                        seqBoxX += comma.bbox().width + 6 ; 
-                    }                 
-                }
-                seqBoxX += 2;
-                const rightBracketText : svg.Text= element.text( ")");
-                rightBracketText.style( textStyle );
-                rightBracketText.fill( LIGHT_BLUE );
-                seqBox.add( rightBracketText.dmove(seqBoxX, 0) );
-
+                const seqBox = layOutTuple( element, childArray, LIGHT_BLUE ) ;
                 makeSimpleBorder(element, LIGHT_BLUE, 10);
             }
             break ;
@@ -910,32 +898,8 @@ module animationView
             case labels.TupleTypeLabel.kindConst :
             {
                 const childArray = element.children();
-                const seqBox :  svg.G = element.group() ;
-                const leftBracketText : svg.Text= element.text( "(" );
-                leftBracketText.style( textStyle );
-                leftBracketText.fill( YELLOW );
-                let seqBoxX : number = 0;
-                seqBox.add( leftBracketText.dmove(seqBoxX, 0) );
-                seqBoxX += leftBracketText.bbox().width + 2; 
-    
-                for (let i = 0; i < childArray.length; ++i) {
-                    seqBox.add(childArray[i].dmove(seqBoxX, 0)) ; 
-                    seqBoxX += childArray[i].bbox().width + 1 ;
-                    if( i !== childArray.length - 1) {
-                        const comma : svg.Text= element.text( ",");
-                        comma.style( textStyle );
-                        comma.fill( YELLOW );
-                        seqBox.add(comma.dmove(seqBoxX+1, 0));
-                        seqBoxX += comma.bbox().width + 6 ; 
-                    }                  
-                }
-                seqBoxX += 2;
-                const rightBracketText : svg.Text= element.text( ")");
-                rightBracketText.style( textStyle );
-                rightBracketText.fill( YELLOW );
-                seqBox.add( rightBracketText.dmove(seqBoxX, 0) );
-
-                makeSimpleBorder(element, YELLOW,10);
+                const seqBox = layOutTuple( element, childArray, YELLOW ) ;
+                makeSimpleBorder(element, YELLOW, 10);
             }
             break;
             case labels.FunctionTypeLabel.kindConst :
