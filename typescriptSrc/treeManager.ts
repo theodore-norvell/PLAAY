@@ -54,6 +54,7 @@ module treeManager {
                           LOC_OR_LOCATION_TYPE,
                           ASSIGN_OR_ASSIGN_TYPE,
                           TUPLE_OR_TUPLE_TYPE,
+                          EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE,
                           AND_OR_MEET_TYPE,
                           OR_OR_JOIN_TYPE }
     
@@ -202,6 +203,9 @@ module treeManager {
                 case Actions.TUPLE_OR_TUPLE_TYPE :
                     edit = alt( [ this.makeTupleNode(), this.makeTupleType() ] ) ;
                     break ;
+                case Actions.EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE :
+                    edit = alt( [ this.makeEmptyTupleNode(), this.makeEmptyTupleType() ] ) ;
+                    break ;
                 case Actions.AND_OR_MEET_TYPE :
                     edit = alt( [ this.makeCallVarNode("and", 2),
                                   this.makeMeetTypeNode() ] ) ;
@@ -309,19 +313,26 @@ module treeManager {
             return replaceOrEngulfTemplateEdit( template0 ) ;
         }
 
+        private makeEmptyTupleNode() : Edit<PSelection> {
+            const tuplenode = labels.mkTuple([]);
+            return dnodeEdits.insertChildrenEdit( [tuplenode] ) ;
+        }
+
         private makeTupleType() : Edit<PSelection> {
             const tupleType = labels.mkTupleType([placeHolder,placeHolder]);
             const template1 = makeSelection( tupleType, list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template1 ) ;
         }
 
+        private makeEmptyTupleType() : Edit<PSelection> {
+            const tupleType = labels.mkTupleType([]);
+            return dnodeEdits.insertChildrenEdit( [tupleType] ) ;
+        }
+
         // If nodes
         private makeIfNode() : Edit<PSelection> {
-
             const emptSeq = labels.mkExprSeq([]);
-
             const ifNode = pnode.make(labels.IfLabel.theIfLabel, [placeHolder, emptSeq, emptSeq]);
-
             // console.log( "makeIfNode: Making template") ;
             const template0 = makeSelection( ifNode, list<number>(), 0, 1 ) ;
             const template1 = makeSelection( ifNode, list<number>(1), 0, 0 ) ;

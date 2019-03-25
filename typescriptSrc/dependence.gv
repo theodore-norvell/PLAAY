@@ -31,7 +31,7 @@ digraph Depends {
         "external libraries" [shape=rectangle] ;
     }
 
-   utils [label="Modules 'assert' and 'collections' are omitted from this graph",
+   utils [label="Modules 'assert', 'collections' and 'htmlMaker' are omitted from this graph",
               shape=none] ;
    caption [ label="Dependence relations between modules", fontsize=40,
               shape=none] ;

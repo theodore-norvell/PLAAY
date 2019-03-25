@@ -400,7 +400,226 @@ module editor {
                 console.log( "<<input keydown handler") ;
             } } ;
 
+    const cut_keh = function( e : JQueryKeyEventObject ) : boolean {
+        cut();
+        return true ;
+      }
+
+    const copy_keh = function( e : JQueryKeyEventObject ) : boolean {
+        copy();
+        return true ;
+    }
+
+    const paste_keh = function( e : JQueryKeyEventObject ) : boolean {
+        paste();
+        return true ;
+    }
+
+    const deep_paste_keh = function ( depth : number ) {
+        return function( e : JQueryKeyEventObject ) : boolean {
+            getFromDeepClipboard(depth).map( (src : PSelection) =>
+                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ) ;
+            return true ;
+        }
+    } 
+
+    const swap_keh = function( e : JQueryKeyEventObject ) : boolean {
+        swap();
+        return true ;
+    } 
+
+    const selectAll_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.selectAll( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    } 
+
+    const undo_keh = function( e : JQueryKeyEventObject ) : boolean {
+        keyboardUndo();
+        return true ;
+    } 
+
+    const redo_keh = function( e : JQueryKeyEventObject ) : boolean {
+        keyboardRedo();
+        return true ;
+    }
+    
+    const moveOut_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveOut( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveUp_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveUp( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveDown_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveDown( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveLeft_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveLeft( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveRight_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveRight( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveFocusUp_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveFocusUp( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveFocusDown_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveFocusDown( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveFocusLeft_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveFocusLeft( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveFocusRight_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveFocusRight( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveTabForward_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveTabForward( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const moveTabBack_keh = function( e : JQueryKeyEventObject ) : boolean {
+        treeMgr.moveTabBack( currentSelection ).map( (sel : PSelection) =>
+                         update( sel ) ) ;
+        return true ;
+    }
+    
+    const openLabel_keh = function( e : JQueryKeyEventObject ) : boolean {
+        const opt = treeMgr.openLabel( currentSelection ) ;
+                opt.map( (sel : PSelection) => update( sel ) ) ;
+        return true ;
+    }
+
+
+
+    const emptyVar_keh = function( e : JQueryKeyEventObject ) : boolean {
+        createNode(Actions.VAR, currentSelection ) ;
+        return true ;
+    }
+
+    const var_keh = function( e : JQueryKeyEventObject, character : string ) : boolean {
+        createNode(Actions.VAR, currentSelection, character ) ;
+        return true ;
+    }
+
+    const createNode_keh = function( act : Actions, str? : string ) {
+        return function( e : JQueryKeyEventObject ) : boolean {
+            createNode( act, currentSelection, str );
+            return true ; }
+    }
+    
     const keyDownHandler
+        =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
+            // See https://www.w3.org/TR/uievents/
+            // and https://www.w3.org/TR/uievents-code/
+            // and https://www.w3.org/TR/uievents-key/
+            // Note that W3C uses the words "key" and "code" counterintuitively.
+            // *  The "key" is the character that is being entered. E.g. if you
+            //    hit the Z key on a querty keyboard it will be "z" (or "Z" if shifted)
+            //    hitting the same key on a AZERTY keyboard generates a "a" or "A".
+            // *  Code represents the position of the key on the board.
+            //    E.g. hitty Q on a querty keyboard gives KeyQ.
+            //    But on an AZERTY keyboard hitting the A key gived KeyQ.
+            console.log( ">>keydown handler." ) ;
+            // Older JQuery does not copy the code field.
+            // So we get it from the original event
+            const orig = e.originalEvent as KeyboardEvent
+            let code = orig.code ; 
+            if( typeof(code) == 'undefined') code = "" ;
+            // Older browswers might follow an older standard.
+            switch( code ) {
+                case "Up" : code = "ArrowUp" ; break ;
+                case "Down" : code = "ArrowDown" ; break ;
+                case "Left" : code = "ArrowLeft" ; break ;
+                case "Right" : code = "ArrowRight" ; break ;
+            }
+            let key = e.key ; 
+            if( typeof(key) == 'undefined') key = "" ;
+            console.log( "  e.key is " +e.key+ "  e.originalEvent.code is " +orig.code+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
+
+            // (0) Make a string out of the event
+
+            // This (incomplete) set of codes indicates keys that
+            // are not generally used to produce characters.
+            // I include space so that Shift_Space etc are included.
+            const specialCodes = {
+                ArrowUp:0, ArrowDown:0, ArrowLeft:0, ArrowRight:0,
+                Tab:0, Enter:0, NumpadEnter:0, Space:0, Escape:0,
+                Insert:0, Delete:0, BackSpace:0, End:0, Home:0,
+                PageDown:0, PageUp:0, Help:0,
+                F1:0, F2:0, F3:0, F4:0, F5:0, F6:0, F7:0,
+                F8:0, F9:0, F10:0, F11:0, F12:0,
+            } ;
+            const isSpecialCode = typeof( specialCodes[code] ) !== 'undefined' ;
+            var str = "" ;
+            if( e.ctrlKey || e.metaKey || isSpecialCode )
+            {
+                // In these cases we pay attention to the physical keyboard key rather than
+                // the character it happens to represent.
+                // E.g. "KeyC", even if it represents a greek Psi on a greek keyboard.
+                if( e.altKey ) str += "Alt_" ;
+                if( e.ctrlKey ) str += "Control_" ;
+                if( e.metaKey ) str += "Meta_" ;
+                if( e.shiftKey ) str += "Shift_" ;
+                str += code ;
+            } else {
+                // No control or meta modifier. We can just use the
+                // value of the key attribute, 
+                // In this case the alt, shift, control, and meta
+                // keys are ignored.
+                str += key ;
+            }
+            console.log( "The keydown event maps to string '" + str +"'" ) ;
+            // Look up the KeyEventHandler for this string
+            let ok : boolean ;
+            if( typeof(keyEventMap[str]) !== 'undefined' ) {
+                const keh : KeyEventHandler = keyEventMap[str] ;
+                ok = keh(e, key) ;
+            } else if( str.length === 1 && isLetter(str) ) {
+                // Since there are too many letters to map
+                // we use a catch-all handler for all letters.
+                // and pass the actual letter as another argument.
+                const keh : KeyEventHandler = keyEventMap["letter"] ;
+                ok = keh(e, key) ;
+            } else {
+                console.log( "No handler found." + str ) ;
+                ok = false ;
+            }
+            if( ok ) {
+                e.stopPropagation(); 
+                e.preventDefault(); 
+            }
+    }
+
+    
+    const old_keyDownHandler
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             console.log( ">>keydown handler." ) ;
             console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
@@ -507,8 +726,6 @@ module editor {
                 e.preventDefault(); 
             }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
             {
-                treeMgr.moveFocusUp( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
                 e.stopPropagation(); 
                 e.preventDefault(); 
             }
@@ -922,6 +1139,157 @@ module editor {
                        15000);
         }
     }
+    type KeyEventHandler = (e:JQueryKeyEventObject, character? : String) => boolean ;
+    interface KeyEventMap { [key:string] : KeyEventHandler ; }
+
+    const keyEventMap : KeyEventMap = { }
+    keyEventMap.Control_KeyX = cut_keh ; // Cntl-X
+    keyEventMap.Meta_KeyX = cut_keh ; // Meta-X
+    keyEventMap.Delete = cut_keh ; // Delete
+    keyEventMap.Backspace = cut_keh ; // Backspace
+    keyEventMap.Control_KeyC = copy_keh ; // Cntl-C
+    keyEventMap.Meta_KeyC = copy_keh ; // Meta-C
+    keyEventMap.Control_KeyV = paste_keh ; // Cntl-V
+    keyEventMap.Meta_KeyV = paste_keh ; // Meta-V
+    keyEventMap.Control_KeyB = swap_keh ; // Cntl-B
+    keyEventMap.Meta_KeyB = swap_keh ; // Meta-B
+    for( let i=0 ; i<10 ; i++) {
+        const deep_paste_i = deep_paste_keh(i) ;
+        keyEventMap["Control_Digit"+i] = deep_paste_i ; 
+        keyEventMap["Meta_Digit"+i] = deep_paste_i ; 
+        keyEventMap["Control_Numpad"+i] = deep_paste_i ; 
+        keyEventMap["Meta_Numpad"+i] = deep_paste_i ; 
+    }
+    keyEventMap.Control_KeyA = selectAll_keh ; // Cntl-A
+    keyEventMap.Meta_KeyA = selectAll_keh ; // Meta-A
+    keyEventMap.Control_KeyZ = undo_keh ; // Cntl-Z
+    keyEventMap.Meta_KeyZ = undo_keh ; // Meta-Z
+    keyEventMap.Control_Shift_KeyZ = redo_keh ; // Cntl-Shift-Z
+    keyEventMap.Meta_Shift_KeyZ = redo_keh ; // Meta-Shift-Z
+    keyEventMap.Control_KeyY = redo_keh ; // Cntl-Y
+    keyEventMap.Meta_KeyY = redo_keh ; // Meta-Y
+    keyEventMap.Space = moveOut_keh ; // spacebar
+    keyEventMap.ArrowUp = moveUp_keh ; // up arrow
+    keyEventMap.ArrowDown = moveDown_keh ; // down arrow
+    keyEventMap.ArrowLeft = moveLeft_keh ; // left arrow
+    keyEventMap.ArrowRight = moveRight_keh ; // right arrow
+    keyEventMap.Shift_ArrowUp = moveFocusUp_keh ; // shift up arrow
+    keyEventMap.Shift_ArrowDown = moveFocusDown_keh ; // shift down arrow
+    keyEventMap.Shift_ArrowLeft = moveFocusLeft_keh ; // shift left arrow
+    keyEventMap.Shift_ArrowRight = moveFocusRight_keh ; // shift right arrow
+    keyEventMap.Tab = moveTabForward_keh ; // Tab
+    keyEventMap.Shift_Tab = moveTabBack_keh ; // Shift Tab
+    keyEventMap.Enter = openLabel_keh ; // Enter
+    keyEventMap[";"] = createNode_keh( Actions.LOC_OR_LOCATION_TYPE ) ; 
+    keyEventMap[","] = createNode_keh( Actions.VAR_DECL ) ;
+    keyEventMap[":"] = createNode_keh( Actions.ASSIGN_OR_ASSIGN_TYPE ) ;
+    for( let i=0 ; i<10 ; i++) {
+        const digit = String.fromCharCode(i+48) ;
+        keyEventMap[digit] = createNode_keh( Actions.NUMBER_OR_NUMBER_TYPE, digit ) ; // i
+    }
+    keyEventMap["?"] = createNode_keh( Actions.IF_OR_BOOL_TYPE ) ;
+    keyEventMap["@"] = createNode_keh( Actions.WHILE ) ;
+    keyEventMap["\\"] = createNode_keh( Actions.LAMBDA_OR_FUNCTION_TYPE ) ;
+    keyEventMap["_"] = createNode_keh( Actions.CALL ) ;
+    keyEventMap["\""] = createNode_keh( Actions.STRING_OR_STRING_TYPE ) ; //Double quote
+    keyEventMap["$"] = createNode_keh( Actions.OBJECT ) ;
+    keyEventMap["["] = createNode_keh( Actions.INDEX ) ;
+    keyEventMap["."] = createNode_keh( Actions.DOT ) ;
+    keyEventMap["("] = createNode_keh( Actions.TUPLE_OR_TUPLE_TYPE ) ;
+    keyEventMap[")"] = createNode_keh( Actions.EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE ) ;
+    keyEventMap["`"] = createNode_keh( Actions.CALL_VAR ) ; ; // Back quote
+    // TODO Check that these work with numberpad
+    ["+", "-", "*", "<", ">", "=", "%", "&", "|", "/"].forEach( (s) =>
+        keyEventMap[s] = createNode_keh( Actions.CALL_VAR, s ) 
+    ) ;
+    keyEventMap["'"] = emptyVar_keh ; 
+    keyEventMap["letter"] = var_keh ;
+
+    var runLength = [65,26,6,26,47,1,10,1,4,1,
+        5,23,1,31,1,458,4,12,14,5,
+        7,1,1,1,129,5,1,2,2,4,
+        8,1,1,3,1,1,1,20,1,83,
+        1,139,8,158,9,38,2,1,7,39,
+        72,27,5,3,45,43,35,2,1,99,
+        1,1,15,2,7,2,10,3,2,1,
+        16,1,1,30,29,89,11,1,24,33,
+        9,2,4,1,5,22,4,1,9,1,
+        3,1,23,25,171,54,3,1,18,1,
+        7,10,15,7,1,7,5,8,2,2,
+        2,22,1,7,1,1,3,4,3,1,
+        16,1,13,2,1,3,14,2,19,6,
+        4,2,2,22,1,7,1,2,1,2,
+        1,2,31,4,1,1,19,3,16,9,
+        1,3,1,22,1,7,1,2,1,5,
+        3,1,18,1,15,2,35,8,2,2,
+        2,22,1,7,1,2,1,5,3,1,
+        30,2,1,3,15,1,17,1,1,6,
+        3,3,1,4,3,2,1,1,1,2,
+        3,2,3,3,3,12,22,1,52,8,
+        1,3,1,23,1,10,1,5,3,1,
+        26,2,6,2,35,8,1,3,1,23,
+        1,10,1,5,3,1,32,1,1,2,
+        15,2,18,8,1,3,1,41,2,1,
+        16,1,17,2,24,6,5,18,3,24,
+        1,9,1,1,2,7,58,48,1,2,
+        12,7,58,2,1,1,2,2,1,1,
+        2,1,6,4,1,7,1,3,1,1,
+        1,1,2,2,1,4,1,2,9,1,
+        2,5,1,1,21,2,34,1,63,8,
+        1,36,27,5,115,43,20,1,16,6,
+        4,4,3,1,3,2,7,3,4,13,
+        12,1,17,38,10,43,1,1,3,329,
+        1,4,2,7,1,1,1,4,2,41,
+        1,4,2,33,1,4,2,7,1,1,
+        1,4,2,15,1,57,1,4,2,67,
+        37,16,16,85,12,620,2,17,1,26,
+        5,75,21,13,1,4,14,18,14,18,
+        14,13,1,3,15,52,35,1,4,1,
+        67,88,8,41,1,1,5,70,10,29,
+        51,30,2,5,11,44,21,7,56,23,
+        9,53,82,1,93,47,17,7,55,30,
+        13,2,16,38,26,36,41,3,10,36,
+        107,4,1,4,14,192,64,278,2,6,
+        2,38,2,6,2,8,1,1,1,1,
+        1,1,1,31,2,53,1,7,1,1,
+        3,3,1,7,3,4,2,6,4,13,
+        5,3,1,7,116,1,13,1,16,13,
+        101,1,4,1,2,10,1,1,3,5,
+        6,1,1,1,1,1,1,4,1,11,
+        2,4,5,5,4,1,52,2,2683,47,
+        1,47,1,133,6,4,17,38,10,54,
+        9,1,16,23,9,7,1,7,1,7,
+        1,7,1,7,1,7,1,7,1,7,
+        80,1,469,2,42,5,5,2,4,86,
+        6,3,1,90,1,4,5,41,3,94,
+        17,27,53,16,512,6582,74,20940,52,1165,
+        67,46,2,269,3,16,10,2,20,47,
+        16,25,8,70,49,9,2,103,2,4,
+        1,2,14,10,80,8,1,3,1,4,
+        1,23,29,52,14,50,62,6,3,1,
+        14,28,10,23,25,29,7,47,28,1,
+        48,41,23,3,1,8,20,23,3,1,
+        5,48,1,1,3,2,2,5,2,1,
+        1,1,24,3,35,6,2,6,2,6,
+        9,7,1,7,145,35,29,11172,12,23,
+        4,49,8452,302,2,62,2,106,38,7,
+        12,5,5,1,1,10,1,13,1,5,
+        1,1,1,2,1,2,1,108,33,363,
+        18,64,2,54,40,12,116,5,1,135,
+        36,26,6,26,11,89,3,6,2,6,
+        2,6,2,3,34] ;
+        
+        function isLetter( str : string ) : boolean {
+            const codePoint = str.codePointAt(0) ;
+            if( typeof codePoint !== 'number' ) return false ;
+            let sum = 0 ;
+            let isLetter = false ;
+            for( let i=0 ; i < runLength.length ; ++i ) {
+                sum += runLength[i] ;
+                if( sum > codePoint ) return isLetter ;
+                isLetter = !isLetter ; }
+            return false ;
+        }
 }
 
 export = editor;

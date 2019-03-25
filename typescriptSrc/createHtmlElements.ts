@@ -1,11 +1,14 @@
 /// <reference path="jquery.d.ts" />
 
+/// <reference path="assert.ts" />
+/// <reference path="htmlMaker.ts" />
 /// <reference path="treeManager.ts" />
 /// <reference path="treeView.ts" />
 
+
+import htmlMaker = require('./htmlMaker');
 import treeManager = require('./treeManager');
 import treeView = require('./treeView');
-import editor = require('./editor');
 import assert = require('./assert');
 
 /** Create the top level HTML and buttons.
@@ -31,47 +34,26 @@ module createHtmlElements {
 
 	import Actions = treeManager.Actions ;
 
+	import makeHTML = htmlMaker.makeHTML ;
+
 	export abstract class Screen {
+		/** Called once to create the content of the screen.
+		 * Initially the screen should be hidden.
+		*/
 		abstract createScreen(contentArea : JQuery) : void ;
+
+		/** Hide the screen.
+		 * Typically this just sets the visibility of the html
+		 * to invisible.
+		*/
 		abstract hideScreen() : void ;
+		
+		/** Show the screen.
+		* Typically this just sets the visibility of the html
+		* to visible and changes the keyboard map to 
+		* that of the screen.
+	 */
 		abstract showScreen() : void ;
-	}
-
-	type ElementDesc = { tag: string ;
-		id? : string ;
-		class? : string ;
-		attr? : { [key:string] : string ; } ;
-		children? : Array<HTMLDesc> ;
-	} ;
-	type HTMLDesc = String | ElementDesc | JQuery | Element | Text ;
-
-	function makeHTML( desc : HTMLDesc, parent : JQuery|null = null ) : JQuery {
-		let result : JQuery ;
-		if( typeof(desc) === "string" ) {
-			result = $(document.createTextNode( desc as string )) ;
-		} else if( desc instanceof jQuery ) {
-			return desc as JQuery ;
-		} else if( desc["nodeType"] === Node.TEXT_NODE  ) {
-			return $(desc) ;
-		} else if( desc["nodeType"] === Node.ELEMENT_NODE ) {
-			return $(desc) ;
-		} else {
-			const elDesc : ElementDesc  = desc as ElementDesc ;
-			assert.check( elDesc.tag !== undefined ) ;
-			result = $(document.createElement( elDesc.tag ) ) ;
-			if( elDesc.id !== undefined ) 
-				result.attr("id", elDesc.id ) ;
-			if( elDesc.class !== undefined ) 
-				result.addClass( elDesc.class ) ;
-			if( elDesc.attr !== undefined ) 
-				for( var prop in elDesc.attr )
-					result.attr( prop, elDesc.attr[prop] ) ;
-			if( elDesc.children !== undefined ) 
-				elDesc.children.forEach( child =>
-					makeHTML( child, result ).appendTo(result) ) ;
-		}
-		if( parent !== null ) result.appendTo( parent ) ;
-		return result ;
 	}
 
 	class EditorScreen extends Screen {

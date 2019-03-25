@@ -593,7 +593,7 @@ div.hCont, div.var, div.assign, div.loc {
 div.var {
     font-family : "Times New Roman", Times,serif;
     font-size: large;
-    font-style: italic ;
+    font-style: upright ;
 }
 
 div.locdecl:before {
@@ -602,6 +602,8 @@ div.locdecl:before {
     vertical-align: top ;
     color: rgb(244, 140, 0) ; /* Orange */
     font-size: large ;
+    font-style: normal ;
+    font-weight: bold ;
 }
 
 div.locdecl, div.condecl {
@@ -643,7 +645,7 @@ div.callVar {
 div.op {
     font-family : "Times New Roman", Times, serif;
     font-size: large ;
-    font-style: italic ;
+    font-style: normal ;
     font-weight: normal ;
 }
 
