@@ -122,7 +122,6 @@ module animationView
 
     function drawObject(object : ObjectI, element : svg.Container, y : number, drawNestedObjects : boolean = true) : svg.Rect
     {
-        
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
         for (let j = 0; j < numFields; j++){
@@ -141,15 +140,12 @@ module animationView
             subGroup.dmove(10, y + 5);
             y += subGroup.bbox().height + 5;
         }
-        let border : svg.Rect ;
-        if(result.children().length !== 0)
-        {
-            border = makeObjectBorderSVG(element, result);
+        if( numFields === 0 ) {
+            const subGroup : svg.G = result.group();
+            subGroup.rect(10, 10) ;
+            subGroup.dmove(10, y + 5 ) ;
         }
-        else
-        {
-            border = element.rect(0,0);
-        }
+        let border = makeObjectBorderSVG(element, result);
         return border;
     }
 
@@ -1034,13 +1030,11 @@ module animationView
         {   
             const tup : TupleV = value as TupleV;
             drawTuple(tup,element,0);
-
             return;
         } 
         if( value.isLocationV() ) {
             const loc = value as LocationV ;
             drawLocation(loc,element,0) ;
-
             return ;
         }
         if(value.isStringV())
