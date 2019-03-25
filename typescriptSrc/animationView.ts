@@ -53,7 +53,7 @@ module animationView
     const GREEN : string = "rgb(0,200,0)";
     const YELLOW : string = "rgb(242, 231, 21)";
 
-    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: italic; font-size: large;' ;
+    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: large;' ;
     const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
     const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
     const literalStyle  = 'font-family: "Lucida Console", monospace;    font-weight: normal; font-style: normal; font-size: medium ;' ;
@@ -172,10 +172,10 @@ module animationView
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
         const result : svg.G = element.group();
-        const leftBracketText : svg.Text= element.text( "(");
+        const leftBracketText : svg.Text= element.text( "(" );
         leftBracketText.style( textStyle );
-        leftBracketText.fill(LIGHT_BLUE.toString());
-        result.add(leftBracketText.dmove(element.bbox().width ,0)); 
+        leftBracketText.fill( LIGHT_BLUE );
+        result.add(leftBracketText.dmove(element.bbox().width, 0)); 
         x+= 20;
         const itemCount : number = tuple.itemCount();
         for (let j = 0; j < itemCount; j++){
@@ -197,7 +197,7 @@ module animationView
         rightBracketText.style( textStyle );
         rightBracketText.fill(LIGHT_BLUE.toString());
         result.add(rightBracketText.dmove(element.bbox().width+5 ,0));
-        let border;
+        let border : svg.Rect;
         if(result.children().length !== 0)
         {
             border = makeObjectBorderSVG(element, result);
@@ -776,33 +776,30 @@ module animationView
             {
                 // TODO Combine this code with the code for tuple values.
                 const childArray = element.children();
-                let seqBoxX : number = 0;
-                const padding : number = 15;
                 const seqBox :  svg.G = element.group().dmove(20, 0) ;
-                const leftBracketText : svg.Text= element.text( "(");
+                const leftBracketText : svg.Text= element.text( "(" ) ;
                 leftBracketText.style( textStyle );
-                leftBracketText.fill(LIGHT_BLUE.toString());
-                seqBox.add( leftBracketText.dmove(-20,0) );
-
-                const len = findWidthOfLargestChild(childArray)+padding;
+                leftBracketText.fill( LIGHT_BLUE );
+                let seqBoxX : number = -20;
+                seqBox.add( leftBracketText.dmove(seqBoxX,0) );
+                seqBoxX += leftBracketText.bbox().width + 2; 
     
-                for (let i = 0; true; ++i) {
-                    if (i === childArray.length) break;
+                for (let i = 0; i < childArray.length; ++i) {
                     seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                    seqBoxX += childArray[i].bbox().width + 1 ;
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
                         comma.style( textStyle );
                         comma.fill(LIGHT_BLUE.toString());
-                        seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
-                    }                    
-                    seqBoxX += childArray[i].bbox().width + 25;
-                    
+                        seqBox.add(comma.dmove(seqBoxX+1, 0));
+                        seqBoxX += comma.bbox().width + 6 ; 
+                    }                 
                 }
-                if(seqBoxX === 0) { seqBoxX = 10 ; }
+                seqBoxX += 2;
                 const rightBracketText : svg.Text= element.text( ")");
                 rightBracketText.style( textStyle );
-                rightBracketText.fill(LIGHT_BLUE.toString());
-                seqBox.add( rightBracketText.dmove(seqBoxX -20,0) );
+                rightBracketText.fill( LIGHT_BLUE );
+                seqBox.add( rightBracketText.dmove(seqBoxX, 0) );
 
                 makeSimpleBorder(element, LIGHT_BLUE, 10);
             }
@@ -918,36 +915,30 @@ module animationView
             case labels.TupleTypeLabel.kindConst :
             {
                 const childArray = element.children();
-                let seqBoxX : number = 0;
-                const padding : number = 15;
                 const seqBox :  svg.G = element.group().dmove(20, 0) ;
-                const leftBracketText : svg.Text= element.text( "(");
-                leftBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
-                leftBracketText.fill(YELLOW.toString());
-                seqBox.add( leftBracketText.dmove(-20,-5) );
-
-                let len = findWidthOfLargestChild(childArray)+padding;
+                const leftBracketText : svg.Text= element.text( "(" );
+                leftBracketText.style( textStyle );
+                leftBracketText.fill( YELLOW );
+                let seqBoxX : number = -20;
+                seqBox.add( leftBracketText.dmove(seqBoxX, 0) );
+                seqBoxX += leftBracketText.bbox().width + 2; 
     
-                for (let i = 0; true; ++i) {
-                    if (i === childArray.length) break;
-                    seqBox.add(childArray[i].dmove(seqBoxX, 0));
+                for (let i = 0; i < childArray.length; ++i) {
+                    seqBox.add(childArray[i].dmove(seqBoxX, 0)) ; 
+                    seqBoxX += childArray[i].bbox().width + 1 ;
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
-                        comma.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
+                        comma.style( textStyle );
                         comma.fill(YELLOW.toString());
-                        seqBox.add(comma.dmove(childArray[i].bbox().width +seqBoxX + 10 , 0));
-                    }                    
-                    seqBoxX += childArray[i].bbox().width + 25;
-                    
+                        seqBox.add(comma.dmove(seqBoxX+1, 0));
+                        seqBoxX += comma.bbox().width + 6 ; 
+                    }                  
                 }
-                if(seqBoxX === 0)
-                {
-                    seqBox.rect(10,10).opacity(0);
-                }
+                seqBoxX += 2;
                 const rightBracketText : svg.Text= element.text( ")");
-                rightBracketText.style("font-family : 'Times New Roman', Times,serif;font-weight:bold;font-size:large;");
-                rightBracketText.fill(YELLOW.toString());
-                seqBox.add( rightBracketText.dmove(seqBoxX -20,-5) );
+                rightBracketText.style( textStyle );
+                rightBracketText.fill( YELLOW );
+                seqBox.add( rightBracketText.dmove(seqBoxX, 0) );
 
                 makeSimpleBorder(element, YELLOW,10);
             }
