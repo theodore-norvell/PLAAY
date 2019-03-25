@@ -171,41 +171,36 @@ module animationView
 
     function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
     {
-        const result : svg.G = element.group();
+        const seqBox : svg.G = element.group();
         const leftBracketText : svg.Text= element.text( "(" );
         leftBracketText.style( textStyle );
         leftBracketText.fill( LIGHT_BLUE );
-        result.add(leftBracketText.dmove(element.bbox().width, 0)); 
-        x+= 20;
+        let seqBoxX : number = 0;
+        seqBox.add(leftBracketText.dmove(seqBoxX, 0)); 
+        seqBoxX += leftBracketText.bbox().width + 2; 
+
         const itemCount : number = tuple.itemCount();
-        for (let j = 0; j < itemCount; j++){
-            const value : Value = tuple.getItemByIndex(j);
-            const subGroup : svg.G = result.group();            
-            const el : svg.G = subGroup.group();
-            buildSVGForMappedNode(el, value, true);              
-            subGroup.dmove(x + 5,0);  
-            x += subGroup.bbox().width + 5;
-            if(j !== itemCount - 1) {
+        for (let i = 0; i < itemCount; i++) {
+            const value : Value = tuple.getItemByIndex(i);
+            const el : svg.G = seqBox.group();
+            buildSVGForMappedNode(el, value, true);
+            el.dmove(seqBoxX + 5,0);  
+            seqBoxX += el.bbox().width + 5;
+            if(i !== itemCount - 1) {
                 const comma : svg.Text= element.text( ",");
                 comma.style( textStyle );
-                comma.fill(LIGHT_BLUE.toString());
-                result.add(comma.dmove(x+5,0));
-                x += 10;
+                comma.fill( LIGHT_BLUE );
+                seqBox.add(comma.dmove(seqBoxX+1,0));
+                seqBoxX += comma.bbox().width + 6 ; 
             }
         }
+        seqBoxX += 2;
         const rightBracketText : svg.Text= element.text( ")");
         rightBracketText.style( textStyle );
-        rightBracketText.fill(LIGHT_BLUE.toString());
-        result.add(rightBracketText.dmove(element.bbox().width+5 ,0));
-        let border : svg.Rect;
-        if(result.children().length !== 0)
-        {
-            border = makeObjectBorderSVG(element, result);
-        }
-        else
-        {
-            border = element.rect(0,0);
-        }
+        rightBracketText.fill( LIGHT_BLUE );
+        seqBox.add( rightBracketText.dmove(seqBoxX, 0));
+
+        let border = makeObjectBorderSVG(element, seqBox);
         return border;
     }
 
@@ -776,11 +771,11 @@ module animationView
             {
                 // TODO Combine this code with the code for tuple values.
                 const childArray = element.children();
-                const seqBox :  svg.G = element.group().dmove(20, 0) ;
+                const seqBox :  svg.G = element.group().dmove(0, 0) ;
                 const leftBracketText : svg.Text= element.text( "(" ) ;
                 leftBracketText.style( textStyle );
                 leftBracketText.fill( LIGHT_BLUE );
-                let seqBoxX : number = -20;
+                let seqBoxX : number = 0;
                 seqBox.add( leftBracketText.dmove(seqBoxX,0) );
                 seqBoxX += leftBracketText.bbox().width + 2; 
     
@@ -915,11 +910,11 @@ module animationView
             case labels.TupleTypeLabel.kindConst :
             {
                 const childArray = element.children();
-                const seqBox :  svg.G = element.group().dmove(20, 0) ;
+                const seqBox :  svg.G = element.group() ;
                 const leftBracketText : svg.Text= element.text( "(" );
                 leftBracketText.style( textStyle );
                 leftBracketText.fill( YELLOW );
-                let seqBoxX : number = -20;
+                let seqBoxX : number = 0;
                 seqBox.add( leftBracketText.dmove(seqBoxX, 0) );
                 seqBoxX += leftBracketText.bbox().width + 2; 
     
@@ -929,7 +924,7 @@ module animationView
                     if( i !== childArray.length - 1) {
                         const comma : svg.Text= element.text( ",");
                         comma.style( textStyle );
-                        comma.fill(YELLOW.toString());
+                        comma.fill( YELLOW );
                         seqBox.add(comma.dmove(seqBoxX+1, 0));
                         seqBoxX += comma.bbox().width + 6 ; 
                     }                  
