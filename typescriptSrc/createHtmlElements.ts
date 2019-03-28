@@ -36,6 +36,8 @@ module createHtmlElements {
 
 	import makeHTML = htmlMaker.makeHTML ;
 
+	export const helpFileName = "help-en.html" ;
+
 	export abstract class Screen {
 		/** Called once to create the content of the screen.
 		 * Initially the screen should be hidden.
@@ -137,7 +139,7 @@ module createHtmlElements {
 			create("div", "container", "container", editorDiv);
 			const helpPanel = create("div", "helpPanel", "editorHelpPanel", editorDiv ) ;
 			const helpFrame = create("iframe", "helpFrame", "editorHelpFrame", helpPanel) ;
-			helpFrame.attr( "src", "editorHelp.html" ) ;
+			helpFrame.attr( "src", helpFileName ) ;
 		}
 
 		hideScreen() : void {

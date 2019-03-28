@@ -33,6 +33,7 @@ module treeView
     export const NULLMARK = "\u23da" ; // EARTH GROUND
     export const OPENBOX = "\u2423" ; // VISIBLE SPACE symbol
     export const RIGHTDOUBLEQUOTATIONMARK = "\u201D" ;
+    export const LEFTDOUBLEQUOTATIONMARK = "\u201C" ;
 
     export const BOOLEANTYPE = "\uD835\uDD39";
     export const STRINGTYPE = "\uD835\uDD4A";
@@ -441,7 +442,7 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const text = node.label().getVal().replace(/ /g, OPEN_BOX) ;
+                    const text = node.label().getVal().replace(/ /g, OPENBOX) ;
                     result.text( text ) ;
                 }
                 else
@@ -460,8 +461,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.addClass( "click" ) ;
                 result.addClass( "canDrag" ) ;
-                const leftDoubleQuotationMark = "\u201C" ;
-                const openQuote : JQuery = $( document.createElement("span") ).text(leftDoubleQuotationMark) ;
+                const openQuote : JQuery = $( document.createElement("span") ).text(LEFTDOUBLEQUOTATIONMARK) ;
                 result.append(openQuote) ;
                 if ( node.label().isOpen() )
                 {
@@ -491,7 +491,8 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const text = node.label().getVal().replace(/ /g, OPENBOX) ;
+                    result.text( text ) ;
                 }
                 else
                 {

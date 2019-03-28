@@ -42,6 +42,9 @@ module animationView
     import LAMBDAMARK = treeView.LAMBDAMARK ;
     import NULLMARK = treeView.NULLMARK ;
     import FUNCTIONMARK = treeView.FUNCTIONTYPE ;
+    import OPENBOX = treeView.OPENBOX ;
+    import RIGHTDOUBLEQUOTATIONMARK = treeView.RIGHTDOUBLEQUOTATIONMARK ;
+    import LEFTDOUBLEQUOTATIONMARK = treeView.LEFTDOUBLEQUOTATIONMARK ;
 
     const MAUVE : string = "rgb(190, 133, 197)";
     const ORANGE : string = "rgb(244, 140, 0)";
@@ -127,7 +130,8 @@ module animationView
         for (let j = 0; j < numFields; j++){
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
-            const name : svg.Text = subGroup.text("  " + field.getName());
+            const nameString = field.getName().replace(/ /g, OPENBOX ) ;
+            const name : svg.Text = subGroup.text("  " + nameString);
             name.style( varStyle ) ;
             const el : svg.G = subGroup.group();
             const optVal = field.getValue() ;
@@ -755,7 +759,8 @@ module animationView
             break ;
             case labels.VariableLabel.kindConst :
             {
-                const text : svg.Text = element.text( node.label().getVal() );
+                const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
+                const text : svg.Text = element.text( str );
                 makeVariableLabelSVG(element, text);
                 // result.addClass( "var" ) ;
                 // result.addClass( "H" ) ;
@@ -770,7 +775,9 @@ module animationView
             break ;
             case labels.NumberLiteralLabel.kindConst :
             {
-                const text : svg.Text = element.text( node.label().getVal() );
+
+                const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
+                const text : svg.Text = element.text( str );
                 makeSimpleValueSVG(element, text);
                 // result.addClass( "numberLiteral" ) ;
                 // result.addClass( "H" ) ;
@@ -1044,7 +1051,7 @@ module animationView
         }
         if(value.isNumberV())
         {
-            // TODO. Use the correct unparsing routine.
+            // TODO. Use the correct unparsing routine
             const num : svg.Text = element.text ( value.toString() );
             makeSimpleValueSVG(element, num);
             return;
@@ -1109,11 +1116,15 @@ module animationView
         
         if (objectsToDraw.length !== 0)
         {
-            //As the object area is drawn, more objects may be discovered to draw. If we have a very large tree, this could be an issue as it would take up
-            //a lot of space. As more objects are found that need to be drawn, the objectsToDraw array will grow. By storing the original length, we can
-            //know when we've stopped drawing objects that were found outside of the object area. If we use this knowledge to stop drawing more objects
-            //once we've hit objects that were not found outside of the object area, we can effectively limit the object search to a depth of 2 objects from the
-            //main code or stack.
+            //As the object area is drawn, more objects may be discovered to draw.
+            // If we have a very large tree, this could be an issue as it would
+            // take up a lot of space. As more objects are found that need to be
+            // drawn, the objectsToDraw array will grow. By storing the original
+            // length, we can know when we've stopped drawing objects that were
+            // found outside of the object area. If we use this knowledge to stop
+            // drawing more objects once we've hit objects that were not found
+            // outside of the object area, we can effectively limit the object
+            // search to a depth of 2 objects from the main code or stack.
             const originalLength = objectsToDraw.length;
             for (let k = 0; k < objectsToDraw.length; k++){
                 if(k !== 0) { y += padding; }
@@ -1295,9 +1306,9 @@ module animationView
     
     function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
     {
-        const leftDoubleQuotationMark = "\u201C" ;
-        const rightDoubleQuotationMark = "\u201D" ;
-        const textElement : svg.Text = base.text( leftDoubleQuotationMark + str + rightDoubleQuotationMark );
+        const str1 = str.replace(/ /g, OPENBOX ) ;
+        const textElement : svg.Text
+            = base.text( LEFTDOUBLEQUOTATIONMARK + str1 + RIGHTDOUBLEQUOTATIONMARK );
         makeSimpleValueSVG( base, textElement ) ;
     }
 

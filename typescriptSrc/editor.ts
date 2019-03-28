@@ -30,9 +30,12 @@ module editor {
     import some = collections.some ;
     import none = collections.none ;
 
+    import helpFileName = createHTMLElements.helpFileName ;
+
     import Selection = selection.Selection;
 
     import Actions = treeManager.Actions ;
+
 
     type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
 
@@ -247,7 +250,7 @@ module editor {
         $("#container").empty().append(newHTML);
         treeView.highlightSelection( currentSelection, newHTML ) ;
         var helpStr = treeView.findHelpString( currentSelection, newHTML ) ;
-        const location = "editorHelp.html#" + helpStr ;
+        const location = helpFileName + "#" + helpStr ;
         console.log( "Setting help to " + location ) ;
         $("#editorHelpFrame").attr("src", location) ;
         // Handle drops

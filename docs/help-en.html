@@ -1,0 +1,182 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="UTF-8">
+    <title>Keyboard commands for PLAAY</title>
+    <link rel="stylesheet" type="text/css" href="plaay-style.css">
+    <style>
+        body { background-color: #cccccc ; }
+
+        .example {
+            background-color: black ;
+        }
+        .description {
+            background-color: white ;
+            color: black ;
+        }
+        kbd {
+            padding: 1px ;
+            border: thin solid black ;
+            border-radius: 5px ;
+            color: white ;
+            background-color: darkslategray ;
+            font-family: "Lucida Console", monospace;
+            font-size: inherit ;
+            font-style: normal ;
+            font-weight: normal ;
+        }
+        li {
+            margin-top: 5px;
+        }
+        li:first-child {
+            margin-top: 0;
+        }
+    </style>
+</head>
+<body>
+  <h1>Welcome to PLAAY</h1>
+    <p>The programming language for adults and youth. (In other words, everyone!)</p>
+    <h2 id="block">Blocks</h2>
+          <p>Blocks consist of sequences of <a href="#declarations">declarations</a>
+             and <a href="#expressions">expression</a></p>
+
+          <p>The value of a block is the value of its final declaration.</p>
+
+    <h2 id="expressions">Expressions</h2>
+
+      <h3 id="expPlaceHolder">Expression place holder</h3>
+          <p>You can replace this place holder with any kind of
+             <a href="#expressions">expression</a>.</p>
+
+      <h3 id="if">Alternation expressions (also known as if expressions)</h3>
+          <div class="example">
+          <div class="ifBox V workplace canDrag droppable selectable ui-droppable ui-draggable ui-draggable-handle" data-childnumber="3">
+          <div class="ifGuardBox H workplace">
+          <div class="description">Guard expression</div>
+          </div>
+          <div class="thenBox H workplace">
+          <div class="seqBox V selectable" data-childnumber="1">
+          <div class="description"> First block </div>
+          </div>
+          </div>
+          <div class="elseBox H workplace">
+          <div class="seqBox V selectable" data-childnumber="2">
+          <div class="description"> Second block </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          </div>
+          <p><a href="#keyboard">Shortcut key</a>: <kbd>?</kbd></p>
+          <p>Alternation expressions are used to make decisions.</p>
+          <p>If the guard expression evaluates to true, the first block is evaluated.</p>
+          <p>If the guard expression evaluates to false, the second block is evaluated.</p>
+          <p>Note that the guard expression must be a boolean expression.</p>
+
+      <h3 id="while">Iteration expressions (also known as while expressions)</h3>
+          <p><a href="#keyboard">Shortcut key</a>: <kbd>@</kbd></p>
+          <p>Iteration expressions are used to do something repeatedly.</p>
+          <p>Iteration expressions repeatedly evaluate a block of code until the guard expression
+             is false.</p>
+
+      <h3 id="variable">Variables</h3>
+          <p><a href="#keyboard">Shortcut key</a>: <kbd>'</kbd> or type the first letter</p>
+          <p>A variable is a name that represents a <a href="#value">value</a></p>
+          <p>Variables are declared using a <a href="#declaration">variable declaration</a></p>.
+          <p>Each variable has a <a href="#type">type</a>.</p>
+          <p>During evaluation, variables are instantiated as <a href="#field">fields</a>.
+             Fields have <a href="#value">values<a>.</p>
+    
+    <h2 id="declaration">Variable Declarations</h2>
+
+    TODO
+
+    <h2 id="value">Values</h2>
+    
+        TODO
+
+    <h2 id="type">Types</h2>
+
+     <h3 id="natType">Natural type</h3>
+          <p><a href="#keyboard">Shortcut key</a>: <kbd>0</kbd></p>
+          <p>The natural number type includes the numbers 0, 1, 2, etc. But not negative numbers and not fractions.</p>
+
+    <h2 id="keyboard">Shortcut keys</h2>
+
+      <h3>Creating expressions with the keyboard</h3>
+        <p><b>Infix/postfix example:</b> <kbd>x</kbd> <kbd>enter</kbd> <kbd>,</kbd> <kbd>tab</kbd> <kbd>2</kbd> <kbd>enter</kbd> <kbd>*</kbd> <kbd>y</kbd> <kbd>enter</kbd> <kbd>`</kbd> <kbd>f</kbd> <kbd>enter</kbd> <kbd>space</kbd> <kbd>+</kbd> <kbd>1</kbd> <kbd>tab</kbd></p>
+        <p><b>Prefix example:</b> <kbd>,</kbd> <kbd>x</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>+</kbd> <kbd>*</kbd> <kbd>2</kbd> <kbd>tab</kbd> <kbd>`</kbd> <kbd>f</kbd> <kbd>tab</kbd> <kbd>y</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>tab</kbd> <kbd>1</kbd> <kbd>tab</kbd> </p>
+        <ul>
+            <li><kbd>0</kbd>-<kbd>9</kbd> will create a numeric literal expression starting with that digit. Works with the numpad as well.</li>
+            <li><kbd>a</kbd>-<kbd>z</kbd> and <kbd>A</kbd>-<kbd>Z</kbd>
+                 will create a variable expression starting with that character.</li>
+            <li><kbd>&apos;</kbd> (apostrophe) will create an empty variable expression.</li>
+            <li><kbd>&quot;</kbd> will create a string literal.</li>
+            <li><kbd>`</kbd> (back quote) will create a call expression.</li>
+            <li><kbd>.</kbd> will create a selection expression.</li>
+            <li><em>For each of the above use <kbd>tab</kbd> or
+                <kbd>enter</kbd> to finish.</em></li>
+            <li><kbd>+</kbd>, <kbd>-</kbd>, <kbd>*</kbd>,
+                <kbd>/</kbd>, <kbd>&lt;</kbd>, <kbd>&gt;</kbd>,
+                <kbd>%</kbd>, <kbd>&amp;</kbd>, <kbd>|</kbd>, and <kbd>=</kbd>
+                will create the appropriate call expression.</li>
+            <li><kbd>?</kbd> will create an alternation (if) expression.</li>
+            <li><kbd>@</kbd> will create a while-loop expression.</li>
+            <li><kbd>\</kbd> will create a lambda expression.</li>
+        <li><kbd>_</kbd> will create an application expression</li>
+        <li><kbd>(</kbd> will create a tuple expression.</li>
+        <li><kbd>$</kbd> will create an object literal expression.</li>
+        <li><kbd>[</kbd> will create an index expression.</li>
+        <li><kbd>:</kbd> will create an assignment expression.</li>
+        <li><kbd>;</kbd> will create a loc expression.</li>
+    </ul>
+
+    <h3>Creating declarations with the keyboard</h3>
+    <p><b>Variable declaration example:</b> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>,</kbd>
+    or <kbd>,</kbd> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>tab</kbd></p>
+    <p><b>Location variable declaration example:</b> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>,</kbd> <kbd>space</kbd> <kbd>;</kbd>
+    or <kbd>,</kbd> <kbd>a</kbd> <kbd>b</kbd> <kbd>c</kbd> <kbd>enter</kbd> <kbd>;</kbd></p>
+    <p>For parameters, the <kbd>,</kbd> may be omitted.</p>
+    <ul>
+        <li><kbd>,</kbd> will create a variable declaration.</li>
+        <li><kbd>;</kbd> will turn plain variable declarations
+            into location variable declarations (or <i>vis versa</i>)
+            when the declaration is selected.</li>
+    </ul>
+
+
+    <h3>Creating types with the keyboard</h3>
+    <ul>
+        <li><kbd>&quot;</kbd> will insert the string type.</li>
+        <li><kbd>?</kbd> will insert the boolean type.</li>
+        <li><kbd>0</kbd> will insert the natural number type.</li>
+        <li><kbd>1</kbd> will insert the integer type.</li>
+        <li><kbd>2</kbd>-<kbd>9</kbd> will insert the number type.</li>
+        <li><kbd>\</kbd> will insert a function type.</li>
+        <li><kbd>;</kbd> will insert a location type.</li>
+        <li><kbd>:</kbd> will insert a field type.</li>
+        <li><kbd>(</kbd> will insert a tuple type.</li>
+        <li><kbd>&amp;</kbd> will insert a meet type.</li>
+        <li><kbd>|</kbd> will insert a join type.</li>
+    </ul>
+
+    <h3>Moving around with the keyboard</h3>
+    <ul>
+        <li><kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd> <kbd>&uarr;</kbd> to change the selection.</li>
+        <li><kbd>shift</kbd>+ <kbd>&larr;</kbd> <kbd>&rarr;</kbd> <kbd>&darr;</kbd> <kbd>&uarr;</kbd> to expand or contract the selection.</li>
+        <li><kbd>space</kbd> to expand the current selection outward.</li>
+        <li><kbd>enter</kbd> to edit the text associated with the selection.</li>
+        <li><kbd>tab</kbd> to move the selection to the next dropzone or place-holder.</li>
+        <li><kbd>shift</kbd>+<kbd>tab</kbd> to move the selection to the previous insertion point.</li>
+        <li><kbd>ctrl</kbd>+<kbd>a</kbd> or <kbd>cmd</kbd>+<kbd>a</kbd> to select everything.</li>
+    </ul>
+    <h3>Other editing with the keyboard</h3>
+    <ul>
+        <li><kbd>ctrl</kbd>+<kbd>c</kbd> or <kbd>cmd</kbd>+<kbd>c</kbd> to add the current selection to trash.</li>
+        <li><kbd>ctrl</kbd>+<kbd>x</kbd> or <kbd>cmd</kbd>+<kbd>x</kbd> to cut the current selection to trash.</li>
+        <li><kbd>ctrl</kbd>+<kbd>v</kbd> or <kbd>cmd</kbd>+<kbd>v</kbd> to paste the top (most recently added) item from the trash.</li>
+        <li><kbd>ctrl</kbd>+<kbd>b</kbd> or <kbd>cmd</kbd>+<kbd>b</kbd> to swap the current selection with the top of the trash.</li>
+        <li><kbd>crtl</kbd>+<kbd>0</kbd>, ..., <kbd>ctrl</kbd>+<kbd>9</kbd> or <kbd>cmd</kbd>+<kbd>0</kbd>, ..., <kbd>cmd</kbd>+<kbd>9</kbd> to paste an item from the trash. 0 will paste the top trash item. 1 will paste the second trash item, 2 the third item, and so on.</li>
+    </ul>
+</body>
+</html>
