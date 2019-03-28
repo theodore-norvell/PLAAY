@@ -70,6 +70,7 @@ module createHtmlElements {
 			//                buttonArea
 			//                    buttons for editing
 			//            container
+			//            helpPanel
 			const editorDiv = create("div", "tab", "editor", contentArea ) ;
 			const editorLeftSideArea = create("div", "leftSideArea", "editorLeftSideArea", editorDiv);
 			const paletteArea = create("div","paletteArea","paletteArea",editorLeftSideArea);
@@ -134,6 +135,9 @@ module createHtmlElements {
 
 			// The container for the tree.
 			create("div", "container", "container", editorDiv);
+			const helpPanel = create("div", "helpPanel", "editorHelpPanel", editorDiv ) ;
+			const helpFrame = create("iframe", "helpFrame", "editorHelpFrame", helpPanel) ;
+			helpFrame.attr( "src", "editorHelp.html" ) ;
 		}
 
 		hideScreen() : void {

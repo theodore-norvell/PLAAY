@@ -246,8 +246,12 @@ module editor {
         const newHTML : JQuery = treeView.traverseAndBuild(currentSelection.root(), -1, false) ;
         $("#container").empty().append(newHTML);
         treeView.highlightSelection( currentSelection, newHTML ) ;
+        var helpStr = treeView.findHelpString( currentSelection, newHTML ) ;
+        const location = "editorHelp.html#" + helpStr ;
+        console.log( "Setting help to " + location ) ;
+        $("#editorHelpFrame").attr("src", location) ;
         // Handle drops
-        $( "#container .droppable" ).droppable({
+        $( "#container .droppable" ).droppable( {
             greedy: true,
             hoverClass: "hover",
             tolerance:"pointer",

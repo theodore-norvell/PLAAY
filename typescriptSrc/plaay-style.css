@@ -169,6 +169,11 @@ html, body
     background-color: #cccccc;
 }
 
+.helpFrame {
+    width: 90% ;
+    height: 90% ;
+}
+
 .tab
 {
     position: absolute ; /* Absolute within its container */
@@ -256,12 +261,22 @@ html, body
 
 #container
 {
-    flex: 1 1 auto ;
+    flex: 5 1 auto ;
     top: 0px ;
     bottom: 0px ;
     margin: 1%;
     overflow: auto;
     background-color: #262626 ;
+    width: 50% ;
+}
+
+.helpPanel {
+    flex: 2 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    overflow: auto;
+    width: 25% ;
 }
 
 /* expression palette */

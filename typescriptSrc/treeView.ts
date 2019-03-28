@@ -31,6 +31,8 @@ module treeView
     export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
     export const LAMBDAMARK = "\u03BB" ;
     export const NULLMARK = "\u23da" ; // EARTH GROUND
+    export const OPENBOX = "\u2423" ; // VISIBLE SPACE symbol
+    export const RIGHTDOUBLEQUOTATIONMARK = "\u201D" ;
 
     export const BOOLEANTYPE = "\uD835\uDD39";
     export const STRINGTYPE = "\uD835\uDD4A";
@@ -89,6 +91,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.append( guardbox, thenbox, elsebox ) ;
+                result.data("help", "if") ;
             }
             break ;
             case labels.ExprSeqLabel.kindConst :
@@ -106,6 +109,7 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                 }
+                result.data("help", "block") ;
             }
             break ;
             case labels.ExprPHLabel.kindConst :
@@ -116,6 +120,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
                 result.text("...") ;
+                result.data("help", "expPlaceHolder") ;
             }
             break ;
             case labels.ParameterListLabel.kindConst :
@@ -133,6 +138,7 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                 }
+                result.data("help", "parameterList") ;
             }
             break ;
             case labels.WhileLabel.kindConst :
@@ -159,6 +165,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardBox );
                 result.append( doBox );
+                result.data("help", "while") ;
             }
             break ;
             case labels.CallVarLabel.kindConst :
@@ -204,6 +211,7 @@ module treeView
                         // TODO: Find a way to make dropzone[1] very skinny. Maybe by adding a class to it.
                     }
                 }
+                result.data("help", "callVar") ;
             }
             break ;
             case labels.CallLabel.kindConst :
@@ -223,6 +231,7 @@ module treeView
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
+                result.data("help", "call") ;
             }
             break ;
             case labels.LocLabel.kindConst :
@@ -239,8 +248,8 @@ module treeView
                 opDiv.text( "loc" ) ;
 
                 result.append(opDiv);
-                result.append(children[0]);
-
+                result.append(children[0]) ;
+                result.data("help", "locExp") ;
             }
             break ;
             case labels.AssignLabel.kindConst :
@@ -259,6 +268,7 @@ module treeView
                 result.append(children[0]);
                 result.append(opDiv);
                 result.append(children[1]);
+                result.data("help", "assign") ;
 
             }
             break ;
@@ -290,6 +300,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardBox );
                 result.append( seqBox );
+                result.data("help", "objectLiteral") ;
             }
             break ;
             case labels.ArrayLiteralLabel.kindConst :
@@ -320,6 +331,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardBox );
                 result.append( seqBox );
+                result.data("help", "arrayLiteral") ;
             }
             break ;
             case labels.AccessorLabel.kindConst :
@@ -344,6 +356,7 @@ module treeView
                 result.append(leftBracket);
                 result.append(children[1]);
                 result.append(rightBracket);
+                result.data("help", "accessor") ;
 
             }
             break ;
@@ -369,6 +382,7 @@ module treeView
                     suffix.text( "." + node.label().getVal() ) ;
                     result.append(suffix);
                 }
+                result.data("help", "dot") ;
 
             }
             break ;
@@ -403,6 +417,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( lambdahead ) ;
                 result.append( doBox ) ;
+                result.data("help", "lambda") ;
             }
             break ;
             case labels.NullLiteralLabel.kindConst :
@@ -413,6 +428,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
+                result.data("help", "null") ;
             }
             break ;
             case labels.VariableLabel.kindConst :
@@ -425,12 +441,14 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    result.text( node.label().getVal() ) ;
+                    const text = node.label().getVal().replace(/ /g, OPEN_BOX) ;
+                    result.text( text ) ;
                 }
                 else
                 {
                     result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
                 }
+                result.data("help", "variable") ;
             }
             break ;
             case labels.StringLiteralLabel.kindConst :
@@ -452,13 +470,14 @@ module treeView
                 }
                 else
                 {
-                    const str = node.label().getVal() ;
+                    const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
                     const textEl = $( document.createElement("span") ).text( str ) ;
                     result.append(textEl) ;
                 }
-                const rightDoubleQuotationMark = "\u201D" ;
-                const closeQuote : JQuery = $( document.createElement("span") ).text(rightDoubleQuotationMark) ;
+                
+                const closeQuote : JQuery = $( document.createElement("span") ).text(RIGHTDOUBLEQUOTATIONMARK) ;
                 result.append(closeQuote) ;
+                result.data("help", "stringLiteral") ;
             }
             break ;
             case labels.NumberLiteralLabel.kindConst :
@@ -478,6 +497,7 @@ module treeView
                 {
                     result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
                 }
+                result.data("help", "numberLiteral") ;
             }
             break ;
             case labels.BooleanLiteralLabel.kindConst :
@@ -499,6 +519,7 @@ module treeView
                     colorClass = "redText" ; }
                 result.text( mark ) ;
                 result.addClass( colorClass ) ;
+                result.data("help", "booleanLiteral") ;
             }
             break ;
             case labels.NoTypeLabel.kindConst :
@@ -508,6 +529,7 @@ module treeView
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
+                result.data("help", "noType") ;
             }
             break ;
             case labels.NoExprLabel.kindConst :
@@ -517,6 +539,7 @@ module treeView
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
+                result.data("help", "noExpr") ;
             }
             break ;
             case labels.VarDeclLabel.kindConst :
@@ -541,6 +564,7 @@ module treeView
                     result.append(becomes);
                 }
                 result.append(children[2]);
+                result.data("help", "varDecl") ;
             }
             break ;
             case labels.TupleLabel.kindConst :
@@ -566,6 +590,7 @@ module treeView
                 }
                 const closePar : JQuery = $( document.createElement("div") ).text(")") ;
                 result.append( closePar ) ; 
+                result.data("help", "tuple") ;
             }
             break ;
             case labels.PrimitiveTypesLabel.kindConst :
@@ -580,27 +605,35 @@ module treeView
                 switch(label.type) {
                     case "stringType" :
                         result.html(STRINGTYPE);
+                        result.data("help", "stringType") ;
                         break;
                     case "numberType" :
                         result.html(NUMBERTYPE);
+                        result.data("help", "numberType") ;
                         break;
                     case "booleanType" :
                         result.html(BOOLEANTYPE);
+                        result.data("help", "booleanType") ;
                         break;
                     case "nullType" :
                         result.html(NULLMARK);
+                        result.data("help", "nullType") ;
                         break;
                     case "integerType" :
                         result.html(INTEGERTYPE);
+                        result.data("help", "integerType") ;
                         break;
                     case "natType" :
                         result.html(NATTYPE);
+                        result.data("help", "natType") ;
                         break ;
                     case "topType" :
                         result.html(TOPTYPE);
+                        result.data("help", "topType") ;
                         break;
                     case "bottomType" :
                         result.html(BOTTOMTYPE);
+                        result.data("help", "bottomType") ;
                         break;
                     default :
                         result = assert.unreachable("Unknown primitive type in buildHTML.");
@@ -630,6 +663,7 @@ module treeView
                 }
                 const closePar : JQuery = $( document.createElement("div") ).text(")") ;
                 result.append( closePar ) ; 
+                result.data("help", "tupleType") ;
             }
             break;
             case labels.FunctionTypeLabel.kindConst :
@@ -646,6 +680,7 @@ module treeView
                 result.append(children[0]);
                 result.append(arrow);
                 result.append(children[1]);
+                result.data("help", "functionType") ;
                 
             }
             break;
@@ -656,8 +691,8 @@ module treeView
                 result.addClass( "H" ) ;
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
-
                 result.append(children[0]);
+                result.data("help", "locationType") ;
             }
             break;
             case labels.FieldTypeLabel.kindConst :
@@ -674,7 +709,7 @@ module treeView
                 result.append(children[0]);
                 result.append(colon);
                 result.append(children[1]);
-                
+                result.data("help", "fieldType") ;
             }
             break;
             case labels.JoinTypeLabel.kindConst :
@@ -695,7 +730,7 @@ module treeView
                         const pipe : JQuery = $( document.createElement("div") ).text(JOINTYPE) ;
                         result.append( pipe ) ; }
                 }
-
+                result.data("help", "joinType") ;
             }
             break;
             case labels.MeetTypeLabel.kindConst :
@@ -716,6 +751,7 @@ module treeView
                         const amp : JQuery = $( document.createElement("div") ).text(MEETTYPE) ;
                         result.append( amp ) ; }
                 }
+                result.data("help", "meetType") ;
             }
             break;
             default:
@@ -763,6 +799,41 @@ module treeView
         }
     }
 
+    export function findHelpString( sel : PSelection, jq : JQuery ) : string {
+        assert.check( jq.attr( "data-childNumber" ) === "-1" ) ;
+        const element = findHTMLForPath( sel.root(), sel.path(), sel.start(), sel.end(), jq ) ;
+        return helpStringForElement( element ) ;
+    }
+    
+    function  findHTMLForPath( pn : PNode, thePath : List<number>, start : number, end : number, jq : JQuery ) : JQuery {
+        if( thePath.isEmpty() ) {
+            if( start === end ) {
+                const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
+                assert.check( zones !== null ) ;
+                const dz : JQuery|null = start < zones.length ? zones[start] : null ;
+                if( dz === null ) return jq ;
+                else return dz ;
+            } else {
+                const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+                assert.check( children !== null ) ;
+                return children[ start ] ;
+            }
+        } else {
+            const i = thePath.first() ;
+            const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
+            assert.check( children !== null ) ;
+            assert.check( i < children.length ) ;
+            return findHTMLForPath( pn.child(i), thePath.rest(), start, end, children[i] ) ;
+        }
+    }
+
+    function helpStringForElement( jq : JQuery ) {
+        while( true ) {
+            const helpString = jq.data( "help" ) ;
+            if( helpString ) return helpString ;
+            jq = jq.parent() ; }
+    }
+
     function makeDropZone( childNumber : number, large : boolean ) : JQuery {
         const dropZone : JQuery = $( document.createElement("div") ) ;
         dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
@@ -776,17 +847,17 @@ module treeView
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-            const str = node.label().getVal() ;
-            const element : JQuery = $(document.createElement("input"));
-            for( let i=0 ; i < classes.length ; ++i ) {
-                element.addClass( classes[i] ) ; }
-            childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
-            element.attr("type", "text");
-            element.attr("value", str) ;
-            // Give the element focus and move the caret to the end of the text.
-            const len = str.length ;
-            setSelection(element, len, len) ;
-            return element ;
+        const str = node.label().getVal() ;
+        const element : JQuery = $(document.createElement("input"));
+        for( let i=0 ; i < classes.length ; ++i ) {
+            element.addClass( classes[i] ) ; }
+        childNumber.map( n => element.attr("data-childNumber", n.toString() ) ) ;
+        element.attr("type", "text");
+        element.attr("value", str) ;
+        // Give the element focus and move the caret to the end of the text.
+        const len = str.length ;
+        setSelection(element, len, len) ;
+        return element ;
     }
 
     function setSelection( element : JQuery, start : number, end : number ) : void {
@@ -794,15 +865,15 @@ module treeView
         // Code based on https://www.sitepoint.com/6-jquery-cursor-functions/
         const input = element[0] ;
         input.focus() ;
-        if( input["setSelectionRange"] !== "undefined" ) {
+        if( typeof( input["setSelectionRange"] ) !== "undefined" ) {
             input["setSelectionRange"]( start, end ) ;
         }
     }
 
     export function getPathToNode(root : PNode, self : JQuery ) : Option<PSelection>
     {
-        let anchor;
-        let focus;
+        let anchor : number ;
+        let focus : number ;
         //console.log( ">> getPathToNode" ) ;
         let jq : JQuery= $(self);
         let childNumber : number = Number(jq.attr("data-childNumber"));
