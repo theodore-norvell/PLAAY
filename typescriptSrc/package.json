@@ -6,14 +6,16 @@
   "scripts": {
     "pretest": "tsc",
     "test": "mocha",
-    "build": "tsc && browserify -o plaay.js -s main main.js",
+    "build": "npm run sass && tsc && browserify -o plaay.js -s main main.js",
     "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
-    "lint": "tslint --project tsconfig.json"
+    "lint": "tslint --project tsconfig.json",
+    "sass": "./node_modules/sass/sass.js plaay-style.scss > plaay-style.css" 
   },
   "author": "Theodore Norvell",
   "license": "Copyright of the developers",
   "devDependencies": {
-    "browserify": "^16.2.0"
+    "browserify": "^16.2.0",
+    "sass": "^1.17.3"
   },
   "dependencies": {
     "svg.js": "^2.6.4"

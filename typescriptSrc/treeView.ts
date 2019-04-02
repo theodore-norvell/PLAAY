@@ -185,6 +185,7 @@ module treeView
                 {
                     opElement = $(document.createElement("div") ) ;
                     opElement.addClass( "op" ) ;
+                    opElement.addClass( "punctBox" ) ;
                     opElement.addClass( "H" ) ;
                     opElement.addClass( "click" ) ;
                     opElement.text( node.label().getVal() ) ;
@@ -246,6 +247,7 @@ module treeView
                 const opDiv : JQuery = $( document.createElement("div") ) ;
                 opDiv.addClass( "upright" ) ;
                 opDiv.addClass( "op" );
+                opDiv.addClass( "punctBox" ) ;
                 opDiv.text( "loc" ) ;
 
                 result.append(opDiv);
@@ -555,6 +557,7 @@ module treeView
 
                 const colon : JQuery = $( document.createElement("div") );
                 colon.text(":") ;
+                colon.addClass("op") ;
 
                 result.append(children[0]);
                 result.append(colon);
@@ -562,6 +565,7 @@ module treeView
                 if( node.child(2).isExprNode() ) {
                     const becomes : JQuery = $( document.createElement("div") );
                     becomes.text(":=") ;
+                    becomes.addClass("op") ;
                     result.append(becomes);
                 }
                 result.append(children[2]);
@@ -576,7 +580,9 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 
-                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                const openPar : JQuery = $( document.createElement("div") )
+                                        .text("(")
+                                        .addClass("op") ;
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
@@ -586,10 +592,15 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
-                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        const comma : JQuery = $( document.createElement("div") )
+                                               .text(",")
+                                               .addClass("op") ;
                         result.append( comma ) ; }
                 }
-                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                const closePar : JQuery = $( document.createElement("div") )
+                                          .text(")")
+                                          .addClass("op") ; ;
+                openPar.addClass("op") ;
                 result.append( closePar ) ; 
                 result.data("help", "tuple") ;
             }
@@ -649,7 +660,9 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 
-                const openPar : JQuery = $( document.createElement("div") ).text("(") ;
+                const openPar : JQuery = $( document.createElement("div") )
+                                         .text("(")
+                                         .addClass("op") ;
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
@@ -659,10 +672,14 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
-                        const comma : JQuery = $( document.createElement("div") ).text(",") ;
+                        const comma : JQuery = $( document.createElement("div") )
+                                               .text(",")
+                                               .addClass("op") ;
                         result.append( comma ) ; }
                 }
-                const closePar : JQuery = $( document.createElement("div") ).text(")") ;
+                const closePar : JQuery = $( document.createElement("div") )
+                                          .text(")")
+                                          .addClass("op") ;
                 result.append( closePar ) ; 
                 result.data("help", "tupleType") ;
             }
@@ -675,9 +692,9 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
-                const arrow : JQuery = $( document.createElement("div") );
-                arrow.text(FUNCTIONTYPE);
-
+                const arrow : JQuery = $( document.createElement("div") )
+                                       .text(FUNCTIONTYPE)
+                                       .addClass("op") ;
                 result.append(children[0]);
                 result.append(arrow);
                 result.append(children[1]);
@@ -704,8 +721,9 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
 
-                const colon : JQuery = $( document.createElement("div") );
-                colon.text(":");
+                const colon : JQuery = $( document.createElement("div") )
+                                      .text(":")
+                                      .addClass("op");
 
                 result.append(children[0]);
                 result.append(colon);
@@ -728,7 +746,9 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
-                        const pipe : JQuery = $( document.createElement("div") ).text(JOINTYPE) ;
+                        const pipe : JQuery = $( document.createElement("div") )
+                                              .text(JOINTYPE)
+                                              .addClass("op") ;
                         result.append( pipe ) ; }
                 }
                 result.data("help", "joinType") ;
@@ -749,7 +769,9 @@ module treeView
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
-                        const amp : JQuery = $( document.createElement("div") ).text(MEETTYPE) ;
+                        const amp : JQuery = $( document.createElement("div") )
+                                             .text(MEETTYPE)
+                                             .addClass("op") ;
                         result.append( amp ) ; }
                 }
                 result.data("help", "meetType") ;
@@ -769,6 +791,7 @@ module treeView
         result.data("dropzones", dropzones ) ;
         // Make it selectable by a click
         result.addClass( "selectable" ) ;
+        result.addClass( "codeItem" ) ;
         return result ;
     }
 

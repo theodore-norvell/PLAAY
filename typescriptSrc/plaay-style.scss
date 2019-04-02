@@ -1,0 +1,948 @@
+@charset "UTF-8";
+/* SCSS Document */
+$varColour: rgb(244, 140, 0) ;
+$controlColour: rgb(190, 133, 197) ;
+$dataColour: rgb(135,206,250) ; 
+$typeColour: rgb(242, 231, 21) ;
+
+$whileSymbol: "\27f3" ;
+$rightwardsArrow: "\2192" ;
+$lowerCaseLambda: "\03bb" ;
+
+$serifCodeFont: "Noto Serif", "Times New Roman", Times, serif ;
+
+$standardMinHeight: 2ex ;
+
+$codeFontSize: large ;
+
+
+.canv
+{
+    background-color: white;
+    position: absolute;
+    top:30px;
+    right: 20px;
+}
+
+input.selected {
+     color: white ;
+}
+
+.selected {
+     background-color: #696969 ;
+}
+
+div.clipboardItem {
+    border: thin solid ghostwhite;
+    padding: 2px ;
+    margin: 2px ;
+}
+
+.H {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-align-items: flex-start;
+    align-items: flex-start ;
+}
+
+.V {
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: column ;
+    flex-direction: column ;
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    -webkit-align-items: flex-start;
+    align-items: flex-start ;
+}
+
+.dropdown
+{
+    display:none;
+    width:300px;
+    border: 1px solid #696969;
+    position: relative;
+}
+
+html, body
+{
+    background-color: #696969;
+}
+
+#upperArea
+{
+    position:absolute;
+    top:0;
+    left:0;
+    height: 5%;
+    width: 95%;
+    margin: .3em 2% .3em 2%;
+    color: #2a0f44;
+    font-weight: bold;
+    line-height: 1.7em;
+    font-size: 1.2em;
+    background-color: #696969 ;
+}
+
+#bannerArea
+{
+    position:absolute;
+    left:0;
+    width: 37em;
+    background-color: #cccccc;
+}
+
+#userBar
+{
+    position:absolute;
+    right:0;
+    width: auto;
+    padding: 0 .5em 0 .5em;
+    text-align: right;
+    float: right;
+    display: block;
+}
+
+.barButtons
+{
+    float: left;
+    border: 1px solid black;
+    background-color: #cccccc;
+    margin: 2px ;
+}
+.barButtons:hover
+{
+    text-decoration: underline ; 
+}
+
+#outputArea
+{
+    position:absolute;
+    bottom:0;
+    right:0;
+    height: 506px;
+    width: 506px;
+    padding: 0px 0px 0px 0px ;
+    border: 3px solid white;
+    z-index: +1 ;
+}
+
+#outputAreaCanvas
+{
+    position:static;
+    height: 500px;
+    width: 500px;
+    margin: 3px 3px 3px 3px ;
+    background-color: silver;
+}
+
+
+#contentArea
+{
+    position:absolute;
+    bottom:0;
+    left:0;
+    height: 89%;
+    width: 95%;
+    margin: 0 2% 1% 2%;
+    background-color: #cccccc;
+}
+
+.helpFrame {
+    width: 90% ;
+    height: 90% ;
+}
+
+.tab
+{
+    position: absolute ; /* Absolute within its container */
+    top: 0 ;
+    left:0;
+    height: 100% ;
+    width: 100% ;
+   
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: flex-start;
+    justify-content: flex-start;
+    
+    -webkit-align-items: stretch;
+    align-items: stretch ; 
+
+}
+
+.leftSideArea
+{
+    flex: 0 0 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    width: auto ;
+    margin: 1%;
+    background-color: #262626;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: column ;
+    flex-direction: column ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    
+    -webkit-align-items: flex-start;
+    align-items: flex-start ;
+}
+
+.paletteArea
+{
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    width: auto ;
+    height: 70%;
+    margin: auto;
+    background-color: #262626;
+
+    display: -webkit-box;
+    display: -moz-box;
+    display: -ms-flexbox;
+    display: -webkit-flex;
+    display: flex;
+
+    -webkit-flex-direction: row ;
+    flex-direction: row ;
+    
+    -webkit-flex-wrap: nowrap ;
+    flex-wrap: nowrap ;
+    
+    -webkit-justify-content: stretch;
+    justify-content: stretch ;
+    
+    -webkit-align-items:stretch;
+    align-items: stretch ;
+}
+
+#container
+{
+    flex: 5 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    overflow: auto;
+    background-color: #262626 ;
+    width: 50% ;
+}
+
+.helpPanel {
+    flex: 2 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    overflow: auto;
+    width: 25% ;
+}
+
+/* expression palette */
+.palette
+{
+    display: grid ;
+    grid-template-columns: 80px ;
+    grid-auto-rows: 40px ;
+    width: auto;
+    margin: 1em 1em 1em 1em ;
+    background-color:#a6a6a6 ;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.buttonArea
+{
+    flex: 1 1 auto ;
+    width: auto;
+    height: auto;
+    margin: 1em 1em 1em 1em ;
+    background-color: #a6a6a6 ;
+    overflow-y: auto;
+    overflow-x: hidden;
+}
+
+.leftSideButton
+{
+    height: 24px;
+    width: 48px;
+    margin: 2px 5px ;
+    color: black ;
+    background-color: #a6a6a6 ;
+    border: 3px solid black ;
+}
+.leftSideButton:hover
+{
+    background-color: white ;
+}
+
+.paletteItem 
+{
+    text-align: center;
+    line-height: 30px;
+    font-weight: bold;
+    background-color: black;
+    /*box-shadow: 0px 0px 3px;*/
+    color: $controlColour;
+}
+
+.typeItem
+{
+    color: $typeColour ;
+}
+
+.dataItem
+{
+    color: ghostwhite ;
+}
+
+.varItem
+{
+    color: $varColour ;
+}
+
+.paletteItem:hover
+{
+    border: 1px solid black;
+}
+
+div.stack
+{
+    position:fixed;
+    top:4px; left:4px;
+    height:calc(80% - 8px);
+    width:150px;
+    background-color:grey;
+    overflow:auto;
+}
+
+div.closewindow {
+    position:absolute;
+    bottom:0;
+    right:0;
+    padding:5px;
+}
+
+#getProgramList {
+    width:60%;
+    height:80%;
+    vertical-align:middle;
+    margin: 0 auto;
+    background-color: white;
+    position:relative;
+}
+
+#registrationBox {
+    width:60%;
+    height:80%;
+    vertical-align:middle;
+    margin: 0 auto;
+    background-color: white;
+    position:relative;
+}
+
+#loginSection {
+    margin:20px;
+}
+
+#registrationSection {
+    margin:20px;
+}
+
+div.vms
+{
+    flex: 1 1 auto ;
+    top: 0px ;
+    bottom: 0px ;
+    margin: 1%;
+    background-color: #262626 ;
+    overflow: auto;
+}
+
+/*actual visualization*/
+
+/** Used for every HTML element that represents a node. */
+div.codeBox {
+    padding: 2px ;
+    border-radius: 5px;
+    min-height: $standardMinHeight ;
+    font-family : $serifCodeFont ;
+    font-weight: normal ;
+    font-size: $codeFontSize ;
+    font-style: normal ;
+}
+
+div.codeBox.H {
+    -webkit-align-items: baseline ;
+    align-items: baseline ;
+}
+
+div.seqBox > div.codeBox {
+    padding: 0px ;
+}
+
+div.ifBox {
+    border-top: medium solid $controlColour ;
+    border-bottom: medium solid $controlColour ;
+    border-left: 10px solid $controlColour ;
+    border-right: thin solid $controlColour ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.ifGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed $controlColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+
+div.ifGuardBox:before { content: "?" ;
+    display: inline ;
+    vertical-align: top ;
+    color: $controlColour ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.thenBox {
+    border-top: none ;
+    border-bottom: medium solid $controlColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.elseBox {
+    border-top: none ;
+    border-bottom: none ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.whileBox {
+    border-top: medium solid $controlColour ;
+    border-bottom: medium solid $controlColour ;
+    border-left: 10px solid $controlColour ;
+    border-right: thin solid $controlColour ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+
+div.whileGuardBox:before { content: $whileSymbol ;
+    display: inline ;
+    vertical-align: top ;
+    color: $controlColour ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.whileGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed $controlColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.doBox { /*Used with both whiles and lambdas */
+    border-top: none ;
+    border-bottom:none ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.lambdaBox { 
+    border-top: medium solid $dataColour ;
+    border-bottom: medium solid $dataColour ;
+    border-left: 10px solid $dataColour ;
+    border-right: thin solid $dataColour ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.lambdaHeader {
+    border-top: none ;
+    border-bottom: medium dashed $dataColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.lambdaResult:before {
+    content: $rightwardsArrow ; /* RIGHTWARDS ARROW */
+    display: inline ;
+    vertical-align: top ;
+    color: $dataColour ;
+    font-size: large ;
+}
+
+div.paramlistOuter {
+    border: none ;
+}
+
+
+div.paramlistOuter:before {
+    content: $lowerCaseLambda ; /* Lower case Lambda */
+    display: inline ;
+    vertical-align: top ;
+    color: $dataColour ;
+    font-size: large ;
+    font-weight: bold ;
+}
+
+div.noType {
+    border: thin solid transparent ;
+    border-radius: 5px ;
+    margin: 2px 0px 2px 0px ;
+    min-height: 2ex ;
+    min-width: 1em ;
+    border-radius: 5px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.noType:hover {
+    border-color: white;
+}
+
+div.seqBox {
+    /*border: thin solid lightgrey ;*/
+    border-radius: 5px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+/* This sort of dropzone is usually used in vertical boxes like seqBoxes. */
+div.dropZone {
+    font-family: serifCodeFont ;
+    border: 1px solid transparent;
+    min-height: 1ex ;
+    min-width: 10em ;
+    border-radius: 5px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.dropZone:hover {
+    border-color: white;
+}
+
+/* This sort of dropzone is usually used in horizontal boxes like calls. */
+div.dropZoneSmall {
+    margin: 0px 0px 0px 0px ;
+    min-height: $standardMinHeight ;
+    min-width: 0.5em ;
+    border-radius: 5px ;
+}
+
+div.dropZoneSmall:hover {
+    border: 1px solid white;
+}
+
+div.placeHolder {
+    border: thin solid $varColour ; /* Orange */
+    margin: 2px 0px 2px 0px ;
+    min-width: 2em ;
+    min-height: 1em ;
+    width: auto ;
+    color: $varColour ; /* Orange */
+    border-radius: 5px ;
+}
+
+div.noExp {
+    border-radius: 5px ;
+    margin: 2px 0px 2px 0px ;
+    min-height: 1em ;
+    min-width: 1em ;
+    border-radius: 5px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.noExp:hover {
+    border-color: white;
+}
+
+div.hCont, div.var, div.assign, div.loc {
+    border: thin solid transparent ;
+    border-radius: 5px ;
+    min-width: 1em ;
+    color: $varColour ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
+    border-color: $varColour ;
+}
+
+div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
+    border-color: $varColour ;
+}
+div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover {
+    border-color: $varColour ;
+}
+
+div.var {
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.locdecl:before {
+    content: "loc" ;
+    display: inline ;
+    vertical-align: top ;
+    color: $varColour ;
+    font-size: $codeFontSize  ;
+    font-style: normal ;
+    font-weight: bold ;
+}
+
+div.locdecl, div.condecl {
+    border: thin solid transparent ;
+    border-radius: 5px ;
+    font-weight: normal ;
+    font-size: $codeFontSize  ;
+    color: $varColour ; /* Orange */
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.locdecl.bordered, div.condecl.bordered {
+    border-color: $varColour ;
+}
+div.locdecl:hover, div.condecl:hover {
+    border-color: $varColour ;
+}
+
+div.call {
+    border:thin solid transparent ;
+    border-radius: 5px ;
+    color:$controlColour ; /* Mauve */
+    min-width: 1em ;
+}
+
+div.callVar {
+    border:thin solid transparent ; /* Mauve */
+    border-radius: 5px ;
+    color:$controlColour ; /* Mauve */
+    min-width: 1em ;
+}
+
+div.op {
+    font-family : "Noto Serif", "Times New Roman", Times, serif;
+    font-size: $codeFontSize  ;
+    font-style: normal ;
+    font-weight: normal ;
+    min-height: $standardMinHeight ;
+}
+
+div.upright {
+    font-style: normal ;
+}
+
+div.objectGuardBox:before { content: "$" ;
+    display: inline ;
+    vertical-align: top ;
+    color: $dataColour ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.objectGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed $dataColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.objectBox {
+    border-top: medium solid $dataColour ;
+    border-bottom: medium solid $dataColour ;
+    border-left: 10px solid $dataColour ;
+    border-right: thin solid $dataColour ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.arrayGuardBox:before { content: "array" ;
+    display: inline ;
+    vertical-align: top ;
+    color: $dataColour ;
+    font-size: large ;
+    margin: 0px 5px 0px 0px ;
+}
+
+div.arrayGuardBox {
+    border-top: none ;
+    border-bottom: medium dashed $dataColour ;
+    border-left: none ;
+    border-right: none ;
+    padding-left: 10px ;
+    -webkit-align-self: stretch ; align-self: stretch ;
+}
+
+div.arrayBox {
+    border-top: medium solid $dataColour ;
+    border-bottom: medium solid $dataColour ;
+    border-left: 10px solid $dataColour ;
+    border-right: thin solid $dataColour ;
+    border-radius: 10px ;
+    padding-left: 0px ;
+}
+
+div.accessor {
+    border:thin solid $controlColour ; /* Mauve */
+    border-radius: 5px ;
+    color:$controlColour ; /* Mauve */
+    min-width: 1em ;
+}
+
+div.dot {
+    border:thin solid $controlColour ; /* Mauve */
+    border-radius: 5px ;
+    color:$controlColour ; /* Mauve */
+    min-width: 1em ;
+}
+
+div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
+    border-color: $controlColour ;
+}
+div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover {
+    border-color: $controlColour ;
+}
+
+div.tuple {
+    border:thin solid transparent ; /* Blue */
+    border-radius: 5px ;
+    color:$dataColour ; /* Blue */
+    min-width: 1em ;
+}
+
+div.tuple.bordered {
+    border-color: $controlColour ;
+}
+div.tuple:hover {
+    border-color: $controlColour ;
+}
+
+div.types {
+    border:none;
+    border-radius: 5px ;
+    font-weight:bold;
+    text-align:center;
+    color:$typeColour;
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.literal, div.nullLiteral {
+    border:thin solid transparent ;
+    border-radius: 5px ;
+    /** font-family:"Noto Mono", "Lucida Console", monospace; */
+    text-align: center;
+    color: $dataColour ;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+    &.literal.bordered, &:hover{ 
+        border-color: $dataColour ;
+    }
+}
+
+div.literal {
+    min-width: 1em ;
+    max-width: 200px ;
+    white-space: pre-wrap ;
+    word-wrap: break-word ;
+}
+
+div.nullLiteral {
+    font-size: x-large ;
+    font-weight:bold;
+    text-align:center;
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.typesBorder {
+    border :thin solid $typeColour;
+    border-radius: 5px ;
+    text-align:center;
+    color:$typeColour;
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.typesBorder.bordered {
+    border-color: $typeColour ;
+}
+div.typesBorder:hover {
+    border-color: $typeColour ;
+}
+
+div.locationType {
+    border-left :thin solid $typeColour;
+    border-right :thin solid $typeColour;
+    border-bottom :thin solid $typeColour;
+    border-radius: 5px ;
+    text-align:center;
+    color:$typeColour;
+    vertical-align:middle;
+    padding: 1px 2px 1px 2px ;
+    margin: 1px 2px 1px 2px ;
+}
+
+div.redText {
+    color:rgb(200,0,0);
+}
+
+div.greenText {
+    color:rgb(0,200,0);
+}
+
+.hover {
+    background-color: white !important;
+}
+
+.ui-widget.success-dialog {
+    font-family: "Noto Sans", Verdana, Arial, sans-serif;
+    font-size: .8em;
+}
+
+.ui-widget-content.success-dialog {
+    background: black;
+    overflow:visible;
+    position: fixed;
+    border: 1px solid purple;
+    color: #222222;
+}
+
+.ui-dialog.success-dialog {
+    left: 0;
+    outline: 0 none;
+    padding: 0 !important;
+    position: absolute;
+    top: 0;
+}
+
+.ui-dialog.success-dialog .ui-dialog-content {
+    background: none repeat scroll 0 0 transparent;
+    border: 0 none;
+    overflow: auto;
+    position: relative;
+    padding: 0 !important;
+    margin: 0;
+}
+
+.ui-dialog.success-dialog .ui-widget-header {
+    background: purple;
+    border: 0;
+    color: #fff;
+    font-weight: normal;
+}
+
+.ui-dialog.success-dialog .ui-dialog-titlebar {
+    padding: 0.1em .5em;
+    position: relative;
+    font-size: 1em;
+}
+
+div.dialog
+{
+    position:fixed;
+    width: 50px;
+    height: 50px;
+    z-index: 999;
+    background-color: darkred;
+}
+
+table
+{
+    border: 2px solid red;
+    color: black;
+    font-weight: bold;
+}
+
+/* rows */
+tr
+{
+    border-top: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* columns */
+td
+{
+    padding: 10px;
+    border-left: 2px solid black;
+    border-bottom: 2px solid black;
+}
+
+/* resets */
+tr:first-child
+{
+    border-top: none;
+}
+
+tr:last-child
+{
+    border-bottom: none;
+}
+
+td:first-child
+{
+    border-left: none;
+}
+
+td:last-child
+{
+    border-right: none;
+}

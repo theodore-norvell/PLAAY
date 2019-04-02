@@ -1,958 +1,916 @@
 @charset "UTF-8";
-/* CSS Document */
-/* Star trek orange: rgb(244, 140, 0) */
-/* Star trek mauve: rgb(190, 133, 197) */
-/* Star trek dark orange: rgb(182, 78, 78) */
-/* Blue: rgb(135,206,250);  */
-/* Yellow: rgb(242, 231, 21) */
-#stackval {
-	border: thin solid black;
-}
-.plaay {
-    color:rgb(244, 140, 0) ;
-}
-
-.canv
-{
-    background-color: white;
-    position: absolute;
-    top:30px;
-    right: 20px;
+/* SCSS Document */
+.canv {
+  background-color: white;
+  position: absolute;
+  top: 30px;
+  right: 20px;
 }
 
 input.selected {
-     color: white ;
+  color: white;
 }
 
 .selected {
-     background-color: #696969 ;
+  background-color: #696969;
 }
 
 div.clipboardItem {
-    border: thin solid ghostwhite;
-    padding: 2px ;
-    margin: 2px ;
-}
-
-div {
-    /*border: thin dashed lightgrey ;*/
-    padding-left: 5px ;
-    padding-right: 2px ;
-    padding-top: 2px ;
-    padding-bottom: 2px ;
-    border-radius: 5px;
+  border: thin solid ghostwhite;
+  padding: 2px;
+  margin: 2px;
 }
 
 .H {
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: row ;
-    flex-direction: row ;
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    -webkit-justify-content: flex-start;
-    justify-content: flex-start;
-    -webkit-align-items: flex-start;
-    align-items: flex-start ;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
 }
 
 .V {
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: column ;
-    flex-direction: column ;
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    -webkit-justify-content: flex-start;
-    justify-content: flex-start;
-    -webkit-align-items: flex-start;
-    align-items: flex-start ;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
 }
 
-.dropdown
-{
-    display:none;
-    width:300px;
-    border: 1px solid #696969;
-    position: relative;
+.dropdown {
+  display: none;
+  width: 300px;
+  border: 1px solid #696969;
+  position: relative;
 }
 
-html, body
-{
-    background-color: #696969;
+html, body {
+  background-color: #696969;
 }
 
-#upperArea
-{
-    position:absolute;
-    top:0;
-    left:0;
-    height: 5%;
-    width: 95%;
-    margin: .3em 2% .3em 2%;
-    color: #2a0f44;
-    font-weight: bold;
-    line-height: 1.7em;
-    font-size: 1.2em;
-    background-color: #696969 ;
+#upperArea {
+  position: absolute;
+  top: 0;
+  left: 0;
+  height: 5%;
+  width: 95%;
+  margin: 0.3em 2% 0.3em 2%;
+  color: #2a0f44;
+  font-weight: bold;
+  line-height: 1.7em;
+  font-size: 1.2em;
+  background-color: #696969;
 }
 
-#bannerArea
-{
-    position:absolute;
-    left:0;
-    width: 37em;
-    background-color: #cccccc;
+#bannerArea {
+  position: absolute;
+  left: 0;
+  width: 37em;
+  background-color: #cccccc;
 }
 
-#userBar
-{
-    position:absolute;
-    right:0;
-    width: auto;
-    padding: 0 .5em 0 .5em;
-    text-align: right;
-    float: right;
-    display: block;
+#userBar {
+  position: absolute;
+  right: 0;
+  width: auto;
+  padding: 0 0.5em 0 0.5em;
+  text-align: right;
+  float: right;
+  display: block;
 }
 
-.barButtons
-{
-    float: left;
-    border: 1px solid black;
-    background-color: #cccccc;
-    margin: 2px ;
-}
-.barButtons:hover
-{
-    text-decoration: underline ; 
+.barButtons {
+  float: left;
+  border: 1px solid black;
+  background-color: #cccccc;
+  margin: 2px;
 }
 
-#outputArea
-{
-    position:absolute;
-    bottom:0;
-    right:0;
-    height: 506px;
-    width: 506px;
-    padding: 0px 0px 0px 0px ;
-    border: 3px solid white;
-    z-index: +1 ;
+.barButtons:hover {
+  text-decoration: underline;
 }
 
-#outputAreaCanvas
-{
-    position:static;
-    height: 500px;
-    width: 500px;
-    margin: 3px 3px 3px 3px ;
-    background-color: silver;
+#outputArea {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  height: 506px;
+  width: 506px;
+  padding: 0px 0px 0px 0px;
+  border: 3px solid white;
+  z-index: 1;
 }
 
+#outputAreaCanvas {
+  position: static;
+  height: 500px;
+  width: 500px;
+  margin: 3px 3px 3px 3px;
+  background-color: silver;
+}
 
-#contentArea
-{
-    position:absolute;
-    bottom:0;
-    left:0;
-    height: 89%;
-    width: 95%;
-    margin: 0 2% 1% 2%;
-    background-color: #cccccc;
+#contentArea {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  height: 89%;
+  width: 95%;
+  margin: 0 2% 1% 2%;
+  background-color: #cccccc;
 }
 
 .helpFrame {
-    width: 90% ;
-    height: 90% ;
+  width: 90%;
+  height: 90%;
 }
 
-.tab
-{
-    position: absolute ; /* Absolute within its container */
-    top: 0 ;
-    left:0;
-    height: 100% ;
-    width: 100% ;
-   
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: row ;
-    flex-direction: row ;
-    
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    
-    -webkit-justify-content: flex-start;
-    justify-content: flex-start;
-    
-    -webkit-align-items: stretch;
-    align-items: stretch ; 
-
+.tab {
+  position: absolute;
+  /* Absolute within its container */
+  top: 0;
+  left: 0;
+  height: 100%;
+  width: 100%;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  -webkit-align-items: stretch;
+  align-items: stretch;
 }
 
-.leftSideArea
-{
-    flex: 0 0 auto ;
-    top: 0px ;
-    bottom: 0px ;
-    width: auto ;
-    margin: 1%;
-    background-color: #262626;
-
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: column ;
-    flex-direction: column ;
-    
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    
-    -webkit-justify-content: stretch;
-    justify-content: stretch ;
-    
-    -webkit-align-items: flex-start;
-    align-items: flex-start ;
+.leftSideArea {
+  flex: 0 0 auto;
+  top: 0px;
+  bottom: 0px;
+  width: auto;
+  margin: 1%;
+  background-color: #262626;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: stretch;
+  justify-content: stretch;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
 }
 
-.paletteArea
-{
-    flex: 1 1 auto ;
-    top: 0px ;
-    bottom: 0px ;
-    width: auto ;
-    height: 70%;
-    margin: auto;
-    background-color: #262626;
-
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: row ;
-    flex-direction: row ;
-    
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    
-    -webkit-justify-content: stretch;
-    justify-content: stretch ;
-    
-    -webkit-align-items:stretch;
-    align-items: stretch ;
+.paletteArea {
+  flex: 1 1 auto;
+  top: 0px;
+  bottom: 0px;
+  width: auto;
+  height: 70%;
+  margin: auto;
+  background-color: #262626;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: stretch;
+  justify-content: stretch;
+  -webkit-align-items: stretch;
+  align-items: stretch;
 }
 
-#container
-{
-    flex: 5 1 auto ;
-    top: 0px ;
-    bottom: 0px ;
-    margin: 1%;
-    overflow: auto;
-    background-color: #262626 ;
-    width: 50% ;
+#container {
+  flex: 5 1 auto;
+  top: 0px;
+  bottom: 0px;
+  margin: 1%;
+  overflow: auto;
+  background-color: #262626;
+  width: 50%;
 }
 
 .helpPanel {
-    flex: 2 1 auto ;
-    top: 0px ;
-    bottom: 0px ;
-    margin: 1%;
-    overflow: auto;
-    width: 25% ;
+  flex: 2 1 auto;
+  top: 0px;
+  bottom: 0px;
+  margin: 1%;
+  overflow: auto;
+  width: 25%;
 }
 
 /* expression palette */
-.palette
-{
-    display: grid ;
-    grid-template-columns: 80px ;
-    grid-auto-rows: 40px ;
-    width: auto;
-    margin: 1em 1em 1em 1em ;
-    background-color:#a6a6a6 ;
-    overflow-y: auto;
-    overflow-x: hidden;
+.palette {
+  display: grid;
+  grid-template-columns: 80px;
+  grid-auto-rows: 40px;
+  width: auto;
+  margin: 1em 1em 1em 1em;
+  background-color: #a6a6a6;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.buttonArea
-{
-    flex: 1 1 auto ;
-    width: auto;
-    height: auto;
-    margin: 1em 1em 1em 1em ;
-    background-color: #a6a6a6 ;
-    overflow-y: auto;
-    overflow-x: hidden;
+.buttonArea {
+  flex: 1 1 auto;
+  width: auto;
+  height: auto;
+  margin: 1em 1em 1em 1em;
+  background-color: #a6a6a6;
+  overflow-y: auto;
+  overflow-x: hidden;
 }
 
-.leftSideButton
-{
-    height: 24px;
-    width: 48px;
-    margin: 2px 5px ;
-    color: black ;
-    background-color: #a6a6a6 ;
-    border: 3px solid black ;
-}
-.leftSideButton:hover
-{
-    background-color: white ;
+.leftSideButton {
+  height: 24px;
+  width: 48px;
+  margin: 2px 5px;
+  color: black;
+  background-color: #a6a6a6;
+  border: 3px solid black;
 }
 
-.paletteItem 
-{
-    text-align: center;
-    line-height: 30px;
-    font-weight: bold;
-    background-color: black;
-    /*box-shadow: 0px 0px 3px;*/
-    color: rgb(190, 133, 197);
+.leftSideButton:hover {
+  background-color: white;
 }
 
-.typeItem
-{
-    color: rgb(242, 231, 21) ;
+.paletteItem {
+  text-align: center;
+  line-height: 30px;
+  font-weight: bold;
+  background-color: black;
+  /*box-shadow: 0px 0px 3px;*/
+  color: #be85c5;
 }
 
-.dataItem
-{
-    color: ghostwhite ;
+.typeItem {
+  color: #f2e715;
 }
 
-.varItem
-{
-    color: rgb(244, 140, 0) ;
+.dataItem {
+  color: ghostwhite;
 }
 
-.paletteItem:hover
-{
-    border: 1px solid black;
+.varItem {
+  color: #f48c00;
 }
 
-div.stack
-{
-    position:fixed;
-    top:4px; left:4px;
-    height:calc(80% - 8px);
-    width:150px;
-    background-color:grey;
-    overflow:auto;
+.paletteItem:hover {
+  border: 1px solid black;
+}
+
+div.stack {
+  position: fixed;
+  top: 4px;
+  left: 4px;
+  height: calc(80% - 8px);
+  width: 150px;
+  background-color: grey;
+  overflow: auto;
 }
 
 div.closewindow {
-    position:absolute;
-    bottom:0;
-    right:0;
-    padding:5px;
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 5px;
 }
 
 #getProgramList {
-    width:60%;
-    height:80%;
-    vertical-align:middle;
-    margin: 0 auto;
-    background-color: white;
-    position:relative;
+  width: 60%;
+  height: 80%;
+  vertical-align: middle;
+  margin: 0 auto;
+  background-color: white;
+  position: relative;
 }
 
 #registrationBox {
-    width:60%;
-    height:80%;
-    vertical-align:middle;
-    margin: 0 auto;
-    background-color: white;
-    position:relative;
+  width: 60%;
+  height: 80%;
+  vertical-align: middle;
+  margin: 0 auto;
+  background-color: white;
+  position: relative;
 }
 
 #loginSection {
-    margin:20px;
+  margin: 20px;
 }
 
 #registrationSection {
-    margin:20px;
+  margin: 20px;
 }
 
-div.vms
-{
-    flex: 1 1 auto ;
-    top: 0px ;
-    bottom: 0px ;
-    margin: 1%;
-    background-color: #262626 ;
-    overflow: auto;
+div.vms {
+  flex: 1 1 auto;
+  top: 0px;
+  bottom: 0px;
+  margin: 1%;
+  background-color: #262626;
+  overflow: auto;
 }
 
 /*actual visualization*/
+/** Used for every HTML element that represents a node. */
+div.codeBox {
+  padding: 2px;
+  border-radius: 5px;
+  min-height: 2ex;
+  font-family: "Noto Serif", "Times New Roman", Times, serif;
+  font-weight: normal;
+  font-size: large;
+  font-style: normal;
+}
+
+div.codeBox.H {
+  -webkit-align-items: baseline;
+  align-items: baseline;
+}
+
+div.seqBox > div.codeBox {
+  padding: 0px;
+}
+
 div.ifBox {
-    border-top: medium solid rgb(190, 133, 197) ;
-    border-bottom: medium solid rgb(190, 133, 197) ;
-    border-left: 10px solid rgb(190, 133, 197) ;
-    border-right: thin solid rgb(190, 133, 197) ;
-    border-radius: 10px ;
-    padding-left: 0px ;
+  border-top: medium solid #be85c5;
+  border-bottom: medium solid #be85c5;
+  border-left: 10px solid #be85c5;
+  border-right: thin solid #be85c5;
+  border-radius: 10px;
+  padding-left: 0px;
 }
 
 div.ifGuardBox {
-    border-top: none ;
-    border-bottom: medium dashed rgb(190, 133, 197) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium dashed #be85c5;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
-
-div.ifGuardBox:before { content: "?" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(190, 133, 197) ;
-    font-size: large ;
-    margin: 0px 5px 0px 0px ;
+div.ifGuardBox:before {
+  content: "?";
+  display: inline;
+  vertical-align: top;
+  color: #be85c5;
+  font-size: large;
+  margin: 0px 5px 0px 0px;
 }
 
 div.thenBox {
-    border-top: none ;
-    border-bottom: medium solid rgb(190, 133, 197) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium solid #be85c5;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.elseBox {
-    border-top: none ;
-    border-bottom: none ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.whileBox {
-    border-top: medium solid rgb(190, 133, 197) ;
-    border-bottom: medium solid rgb(190, 133, 197) ;
-    border-left: 10px solid rgb(190, 133, 197) ;
-    border-right: thin solid rgb(190, 133, 197) ;
-    border-radius: 10px ;
-    padding-left: 0px ;
+  border-top: medium solid #be85c5;
+  border-bottom: medium solid #be85c5;
+  border-left: 10px solid #be85c5;
+  border-right: thin solid #be85c5;
+  border-radius: 10px;
+  padding-left: 0px;
 }
 
-
-div.whileGuardBox:before { content: "\27f3" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(190, 133, 197) ;
-    font-size: large ;
-    margin: 0px 5px 0px 0px ;
+div.whileGuardBox:before {
+  content: "⟳";
+  display: inline;
+  vertical-align: top;
+  color: #be85c5;
+  font-size: large;
+  margin: 0px 5px 0px 0px;
 }
 
 div.whileGuardBox {
-    border-top: none ;
-    border-bottom: medium dashed rgb(190, 133, 197) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium dashed #be85c5;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
-div.doBox { /*Used with both whiles and lambdas */
-    border-top: none ;
-    border-bottom:none ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+div.doBox {
+  /*Used with both whiles and lambdas */
+  border-top: none;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
-div.lambdaBox { 
-    border-top: medium solid rgb(135,206,250) ;
-    border-bottom: medium solid rgb(135,206,250) ;
-    border-left: 10px solid rgb(135,206,250) ;
-    border-right: thin solid rgb(135,206,250) ;
-    border-radius: 10px ;
-    padding-left: 0px ;
+div.lambdaBox {
+  border-top: medium solid lightskyblue;
+  border-bottom: medium solid lightskyblue;
+  border-left: 10px solid lightskyblue;
+  border-right: thin solid lightskyblue;
+  border-radius: 10px;
+  padding-left: 0px;
 }
 
 div.lambdaHeader {
-    border-top: none ;
-    border-bottom: medium dashed rgb(135,206,250) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium dashed lightskyblue;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.lambdaResult:before {
-    content: "\002192" ; /* RIGHTWARDS ARROW */
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(135,206,250) ;
-    font-size: large ;
+  content: "→";
+  /* RIGHTWARDS ARROW */
+  display: inline;
+  vertical-align: top;
+  color: lightskyblue;
+  font-size: large;
 }
 
 div.paramlistOuter {
-    border: none ;
+  border: none;
 }
 
-
 div.paramlistOuter:before {
-    content: "\0003bb" ; /* Lower case Lambda */
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(135,206,250) ;
-    font-size: large ;
+  content: "λ";
+  /* Lower case Lambda */
+  display: inline;
+  vertical-align: top;
+  color: lightskyblue;
+  font-size: large;
+  font-weight: bold;
 }
 
 div.noType {
-    /*border: thin solid rgb(242, 231, 21) ;*/
-    border-radius: 5px ;
-    margin: 2px 0px 2px 0px ;
-    min-height: 2ex ;
-    min-width: 1ex ;
-    border-radius: 5px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border: thin solid transparent;
+  border-radius: 5px;
+  margin: 2px 0px 2px 0px;
+  min-height: 2ex;
+  min-width: 1em;
+  border-radius: 5px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.noType:hover {
-    border-color: white;
+  border-color: white;
 }
 
 div.seqBox {
-    /*border: thin solid lightgrey ;*/
-    border-radius: 5px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  /*border: thin solid lightgrey ;*/
+  border-radius: 5px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 /* This sort of dropzone is usually used in vertical boxes like seqBoxes. */
 div.dropZone {
-    border: 1px solid transparent;
-    margin: 2px 0px 2px 0px ;
-    min-height: 1ex ;
-    min-width: 10ex ;
-    border-radius: 5px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  font-family: serifCodeFont;
+  border: 1px solid transparent;
+  min-height: 1ex;
+  min-width: 10em;
+  border-radius: 5px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.dropZone:hover {
-    border-color: white;
+  border-color: white;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
 div.dropZoneSmall {
-    margin: 0px 0px 0px 0px ;
-    min-height: 2ex ;
-    min-width: 0.5ex ;
-    border-radius: 5px ;
+  margin: 0px 0px 0px 0px;
+  min-height: 2ex;
+  min-width: 0.5em;
+  border-radius: 5px;
 }
 
 div.dropZoneSmall:hover {
-    border: 1px solid white;
+  border: 1px solid white;
 }
 
 div.placeHolder {
-    border: thin solid rgb(244, 140, 0) ; /* Orange */
-    margin: 2px 0px 2px 0px ;
-    min-width: 2ex ;
-    min-height: 10px ;
-    width: auto ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: rgb(244, 140, 0) ; /* Orange */
-    border-radius: 5px ;
+  border: thin solid #f48c00;
+  /* Orange */
+  margin: 2px 0px 2px 0px;
+  min-width: 2em;
+  min-height: 1em;
+  width: auto;
+  color: #f48c00;
+  /* Orange */
+  border-radius: 5px;
 }
 
 div.noExp {
-    /*border: thin solid rgb(242, 231, 21) ;*/
-    border-radius: 5px ;
-    margin: 2px 0px 2px 0px ;
-    min-height: 2ex ;
-    min-width: 1ex ;
-    border-radius: 5px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-radius: 5px;
+  margin: 2px 0px 2px 0px;
+  min-height: 1em;
+  min-width: 1em;
+  border-radius: 5px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.noExp:hover {
-    border-color: white;
+  border-color: white;
 }
 
 div.hCont, div.var, div.assign, div.loc {
-    border: thin solid rgb(244, 140, 0) ; /* Orange */
-    border-radius: 5px ;
-    font-weight: normal ;
-    font-size: medium ;
-    min-width: 1ex ;
-    min-height: 1em ;
-    color: rgb(244, 140, 0) ; /* Orange */
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+  border: thin solid transparent;
+  border-radius: 5px;
+  min-width: 1em;
+  color: #f48c00;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
+}
+
+div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
+  border-color: #f48c00;
+}
+
+div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
+  border-color: #f48c00;
+}
+
+div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover {
+  border-color: #f48c00;
 }
 
 div.var {
-    font-family : "Times New Roman", Times,serif;
-    font-size: large;
-    font-style: upright ;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
 }
 
 div.locdecl:before {
-    content: "loc" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(244, 140, 0) ; /* Orange */
-    font-size: large ;
-    font-style: normal ;
-    font-weight: bold ;
+  content: "loc";
+  display: inline;
+  vertical-align: top;
+  color: #f48c00;
+  font-size: large;
+  font-style: normal;
+  font-weight: bold;
 }
 
 div.locdecl, div.condecl {
-    border: thin solid rgb(244, 140, 0) ; /* Orange */
-    border-radius: 5px ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: rgb(244, 140, 0) ; /* Orange */
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+  border: thin solid transparent;
+  border-radius: 5px;
+  font-weight: normal;
+  font-size: large;
+  color: #f48c00;
+  /* Orange */
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
 }
 
-div.type {
-    border: thin solid #999 ;
-    border-radius: 5px ;
-    font-weight: normal ;
-    font-size: medium ;
-    color:  #999 ;
-    min-width: 1ex ;
-    min-height: 1em ;
+div.locdecl.bordered, div.condecl.bordered {
+  border-color: #f48c00;
+}
+
+div.locdecl:hover, div.condecl:hover {
+  border-color: #f48c00;
 }
 
 div.call {
-    border:thin solid rgb(190, 133, 197) ; /* Mauve */
-    border-radius: 5px ;
-    color:rgb(190, 133, 197) ; /* Mauve */
-    min-width: 1ex ;
-    min-height: 1em ;
+  border: thin solid transparent;
+  border-radius: 5px;
+  color: #be85c5;
+  /* Mauve */
+  min-width: 1em;
 }
 
 div.callVar {
-    border:thin solid rgb(190, 133, 197) ; /* Mauve */
-    border-radius: 5px ;
-    color:rgb(190, 133, 197) ; /* Mauve */
-    min-width: 1ex ;
-    min-height: 1em ;
+  border: thin solid transparent;
+  /* Mauve */
+  border-radius: 5px;
+  color: #be85c5;
+  /* Mauve */
+  min-width: 1em;
 }
 
 div.op {
-    font-family : "Times New Roman", Times, serif;
-    font-size: large ;
-    font-style: normal ;
-    font-weight: normal ;
+  font-family: "Noto Serif", "Times New Roman", Times, serif;
+  font-size: large;
+  font-style: normal;
+  font-weight: normal;
+  min-height: 2ex;
 }
 
 div.upright {
-    font-style: normal ;
+  font-style: normal;
 }
 
-div.objectGuardBox:before { content: "$" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(135,206,250) ;
-    font-size: large ;
-    margin: 0px 5px 0px 0px ;
+div.objectGuardBox:before {
+  content: "$";
+  display: inline;
+  vertical-align: top;
+  color: lightskyblue;
+  font-size: large;
+  margin: 0px 5px 0px 0px;
 }
 
 div.objectGuardBox {
-    border-top: none ;
-    border-bottom: medium dashed rgb(135,206,250) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium dashed lightskyblue;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.objectBox {
-    border-top: medium solid rgb(135,206,250) ;
-    border-bottom: medium solid rgb(135,206,250) ;
-    border-left: 10px solid rgb(135,206,250) ;
-    border-right: thin solid rgb(135,206,250) ;
-    border-radius: 10px ;
-    padding-left: 0px ;
+  border-top: medium solid lightskyblue;
+  border-bottom: medium solid lightskyblue;
+  border-left: 10px solid lightskyblue;
+  border-right: thin solid lightskyblue;
+  border-radius: 10px;
+  padding-left: 0px;
 }
 
-div.arrayGuardBox:before { content: "array" ;
-    display: inline ;
-    vertical-align: top ;
-    color: rgb(135,206,250) ;
-    font-size: large ;
-    margin: 0px 5px 0px 0px ;
+div.arrayGuardBox:before {
+  content: "array";
+  display: inline;
+  vertical-align: top;
+  color: lightskyblue;
+  font-size: large;
+  margin: 0px 5px 0px 0px;
 }
 
 div.arrayGuardBox {
-    border-top: none ;
-    border-bottom: medium dashed rgb(135,206,250) ;
-    border-left: none ;
-    border-right: none ;
-    padding-left: 10px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+  border-top: none;
+  border-bottom: medium dashed lightskyblue;
+  border-left: none;
+  border-right: none;
+  padding-left: 10px;
+  -webkit-align-self: stretch;
+  align-self: stretch;
 }
 
 div.arrayBox {
-    border-top: medium solid rgb(135,206,250) ;
-    border-bottom: medium solid rgb(135,206,250) ;
-    border-left: 10px solid rgb(135,206,250) ;
-    border-right: thin solid rgb(135,206,250) ;
-    border-radius: 10px ;
-    padding-left: 0px ;
+  border-top: medium solid lightskyblue;
+  border-bottom: medium solid lightskyblue;
+  border-left: 10px solid lightskyblue;
+  border-right: thin solid lightskyblue;
+  border-radius: 10px;
+  padding-left: 0px;
 }
 
 div.accessor {
-    border:thin solid rgb(190, 133, 197) ; /* Mauve */
-    border-radius: 5px ;
-    color:rgb(190, 133, 197) ; /* Mauve */
-    font-family : "Times New Roman", Times,serif;
-    font-weight:bold;
-    font-size:large;
-    min-width: 1ex ;
-    min-height: 1em ;
+  border: thin solid #be85c5;
+  /* Mauve */
+  border-radius: 5px;
+  color: #be85c5;
+  /* Mauve */
+  min-width: 1em;
 }
 
 div.dot {
-    border:thin solid rgb(190, 133, 197) ; /* Mauve */
-    border-radius: 5px ;
-    color:rgb(190, 133, 197) ; /* Mauve */
-    font-family : "Times New Roman", Times,serif;
-    font-weight:bold;
-    font-size:large;
-    min-width: 1ex ;
-    min-height: 1em ;
+  border: thin solid #be85c5;
+  /* Mauve */
+  border-radius: 5px;
+  color: #be85c5;
+  /* Mauve */
+  min-width: 1em;
+}
+
+div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
+  border-color: #be85c5;
+}
+
+div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover {
+  border-color: #be85c5;
 }
 
 div.tuple {
-    border:thin solid rgb(135,206,250) ; /* Blue */
-    border-radius: 5px ;
-    color:rgb(135,206,250) ; /* Blue */
-    font-family : "Times New Roman", Times,serif;
-    font-weight:bold;
-    font-size:large;
-    min-width: 1ex ;
-    min-height: 1em ;
+  border: thin solid transparent;
+  /* Blue */
+  border-radius: 5px;
+  color: lightskyblue;
+  /* Blue */
+  min-width: 1em;
+}
+
+div.tuple.bordered {
+  border-color: #be85c5;
+}
+
+div.tuple:hover {
+  border-color: #be85c5;
 }
 
 div.types {
-    border:none;
-    border-radius: 5px ;
-    font-size: large ;
-    font-family:"Lucida Console", Monospace;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(242, 231, 21);
-    vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+  border: none;
+  border-radius: 5px;
+  font-weight: bold;
+  text-align: center;
+  color: #f2e715;
+  vertical-align: middle;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
 }
 
-div.typesBorder {
-    border :thin solid rgb(242, 231, 21);
-    border-radius: 5px ;
-    font-size: large ;
-    font-family:"Lucida Console", Monospace;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(242, 231, 21);
-    vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+div.literal, div.nullLiteral {
+  border: thin solid transparent;
+  border-radius: 5px;
+  /** font-family:"Noto Mono", "Lucida Console", monospace; */
+  text-align: center;
+  color: lightskyblue;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
 }
-
-div.locationType {
-    border-left :thin solid rgb(242, 231, 21);
-    border-right :thin solid rgb(242, 231, 21);
-    border-bottom :thin solid rgb(242, 231, 21);
-    border-radius: 5px ;
-    font-size: large ;
-    font-family:"Lucida Console", Monospace;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(242, 231, 21);
-    vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-    
+div.literal.literal.bordered, div.literal:hover, div.nullLiteral.literal.bordered, div.nullLiteral:hover {
+  border-color: lightskyblue;
 }
 
 div.literal {
-    border: thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-family:"Lucida Console", monospace;
-    font-style: normal ;
-    font-weight: normal ;
-    font-size: medium ;
-    color: ghostwhite;
-    min-width: 1ex ;
-    min-height: 1em ;
-    max-width: 200px ;
-    white-space: pre-wrap ;
-    word-wrap: break-word ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+  min-width: 1em;
+  max-width: 200px;
+  white-space: pre-wrap;
+  word-wrap: break-word;
 }
 
 div.nullLiteral {
-    border:thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-size: x-large ;
-    font-family:"Lucida Console", Monospace;
-    font-style: normal ;
-    font-weight:bold;
-    text-align:center;
-    color:rgb(255,255,255);
-    vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
+  font-size: x-large;
+  font-weight: bold;
+  text-align: center;
+  vertical-align: middle;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
+}
+
+div.typesBorder {
+  border: thin solid #f2e715;
+  border-radius: 5px;
+  text-align: center;
+  color: #f2e715;
+  vertical-align: middle;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
+}
+
+div.typesBorder.bordered {
+  border-color: #f2e715;
+}
+
+div.typesBorder:hover {
+  border-color: #f2e715;
+}
+
+div.locationType {
+  border-left: thin solid #f2e715;
+  border-right: thin solid #f2e715;
+  border-bottom: thin solid #f2e715;
+  border-radius: 5px;
+  text-align: center;
+  color: #f2e715;
+  vertical-align: middle;
+  padding: 1px 2px 1px 2px;
+  margin: 1px 2px 1px 2px;
 }
 
 div.redText {
-    color:rgb(200,0,0);
+  color: #c80000;
 }
 
 div.greenText {
-    color:rgb(0,200,0);
-}
-
-div.inmap{
-    border: thin solid rgb(135,206,250);
-    border-radius: 5px ;
-    font-family:"Lucida Console", monospace;
-    font-weight: normal ;
-    font-size: medium ;
-    color: rgb(255,0,0);
-    max-width: 200px ;
-    white-space: pre-wrap ;
-    word-wrap: break-word ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
-
-/* Is this used? */
-div.selection {
-    border:thin solid rgb(244, 140, 0) ; /* Orange */
-    background-color:rgb(0,0,0);
-    color:rgb(244, 140, 0) ; /* Orange */
-    font-weight: normal ;
-    font-size: medium ;
-    font-family:"Times New Roman",Times,serif;
+  color: #00c800;
 }
 
 .hover {
-    background-color: white !important;
+  background-color: white !important;
 }
 
 .ui-widget.success-dialog {
-    font-family: Verdana,Arial,sans-serif;
-    font-size: .8em;
+  font-family: "Noto Sans", Verdana, Arial, sans-serif;
+  font-size: 0.8em;
 }
 
 .ui-widget-content.success-dialog {
-    background: black;
-    overflow:visible;
-    position: fixed;
-    border: 1px solid purple;
-    color: #222222;
+  background: black;
+  overflow: visible;
+  position: fixed;
+  border: 1px solid purple;
+  color: #222222;
 }
 
 .ui-dialog.success-dialog {
-    left: 0;
-    outline: 0 none;
-    padding: 0 !important;
-    position: absolute;
-    top: 0;
+  left: 0;
+  outline: 0 none;
+  padding: 0 !important;
+  position: absolute;
+  top: 0;
 }
 
 .ui-dialog.success-dialog .ui-dialog-content {
-    background: none repeat scroll 0 0 transparent;
-    border: 0 none;
-    overflow: auto;
-    position: relative;
-    padding: 0 !important;
-    margin: 0;
+  background: none repeat scroll 0 0 transparent;
+  border: 0 none;
+  overflow: auto;
+  position: relative;
+  padding: 0 !important;
+  margin: 0;
 }
 
 .ui-dialog.success-dialog .ui-widget-header {
-    background: purple;
-    border: 0;
-    color: #fff;
-    font-weight: normal;
+  background: purple;
+  border: 0;
+  color: #fff;
+  font-weight: normal;
 }
 
 .ui-dialog.success-dialog .ui-dialog-titlebar {
-    padding: 0.1em .5em;
-    position: relative;
-    font-size: 1em;
+  padding: 0.1em 0.5em;
+  position: relative;
+  font-size: 1em;
 }
 
-div.dialog
-{
-    position:fixed;
-    width: 50px;
-    height: 50px;
-    z-index: 999;
-    background-color: darkred;
+div.dialog {
+  position: fixed;
+  width: 50px;
+  height: 50px;
+  z-index: 999;
+  background-color: darkred;
 }
 
-table
-{
-    border: 2px solid red;
-    color: black;
-    font-weight: bold;
+table {
+  border: 2px solid red;
+  color: black;
+  font-weight: bold;
 }
 
 /* rows */
-tr
-{
-    border-top: 2px solid black;
-    border-bottom: 2px solid black;
+tr {
+  border-top: 2px solid black;
+  border-bottom: 2px solid black;
 }
 
 /* columns */
-td
-{
-    padding: 10px;
-    border-left: 2px solid black;
-    border-bottom: 2px solid black;
+td {
+  padding: 10px;
+  border-left: 2px solid black;
+  border-bottom: 2px solid black;
 }
 
 /* resets */
-tr:first-child
-{
-    border-top: none;
+tr:first-child {
+  border-top: none;
 }
 
-tr:last-child
-{
-    border-bottom: none;
+tr:last-child {
+  border-bottom: none;
 }
 
-td:first-child
-{
-    border-left: none;
+td:first-child {
+  border-left: none;
 }
 
-td:last-child
-{
-    border-right: none;
+td:last-child {
+  border-right: none;
 }

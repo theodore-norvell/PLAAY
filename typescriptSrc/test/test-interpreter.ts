@@ -37,7 +37,7 @@ import NullV = values.NullV;
 import PNode = pnode.PNode ;
 import { mkAccessor, mkAssign, mkCall, mkConstDecl, mkDot, mkExprSeq,
          mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject, mkOpenCallVar,
-         mkParameterList, mkPrimitiveTypeLabel, mkTuple, mkVar, mkVarDecl, mkVarOrLocDecl }
+         mkParameterList, mkPrimitiveTypeLabel, mkTuple, mkVar, mkLocVarDecl, mkVarOrLocDecl }
        from '../labels';
 import TransactionManager = backtracking.TransactionManager ;
 import {ExprSeqLabel, IfLabel, NumberLiteralLabel, VarDeclLabel, VariableLabel} from "../labels";
@@ -150,7 +150,7 @@ describe( 'NullLiteralLabel', function() : void {
 } ) ;
 
 describe ('LambdaLabel', function() : void {
-    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+    const paramlist = mkParameterList([mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
     const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
     const vm = makeStdVMS(root);
 
@@ -168,7 +168,7 @@ describe ('LambdaLabel', function() : void {
 });
 
 describe ('LambdaLabel w/ duplicate parameter names', function() : void {
-  const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
+  const paramlist = mkParameterList([mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]);
   const root = mkLambda(paramlist, mkNoTypeNd(), mkExprSeq([mkNumberLiteral("1")]));
   const vm = makeStdVMS(root);
 
@@ -198,7 +198,7 @@ describe ('Call - method', function(): void {
     const decla =   mkConstDecl( mkVar("a"),
                                  mkNoTypeNd(),
                                  mkObject([
-                                            mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("0")),
+                                            mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("0")),
                                             mkConstDecl(mkVar("f"), mkNoTypeNd(),
                                                         mkLambda( mkParameterList([mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
                                                                   mkNoTypeNd(),
@@ -230,7 +230,7 @@ describe ('Call - method', function(): void {
 
 describe ('CallWorldLabel - closure (no arguments)', function(): void {
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), mkExprSeq([mkNumberLiteral("42")]));
-    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const lambdaDecl = mkLocVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallVarLabel("f", false), []);
     const root = mkExprSeq([lambdaDecl, callWorld]);
     // {  var f : := \ -> { 42 }
@@ -260,10 +260,10 @@ describe ('CallWorldLabel - closure (no arguments)', function(): void {
 });
 
 describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
-    const paramlist = mkParameterList([mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const paramlist = mkParameterList([mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd()), mkLocVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
     const lambdaBody = mkExprSeq([mkOpenCallVar("*", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
-    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const lambdaDecl = mkLocVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallVarLabel("f", false), [mkNumberLiteral("3"), mkNumberLiteral("5")]);
     const root = mkExprSeq([lambdaDecl, callWorld]);
     const vm = makeStdVMS(root);
@@ -290,10 +290,10 @@ describe ('CallWorldLabel - closure (w/ arguments)', function(): void {
 });
 
 describe ('CallWorldLabel - closure (w/ context)', function(): void {
-    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+    const varDecl = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
     const lambdaBody = mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkNumberLiteral("5")])]);
     const lambda = mkLambda(mkParameterList([]), mkNoTypeNd(), lambdaBody);
-    const lambdaDecl = mkVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
+    const lambdaDecl = mkLocVarDecl(mkVar("f"), mkNoTypeNd(), lambda);
     const callWorld = new PNode(new labels.CallVarLabel("f", false), []);
     const root = mkExprSeq([varDecl, lambdaDecl, callWorld]);
 
@@ -1149,8 +1149,8 @@ describe( 'CallWorldLabel - implies', function() : void {
 
 
 describe ('Call Label with closure', function(): void {
-    const varDecl = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
-    const paramlist = mkParameterList([mkVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
+    const varDecl = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("100"));
+    const paramlist = mkParameterList([mkLocVarDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]);
     const lambdaBody = mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkVar("y")])]);
     const lambda = mkLambda(paramlist, mkNoTypeNd(), lambdaBody);
     const root = mkExprSeq([varDecl, mkCall(lambda, mkNumberLiteral("36"))]);
@@ -1207,14 +1207,14 @@ describe ('Call node', function(): void {
     });
 
     // loc f := lambda con x -> x
-    const dec_f = mkVarDecl(
+    const dec_f = mkLocVarDecl(
                     mkVar("f"),
                     mkNoTypeNd(),
                     mkLambda( mkParameterList([mkConstDecl(mkVar("x"), mkNoTypeNd(), mkNoExpNd())]),
                               mkNoTypeNd(),
                               mkExprSeq([mkVar("x")]) )) ;
     // loc g := lambda con x con y -> x+y
-    const dec_g = mkVarDecl(
+    const dec_g = mkLocVarDecl(
                     mkVar("g"),
                     mkNoTypeNd(),
                     mkLambda( mkParameterList(
@@ -1223,7 +1223,7 @@ describe ('Call node', function(): void {
                               mkNoTypeNd(),
                               mkExprSeq([mkOpenCallVar("+", [mkVar("x"), mkVar("y")])])) );
     // loc h := lambda -> 42
-    const dec_h = mkVarDecl(
+    const dec_h = mkLocVarDecl(
                     mkVar("h"),
                     mkNoTypeNd(),
                     mkLambda( mkParameterList([]),
@@ -1572,7 +1572,7 @@ describe('Calls to built-ins with tuples as arguments', function() : void {
 describe('ObjectLiteralLabel', function(): void {
     it('should evaluate to an ObjectV with 2 fields', function () : void {
       const rootLabel = new labels.ObjectLiteralLabel();
-      const field1 = labels.mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
+      const field1 = labels.mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("3"));
       const field2 = labels.mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNumberLiteral("5"));
       const root = new PNode(rootLabel, [field1, field2]);
       const vm = makeStdVMS( root )  ;
@@ -1598,7 +1598,7 @@ describe('ObjectLiteralLabel', function(): void {
 
 describe('AccessorLabel', function(): void {
     it ('should evaluate to a StringV equaling 5', function(): void {
-        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
         const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
         const root = mkAccessor(object, labels.mkStringLiteral("x") );
         const vm = makeStdVMS(root);
@@ -1612,7 +1612,7 @@ describe('AccessorLabel', function(): void {
     });
 
     it('should report an error that the object does not have a field named y', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel, [field]);
       const root = mkAccessor( object, labels.mkStringLiteral("y") ) ;
       const vm = makeStdVMS(root);
@@ -1624,7 +1624,7 @@ describe('AccessorLabel', function(): void {
     });
 
     it('should report an error when applied to non-object', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const stringLiteral = mkNumberLiteral("5");
       const root = mkAccessor( stringLiteral, labels.mkStringLiteral("y") ) ;
       const vm = makeStdVMS(root) ;
@@ -1636,7 +1636,7 @@ describe('AccessorLabel', function(): void {
     });
 
     it('should report an error when the index is not a string', function(): void {
-        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
         const object = new PNode(new labels.ObjectLiteralLabel, [field]);
         const index = mkLambda( mkParameterList( [] ), mkNoTypeNd(), mkExprSeq( [] ) ) ;
         const root = mkAccessor( object, index ) ;
@@ -1651,7 +1651,7 @@ describe('AccessorLabel', function(): void {
 
 describe('DotLabel', function(): void {
     it ('should work when the field is there', function(): void {
-        const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+        const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
         const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
         const root = labels.mkDot( "x", false, object ) ;
         const vm = makeStdVMS(root);
@@ -1665,7 +1665,7 @@ describe('DotLabel', function(): void {
     });
 
     it('should report an error that the object does not have a field named y', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel, [field]);
       const root = labels.mkDot( "y", false, object ) ;
       const vm = makeStdVMS(root);
@@ -1734,7 +1734,7 @@ describe('len built in', function(): void {
 describe('push built in', function(): void {
   it('should return a NumberV equaling 1000', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("23")]);
-    const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
+    const arrayDecl = mkLocVarDecl(mkVar("a"), mkNoTypeNd(), array);
     const pushCall = new PNode(new labels.CallVarLabel("push", false), [mkVar("a"), mkNumberLiteral("1000")]);
     const accessor = mkAccessor( mkVar("a"), labels.mkStringLiteral("1") ) ;
     const root = mkExprSeq([arrayDecl, pushCall, accessor]);
@@ -1752,7 +1752,7 @@ describe('push built in', function(): void {
 describe('pop built in', function(): void {
   it('should return a len of 2', function(): void {
     const array = new PNode(new labels.ArrayLiteralLabel(), [mkNumberLiteral("1"), mkNumberLiteral("2"), mkNumberLiteral("3")]);
-    const arrayDecl = mkVarDecl(mkVar("a"), mkNoTypeNd(), array);
+    const arrayDecl = mkLocVarDecl(mkVar("a"), mkNoTypeNd(), array);
     const popCall = new PNode(new labels.CallVarLabel("pop", false), [mkVar("a")]);
     const lenCall = new PNode(new labels.CallVarLabel("len", false), [mkVar("a")]);
     const root = mkExprSeq([arrayDecl, popCall, lenCall]);
@@ -2169,8 +2169,8 @@ describe('VarDeclLabel', function () : void {
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
-        const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
-        const varDeclNode2 : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode2);
+        const varDeclNode1 : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode1);
+        const varDeclNode2 : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode2);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode1, varDeclNode2]);
         const vm = makeStdVMS( root )  ;
 
@@ -2187,7 +2187,7 @@ describe('VarDeclLabel', function () : void {
         const variableNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const noExpNode : PNode = labels.mkNoExpNd( ) ;
-        const varDeclNode1 : PNode = labels.mkVarDecl(variableNode, typeNode, noExpNode);
+        const varDeclNode1 : PNode = labels.mkLocVarDecl(variableNode, typeNode, noExpNode);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode1]);
         const vm = makeStdVMS( root )  ;
 
@@ -2222,7 +2222,7 @@ describe('VariableLabel', function () : void {
         const varNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode : PNode = labels.mkNumberLiteral("1729");
-        const varDeclNode : PNode = labels.mkVarDecl(varNode, typeNode, valueNode);
+        const varDeclNode : PNode = labels.mkLocVarDecl(varNode, typeNode, valueNode);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, varNode]);
         const vm = makeStdVMS( root )  ;
 
@@ -2243,7 +2243,7 @@ describe('VariableLabel', function () : void {
         const varNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode : PNode = labels.mkNumberLiteral("1729");
-        const varDeclNode : PNode = labels.mkVarDecl(varNode, typeNode, valueNode);
+        const varDeclNode : PNode = labels.mkLocVarDecl(varNode, typeNode, valueNode);
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varNode, varDeclNode]);
         const vm = makeStdVMS( root )  ;
 
@@ -2304,7 +2304,7 @@ describe('AssignLabel', function () : void {
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
-        const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
+        const varDeclNode : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode1);
         const assignNode : PNode = mkAssign( variableNode, valueNode2 ); 
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
         const vm = makeStdVMS( root )  ;
@@ -2349,7 +2349,7 @@ describe('AssignLabel', function () : void {
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
-        const varDeclNode : PNode = labels.mkVarDecl(variableNode, typeNode, valueNode1);
+        const varDeclNode : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode1);
         const assignNode : PNode = mkAssign( variableNode, valueNode2 );
         const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode, varDeclNode]);
         const vm = makeStdVMS( root )  ;
@@ -2384,9 +2384,9 @@ describe('AssignLabel', function () : void {
       // ExprSeq( varDelc[loc]( var(obj) noType objectLiteral(varDelc[loc](var(x) noType numberLiteral(5)))
       //          assign( accessor( var[obj], stringLiteral[x]), 10)
       //          accessor( var[obj], stringLiteral[x] ) )
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
-      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") );
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
@@ -2407,9 +2407,9 @@ describe('AssignLabel', function () : void {
     });
 
     it('should fail to assign to field if object does contain that field', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
-      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("y") );
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
@@ -2426,9 +2426,9 @@ describe('AssignLabel', function () : void {
     });
 
     it('should fail to assign if object is not in scope', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
-      const objDecl = mkVarDecl(mkVar("obj"), mkNoTypeNd(), object);
+      const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("NoObj"), labels.mkStringLiteral("x") ) ;
       const val = mkNumberLiteral("10");
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
@@ -2451,10 +2451,10 @@ describe('AssignLabel', function () : void {
     });
 
     it('should assign to a field of an object within another object', function(): void {
-      const field = mkVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("123"));
+      const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("123"));
       const innerObj = new PNode(new labels.ObjectLiteralLabel(), [field]);
-      const outerObj = new PNode(new labels.ObjectLiteralLabel(), [mkVarDecl(mkVar("io"), mkNoTypeNd(), innerObj)]);
-      const objDecl = mkVarDecl(mkVar("o"), mkNoTypeNd(), outerObj);
+      const outerObj = new PNode(new labels.ObjectLiteralLabel(), [mkLocVarDecl(mkVar("io"), mkNoTypeNd(), innerObj)]);
+      const objDecl = mkLocVarDecl(mkVar("o"), mkNoTypeNd(), outerObj);
       const accessor1 = mkAccessor( mkVar("o"), labels.mkStringLiteral("io") );
       const accessor2 = mkAccessor( accessor1, labels.mkStringLiteral("x") );
       const assign = new PNode(labels.AssignLabel.theAssignLabel, [accessor2, mkNumberLiteral("666")]);
@@ -2555,7 +2555,7 @@ describe('WhileLabel', function () : void {
         //             guard ) 
         const guardNode : PNode = labels.mkVar("guard");
         const trueNode : PNode = labels.mkTrueBooleanLiteral();
-        const varDeclNode : PNode = labels.mkVarDecl(guardNode, labels.mkNoTypeNd(), trueNode);
+        const varDeclNode : PNode = labels.mkLocVarDecl(guardNode, labels.mkNoTypeNd(), trueNode);
         const falseNode : PNode = labels.mkFalseBooleanLiteral();
         const assignNode : PNode = new PNode(labels.AssignLabel.theAssignLabel, [guardNode, falseNode]);
         const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
@@ -2819,7 +2819,7 @@ describe('Loc operator', function () : void {
             // loc x : := 0
             // loc x
             const root = mkExprSeq([
-                             mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                             mkLocVarDecl( mkVar("x"), mkNoTypeNd(), 
                                         mkNumberLiteral("0")),
                              mkLoc( mkVar("x" ) ) ]) ;
             const result = getResult( root ) ;
@@ -2830,9 +2830,9 @@ describe('Loc operator', function () : void {
             // obj : := object{ loc x : := 0 }
             // loc obj.x
             const root = mkExprSeq([
-                             mkVarDecl( mkVar("obj"), mkNoTypeNd(), 
+                             mkLocVarDecl( mkVar("obj"), mkNoTypeNd(), 
                                         mkObject([
-                                            mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                            mkLocVarDecl( mkVar("x"), mkNoTypeNd(), 
                                                        mkNumberLiteral("0")),
                                 ])),
                              mkLoc( mkDot("x", false, mkVar("obj")) ) ]) ;
@@ -2844,9 +2844,9 @@ describe('Loc operator', function () : void {
             // obj : := object{ loc x : := 0 }
             // loc obj["x"]
             const root = mkExprSeq([
-                             mkVarDecl( mkVar("obj"), mkNoTypeNd(), 
+                             mkLocVarDecl( mkVar("obj"), mkNoTypeNd(), 
                                         mkObject([
-                                            mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                            mkLocVarDecl( mkVar("x"), mkNoTypeNd(), 
                                                        mkNumberLiteral("0")) ])),
                              mkLoc( mkAccessor( mkVar("obj"), labels.mkStringLiteral( "x") ) )
                          ]) ;
@@ -2860,11 +2860,11 @@ describe('Loc operator', function () : void {
             //            loc x }
             // loc call(f)
             const root = mkExprSeq([
-                             mkVarDecl( mkVar("f"), mkNoTypeNd(), 
+                             mkLocVarDecl( mkVar("f"), mkNoTypeNd(), 
                                         mkLambda( mkParameterList([]),
                                                   mkNoTypeNd(),
                                                   mkExprSeq([
-                                                    mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                    mkLocVarDecl( mkVar("x"), mkNoTypeNd(), 
                                                                mkNumberLiteral("0")),
                                                     mkLoc( mkVar("x") ) ] ) ) ),
                              mkLoc( mkCall(mkVar("f" ) ) )
@@ -2879,11 +2879,11 @@ describe('Loc operator', function () : void {
             //            loc x }
             // loc callWorld("f")
             const root = mkExprSeq([
-                             mkVarDecl( mkVar("f"), mkNoTypeNd(), 
+                             mkLocVarDecl( mkVar("f"), mkNoTypeNd(), 
                                         mkLambda( mkParameterList([]),
                                                   mkNoTypeNd(),
                                                   mkExprSeq([
-                                                    mkVarDecl( mkVar("x"), mkNoTypeNd(), 
+                                                    mkLocVarDecl( mkVar("x"), mkNoTypeNd(), 
                                                                mkNumberLiteral("0")),
                                                     mkLoc( mkVar("x") ) ] ) ) ),
                              mkLoc( mkOpenCallVar("f", [] ) )

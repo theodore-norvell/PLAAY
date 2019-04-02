@@ -36,7 +36,7 @@ const seq2 = labels.mkExprSeq( [a,b] ) ;
 const seq3 = labels.mkExprSeq( [a,b,c] ) ;
 
 const ite1 = labels.mkIf( labels.mkCall(a, b), labels.mkExprSeq([b,c]), labels.mkExprSeq([d,e])) ;
-const varDecl = labels.mkVarDecl( labels.mkVar("a"), labels.mkNoTypeNd(), labels.mkExprPH() ) ;
+const varDecl = labels.mkLocVarDecl( labels.mkVar("a"), labels.mkNoTypeNd(), labels.mkExprPH() ) ;
 
 
 const standardBackFillList = [[labels.mkNoExpNd()], [labels.mkExprPH()], [labels.mkNoTypeNd()]] ;
