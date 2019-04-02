@@ -254,7 +254,7 @@ module treeManager {
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = labels.mkNoExpNd();
             const vardeclnode = labels.mkConstDecl( varNode, typeNode, initNode ) ;
-            const edit0 = dnodeEdits.insertChildrenEdit( [varNode] ) ;
+            const edit0 = dnodeEdits.insertChildrenEdit<PLabel,PNode>( [varNode] ) ;
             const edit1 = dnodeEdits.insertChildrenEdit( [vardeclnode] ) ;
             return alt([edit0,edit1]) ;
         }
@@ -371,6 +371,9 @@ module treeManager {
         }
 
         private makeVarDeclNode( ) : Edit<PSelection> {
+            // TODO. When the var node is empty,
+            // declaration node should be selected, not (as now) the typeNode.
+            // This is so that the Help is synchronized to the declaration node.
             const varNode : PNode = labels.mkVar("");
             const typeNode : PNode = labels.mkNoTypeNd();
             const initNode : PNode = placeHolder;
@@ -380,8 +383,68 @@ module treeManager {
             const template0 = makeSelection( vardeclnode, list<number>(), 0, 1 ) ;
             const template1 = makeSelection( vardeclnode, list<number>(), 2, 3 ) ;
             const templates = [template0, template1] ;
+            const makeVarDeclEdit = replaceOrEngulfTemplatesEdit( templates  ) ;
 
-            return replaceOrEngulfTemplatesEdit( templates  ) ;
+
+            const makeTemplate2 = ( varNode : PNode ) =>  {
+                const locVarDeclNode = labels.mkLocVarDecl( varNode, typeNode, initNode ) ;
+                return makeSelection( locVarDeclNode, list<number>(), 0, 1 ) ; } 
+            const isLoc = ( sel : Selection<PLabel,PNode> ) => {
+                const p = sel.parent() ;
+                const result = p.label() instanceof labels.LocLabel ;
+                console.log( result ? "Yes p is a loc" : "No p is not a loc") ;
+                return result ; 
+            }
+            const firstSelected = ( sel : Selection<PLabel,PNode> ) : Option<PNode> => {
+                const nodes = sel.selectedNodes() ;
+                if( nodes.length !== 1) return collections.none() ;
+                else return collections.some(nodes[0]) ;
+            }
+            const extractVarNode = ( p : PNode ) : Option<PNode> => {
+                console.log( "Hello from extractVarNode") ;
+                console.log( p.label() instanceof labels.VariableLabel ? "node is a var" : "node is not a var") ;
+                if( p.label() instanceof labels.VariableLabel ) return collections.some(p) ;
+                else return collections.none() ;
+            }
+            const extractExprPHNode = ( p : PNode ) : Option<PNode> => {
+                console.log( "Hello from extractExprPHNode") ;
+                console.log( p.label() instanceof labels.ExprPHLabel ? "node is an ExprPH" : "node is not ExprPH") ;
+                if( p.label() instanceof labels.ExprPHLabel ) return collections.some(p) ;
+                else return collections.none() ;
+            }
+
+            const turnLocExpIntoVarDecl0 : Edit<Selection<PLabel,PNode>>
+                = compose( testEdit( isLoc ),
+                           edits.prefix(
+                                (sel) => firstSelected(sel).bind(extractExprPHNode),
+                                (p:PNode) => compose(
+                                    dnodeEdits.moveOutNormal(),
+                                    dnodeEdits.replaceWithTemplateEdit( [makeTemplate2(varNode)] ) ) ) ) ;
+
+            const turnLocExpIntoVarDecl1 : Edit<Selection<PLabel,PNode>>
+                = compose( testEdit( isLoc ),
+                           edits.prefix(
+                                (sel) => firstSelected(sel).bind(extractVarNode),
+                                (p:PNode) => compose(
+                                    dnodeEdits.moveOutNormal(),
+                                    dnodeEdits.replaceWithTemplateEdit( [makeTemplate2(p)] ),
+                                    dnodeEdits.tabForwardEdit() ) ) ) ;
+
+            return alt( [   /* 0 If the first selected node is an ExprPH inside a LocationExpression,
+                               we make a Var decl (for a location) with an open var node. */
+                            turnLocExpIntoVarDecl0,
+                            /* 1 If the first selected node is an var node inside a LocationExpression,
+                            we make a Var decl (for a location) the same var node as the declaration's var node. */
+                            turnLocExpIntoVarDecl1,
+                            /* 2. Like case 0, but the first selected node is the location node. */
+                            compose(dnodeEdits.rightEdit(),turnLocExpIntoVarDecl0),
+                            /* 3. Like case 1, but the first selected node is the location node. */
+                            compose(dnodeEdits.rightEdit(),turnLocExpIntoVarDecl1),
+                            /* 4. The normal cases.
+                               4a.  engulf or replace an var node.
+                               4b.  engulf or replace an initialization expression. */
+                            makeVarDeclEdit,
+                        ] ) ;
         }
 
         private makeCallVarNode(name : string, argCount : number ) : Edit<PSelection> {

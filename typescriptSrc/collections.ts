@@ -136,7 +136,6 @@ module collections {
             
     export function none<A>() : Option<A> {
         return new None<A>() ; }
-    
     /** Lisp-like lists. Immutable lists of 0 or more things.*/
     export abstract class List<A> implements Collection<A> {
         /** Fold right.

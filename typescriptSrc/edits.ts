@@ -152,6 +152,40 @@ module edits {
     export function testEdit<A>( pred : (a:A) => boolean ) : Edit<A> {
         return new TestEdit( pred ) ;
     }
+
+    class PrefixEdit<A,T> extends AbstractEdit<A> {
+        
+        private pref : (a:A) => Option<T> ;
+        private  f : (t:T) => Edit<A> ;
+
+        constructor( pref : (a:A) => Option<T>, f : (t:T) => Edit<A>  ) { 
+            super() ;
+            this.pref = pref ;
+            this.f = f ;
+        }
+        
+        public applyEdit( a : A ) : Option<A> {
+            const r = this.pref(a) ;
+            console.log( "Result of prefix operation is " + r.toString() )
+            const opt = r.map( this.f ) ;
+            return opt.bind( (e) => e.applyEdit(a) ) ; }
+        
+        public canApply( a : A ) : boolean { 
+            const opt = this.pref(a).map( this.f ) ;
+            return ! opt.isEmpty() && opt.first().canApply(a) ;
+        }
+    }
+
+    /** Mofify an edit by prefixing it. 
+     * prefix( p, f ) is an edit that, when applied to a, first executes p(a)
+     * to extract some value from a. Call it t.  If that is successfull the edit f(t)
+     * is applied.
+     * @param pref 
+     * @param f 
+     */
+    export function prefix<A,T>( pref : (a:A) => Option<T>, f : (t:T) => Edit<A> ) {
+        return new PrefixEdit( pref, f ) ;
+    }
 }
 
 export = edits ;

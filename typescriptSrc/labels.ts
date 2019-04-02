@@ -1197,7 +1197,7 @@ module labels {
     export function mkLoc( operand : PNode ) : PNode {
         return make( LocLabel.theLocLabel, [operand] ) ; }
     
-    export function mkVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
+    export function mkLocVarDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {
         return mkVarOrLocDecl( false, varNode, ttype, initExp ) ; }
     
     export function mkConstDecl( varNode : PNode, ttype : PNode, initExp : PNode ) : PNode {

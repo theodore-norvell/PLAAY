@@ -59,7 +59,7 @@ module animationView
     const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: large;' ;
     const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
     const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
-    const literalStyle  = 'font-family: "Lucida Console", monospace;    font-weight: normal; font-style: normal; font-size: medium ;' ;
+    const literalStyle  = 'font-family: "Noto Mono", "Lucida Console", monospace;    font-weight: normal; font-style: normal; font-size: medium ;' ;
     const errorStyle    = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: medium;' ;
 
     
@@ -155,12 +155,11 @@ module animationView
 
     function drawLocation(loc : LocationV, element : svg.Container, x : number) : void
     {
-        // TODO. Ensure that each location is drawn only once.
+        // TODO. (Possibly) Ensure that each location is drawn only once.
         const opt = loc.getValue() ;           
         const el : svg.G = element.group();
         opt.choose(
             (val : Value) => {
-
                 buildSVGForMappedNode(el, val, true);  
             },
             () => {}
