@@ -402,10 +402,15 @@ div.codeBox {
     padding: 2px ;
     border-radius: 5px;
     min-height: $standardMinHeight ;
+    min-width: 0.5em ;
     font-family : $serifCodeFont ;
     font-weight: normal ;
     font-size: $codeFontSize ;
     font-style: normal ;
+}
+
+div.codeBox:hover {
+    min-width: 1em ;
 }
 
 div.codeBox.H {
@@ -543,7 +548,6 @@ div.noType {
     border-radius: 5px ;
     margin: 2px 0px 2px 0px ;
     min-height: 2ex ;
-    min-width: 1em ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
 }
@@ -562,43 +566,59 @@ div.seqBox {
 div.dropZone {
     font-family: serifCodeFont ;
     border: 1px solid transparent;
+    margin: 0px 0px 0px 0px ;
     min-height: 1ex ;
     min-width: 10em ;
     border-radius: 5px ;
-    -webkit-align-self: stretch ; align-self: stretch ;
+    -webkit-align-self: stretch ;
+    align-self: stretch ;
 }
 
 div.dropZone:hover {
     border-color: white;
+    min-height: 1.5ex ;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
 div.dropZoneSmall {
+    font-family: serifCodeFont ;
+    border: 1px solid transparent;
     margin: 0px 0px 0px 0px ;
     min-height: $standardMinHeight ;
-    min-width: 0.5em ;
     border-radius: 5px ;
+    align-self: stretch ;
+    min-width: 0.3em ;
+}
+
+div.skinny {
+    min-width: 0.3em ;
 }
 
 div.dropZoneSmall:hover {
     border: 1px solid white;
+    min-width: 1em ;
 }
 
 div.placeHolder {
-    border: thin solid $varColour ; /* Orange */
-    margin: 2px 0px 2px 0px ;
-    min-width: 2em ;
-    min-height: 1em ;
-    width: auto ;
-    color: $varColour ; /* Orange */
+    border: thin solid transparent ; 
+    margin: 1px 2px 1px 2px ;
+    min-height: $standardMinHeight ;
+    color: $controlColour ; /* Orange */
     border-radius: 5px ;
+}
+
+div.hCont.placeHolder {
+    border-color: $controlColour ;
+}
+
+div.hCont.placeHolder {
+    border-color: $controlColour ;
 }
 
 div.noExp {
     border-radius: 5px ;
-    margin: 2px 0px 2px 0px ;
+    margin: 1px 2px 1px 2px ;
     min-height: 1em ;
-    min-width: 1em ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
 }
@@ -610,7 +630,6 @@ div.noExp:hover {
 div.hCont, div.var, div.assign, div.loc {
     border: thin solid transparent ;
     border-radius: 5px ;
-    min-width: 1em ;
     color: $varColour ;
     padding: 1px 2px 1px 2px ;
     margin: 1px 2px 1px 2px ;
@@ -619,9 +638,6 @@ div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
     border-color: $varColour ;
 }
 
-div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
-    border-color: $varColour ;
-}
 div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover {
     border-color: $varColour ;
 }
@@ -662,22 +678,21 @@ div.call {
     border:thin solid transparent ;
     border-radius: 5px ;
     color:$controlColour ; /* Mauve */
-    min-width: 1em ;
 }
 
 div.callVar {
     border:thin solid transparent ; /* Mauve */
     border-radius: 5px ;
     color:$controlColour ; /* Mauve */
-    min-width: 1em ;
 }
 
 div.op {
-    font-family : "Noto Serif", "Times New Roman", Times, serif;
+    font-family : $serifCodeFont ;
     font-size: $codeFontSize  ;
     font-style: normal ;
     font-weight: normal ;
     min-height: $standardMinHeight ;
+    align-content: center ;
 }
 
 div.upright {
@@ -740,14 +755,12 @@ div.accessor {
     border:thin solid $controlColour ; /* Mauve */
     border-radius: 5px ;
     color:$controlColour ; /* Mauve */
-    min-width: 1em ;
 }
 
 div.dot {
-    border:thin solid $controlColour ; /* Mauve */
+    border:thin solid transparent ; 
     border-radius: 5px ;
     color:$controlColour ; /* Mauve */
-    min-width: 1em ;
 }
 
 div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
@@ -761,7 +774,6 @@ div.tuple {
     border:thin solid transparent ; /* Blue */
     border-radius: 5px ;
     color:$dataColour ; /* Blue */
-    min-width: 1em ;
 }
 
 div.tuple.bordered {
@@ -796,7 +808,6 @@ div.literal, div.nullLiteral {
 }
 
 div.literal {
-    min-width: 1em ;
     max-width: 200px ;
     white-space: pre-wrap ;
     word-wrap: break-word ;
@@ -812,7 +823,7 @@ div.nullLiteral {
 }
 
 div.typesBorder {
-    border :thin solid $typeColour;
+    border :thin solid transparent;
     border-radius: 5px ;
     text-align:center;
     color:$typeColour;

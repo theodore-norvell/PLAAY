@@ -152,7 +152,7 @@ module editor {
                 const clipboardedSelection = clipboardArray[i] ;
                 const a : Array<pnode.PNode> =  clipboardedSelection.selectedNodes()  ;
                 for( let j=0 ; j < a.length; ++j ) {
-                    clipboardItemDiv.append($(treeView.traverseAndBuild(a[j], -1, false))); }
+                    clipboardItemDiv.append($(treeView.traverseAndBuild(a[j]))); }
             }
             installClipboardItemDragHandler() ;
         }
@@ -246,7 +246,7 @@ module editor {
     function generateHTML() : void
     {
         // Refresh the view of the current selection
-        const newHTML : JQuery = treeView.traverseAndBuild(currentSelection.root(), -1, false) ;
+        const newHTML : JQuery = treeView.traverseAndBuild(currentSelection.root() ) ;
         $("#container").empty().append(newHTML);
         treeView.highlightSelection( currentSelection, newHTML ) ;
         var helpStr = treeView.findHelpString( currentSelection, newHTML ) ;

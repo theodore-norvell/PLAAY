@@ -32,6 +32,10 @@ module pnode {
 
         /* Is this a label for expression sequences */
         isExprSeqNode : () => boolean ;
+
+        getPrecedence : () => number ;
+
+        getChildPrecedence : (child : number) => number ;
     }
 
     /** PNodes are abstract syntax trees for the PLAAY language.

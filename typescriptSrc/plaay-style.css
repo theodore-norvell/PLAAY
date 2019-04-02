@@ -344,10 +344,15 @@ div.codeBox {
   padding: 2px;
   border-radius: 5px;
   min-height: 2ex;
+  min-width: 0.5em;
   font-family: "Noto Serif", "Times New Roman", Times, serif;
   font-weight: normal;
   font-size: large;
   font-style: normal;
+}
+
+div.codeBox:hover {
+  min-width: 1em;
 }
 
 div.codeBox.H {
@@ -493,7 +498,6 @@ div.noType {
   border-radius: 5px;
   margin: 2px 0px 2px 0px;
   min-height: 2ex;
-  min-width: 1em;
   border-radius: 5px;
   -webkit-align-self: stretch;
   align-self: stretch;
@@ -514,6 +518,7 @@ div.seqBox {
 div.dropZone {
   font-family: serifCodeFont;
   border: 1px solid transparent;
+  margin: 0px 0px 0px 0px;
   min-height: 1ex;
   min-width: 10em;
   border-radius: 5px;
@@ -523,37 +528,50 @@ div.dropZone {
 
 div.dropZone:hover {
   border-color: white;
+  min-height: 1.5ex;
 }
 
 /* This sort of dropzone is usually used in horizontal boxes like calls. */
 div.dropZoneSmall {
+  font-family: serifCodeFont;
+  border: 1px solid transparent;
   margin: 0px 0px 0px 0px;
   min-height: 2ex;
-  min-width: 0.5em;
   border-radius: 5px;
+  align-self: stretch;
+  min-width: 0.5em;
+}
+
+div.skinny {
+  min-width: 0.3em;
 }
 
 div.dropZoneSmall:hover {
   border: 1px solid white;
+  min-width: 1em;
 }
 
 div.placeHolder {
-  border: thin solid #f48c00;
-  /* Orange */
-  margin: 2px 0px 2px 0px;
-  min-width: 2em;
-  min-height: 1em;
-  width: auto;
-  color: #f48c00;
+  border: thin solid transparent;
+  margin: 1px 2px 1px 2px;
+  min-height: 2ex;
+  color: #be85c5;
   /* Orange */
   border-radius: 5px;
+}
+
+div.hCont.placeHolder {
+  border-color: #be85c5;
+}
+
+div.hCont.placeHolder {
+  border-color: #be85c5;
 }
 
 div.noExp {
   border-radius: 5px;
-  margin: 2px 0px 2px 0px;
+  margin: 1px 2px 1px 2px;
   min-height: 1em;
-  min-width: 1em;
   border-radius: 5px;
   -webkit-align-self: stretch;
   align-self: stretch;
@@ -566,14 +584,9 @@ div.noExp:hover {
 div.hCont, div.var, div.assign, div.loc {
   border: thin solid transparent;
   border-radius: 5px;
-  min-width: 1em;
   color: #f48c00;
   padding: 1px 2px 1px 2px;
   margin: 1px 2px 1px 2px;
-}
-
-div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
-  border-color: #f48c00;
 }
 
 div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
@@ -623,7 +636,6 @@ div.call {
   border-radius: 5px;
   color: #be85c5;
   /* Mauve */
-  min-width: 1em;
 }
 
 div.callVar {
@@ -632,7 +644,6 @@ div.callVar {
   border-radius: 5px;
   color: #be85c5;
   /* Mauve */
-  min-width: 1em;
 }
 
 div.op {
@@ -641,6 +652,7 @@ div.op {
   font-style: normal;
   font-weight: normal;
   min-height: 2ex;
+  align-content: center;
 }
 
 div.upright {
@@ -709,16 +721,13 @@ div.accessor {
   border-radius: 5px;
   color: #be85c5;
   /* Mauve */
-  min-width: 1em;
 }
 
 div.dot {
-  border: thin solid #be85c5;
-  /* Mauve */
+  border: thin solid transparent;
   border-radius: 5px;
   color: #be85c5;
   /* Mauve */
-  min-width: 1em;
 }
 
 div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
@@ -735,7 +744,6 @@ div.tuple {
   border-radius: 5px;
   color: lightskyblue;
   /* Blue */
-  min-width: 1em;
 }
 
 div.tuple.bordered {
@@ -771,7 +779,6 @@ div.literal.literal.bordered, div.literal:hover, div.nullLiteral.literal.bordere
 }
 
 div.literal {
-  min-width: 1em;
   max-width: 200px;
   white-space: pre-wrap;
   word-wrap: break-word;
@@ -787,7 +794,7 @@ div.nullLiteral {
 }
 
 div.typesBorder {
-  border: thin solid #f2e715;
+  border: thin solid transparent;
   border-radius: 5px;
   text-align: center;
   color: #f2e715;

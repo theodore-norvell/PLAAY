@@ -79,6 +79,12 @@ module labels {
         /** Return true if a label has a vertical layout. */
         public hasVerticalLayout() : boolean {return false; }
 
+        public getPrecedence() : number {
+            return Infinity ; };
+
+        public getChildPrecedence(child : number) : number {
+            return Infinity ; }
+
         public abstract kind() : string ;
 
     }
@@ -166,6 +172,9 @@ module labels {
 
         public static fromJSON( json : object ) : ExprSeqLabel {
             return ExprSeqLabel.theExprSeqLabel ; }
+    
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
         
         public kind() : string { return ExprSeqLabel.kindConst ; }
     }
@@ -252,6 +261,12 @@ module labels {
         public static fromJSON( json : object ) : VarDeclLabel {
             return new VarDeclLabel( json["_isConst"] ) ;
         }
+
+        public getPrecedence() : number {
+            return 0 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
             
         public kind() : string { return VarDeclLabel.kindConst ; }
     }
@@ -288,6 +303,12 @@ module labels {
         public static fromJSON( json : object ) : AssignLabel {
             return AssignLabel.theAssignLabel ;
         }
+
+        public getPrecedence() : number {
+            return 10 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 11 ; }
             
         public kind() : string { return AssignLabel.kindConst ; }
     }
@@ -330,6 +351,12 @@ module labels {
         }
     
         public hasDropZonesAt(start : number): boolean { return true; }
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
             
         public kind() : string { return CallVarLabel.kindConst ; }
     }
@@ -444,6 +471,12 @@ module labels {
         public static fromJSON( json : object ) : LambdaLabel {
             return LambdaLabel.theLambdaLabel ;
         }
+
+        public getPrecedence() : number {
+            return 0 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
             
         public kind() : string { return LambdaLabel.kindConst ; }
     }
@@ -516,6 +549,9 @@ module labels {
         public static fromJSON( json : object ) : IfLabel {
             return IfLabel.theIfLabel ;
         }
+
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
             
         public kind() : string { return IfLabel.kindConst ; }
     }
@@ -552,6 +588,9 @@ module labels {
         public static fromJSON( json : object ) : WhileLabel {
             return WhileLabel.theWhileLabel ;
         }
+
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
             
         public kind() : string { return WhileLabel.kindConst ; }
     }
@@ -628,6 +667,9 @@ module labels {
     public static fromJSON( json : object ) : ArrayLiteralLabel {
         return ArrayLiteralLabel.theArrayLiteralLabel ;
     }
+
+    public getChildPrecedence(child : number) : number {
+        return 0 ; }
         
     public kind() : string { return ArrayLiteralLabel.kindConst ; }
     }
@@ -662,6 +704,12 @@ module labels {
         public static fromJSON( json : object ) : AccessorLabel {
             return AccessorLabel.theAccessorLabel ;
         }
+
+        public getPrecedence() : number {
+            return 100 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 100 ; }
             
         public kind() : string { return AccessorLabel.kindConst ; }
     }
@@ -700,6 +748,12 @@ module labels {
         public static fromJSON( json : object ) : DotLabel {
             return new DotLabel( json["val"], json["open"] ) ;
         }
+
+        public getPrecedence() : number {
+            return 100 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 100 ; }
             
         public kind() : string { return DotLabel.kindConst ; }
     }
@@ -873,6 +927,9 @@ module labels {
             return TupleLabel.theTupleLabel ;
         }
 
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
+
         public kind(): string {
             return TupleLabel.kindConst;
         }
@@ -937,6 +994,12 @@ module labels {
         }
 
         public hasDropZonesAt(start : number): boolean { return true; }
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
             
         public kind() : string { return CallLabel.kindConst ; }
     }
@@ -973,6 +1036,12 @@ module labels {
         }
 
         public hasDropZonesAt(start : number): boolean { return false; }
+
+        public getPrecedence() : number {
+            return 75 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 101 ; }
             
         public kind() : string { return LocLabel.kindConst ; }
     }
@@ -1026,6 +1095,9 @@ module labels {
             return { kind: TupleTypeLabel.kindConst } ;
         }
 
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
+
         public static fromJSON( json : object ) : TupleTypeLabel {
             return this.theTupleTypeLabel; }        
     }
@@ -1051,6 +1123,9 @@ module labels {
         public toJSON() : object {
             return { kind: LocationTypeLabel.kindConst } ;
         }
+
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
 
         public static fromJSON( json : object ) : LocationTypeLabel {
             return this.theLocationTypeLabel ; } 
@@ -1080,6 +1155,12 @@ module labels {
 
         public static fromJSON( json : object ) : FunctionTypeLabel {
             return this.theFunctionTypeLabel ; } 
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
     }
     pnode.registry[FunctionTypeLabel.kindConst] = FunctionTypeLabel;
 
@@ -1104,6 +1185,12 @@ module labels {
         public toJSON() : object {
             return { kind: FieldTypeLabel.kindConst } ;
         }
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
 
         public static fromJSON( json : object ) : FieldTypeLabel {
             return new FieldTypeLabel( ) ; } 
@@ -1135,6 +1222,12 @@ module labels {
 
         public static fromJSON( json : object ) : MeetTypeLabel {
             return this.theMeetTypeLabel ; } 
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
     }
     pnode.registry[MeetTypeLabel.kindConst] = MeetTypeLabel;
 
@@ -1163,6 +1256,12 @@ module labels {
 
         public static fromJSON( json : object ) : JoinTypeLabel {
             return this.theJoinTypeLabel; } 
+
+        public getPrecedence() : number {
+            return 50 ; };
+
+        public getChildPrecedence(child : number) : number {
+            return 51 ; }
     }
     pnode.registry[JoinTypeLabel.kindConst] = JoinTypeLabel;
 

@@ -46,17 +46,23 @@ module treeView
     export const JOINTYPE = "\u007C";
     export const MEETTYPE = "\u0026";
 
-    export function traverseAndBuild(node:PNode, childNumber: number, evaluating:boolean) : JQuery
+    export function traverseAndBuild(node:PNode) : JQuery {
+        return traverseAndBuildLocal( node, -1, 0 ) ;
+    }
+
+    export function traverseAndBuildLocal(node:PNode, childNumber: number, contextPrec : number) : JQuery
     {
+        const label = node.label() ;
         const children = new Array<JQuery>() ;
         for(let i = 0; i < node.count(); i++)
         {
-            children.push( traverseAndBuild(node.child(i), i, evaluating) ) ;
+            children.push( traverseAndBuildLocal(node.child(i), i, label.getChildPrecedence(i) ) ) ;
         }
-        return buildHTML(node, children, childNumber, evaluating);
+        const needsBorder = label.getPrecedence() < contextPrec ;
+        return buildHTML(node, children, childNumber, needsBorder);
     }
 
-    function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, evaluating:boolean) : JQuery
+    function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
         let result : JQuery ;
         const dropzones : Array<JQuery> = [] ;
@@ -185,7 +191,6 @@ module treeView
                 {
                     opElement = $(document.createElement("div") ) ;
                     opElement.addClass( "op" ) ;
-                    opElement.addClass( "punctBox" ) ;
                     opElement.addClass( "H" ) ;
                     opElement.addClass( "click" ) ;
                     opElement.text( node.label().getVal() ) ;
@@ -208,9 +213,12 @@ module treeView
                     if( stringIsInfixOperator( labelString ) ) {
                         // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
                         assert.check( result.children().length === 6 ) ;
+                        // TODO: It might be nice to add an extra
+                        // dropzone here.
                         // Move the opElement to after the first child
                         opElement.insertAfter( children[0]) ;
-                        // TODO: Find a way to make dropzone[1] very skinny. Maybe by adding a class to it.
+                        $("<div><div/>").addClass("skinny").insertBefore(opElement) ;
+                        dropzones[1].addClass("skinny") ;
                     }
                 }
                 result.data("help", "callVar") ;
@@ -233,6 +241,7 @@ module treeView
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
+                dropzones[0].addClass("skinny") ;
                 result.data("help", "call") ;
             }
             break ;
@@ -247,7 +256,6 @@ module treeView
                 const opDiv : JQuery = $( document.createElement("div") ) ;
                 opDiv.addClass( "upright" ) ;
                 opDiv.addClass( "op" );
-                opDiv.addClass( "punctBox" ) ;
                 opDiv.text( "loc" ) ;
 
                 result.append(opDiv);
@@ -791,7 +799,8 @@ module treeView
         result.data("dropzones", dropzones ) ;
         // Make it selectable by a click
         result.addClass( "selectable" ) ;
-        result.addClass( "codeItem" ) ;
+        result.addClass( "codeBox" ) ;
+        if( needsBorder ) result.addClass("bordered") ;
         return result ;
     }
 
@@ -806,7 +815,7 @@ module treeView
                 const zones : Array<JQuery> = jq.data( "dropzones" ) as Array<JQuery> ;
                 assert.check( zones !== null ) ;
                 const dz : JQuery|null = start < zones.length ? zones[start] : null ;
-                if( dz!== null ) dz.addClass( "selected" ) ;
+                if( dz !== null ) dz.addClass( "selected" ) ;
             } else {
                 const children : Array<JQuery> = jq.data( "children" ) as Array<JQuery> ;
                 assert.check( children !== null ) ;
