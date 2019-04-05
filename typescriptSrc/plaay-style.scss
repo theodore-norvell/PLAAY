@@ -9,9 +9,13 @@ $whileSymbol: "\27f3" ;
 $rightwardsArrow: "\2192" ;
 $lowerCaseLambda: "\03bb" ;
 
-$serifCodeFont: "Noto Serif", "Times New Roman", Times, serif ;
+$serif: "Noto Serif", "Times New Roman", Times, serif ;
+$sansSerif: "Noto Sans", Verdana, Arial, sans-serif ;
 
 $standardMinHeight: 2ex ;
+
+$veryNarrow: 0.2em ;
+$dropWidth: 0.75em ;
 
 $codeFontSize: large ;
 
@@ -399,18 +403,20 @@ div.vms
 
 /** Used for every HTML element that represents a node. */
 div.codeBox {
-    padding: 2px ;
+    padding: 1px ;
+    margin: 1px ;
     border-radius: 5px;
     min-height: $standardMinHeight ;
-    min-width: 0.5em ;
-    font-family : $serifCodeFont ;
+    min-width: $veryNarrow ;
+    font-family : $serif ;
     font-weight: normal ;
     font-size: $codeFontSize ;
     font-style: normal ;
+    margin: 1px 2px 1px 2px ;
 }
 
-div.codeBox:hover {
-    min-width: 1em ;
+div.codeBox:hover, div.codeBox.hover {
+    min-width: $dropWidth ;
 }
 
 div.codeBox.H {
@@ -428,7 +434,6 @@ div.ifBox {
     border-left: 10px solid $controlColour ;
     border-right: thin solid $controlColour ;
     border-radius: 10px ;
-    padding-left: 0px ;
 }
 
 div.ifGuardBox {
@@ -546,7 +551,6 @@ div.paramlistOuter:before {
 div.noType {
     border: thin solid transparent ;
     border-radius: 5px ;
-    margin: 2px 0px 2px 0px ;
     min-height: 2ex ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
@@ -579,29 +583,28 @@ div.dropZone:hover {
     min-height: 1.5ex ;
 }
 
-/* This sort of dropzone is usually used in horizontal boxes like calls. */
-div.dropZoneSmall {
+.skinny {
     font-family: serifCodeFont ;
     border: 1px solid transparent;
     margin: 0px 0px 0px 0px ;
     min-height: $standardMinHeight ;
     border-radius: 5px ;
     align-self: stretch ;
-    min-width: 0.3em ;
+    min-width: $veryNarrow ;
 }
 
-div.skinny {
-    min-width: 0.3em ;
+/* This sort of dropzone is used in horizontal boxes like calls. */
+div.dropZoneSmall {
+    @extend .skinny ;
 }
 
-div.dropZoneSmall:hover {
+div.dropZoneSmall:hover, div.dropZoneSmall.hover {
     border: 1px solid white;
-    min-width: 1em ;
+    min-width: $dropWidth ;
 }
 
 div.placeHolder {
     border: thin solid transparent ; 
-    margin: 1px 2px 1px 2px ;
     min-height: $standardMinHeight ;
     color: $controlColour ; /* Orange */
     border-radius: 5px ;
@@ -616,14 +619,14 @@ div.hCont.placeHolder {
 }
 
 div.noExp {
+    border: thin solid transparent ;
     border-radius: 5px ;
-    margin: 1px 2px 1px 2px ;
-    min-height: 1em ;
+    min-height: $standardMinHeight ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-div.noExp:hover {
+div.noExp:hover, div.noExp.hover {
     border-color: white;
 }
 
@@ -631,30 +634,29 @@ div.hCont, div.var, div.assign, div.loc {
     border: thin solid transparent ;
     border-radius: 5px ;
     color: $varColour ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
     border-color: $varColour ;
 }
 
-div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover {
+div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover,
+div.hCont.hover, div.var.hover, div.assign.hover, div.loc.hover {
     border-color: $varColour ;
 }
 
-div.var {
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-}
+/*div.var {
+}*/
 
 div.locdecl:before {
     content: "loc" ;
     display: inline ;
     vertical-align: top ;
     color: $varColour ;
+    font-family: $sansSerif ;
     font-size: $codeFontSize  ;
     font-style: normal ;
     font-weight: bold ;
+    text-decoration: underline ;
 }
 
 div.locdecl, div.condecl {
@@ -663,14 +665,13 @@ div.locdecl, div.condecl {
     font-weight: normal ;
     font-size: $codeFontSize  ;
     color: $varColour ; /* Orange */
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 
 div.locdecl.bordered, div.condecl.bordered {
     border-color: $varColour ;
 }
-div.locdecl:hover, div.condecl:hover {
+div.locdecl:hover, div.condecl:hover,
+div.locdecl.hover, div.condecl.hover {
     border-color: $varColour ;
 }
 
@@ -687,7 +688,7 @@ div.callVar {
 }
 
 div.op {
-    font-family : $serifCodeFont ;
+    font-family : $serif ;
     font-size: $codeFontSize  ;
     font-style: normal ;
     font-weight: normal ;
@@ -766,7 +767,8 @@ div.dot {
 div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
     border-color: $controlColour ;
 }
-div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover {
+div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover,
+div.call.hover, div.callVar.hover, div.accessor.hover, div.dot.hover {
     border-color: $controlColour ;
 }
 
@@ -779,7 +781,7 @@ div.tuple {
 div.tuple.bordered {
     border-color: $controlColour ;
 }
-div.tuple:hover {
+div.tuple:hover, div.tuple.hover {
     border-color: $controlColour ;
 }
 
@@ -790,8 +792,6 @@ div.types {
     text-align:center;
     color:$typeColour;
     vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 
 div.literal, div.nullLiteral {
@@ -800,9 +800,7 @@ div.literal, div.nullLiteral {
     /** font-family:"Noto Mono", "Lucida Console", monospace; */
     text-align: center;
     color: $dataColour ;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
-    &.literal.bordered, &:hover{ 
+    &.literal.bordered, &:hover, &.hover { 
         border-color: $dataColour ;
     }
 }
@@ -818,8 +816,6 @@ div.nullLiteral {
     font-weight:bold;
     text-align:center;
     vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 
 div.typesBorder {
@@ -828,14 +824,12 @@ div.typesBorder {
     text-align:center;
     color:$typeColour;
     vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 
 div.typesBorder.bordered {
     border-color: $typeColour ;
 }
-div.typesBorder:hover {
+div.typesBorder:hover, div.typesBorder.hover {
     border-color: $typeColour ;
 }
 
@@ -847,8 +841,6 @@ div.locationType {
     text-align:center;
     color:$typeColour;
     vertical-align:middle;
-    padding: 1px 2px 1px 2px ;
-    margin: 1px 2px 1px 2px ;
 }
 
 div.redText {
@@ -859,12 +851,14 @@ div.greenText {
     color:rgb(0,200,0);
 }
 
+/** This is used during drag and drop to highlight the box
+that is potentially being dropped on. */
 .hover {
-    background-color: white !important;
+    background-color: ghostwhite !important;
 }
 
 .ui-widget.success-dialog {
-    font-family: "Noto Sans", Verdana, Arial, sans-serif;
+    font-family: $sansSerif;
     font-size: .8em;
 }
 

@@ -993,7 +993,8 @@ module labels {
             return CallLabel.theCallLabel ;
         }
 
-        public hasDropZonesAt(start : number): boolean { return true; }
+        public hasDropZonesAt(start : number): boolean {
+            return  start > 0 ; }
 
         public getPrecedence() : number {
             return 50 ; };

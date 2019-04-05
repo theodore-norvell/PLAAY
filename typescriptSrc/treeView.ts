@@ -56,7 +56,7 @@ module treeView
         const children = new Array<JQuery>() ;
         for(let i = 0; i < node.count(); i++)
         {
-            children.push( traverseAndBuildLocal(node.child(i), i, label.getChildPrecedence(i) ) ) ;
+            children.push( traverseAndBuildLocal( node.child(i), i, label.getChildPrecedence(i) ) ) ;
         }
         const needsBorder = label.getPrecedence() < contextPrec ;
         return buildHTML(node, children, childNumber, needsBorder);
@@ -65,7 +65,10 @@ module treeView
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
         let result : JQuery ;
-        const dropzones : Array<JQuery> = [] ;
+        // Dropzones usually contains 1 entry for each child + 1.
+        // If it is shorter, nulls can be assumed.
+        // Null means there is no drop zone for this place in the tree.
+        const dropzones : Array<JQuery|null> = [] ;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
@@ -218,7 +221,6 @@ module treeView
                         // Move the opElement to after the first child
                         opElement.insertAfter( children[0]) ;
                         $("<div><div/>").addClass("skinny").insertBefore(opElement) ;
-                        dropzones[1].addClass("skinny") ;
                     }
                 }
                 result.data("help", "callVar") ;
@@ -235,14 +237,17 @@ module treeView
                 result.attr("type", "text");
 
                 for( let i=0 ; true ; ++i) {
-                    const dz : JQuery = makeDropZone(i, false) ;
-                    dropzones.push( dz ) ;
-                    result.append( dz ) ;
+                    if( node.hasDropZonesAt(i) ) {
+                        const dz : JQuery = makeDropZone(i, false) ;
+                        dropzones.push( dz ) ;
+                        result.append( dz ) ; }
+                    else
+                        dropzones.push( null ) ;
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
-                dropzones[0].addClass("skinny") ;
                 result.data("help", "call") ;
+                if( children.length === 1 ) needsBorder = true ;
             }
             break ;
             case labels.LocLabel.kindConst :
@@ -393,7 +398,7 @@ module treeView
                     suffix.text( "." + node.label().getVal() ) ;
                     result.append(suffix);
                 }
-                result.data("help", "dot") ;
+                result.data("help", "dotExpression") ;
 
             }
             break ;
@@ -428,7 +433,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( lambdahead ) ;
                 result.append( doBox ) ;
-                result.data("help", "lambda") ;
+                result.data("help", "lambdaExpression") ;
             }
             break ;
             case labels.NullLiteralLabel.kindConst :
@@ -439,7 +444,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
-                result.data("help", "null") ;
+                result.data("help", "nullExpression") ;
             }
             break ;
             case labels.VariableLabel.kindConst :
@@ -610,7 +615,7 @@ module treeView
                                           .addClass("op") ; ;
                 openPar.addClass("op") ;
                 result.append( closePar ) ; 
-                result.data("help", "tuple") ;
+                result.data("help", "tupleExpression") ;
             }
             break ;
             case labels.PrimitiveTypesLabel.kindConst :
@@ -790,6 +795,8 @@ module treeView
                 result = assert.unreachable( "Unknown label in buildHTML.") ;
             }
         }
+        // Record the node that this element represents.
+        result.data( "node", node ) ;
         // Give the result a number. // TODO Use data instead of attr.
         result.attr( "data-childNumber", childNumber.toString() ) ; 
         // Attach the JQueries representing the children elements to the root element representing this node.
@@ -907,14 +914,14 @@ module treeView
     {
         let anchor : number ;
         let focus : number ;
-        //console.log( ">> getPathToNode" ) ;
-        let jq : JQuery= $(self);
+        // console.log( ">> getPathToNode" ) ;
+        let jq : JQuery = self;
         let childNumber : number = Number(jq.attr("data-childNumber"));
         // Climb the tree until we reach a node with a data-childNumber attribute.
         while( jq.length > 0 && isNaN( childNumber ) ) {
-            //console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
-            //console.log( "Length is " + jq.length ) ;
-            //console.log( "childNumber is " + childNumber ) ;
+            // console.log( "   going up jq is " + jq.prop('outerHTML')() ) ;
+            // console.log( "Length is " + jq.length ) ;
+            // console.log( "childNumber is " + childNumber ) ;
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
@@ -927,38 +934,39 @@ module treeView
         // childNumber is a number.  Is this a dropzone or not?
         const isDropZone = jq.attr("data-isDropZone" ) ;
         if( isDropZone === "yes" ) {
-            //console.log( "   it's a dropzone with number " +  childNumber) ;
+            // console.log( "   it's a dropzone with number " +  childNumber) ;
             anchor = focus = childNumber ;
         } else {
-            //console.log( "   it's a node with number " +  childNumber) ;
+            // console.log( "   it's a node with number " +  childNumber) ;
             anchor = childNumber ;
             focus = anchor+1 ;
         }
         // Go up one level
         jq = jq.parent() ;
+
+        // Climb the tree again until we reach a node with a data-childNumber attribute of -1.
         childNumber = Number(jq.attr("data-childNumber"));
-
-
-        // Climb the tree until we reach a node with a data-childNumber attribute of -1.
         const array : Array<number> = [];
         while (jq.length > 0 && childNumber !== -1 ) {
             if (!isNaN(childNumber))
             {
                 array.push( childNumber );
-                //console.log( "   pushing " +  childNumber) ;
+                // console.log( "   pushing " +  childNumber) ;
             }
             // Go up one level
             jq = jq.parent() ;
             childNumber = Number(jq.attr("data-childNumber"));
         }
-        assert.check( jq.length !== 0, "Hit the top!" ) ; // Really should not happen. If it does, there was no -1 and we hit the document.
+        // console.log( "At the top " + jq.length ) ;
+        if( jq.length == 0) return none() ; // Really should not happen. If it does, there was no -1 and we hit the document.
+
+        // We could be in the wrong tree alltogether!
+        if( jq.data("node") !== root ) return none() ;
         // Now make a path out of the array.
         let thePath = list<number>();
         for( let i = 0 ; i < array.length ; i++ ) {
             thePath = collections.cons( array[i], thePath ) ; }
         
-        // If making the selection fails, then the root passed in was not the root
-        // used to make the HTML.
         return some( new Selection(root, thePath, anchor, focus) ) ;
     }
 
