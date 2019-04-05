@@ -104,10 +104,35 @@ module treeView
                 result.data("help", "if") ;
             }
             break ;
+            case labels.WhileLabel.kindConst :
+            {
+                assert.check( children.length === 2 ) ;
+
+                const guardBox : JQuery = $( document.createElement("div") ) ;
+                guardBox.addClass( "whileGuardBox") ;
+                guardBox.addClass( "H") ;
+                guardBox.addClass( "workplace") ;
+                guardBox.append( children[0] ) ;
+
+                const doBox : JQuery = $( document.createElement("div") ) ;
+                doBox.addClass( "doBox") ;
+                doBox.addClass( "H") ;
+                doBox.addClass( "workplace") ;
+                doBox.append( children[1] ) ;
+
+                result  = $(document.createElement("div")) ;
+                result.addClass( "whileBox" ) ;
+                result.addClass( "V" ) ;
+                result.addClass( "workplace" ) ;
+                result.addClass( "canDrag" ) ;
+                result.addClass( "droppable" ) ;
+                result.append( guardBox );
+                result.append( doBox );
+                result.data("help", "while") ;
+            }
+            break ;
             case labels.ExprSeqLabel.kindConst :
             {
-                // TODO show only the unevaluated members during evaluation
-
                 result = $( document.createElement("div") ) ;
                 result.addClass( "seqBox" ) ;
                 result.addClass( "V" ) ;
@@ -151,33 +176,6 @@ module treeView
                 result.data("help", "parameterList") ;
             }
             break ;
-            case labels.WhileLabel.kindConst :
-            {
-                assert.check( children.length === 2 ) ;
-
-                const guardBox : JQuery = $( document.createElement("div") ) ;
-                guardBox.addClass( "whileGuardBox") ;
-                guardBox.addClass( "H") ;
-                guardBox.addClass( "workplace") ;
-                guardBox.append( children[0] ) ;
-
-                const doBox : JQuery = $( document.createElement("div") ) ;
-                doBox.addClass( "doBox") ;
-                doBox.addClass( "H") ;
-                doBox.addClass( "workplace") ;
-                doBox.append( children[1] ) ;
-
-                result  = $(document.createElement("div")) ;
-                result.addClass( "whileBox" ) ;
-                result.addClass( "V" ) ;
-                result.addClass( "workplace" ) ;
-                result.addClass( "canDrag" ) ;
-                result.addClass( "droppable" ) ;
-                result.append( guardBox );
-                result.append( doBox );
-                result.data("help", "while") ;
-            }
-            break ;
             case labels.CallVarLabel.kindConst :
             {
                 result  = $(document.createElement("div")) ;
@@ -196,7 +194,8 @@ module treeView
                     opElement.addClass( "op" ) ;
                     opElement.addClass( "H" ) ;
                     opElement.addClass( "click" ) ;
-                    opElement.text( node.label().getVal() ) ;
+                    const name = unparseString(node.label().getVal()) ;
+                    opElement.text( name ) ;
                 }
                 else {
                     opElement = makeTextInputElement( node, ["op", "H", "input"], collections.none<number>() ) ;
@@ -457,12 +456,12 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const text = node.label().getVal().replace(/ /g, OPENBOX) ;
-                    result.text( text ) ;
+                    const name = unparseString(node.label().getVal()) ;
+                    result.text( name ) ;
                 }
                 else
                 {
-                    result = makeTextInputElement( node, ["var", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ;
+                    result = makeTextInputElement( node, ["var", "H", "input"], collections.some(childNumber) ) ;
                 }
                 result.data("help", "variable") ;
             }
@@ -485,7 +484,7 @@ module treeView
                 }
                 else
                 {
-                    const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
+                    const str = unparseString( node.label().getVal() ) ;
                     const textEl = $( document.createElement("span") ).text( str ) ;
                     result.append(textEl) ;
                 }
@@ -887,7 +886,7 @@ module treeView
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-        const str = node.label().getVal() ;
+        const str = unparseString(node.label().getVal(), false ) ;
         const element : JQuery = $(document.createElement("input"));
         for( let i=0 ; i < classes.length ; ++i ) {
             element.addClass( classes[i] ) ; }
@@ -973,6 +972,60 @@ module treeView
     export function stringIsInfixOperator( str : string ) : boolean {
         return str.match( /^(([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+|[`].*|and|or|implies)$/ ) !== null ;
     }  
+
+    function unparseString( str : string, replaceSpaces : boolean = true ) : string {
+        console.log( "unparseString: Input is: " + explodeString( str ) ) ;
+        const tokens : string[] = [] ;
+        for( let ch of str ) {
+            console.log( "unparseString: ch is: " + explodeString( ch ) ) ;
+            let s : string
+            switch( ch ) {
+                case "\r": s = "\\r" ; break ;
+                case "\n": s = "\\n" ; break ;
+                case "\t": s = "\\t" ; break ;
+                case "\f": s = "\\f" ; break ;
+                case "\\": s = "\\\\" ; break ;
+                case " ": s = replaceSpaces ? OPENBOX : ch ; break ;
+                default: s = ch ;
+            }
+            console.log( "unparseString: s is: " + explodeString( s ) ) ;
+            tokens.push( s ) ;
+        }
+        const result =  tokens.join( "" ) ;
+        console.log( "unparseString: result is: " + explodeString( result ) ) ;
+        return result ;
+    } 
+
+    export function parseString( str : string ) : string {
+        console.log( "parseString: Input is: " + explodeString( str ) ) ;
+        const tokens : string[] = [] ;
+        for( let i = 0 ; i < str.length ; ++i ) {
+            let s : string
+            const ch : string = str.charAt(i) ;
+            switch( ch ) {
+                case "\\": 
+                    ++i ;
+                    if( i < str.length ) {
+                        const ch1 = str.charAt(i) ;
+                        switch( ch1 ) {
+                            case "r" : s = "\r" ; break ;
+                            case "n" : s = "\n" ; break ;
+                            case "t" : s = "\t" ; break ;
+                            case "f" : s = "\f" ; break ;
+                            default: s = ch1 ;  } // Includes \\ case.
+                    } else { s = "\\" ; } // Backslash at end of string!!
+                    break ;
+                default: s = ch ; }
+            tokens.push( s ) ;
+        }
+        const result =  tokens.join( "" ) ;
+        console.log( "parseString: result is: " + explodeString( result ) ) ;
+        return result ;
+    }
+
+    function explodeString( str : string ) : string[] {
+        return str.split('').map( (ch)=> "0x"+ch.charCodeAt(0).toString(16) ) ;
+    }
 }
 
 export = treeView;

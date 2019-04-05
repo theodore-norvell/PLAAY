@@ -541,7 +541,7 @@ div.dropZone:hover {
   min-width: 0.2em;
 }
 
-/* This sort of dropzone is usually used in horizontal boxes like calls. */
+/* This sort of dropzone is used in horizontal boxes like calls. */
 div.dropZoneSmall:hover, div.dropZoneSmall.hover {
   border: 1px solid white;
   min-width: 0.75em;
@@ -598,9 +598,11 @@ div.locdecl:before {
   display: inline;
   vertical-align: top;
   color: #f48c00;
+  font-family: "Noto Sans", Verdana, Arial, sans-serif;
   font-size: large;
   font-style: normal;
   font-weight: bold;
+  text-decoration: underline;
 }
 
 div.locdecl, div.condecl {

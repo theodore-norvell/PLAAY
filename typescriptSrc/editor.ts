@@ -374,7 +374,7 @@ module editor {
 
     function updateLabelHelper( element: HTMLElement, tabDirection : number ) : void {
         //console.log( ">>updateLabelHelper") ;
-        const text = $(element).val();
+        const text = treeView.parseString( $(element).val() ) ;
         const optLocationOfTarget : Option<PSelection>
             = treeView.getPathToNode(currentSelection.root(), $(element) )  ;
         //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;

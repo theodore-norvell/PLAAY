@@ -234,24 +234,32 @@ module animationView
     /** Translate a tree of nodes into SVG
      * 
      * @param node -- The tree to be rendered
-     * @param element -- An SVG group initially containing the renderings of the children of the node.
-     * @param parent -- A container that initially contains element and maybe other things.
+     * @param element -- An SVG group initially containing the renderings of
+     *                   the children of the node.
+     * @param parent -- A container that initially contains element and maybe
+     *                  other things.
      * @param shouldHighlight -- Should the tree be high-lighted. 
-     * @param myPath -- The path for the tree relative to the root of the Evaluation
+     * @param myPath -- The path for the tree relative to the root of the
+     *                  Evaluation
      * @param optError -- An optional error string.
-     * 
-     * By the end of the execution of buildSVG, the rendering of the node is added to the parent group
-     * and the element has been removed.  (In at least one case the rendering is element and so it is not
-     * removed from parent and nothing is added.  The first example below illustrates this. The second
-     * example illustrates the typical case where element is moved under a new group and the new group is added.)
      * <p>
-     * The rendering should have its upper left corner near the origin, but that corner may be above or to the right.
+     * By the end of the execution of buildSVG, the rendering of the node is
+     * added to the parent group and the element has been removed.  (In at least
+     * one case the rendering is element and so it is not removed from parent
+     * and nothing is added.  The first example below illustrates this. The
+     * second example illustrates the typical case where element is moved under
+     * a new group and the new group is added.)
      * <p>
-     * Example 0: consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and e1 have already been rendered as
-     * svg elements s0 and s1. The bounding boxes of s0 and s1 should have their upper left corner near (0,0).
-     * (It seems to me that these corners should be exactly at (0,0), but the way the code is written they could be
-     * slightly above or to the left of the origin.  This explains the various fixups to push elements right or down!)
-     * When this routine starts we have
+     * The rendering should have its upper left corner near the origin, but that
+     * corner may be above or to the left.
+     * <p>
+     * Example 0: consider rendering node ExprSeq( e0, e1 ). Suppose that e0 and
+     * e1 have already been rendered as svg elements s0 and s1. The bounding
+     * boxes of s0 and s1 should have their upper left corner near (0,0). (It
+     * seems to me that these corners should be exactly at (0,0), but the way
+     * the code is written they could be slightly above or to the left of the
+     * origin.  This explains the various fixups to push elements right or
+     * down!) When this routine starts we have
      * <pre>
      *           parent
      *          /      \
@@ -259,14 +267,16 @@ module animationView
      *         /   \
      *        s0    s1
      * </pre>
-     * The other children of parent (shown as 'others' in the diagram) will typically be the rederings of
-     * the node's left siblings in the tree.
+     * The other children of parent (shown as 'others' in the diagram) will
+     * typically be the rederings of the node's left siblings in the tree.
      * <p>
-     * On exit from the routine, we have exactly the same picture; s0 and s1 have been moved to the right if
-      they are left of the origin.  s1 will have been moved down below s0.
+     * On exit from the routine, we have exactly the same picture; s0 and s1
+     * have been moved to the right if they are left of the origin.  s1 will
+     * have been moved down below s0.
      * <p>
-     * Example 1: A more interesting example is Call( e0, e0 ) where again e0 and e1 have been rendered as s0 and s1.
-     * The initial picture is as above. The final picture looks like this
+     * Example 1: A more interesting example is Call( e0, e0 ) where again e0
+     * and e1 have been rendered as s0 and s1.  The initial picture is as above.
+     * The final picture looks like this
      * <pre>
      *           parent
      *          /      \
@@ -276,11 +286,11 @@ module animationView
      *     /   \
      *    s0    s1
      * </pre>
-     * where group is a new group and brect is a new rectangle displaying the border.
-     * s0 and s1 will have been moved appropriately.
+     * where group is a new group and brect is a new rectangle displaying the
+     * border.  s0 and s1 will have been moved appropriately.
      * <p>
-     * Example 2: In Example 1, if shouldHighLight were true, there would be an additional rectagle
-     * added to the group, like this
+     * Example 2: In Example 1, if shouldHighLight were true, there would be an
+     * additional rectagle added to the group, like this
      * <pre>
      *             parent
      *            /      \
@@ -292,7 +302,8 @@ module animationView
      * </pre>
      * where hrect is the higlighting rectangle.
      * <p>
-     * Example 3: If in addition there was an error on this call we would end up in this situation
+     * Example 3: If in addition there was an error on this call we would end up
+     * in this situation
      * 
      * <pre>
      *             parent
@@ -303,9 +314,10 @@ module animationView
      *  / |  | \
      * s0 s1 t  r
      * </pre>
-     * where t is a text element and r is a rectangle that supplies a border to the error message.
-     * (I'm not sure why t and r are added to element rather than group. However since brect and hrect
-     * are added first, they are positioned as if t and r weren't there, so it works out looking ok.)
+     * where t is a text element and r is a rectangle that supplies a border to
+     * the error message. (I'm not sure why t and r are added to element rather
+     * than group. However since brect and hrect are added first, they are
+     * positioned as if t and r weren't there, so it works out looking ok.)
      */
     function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
                       optError : Option<string>) : void
@@ -367,6 +379,50 @@ module animationView
                 // result.addClass( "workplace" ) ;
             }
             break ;
+            case labels.WhileLabel.kindConst :
+            {
+                const childArray = element.children();
+                assert.check( childArray.length === 2 ) ;
+
+                element.dmove(10, 10) ;
+                const padding : number = 15;
+                let y = 0;
+
+                const guardBox : svg.G = element.group() ;
+                // guardBox.addClass( "whileGuardBox") ;
+                // guardBox.addClass( "H") ;
+                // guardBox.addClass( "workplace") ;
+                const textElement = guardBox.text(WHILEMARK).dmove(0, -5);
+                guardBox.add( childArray[0].dmove(30, 5) ) ;
+                const childBBox : svg.BBox = childArray[0].bbox();
+                if(childBBox.y < 5)
+                {
+                    const childY : number = childBBox.y;
+                    childArray[0].dy(5-childY);
+                    y += 5-childY;
+                }
+                if(childBBox.x < 0)
+                {
+                    childArray[0].dx(-childBBox.x);
+                }
+                y += childBBox.height + padding;
+                const len = findWidthOfLargestChild(childArray)+padding;
+
+                doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
+
+                y += padding;
+                const doBox :  svg.G = element.group().dmove(10, y) ;
+                // doBox.addClass( "doBox") ;
+                // doBox.addClass( "H") ;
+                // doBox.addClass( "workplace") ;
+                doBox.add( childArray[1] ) ;
+
+                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
+                // result.addClass( "whileBox" ) ;
+                // result.addClass( "V" ) ;
+                // result.addClass( "workplace" ) ;
+            }
+            break ;
             case labels.ExprSeqLabel.kindConst :
             {
                 const childArray = element.children();
@@ -424,50 +480,6 @@ module animationView
                     }
                     x += childArray[i].bbox().width + padding;
                 }
-            }
-            break ;
-            case labels.WhileLabel.kindConst :
-            {
-                const childArray = element.children();
-                assert.check( childArray.length === 2 ) ;
-
-                element.dmove(10, 10) ;
-                const padding : number = 15;
-                let y = 0;
-
-                const guardBox : svg.G = element.group() ;
-                // guardBox.addClass( "whileGuardBox") ;
-                // guardBox.addClass( "H") ;
-                // guardBox.addClass( "workplace") ;
-                const textElement = guardBox.text(WHILEMARK).dmove(0, -5);
-                guardBox.add( childArray[0].dmove(30, 5) ) ;
-                const childBBox : svg.BBox = childArray[0].bbox();
-                if(childBBox.y < 5)
-                {
-                    const childY : number = childBBox.y;
-                    childArray[0].dy(5-childY);
-                    y += 5-childY;
-                }
-                if(childBBox.x < 0)
-                {
-                    childArray[0].dx(-childBBox.x);
-                }
-                y += childBBox.height + padding;
-                const len = findWidthOfLargestChild(childArray)+padding;
-
-                doGuardBoxStylingAndBorderSVG(textElement, guardBox, MAUVE, len, y);
-
-                y += padding;
-                const doBox :  svg.G = element.group().dmove(10, y) ;
-                // doBox.addClass( "doBox") ;
-                // doBox.addClass( "H") ;
-                // doBox.addClass( "workplace") ;
-                doBox.add( childArray[1] ) ;
-
-                drawHighlightOn = makeFancyBorderSVG(parent, element, MAUVE);
-                // result.addClass( "whileBox" ) ;
-                // result.addClass( "V" ) ;
-                // result.addClass( "workplace" ) ;
             }
             break ;
             case labels.CallVarLabel.kindConst :
