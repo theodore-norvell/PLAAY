@@ -54,7 +54,7 @@ module treeManager {
                           LOC_OR_LOCATION_TYPE,
                           ASSIGN_OR_ASSIGN_TYPE,
                           TUPLE_OR_TUPLE_TYPE,
-                          EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE,
+                          CLOSE,
                           AND_OR_MEET_TYPE,
                           OR_OR_JOIN_TYPE }
     
@@ -203,8 +203,8 @@ module treeManager {
                 case Actions.TUPLE_OR_TUPLE_TYPE :
                     edit = alt( [ this.makeTupleNode(), this.makeTupleType() ] ) ;
                     break ;
-                case Actions.EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE :
-                    edit = alt( [ this.makeEmptyTupleNode(), this.makeEmptyTupleType() ] ) ;
+                case Actions.CLOSE :
+                    edit = this.finishOffThisNode() ;
                     break ;
                 case Actions.AND_OR_MEET_TYPE :
                     edit = alt( [ this.makeCallVarNode("and", 2),
@@ -327,6 +327,27 @@ module treeManager {
         private makeEmptyTupleType() : Edit<PSelection> {
             const tupleType = labels.mkTupleType([]);
             return dnodeEdits.insertChildrenEdit( [tupleType] ) ;
+        }
+
+        private finishOffThisNode() : Edit<PSelection> {
+            const allArePH = ( sel : Selection<PLabel,PNode> ) => {
+                return sel.selectedNodes().every( (ch : PNode) =>
+                    ch.label() instanceof labels.ExprPHLabel ) ;
+            } ;
+            const placeHolderFollows = ( sel : Selection<PLabel,PNode> ) => {
+                const p = sel.parent() ;
+                const end = sel.end() ;
+                if( p.count() === end ) return false ;
+                const q = p.child(end) ;
+                return q.label() instanceof labels.ExprPHLabel ;
+            } ;
+            const expandMaybe = optionally( compose( testEdit(placeHolderFollows),
+                                                     dnodeEdits.moveFocusRightEdit() ) ) ;
+            return compose( alt([ testEdit(allArePH),
+                                  compose( dnodeEdits.tabForwardEdit(),
+                                           testEdit(allArePH) ) ] ),
+                            expandMaybe, expandMaybe, expandMaybe,
+                            this.deleteEdit, dnodeEdits.tabForwardEdit() ) ;
         }
 
         // If nodes
@@ -474,7 +495,7 @@ module treeManager {
 
         private makeCallNode() : Edit<PSelection> {
 
-            const callnode = labels.mkCall(placeHolder) ;
+            const callnode = labels.mkCall(placeHolder, placeHolder) ;
 
             const template = makeSelection( callnode, list<number>(), 0, 1 ) ;
             return replaceOrEngulfTemplateEdit( template  ) ;

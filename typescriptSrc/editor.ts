@@ -1203,7 +1203,7 @@ module editor {
     keyEventMap["["] = createNode_keh( Actions.INDEX ) ;
     keyEventMap["."] = createNode_keh( Actions.DOT ) ;
     keyEventMap["("] = createNode_keh( Actions.TUPLE_OR_TUPLE_TYPE ) ;
-    keyEventMap[")"] = createNode_keh( Actions.EMPTY_TUPLE_OR_EMPTY_TUPLE_TYPE ) ;
+    keyEventMap[")"] = createNode_keh( Actions.CLOSE ) ;
     keyEventMap["`"] = createNode_keh( Actions.CALL_VAR ) ; ; // Back quote
     // TODO Check that these work with numberpad
     ["+", "-", "*", "<", ">", "=", "%", "&", "|", "/"].forEach( (s) =>
