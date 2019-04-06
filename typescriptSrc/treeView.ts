@@ -1,12 +1,14 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
+/// <reference path="parsers.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="selection.ts" />
 
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
+import parsers = require( './parsers' ) ;
 import pnode = require('./pnode');
 import selection = require( './selection');
 
@@ -31,7 +33,6 @@ module treeView
     export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
     export const LAMBDAMARK = "\u03BB" ;
     export const NULLMARK = "\u23da" ; // EARTH GROUND
-    export const OPENBOX = "\u2423" ; // VISIBLE SPACE symbol
     export const RIGHTDOUBLEQUOTATIONMARK = "\u201D" ;
     export const LEFTDOUBLEQUOTATIONMARK = "\u201C" ;
 
@@ -194,7 +195,7 @@ module treeView
                     opElement.addClass( "op" ) ;
                     opElement.addClass( "H" ) ;
                     opElement.addClass( "click" ) ;
-                    const name = unparseString(node.label().getVal()) ;
+                    const name = parsers.unparseString(node.label().getVal(), true) ;
                     opElement.text( name ) ;
                 }
                 else {
@@ -456,7 +457,7 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const name = unparseString(node.label().getVal()) ;
+                    const name = parsers.unparseString(node.label().getVal(), true) ;
                     result.text( name ) ;
                 }
                 else
@@ -484,7 +485,7 @@ module treeView
                 }
                 else
                 {
-                    const str = unparseString( node.label().getVal() ) ;
+                    const str = parsers.unparseString( node.label().getVal(), true ) ;
                     const textEl = $( document.createElement("span") ).text( str ) ;
                     result.append(textEl) ;
                 }
@@ -505,7 +506,7 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const text = node.label().getVal().replace(/ /g, OPENBOX) ;
+                    const text = parsers.unparseString( node.label().getVal(), false ) ;
                     result.text( text ) ;
                 }
                 else
@@ -886,7 +887,7 @@ module treeView
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-        const str = unparseString(node.label().getVal(), false ) ;
+        const str = parsers.unparseString(node.label().getVal(), false ) ;
         const element : JQuery = $(document.createElement("input"));
         for( let i=0 ; i < classes.length ; ++i ) {
             element.addClass( classes[i] ) ; }
@@ -971,61 +972,7 @@ module treeView
 
     export function stringIsInfixOperator( str : string ) : boolean {
         return str.match( /^(([+/!@<>#$%&*_+=?;:~&]|\-|\^|\\)+|[`].*|and|or|implies)$/ ) !== null ;
-    }  
-
-    function unparseString( str : string, replaceSpaces : boolean = true ) : string {
-        console.log( "unparseString: Input is: " + explodeString( str ) ) ;
-        const tokens : string[] = [] ;
-        for( let ch of str ) {
-            console.log( "unparseString: ch is: " + explodeString( ch ) ) ;
-            let s : string
-            switch( ch ) {
-                case "\r": s = "\\r" ; break ;
-                case "\n": s = "\\n" ; break ;
-                case "\t": s = "\\t" ; break ;
-                case "\f": s = "\\f" ; break ;
-                case "\\": s = "\\\\" ; break ;
-                case " ": s = replaceSpaces ? OPENBOX : ch ; break ;
-                default: s = ch ;
-            }
-            console.log( "unparseString: s is: " + explodeString( s ) ) ;
-            tokens.push( s ) ;
-        }
-        const result =  tokens.join( "" ) ;
-        console.log( "unparseString: result is: " + explodeString( result ) ) ;
-        return result ;
     } 
-
-    export function parseString( str : string ) : string {
-        console.log( "parseString: Input is: " + explodeString( str ) ) ;
-        const tokens : string[] = [] ;
-        for( let i = 0 ; i < str.length ; ++i ) {
-            let s : string
-            const ch : string = str.charAt(i) ;
-            switch( ch ) {
-                case "\\": 
-                    ++i ;
-                    if( i < str.length ) {
-                        const ch1 = str.charAt(i) ;
-                        switch( ch1 ) {
-                            case "r" : s = "\r" ; break ;
-                            case "n" : s = "\n" ; break ;
-                            case "t" : s = "\t" ; break ;
-                            case "f" : s = "\f" ; break ;
-                            default: s = ch1 ;  } // Includes \\ case.
-                    } else { s = "\\" ; } // Backslash at end of string!!
-                    break ;
-                default: s = ch ; }
-            tokens.push( s ) ;
-        }
-        const result =  tokens.join( "" ) ;
-        console.log( "parseString: result is: " + explodeString( result ) ) ;
-        return result ;
-    }
-
-    function explodeString( str : string ) : string[] {
-        return str.split('').map( (ch)=> "0x"+ch.charCodeAt(0).toString(16) ) ;
-    }
 }
 
 export = treeView;

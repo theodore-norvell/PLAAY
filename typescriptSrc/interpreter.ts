@@ -13,6 +13,7 @@ import pnode = require('./pnode') ;
 import types = require('./types') ;
 import values = require('./values') ;
 import vms = require('./vms') ;
+import parsers = require('./parsers');
 
 /** The interpreter module includes the various stepper and selector functions that
  * that define the meaning of each label.
@@ -370,19 +371,17 @@ module interpreter {
     function numberLiteralStepper( vm : VMS ) : void {
         const label  = vm.getPendingNode().label() ;
         const str = label.getVal() ;
-        // TODO use the proper parser.
-        const regexp = /(\d+(\.\d+)?)/g ;
-        if( regexp.test(str) ) {
-            const num = Number(str) ;
-            let result = theNumberCache[ num ] ; 
-            if(result === undefined) {
-                result = theNumberCache[ num ] = new NumberV( num ) ;
-            }
-            vm.finishStep( result, false ) ;
-        }
-        else {
-            vm.reportError("Not a valid number.") ;
-        }
+        const optNumber = parsers.stringToNumber( str ) ;
+        optNumber.choose( (num:number) => {
+                let result = theNumberCache[ num ] ; 
+                if(result === undefined) {
+                    result = theNumberCache[ num ] = new NumberV( num ) ;
+                }
+                vm.finishStep( result, false ) ;
+            },
+            () => {
+                vm.reportError("Not a valid number.") ;
+            } ) ;
     }
  
     function nullLiteralStepper( vm : VMS ) : void {

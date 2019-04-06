@@ -112,6 +112,18 @@ describe( 'NumberLiteralLabel', function() : void {
         assert.check( val instanceof NumberV ) ;
         assert.check( (val as NumberV).getVal() === Number(label.getVal()) ) ;
     } );
+
+    it('should error out on a bad numebr', function() : void {
+        const label = new labels.NumberLiteralLabel( "123abc", false ) ;
+        const root = new PNode( label, [] ) ;
+        const vm = makeStdVMS( root )  ;
+        assert.check( ! vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( vm.isReady() ) ;
+        vm.advance() ;
+        assert.check( vm.hasError() ) ;
+        assert.checkEqual( "Not a valid number.", vm.getError() ) ;
+    } );
 } ) ;
 
 describe( 'BooleanLiteralLabel', function() : void {

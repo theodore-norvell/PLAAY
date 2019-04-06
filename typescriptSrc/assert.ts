@@ -98,7 +98,7 @@ module assert {
      */
     export function checkEqual<A>( expected : A, actual : A ) : void  {
         if( !( expected===actual) ) {
-            let message = "Assertion failed:\nExpected " ;
+            let message = "Assertion failed: Expected " ;
             if( expected===undefined ) message += "undefined" ;
             else if( expected===null) message += "null" ;
             else message += "<<" + expected.toString() + ">>" ;

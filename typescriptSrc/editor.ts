@@ -6,6 +6,7 @@
 /// <reference path="collections.ts" />
 /// <reference path="createHtmlElements.ts" />
 /// <reference path="labels.ts" />
+/// <reference path="parsers.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="selection.ts" />
 /// <reference path="treeView.ts" />
@@ -17,6 +18,7 @@ import assert = require('./assert') ;
 import collections = require( './collections' );
 import createHTMLElements = require('./createHtmlElements');
 import labels = require( './labels');
+import parsers = require( './parsers' ) ;
 import pnode = require( './pnode');
 import selection = require( './selection');
 import treeManager = require( './treeManager');
@@ -374,7 +376,7 @@ module editor {
 
     function updateLabelHelper( element: HTMLElement, tabDirection : number ) : void {
         //console.log( ">>updateLabelHelper") ;
-        const text = treeView.parseString( $(element).val() ) ;
+        const text = parsers.parseString( $(element).val() ) ;
         const optLocationOfTarget : Option<PSelection>
             = treeView.getPathToNode(currentSelection.root(), $(element) )  ;
         //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
@@ -401,7 +403,6 @@ module editor {
                 //   up and down arrows (for example). However that
                 //   requires handling of the event before it gets
                 //   intercepted by the field.
-                // TODO: Might be nice to handle space and operators specially when entering a number.
                 e.stopPropagation() ;
                 e.preventDefault();
                 console.log( "<<input keydown handler") ;

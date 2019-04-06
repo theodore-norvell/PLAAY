@@ -1,6 +1,7 @@
 /// <reference path="assert.ts" />
 /// <reference path="collections.ts" />
 /// <reference path="labels.ts" />
+/// <reference path="parsers.ts" />
 /// <reference path="pnode.ts" />
 /// <reference path="treeView.ts" />
 /// <reference path="values.ts" />
@@ -9,6 +10,7 @@
 import assert = require( './assert' );
 import collections = require( './collections' );
 import labels = require('./labels');
+import parsers = require( './parsers' ) ;
 import pnode = require('./pnode');
 import treeView = require('./treeView');
 import values = require('./values');
@@ -42,7 +44,7 @@ module animationView
     import LAMBDAMARK = treeView.LAMBDAMARK ;
     import NULLMARK = treeView.NULLMARK ;
     import FUNCTIONMARK = treeView.FUNCTIONTYPE ;
-    import OPENBOX = treeView.OPENBOX ;
+    import OPENBOX = parsers.OPENBOX ;
     import RIGHTDOUBLEQUOTATIONMARK = treeView.RIGHTDOUBLEQUOTATIONMARK ;
     import LEFTDOUBLEQUOTATIONMARK = treeView.LEFTDOUBLEQUOTATIONMARK ;
 
@@ -1317,7 +1319,7 @@ module animationView
     
     function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
     {
-        const str1 = str.replace(/ /g, OPENBOX ) ;
+        const str1 = parsers.unparseString( str, true ) ;
         const textElement : svg.Text
             = base.text( LEFTDOUBLEQUOTATIONMARK + str1 + RIGHTDOUBLEQUOTATIONMARK );
         makeSimpleValueSVG( base, textElement ) ;
