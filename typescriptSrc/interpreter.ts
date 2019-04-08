@@ -115,6 +115,8 @@ module interpreter {
                     return true ; }
                 else if( lab instanceof labels.StringLiteralLabel ) {
                     return true ; }
+                    else if( lab instanceof labels.TupleLabel ) {
+                        return true ; }
                 else if( lab instanceof labels.ExprSeqLabel ) {
                     return ! exprSeqNeedsPrevisit(vm) ; }
                 else {
