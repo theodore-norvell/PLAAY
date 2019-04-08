@@ -202,7 +202,7 @@ module parsers {
         const fract = fractVC.val / denom ;
         // If fractVC.val is +Infinity, then denon should be too and 
         // then fract is a Nan, as is the result of this function.
-        return sgn *( intVal + fract ) ;-1
+        return sgn * ( intVal + fract ) ;
     }
 
     const optionalFractionalPart = (sgn:number, intVal : number ) =>

@@ -200,17 +200,21 @@ module evaluationManager {
 
     }
 
-    // Stops when the current evaluation is done or when the current expression
-    // is evaluated, or when a new evaluation is popped onto the stack,
-    // or when a call is about to be made
+    // Stops in all the same places as the StepOverStopper, but also
+    //    When a call to a closure has been made and the selected node is not very boring
+    //    of when a call has been made and that call is done.
+    // The a latter case can happen when the closure called has only very boring nodes.
     class StepIntoStopper extends StepOverStopper {
 
         public shouldStop( vm : VMS ) : boolean {
-            return super.shouldStop(vm)
-                || this.stackDepth < vm.getEvalStack().getSize()
-                   && vm.isReady()  && ! vm.getInterpreter().veryBoring(vm) ;
+            return this.count > 0
+                && (  super.shouldStop(vm)
+                   || this.stackDepth < vm.getEvalStack().getSize()
+                      && vm.isReady()  && ! vm.getInterpreter().veryBoring(vm) 
+                   || this.aCallHasBeenMade
+                      &&  vm.isDone()
+                   ) ;
         }
-
     }
 
 
