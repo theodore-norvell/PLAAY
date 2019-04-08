@@ -15,7 +15,6 @@ import vms = require('./vms') ;
 
 /** The evaluation manager is a thin layer between the VMS and the animator.
  * 
- * TODO. Get rid of this module.
  */
 module evaluationManager {
 
@@ -144,15 +143,18 @@ module evaluationManager {
     // or another line in the initial evaluation has been started
     //    and the vm is ready to be stepped
     // or a closure is about to be called
+    // or a closure has been called and returned from.
     class StepOverStopper extends Stopper {
         protected count : number = 0 ;
         protected stackDepth : number ;
+        protected aCallHasBeenMade : boolean ;
         protected currentEval : Evaluation;
         protected savedPath : List<number>;
 
         public init(vm : VMS) : void {
             this.currentEval = vm.getEval();
             this.stackDepth = vm.getEvalStack().getSize() ;
+            this.aCallHasBeenMade = false ;
             this.savedPath = this.pathToLowestInterestingNode(vm) ;
         }
 
@@ -183,11 +185,17 @@ module evaluationManager {
                        && vm.isReady() && ! vm.getInterpreter().veryBoring(vm)
                    || this.currentEval === vm.getEval()
                       && vm.isReady()
-                      && vm.getInterpreter().veryInteresting(vm) ) ;
+                      && vm.getInterpreter().veryInteresting(vm) ) 
+                   || this.aCallHasBeenMade
+                      && this.currentEval === vm.getEval()
+                      && vm.isReady()
+                      && vm.getEvalStack().getSize() == this.stackDepth ;
         }
 
         public step( vm : VMS ) : void {
             this.count += 1 ;
+            this.aCallHasBeenMade = this.aCallHasBeenMade
+                                 || vm.getEvalStack().getSize() > this.stackDepth ;
         }
 
     }
