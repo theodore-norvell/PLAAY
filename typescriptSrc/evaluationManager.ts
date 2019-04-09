@@ -107,6 +107,7 @@ module evaluationManager {
         public shouldStop( vm : VMS ) : boolean {
             return this.count > 0
                 && (vm.isDone()
+                    || vm.needsFetch() 
                     || vm.isReady()
                        && ! vm.getInterpreter().veryBoring(vm)) ;
         }

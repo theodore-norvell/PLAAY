@@ -56,8 +56,10 @@ module vms{
      *         pop the top evaluation off the evaluation stack.
      *      * READY.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
      *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.isReady()`
+     *      * READY FOR FETCH. The selected node has been mapped to a location, but it needs a fetch
+     *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.needsFetch()`
      *      * NOT READY. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
-     *         The machine is in the NOT READY substate iff `vms.canAdvance() && !vms.isDone() && !vms.isReady()`
+     *         The machine is in the NOT READY substate iff `vms.canAdvance() && !vms.isDone() && !vms.isReady() && !needsFetch()`
      * 
      * * ERROR:  In the error state, the machine has encountered a run time error and can not advance because of that.
      *   Use `vms.hasError()` to check if the machine has encountered an error.  Use `vms.getError()` to
@@ -90,6 +92,7 @@ module vms{
             this.lastError = new TVar<string|null>( null, manager ) ;
         }
 
+
 //        public dump( indent : string ) : void { /*dbg*/
 //            console.log( indent+"VMS" ) ; /*dbg*/
 //            this.evalStack.dump( indent+"|  ") ; /*dbg*/
@@ -118,6 +121,11 @@ module vms{
         public isReady() : boolean {
             assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().isReady() ;
+        }
+
+        public needsFetch() : boolean {
+            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().needsFetch() ;
         }
 
         public setReady( newReady : boolean ) : void {
@@ -263,8 +271,14 @@ module vms{
         L, R, SAME
     }
     /** An evaluation is the state of evaluation of one PLAAY expression.
-     * Typically it will  be the evaluatio of one method body.
+     * Typically it will  be the evaluation of one method body.
      * See the run-time model documentation for details.
+     * Each evaluator has the following states:
+     *       DONE : The evaluation is completely done and ready to be popped from
+     *              the evaluation stack.
+     *       READY : A node has been selected needs to be stepped.
+     *       READY FOR FETCH
+     *       NOT_READY
      * */
     export class Evaluation {
         private readonly root : TVar<PNode>;
@@ -272,6 +286,7 @@ module vms{
         private readonly pending : TVar<List<number> | null> ;
         private readonly context : TVar<Context> ;
         private readonly ready : TVar<boolean>;
+        private readonly fetchNeeded : TVar<boolean>;
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
 
@@ -281,6 +296,7 @@ module vms{
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
             this.context = new TVar<Context>( Context.R, manager ) ;
             this.ready = new TVar<boolean>(false, manager);
+            this.fetchNeeded = new TVar<boolean>(false, manager);
             this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
             this.extraInformationMap = new AnyMap(manager) ;
@@ -296,7 +312,11 @@ module vms{
         }
 
         public isReady() : boolean {
-            return this.ready.get() ;
+            return this.ready.get() && ! this.fetchNeeded.get() ;
+        }
+
+        public needsFetch() : boolean {
+            return this.fetchNeeded.get() ;
         }
 
         public setReady( newReady : boolean ) : void {
@@ -353,7 +373,7 @@ module vms{
                 this.pending.set( null ) ;
             } else {
                 this.pending.set( collections.nil<number>() ) ; }
-            this.setContext( Context.R ) ;
+            this.setContext( Context.R ) ;  // Not sure why this works!!
         }
 
         public scrub( path : List<number> ) : void {
@@ -428,19 +448,31 @@ module vms{
         public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            if( fetch && value.isLocationV() && this.isRContext() ) {
-                const loc = value as Location ;
-                const opt = loc.getValue() ;
-                if( opt.isEmpty() ) {
-                    vm.reportError( "The location has no value." ) ;
-                    return ;
-                }
-                value = opt.first() ;
-            }
             const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
+            if( fetch && value.isLocationV() && this.isRContext() ) {
+                this.fetchNeeded.set(true) ; }
+            else { 
+                this.popPending() ;
+                this.setReady( false ) ;
+            }
+        }
+
+        private fetch(vm : VMS) {
+            const p = this.pending.get() as List<number> ;
+            const value = this.map.get( p ) ;
+            assert.check( value.isLocationV() ) ;
+            const loc = value as Location ;
+            const opt = loc.getValue() ;
+            if( opt.isEmpty() ) {
+                vm.reportError( "The location has no value." ) ;
+                return ;
+            }
+            const fetchedValue = opt.first() ;
+            this.map.put( p, fetchedValue ) ;
             this.popPending() ;
             this.setReady( false ) ;
+            this.fetchNeeded.set(false) ;
         }
 
         public isDone() : boolean {
@@ -450,8 +482,11 @@ module vms{
         public advance( interpreter : Interpreter, vm : VMS ) : void {
             assert.checkPrecondition( !this.isDone() ) ;
 
-            if( this.ready.get() ){
+            if( this.ready.get() && ! this.fetchNeeded.get()  ){
                 interpreter.step( vm ) ;
+            }
+            else if( this.fetchNeeded.get() ) {
+                this.fetch(vm) ;
             }
             else{
                 interpreter.select( vm ) ;

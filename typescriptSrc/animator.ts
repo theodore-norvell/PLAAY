@@ -150,7 +150,7 @@ module animator
         const animation : svg.G = animatorArea.group().move(10, 10);
 
         const toHighlight : List<number> = 
-                evaluationMgr.getVMS().isReady()
+                evaluationMgr.getVMS().isReady() || evaluationMgr.getVMS().needsFetch()
             ?   evaluationMgr.getVMS().getPending()
             :   list(-1) ;
         const error : string =

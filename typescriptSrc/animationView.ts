@@ -130,6 +130,7 @@ module animationView
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
         for (let j = 0; j < numFields; j++){
+            // TODO Hight light the field if it about to be read from.
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
             const nameString = field.getName().replace(/ /g, OPENBOX ) ;
@@ -162,6 +163,7 @@ module animationView
         const el : svg.G = element.group();
         opt.choose(
             (val : Value) => {
+                // TODO. Highlight the location if it is about to be fetched from.
                 buildSVGForMappedNode(el, val, true);  
             },
             () => {}
