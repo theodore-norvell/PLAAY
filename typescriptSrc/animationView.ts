@@ -31,7 +31,7 @@ module animationView
     import PNode = pnode.PNode;
     import ObjectV = values.ObjectV;
     import StringV = values.StringV;
-    import ValueMap = vms.ValueMap;
+    import VMS = vms.VMS ;
     import Value = vms.Value;
     import ObjectI = vms.ObjectI;
     import TupleV = values.TupleV;
@@ -88,22 +88,30 @@ module animationView
      * @param error  An error message.
      * @param errorPath The node that the message applies to. If there is no error, list( -1 ) can be used.
      */
-    export function traverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, pathToHighlight : List<number>,
-                                     valueMap : ValueMap, error : string, errorPath : List<number>) : void
+    export function traverseAndBuild(node:PNode, el : svg.Container, vm : VMS ) : void
+    {
+        localTraverseAndBuild( node, el, list(), vm, -1, 0 )
+    }
+
+    function localTraverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, vm : VMS,
+                                     childNumber: number, contextPrec : number) : void
     {
         const children : svg.G = el.group();
-        const highlightMe : boolean = currentPath.equals(pathToHighlight);
-        const optError : Option<string> = currentPath.equals(errorPath) ? some(error) : none() ;
-        if(valueMap.isMapped(currentPath) ) 
+        const highlightMe : boolean = currentPath.equals(vm.getPending() );
+        const optError : Option<string> = vm.hasError() && highlightMe ? some(vm.getError()) : none() ;
+        if(vm.isMapped(currentPath) ) 
         {
-            buildSVGForValue(children, valueMap.get(currentPath), true, highlightMe, optError );
+            buildSVGForValue(children, vm.getVal( currentPath ), true, highlightMe, optError );
         }
         else {
+            const label = node.label() ;
             for(let i = 0; i < node.count(); i++)
             {
-                traverseAndBuild(node.child(i), children, currentPath.cat( list(i) ), pathToHighlight, valueMap, error, errorPath);
+                localTraverseAndBuild( node.child(i), children, currentPath.cat( list(i) ),
+                                       vm, i, label.getChildPrecedence(i) );
             }
-            buildSVG(node, children, el, highlightMe, currentPath, optError);
+            const needsBorder = label.getPrecedence() < contextPrec ;
+            buildSVG(node, children, el, highlightMe, currentPath, optError, needsBorder);
         }
     }
 
@@ -323,8 +331,9 @@ module animationView
      * than group. However since brect and hrect are added first, they are
      * positioned as if t and r weren't there, so it works out looking ok.)
      */
-    function buildSVG(node : PNode, element : svg.G, parent : svg.Container, shouldHighlight : boolean, myPath : List<number>,
-                      optError : Option<string>) : void
+    function buildSVG(node : PNode, element : svg.G, parent : svg.Container,
+                      shouldHighlight : boolean, myPath : List<number>, optError : Option<string>,
+                      needsBorder : boolean ) : void
     {
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
@@ -526,7 +535,7 @@ module animationView
                 }
 
                 doCallVarLabelStylingSVG(opText);
-                drawHighlightOn = makeCallVarBorderSVG(parent, element);
+                drawHighlightOn = makeCallBorderSVG(parent, element, needsBorder);
                 
             }
             break ;
@@ -549,7 +558,8 @@ module animationView
                     }
                     x += childArray[i].bbox().width + padding;
                 }
-                drawHighlightOn = makeCallBorderSVG(parent, element);
+                if( childArray.length === 1 ) needsBorder = true ;
+                drawHighlightOn = makeCallBorderSVG(parent, element, needsBorder);
             }
             break ;
             case labels.LocLabel.kindConst :
@@ -569,7 +579,7 @@ module animationView
                 {
                     child.dx(-childBBox.x);
                 }
-                makeAssignLabelBorder(element);
+                makeAssignLabelBorder(element, needsBorder);
             }
             break ;
             case labels.AssignLabel.kindConst :
@@ -590,7 +600,7 @@ module animationView
                 {
                     childArray[1].dx(-childBBox.x);
                 }
-                makeAssignLabelBorder(element);
+                makeAssignLabelBorder(element, needsBorder);
             }
             break ;
             case labels.ObjectLiteralLabel.kindConst :
@@ -704,7 +714,7 @@ module animationView
                 rightBracketText.fill(MAUVE);
                 rightBracketText.dmove(x, -5);
 
-                makeSimpleBorder(element, MAUVE, 10);
+                makeSimpleBorder(element, MAUVE, needsBorder, 10);
             }
             break ;
             case labels.DotLabel.kindConst :
@@ -719,7 +729,7 @@ module animationView
                 dotText.dmove(x,-5);
                 x += dotText.bbox().width + padding;
                 
-                makeSimpleBorder(element, MAUVE, 10);
+                makeSimpleBorder(element, MAUVE, needsBorder, 10);
             }
             break;
             case labels.LambdaLabel.kindConst :
@@ -802,7 +812,7 @@ module animationView
             {
                 const childArray = element.children();
                 const seqBox = layOutTuple( element, childArray, LIGHT_BLUE ) ;
-                makeSimpleBorder(element, LIGHT_BLUE, 10);
+                makeSimpleBorder(element, LIGHT_BLUE, needsBorder, 10);
             }
             break ;
             case labels.BooleanLiteralLabel.kindConst :
@@ -870,7 +880,7 @@ module animationView
                     initialValueSVG.dx(-childBBox.x);
                 }
 
-                makeSimpleBorder(element, ORANGE, 10 );
+                makeSimpleBorder(element, ORANGE, needsBorder, 10 );
 
                 // result.addClass( "vardecl" ) ;
                 // result.addClass( "H" ) ;;
@@ -917,7 +927,7 @@ module animationView
             {
                 const childArray = element.children();
                 const seqBox = layOutTuple( element, childArray, YELLOW ) ;
-                makeSimpleBorder(element, YELLOW, 10);
+                makeSimpleBorder(element, YELLOW, needsBorder, 10);
             }
             break;
             case labels.FunctionTypeLabel.kindConst :
@@ -941,13 +951,13 @@ module animationView
                     childArray[1].dx(-childBBox.x);
                 }
 
-                makeSimpleBorder(element, YELLOW );
+                makeSimpleBorder(element, YELLOW, needsBorder, 10);
             }
             break;
             case labels.LocationTypeLabel.kindConst :
             {
                 const childArray = element.children();
-                makeSimpleBorder(element,YELLOW);
+                makeSimpleBorder(element,YELLOW, needsBorder, 10);
             }
             break;
             case labels.FieldTypeLabel.kindConst :
@@ -971,7 +981,7 @@ module animationView
                     childArray[1].dx(-childBBox.x);
                 }
 
-                makeSimpleBorder(element, YELLOW ); 
+                makeSimpleBorder(element, YELLOW, needsBorder, 10 ); 
             }
             break;
             case labels.JoinTypeLabel.kindConst :
@@ -997,7 +1007,7 @@ module animationView
                     seqBox.rect(10,10).opacity(0);
                 }
                 
-                makeSimpleBorder(element,YELLOW,10);
+                makeSimpleBorder(element,YELLOW, needsBorder,10);
                 
             }
             break;
@@ -1023,7 +1033,7 @@ module animationView
                     seqBox.rect(10,10).opacity(0);
                 }
                 
-                makeSimpleBorder(element,YELLOW,10);
+                makeSimpleBorder(element,YELLOW, needsBorder,10);
             }
             break;
             default:
@@ -1210,8 +1220,9 @@ module animationView
         textElement.style( varStyle );
     }
 
-    function makeCallVarBorderSVG(base : svg.Container, el : svg.Container) : svg.G
+    function makeCallBorderSVG(base : svg.Container, el : svg.G, needsBorder : boolean ) : svg.G
     {
+        if( ! needsBorder ) return el ;
         const borderGroup = base.group(); //In order to keep it organized nicely
         borderGroup.add(el);
         const bounds : svg.BBox = el.bbox();
@@ -1223,17 +1234,15 @@ module animationView
         return borderGroup;
     }
 
-    function makeCallBorderSVG(base : svg.Container, el : svg.Container) : svg.G
+    function makeAssignLabelBorder(el : svg.Container, needsBorder : boolean ) : void
     {
-        const borderGroup = base.group(); //In order to keep it organized nicely
-        borderGroup.add(el);
+        if( ! needsBorder ) return ;
         const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = borderGroup.rect(bounds.width + 10, bounds.height + 5);
+        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
         outline.fill({opacity: 0});
-        outline.stroke({color: MAUVE, opacity: 1, width: 1.5});
-        return borderGroup;
+        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     function makeFancyBorderSVG(base : svg.Container, el : svg.Container, colour : string) : svg.G
@@ -1266,14 +1275,7 @@ module animationView
     function makeVariableLabelSVG(base : svg.Container, textElement : svg.Text) : void
     {
         textElement.fill(ORANGE);
-
         textElement.style( varStyle );
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
     function makeExprPlaceholderSVG(base : svg.Container) : void
@@ -1281,12 +1283,6 @@ module animationView
         const textElement : svg.Text = base.text( "..." );
         textElement.fill(ORANGE);
         textElement.style( textStyle );
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
     }
 
 
@@ -1295,12 +1291,6 @@ module animationView
     {
         textElement.fill(WHITE);
         textElement.style( literalStyle );
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
     
     function makeStringLiteralSVG(base : svg.Container,  str : string ) : void
@@ -1321,12 +1311,6 @@ module animationView
         }
 
         textElement.style( literalStyle );
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5 , bounds.height +5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
     function makeErrorSVG(base : svg.Container, errString : string) : void
@@ -1351,26 +1335,11 @@ module animationView
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
         textElement.fill(WHITE);
         textElement.style( literalStyle );
-        const bounds : svg.BBox = textElement.bbox();
-        const outline : svg.Rect = base.rect(bounds.width + 5, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: LIGHT_BLUE, opacity: 1, width: 1.5});
     }
 
-    function makeAssignLabelBorder(el : svg.Container) : void
+    function makeSimpleBorder(el : svg.Container, color : string, needsBorder : boolean, margin : number ) : void
     {
-        const bounds : svg.BBox = el.bbox();
-        const outline : svg.Rect = el.rect(bounds.width + 10, bounds.height + 5);
-        outline.center(bounds.cx, bounds.cy);
-        outline.radius(5);
-        outline.fill({opacity: 0});
-        outline.stroke({color: ORANGE, opacity: 1, width: 1.5});
-    }
-
-    function makeSimpleBorder(el : svg.Container, color : string, margin : number = 0 ) : void
-    {
+        if( ! needsBorder ) return ;
         const bounds : svg.BBox = el.bbox();
         const boundsWidth = bounds.width + margin;
         const outline : svg.Rect = el.rect(boundsWidth, bounds.height + 5);

@@ -149,27 +149,9 @@ module animator
             svg("svgContainer").size(animatorWidth, animatorHeight);
         const animation : svg.G = animatorArea.group().move(10, 10);
 
-        const toHighlight : List<number> = 
-                evaluationMgr.getVMS().isReady() || evaluationMgr.getVMS().needsFetch()
-            ?   evaluationMgr.getVMS().getPending()
-            :   list(-1) ;
-        const error : string =
-                evaluationMgr.getVMS().hasError()
-            ?   evaluationMgr.getVMS().getError()
-            :   "" ;
-        const errorPath : List<number> = 
-                evaluationMgr.getVMS().hasError()
-            ?   evaluationMgr.getVMS().getPending()
-            :   list( -1 ) ;
-
         animationView.clearObjectDrawingInfo();
-        traverseAndBuild( evaluationMgr.getVMS().getRoot(),
-                          animation,
-                          nil(),
-                          toHighlight,
-                          evaluationMgr.getVMS().getValMap(),
-                          error,
-                          errorPath);
+        const vm = evaluationMgr.getVMS() 
+        traverseAndBuild( vm.getRoot(), animation, vm );
 
         const stack : svg.G = animatorArea.group();
         buildStack(evaluationMgr.getVMS().getEvalStack(), stack);
