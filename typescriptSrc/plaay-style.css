@@ -647,6 +647,11 @@ div.op {
   align-content: center;
 }
 
+div.loc div.op {
+  font-family: "Noto Sans", Verdana, Arial, sans-serif;
+  text-decoration: underline;
+}
+
 div.upright {
   font-style: normal;
 }

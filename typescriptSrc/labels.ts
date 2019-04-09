@@ -1039,10 +1039,10 @@ module labels {
         public hasDropZonesAt(start : number): boolean { return false; }
 
         public getPrecedence() : number {
-            return 75 ; };
+            return 50 ; };
 
         public getChildPrecedence(child : number) : number {
-            return 101 ; }
+            return 51 ; }
             
         public kind() : string { return LocLabel.kindConst ; }
     }

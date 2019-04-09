@@ -58,11 +58,15 @@ module animationView
     const GREEN : string = "rgb(0,200,0)";
     const YELLOW : string = "rgb(242, 231, 21)";
 
-    const varStyle      = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: large;' ;
-    const textBoldStyle = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
-    const textStyle     = 'font-family: "Times New Roman", Times,serif; font-weight: bold;   font-style: normal; font-size: large;' ;
-    const literalStyle  = 'font-family: "Noto Mono", "Lucida Console", monospace;    font-weight: normal; font-style: normal; font-size: medium ;' ;
-    const errorStyle    = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: medium;' ;
+    const serif = 'font-family: "Times New Roman", Times,serif; font-weight: normal; font-style: normal; font-size: large;' ;
+    const sansSerif = 'font-family: "Noto Mono", "Lucida Console", monospace; font-weight: normal; font-style: normal; font-size: medium ;' ;
+    const underLined = 'text-decoration: underline'
+    const varStyle      = serif ;
+    const textBoldStyle = serif ;
+    const textStyle     = serif ;
+    const literalStyle  = serif ;
+    const errorStyle    = serif ;
+    const locStyle = sansSerif + ';' + underLined ;
 
     
 
@@ -585,6 +589,7 @@ module animationView
                 let x : number = 0;
 
                 const opText : svg.Text = element.text("loc");
+                opText.style( locStyle ) ;
                 opText.fill(ORANGE);
                 opText.dmove(x, -5);
                 x += opText.bbox().width + padding;
@@ -872,6 +877,7 @@ module animationView
                 const isConst = label.declaresConstant() ;
                 const delta : svg.Text = element.text(isConst ? "" : "loc");
                 delta.fill(ORANGE);
+                delta.style( locStyle ) ;
 
                 x += delta.bbox().width + padding;
                 variableSVG.dmove(x, 0); 

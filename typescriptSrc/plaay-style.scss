@@ -696,6 +696,11 @@ div.op {
     align-content: center ;
 }
 
+div.loc div.op {
+    font-family : $sansSerif ;
+    text-decoration: underline ;
+}
+
 div.upright {
     font-style: normal ;
 }
