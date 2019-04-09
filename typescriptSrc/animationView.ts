@@ -92,17 +92,17 @@ module animationView
                                      valueMap : ValueMap, error : string, errorPath : List<number>) : void
     {
         const children : svg.G = el.group();
+        const highlightMe : boolean = currentPath.equals(pathToHighlight);
+        const optError : Option<string> = currentPath.equals(errorPath) ? some(error) : none() ;
         if(valueMap.isMapped(currentPath) ) 
         {
-            buildSVGForMappedNode(children, valueMap.get(currentPath), true);
+            buildSVGForValue(children, valueMap.get(currentPath), true, highlightMe, optError );
         }
         else {
             for(let i = 0; i < node.count(); i++)
             {
                 traverseAndBuild(node.child(i), children, currentPath.cat( list(i) ), pathToHighlight, valueMap, error, errorPath);
             }
-            const highlightMe : boolean = currentPath.equals(pathToHighlight);
-            const optError : Option<string> = currentPath.equals(errorPath) ? some(error) : none() ;
             buildSVG(node, children, el, highlightMe, currentPath, optError);
         }
     }
@@ -130,7 +130,7 @@ module animationView
         const result : svg.G = element.group();
         const numFields : number = object.numFields();
         for (let j = 0; j < numFields; j++){
-            // TODO Hight light the field if it about to be read from.
+            // TODO Highlight the field if it about to be read from.
             const field : vms.FieldI = object.getFieldByNumber(j);
             const subGroup : svg.G = result.group();
             const nameString = field.getName().replace(/ /g, OPENBOX ) ;
@@ -141,7 +141,7 @@ module animationView
             if( optVal.isEmpty() ) {
                 // Field not initialized. Do nothing.
             } else {
-                buildSVGForMappedNode(el, optVal.first(), drawNestedObjects); }
+                buildSVGForValue(el, optVal.first(), drawNestedObjects); }
             makeObjectFieldSVG(subGroup, name, el);
                           
             subGroup.dmove(10, y + 5);
@@ -164,7 +164,7 @@ module animationView
         opt.choose(
             (val : Value) => {
                 // TODO. Highlight the location if it is about to be fetched from.
-                buildSVGForMappedNode(el, val, true);  
+                buildSVGForValue(el, val, true);  
             },
             () => {}
         ) ;
@@ -178,7 +178,7 @@ module animationView
         for (let i = 0; i < itemCount; i++) {
             const value : Value = tuple.getItemByIndex(i);
             const el : svg.G = element.group();
-            buildSVGForMappedNode(el, value, true);
+            buildSVGForValue(el, value, true);
             children.push( el ) ; 
         }
         const seqBox = layOutTuple( element, children, LIGHT_BLUE ) ;
@@ -1041,38 +1041,27 @@ module animationView
     /**
      * @param element is an intially empty group that will be contain the SVG rendering of the value.
      */
-    function buildSVGForMappedNode(element : svg.G, value : Value, drawNestedObjects : boolean) : void
+    function buildSVGForValue(element : svg.G, value : Value, drawNestedObjects : boolean,
+                              highlight : boolean = false, optError : Option<string> = none()) : void
     {
+        let drawHighlightOn : svg.G = element;
         if(value.isNullV())
         {
-            makeNullLiteralSVG(element);
-            return;
-        }
-        if(value.isTupleV())
+            makeNullLiteralSVG(element) ;
+        } else if(value.isTupleV())
         {   
             const tup : TupleV = value as TupleV;
             drawTuple(tup,element,0);
-            return;
-        } 
-        if( value.isLocationV() ) {
+        } else if( value.isLocationV() ) {
             const loc = value as LocationV ;
             drawLocation(loc,element,0) ;
-            return ;
-        }
-        if(value.isStringV())
-        {
+        } else if(value.isStringV()) {
             makeStringLiteralSVG(element, (value as StringV).getVal() );
-            return;
-        }
-        if(value.isNumberV())
-        {
+        } else if(value.isNumberV()) {
             // TODO. Use the correct unparsing routine
             const num : svg.Text = element.text ( value.toString() );
             makeSimpleValueSVG(element, num);
-            return;
-        }
-        if(value.isBoolV())
-        {
+        } else if(value.isBoolV()) {
             if(value === values.BoolV.trueValue) {
                 const bool : svg.Text = element.text( TRUEMARK );
                 makeBooleanLiteralSVG(element,bool,true);
@@ -1080,23 +1069,14 @@ module animationView
             else {
                 const bool : svg.Text = element.text( FALSEMARK );
                 makeBooleanLiteralSVG(element,bool,false);
-            }  
-            return;          
-        }
-        if(value.isClosureV())
-        {
+            }          
+        } else if(value.isClosureV()) {
             const text : svg.Text = element.text("Closure");
             makeSimpleValueSVG(element, text);
-            return;
-        }
-        if(value.isBuiltInV())
-        {
+        } else if(value.isBuiltInV()) {
             const text : svg.Text = element.text("Built-in");
             makeSimpleValueSVG(element, text);
-            return;
-        }
-        if(value.isObjectV())
-        {
+        } else if(value.isObjectV()) {
             // If we haven't already decided to put this object in the 
             // objectsToDraw area and drawNestedObjects is false, we abbreviate it
             // with just a box drawn in place.
@@ -1104,24 +1084,28 @@ module animationView
             {
                 const text : svg.Text = element.text("Object");
                 makeObjectSVG(element, text);
-                return;
+            } else {
+                // Otherwise ensure the object will be drawn in the objects area
+                if(!objectsToDraw.includes(value as ObjectV))
+                {
+                    objectsToDraw.push(value as ObjectV);
+                }
+                // And draw an object from this spot to that drawing.
+                const arrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
+                if(!arrowStartPoints.has(value as ObjectV))
+                {
+                    arrowStartPoints.set(value as ObjectV, new Array<svg.Rect>());
+                }
+                const myArray : Array<svg.Rect> = arrowStartPoints.get(value as ObjectV) as Array<svg.Rect>;
+                myArray.push(arrowStartPoint);
             }
-            // Otherwise ensure the object will be drawn in the objects area
-            if(!objectsToDraw.includes(value as ObjectV))
-            {
-                objectsToDraw.push(value as ObjectV);
-            }
-            // And draw an object from this spot to that drawing.
-            const arrowStartPoint : svg.Rect = element.rect(10, 10).fill(WHITE).opacity(1).dy(10);
-            if(!arrowStartPoints.has(value as ObjectV))
-            {
-                arrowStartPoints.set(value as ObjectV, new Array<svg.Rect>());
-            }
-            const myArray : Array<svg.Rect> = arrowStartPoints.get(value as ObjectV) as Array<svg.Rect>;
-            myArray.push(arrowStartPoint);
-            return;
+        } else { assert.unreachable("Found value with unknown type"); }
+
+        if(highlight)
+        {
+            highlightThis(drawHighlightOn);
         }
-        assert.unreachable("Found value with unknown type");
+        optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
     export function buildObjectArea(element : svg.G) : void
