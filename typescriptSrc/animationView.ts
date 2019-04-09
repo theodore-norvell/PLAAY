@@ -90,26 +90,40 @@ module animationView
      */
     export function traverseAndBuild(node:PNode, el : svg.Container, vm : VMS ) : void
     {
-        localTraverseAndBuild( node, el, list(), vm, -1, 0 )
+        const toHighlight : List<number> = 
+                vm.isReady() || vm.needsFetch() || vm.hasError() 
+            ?   vm.getPending()
+            :   list(-1) ;
+        const error : Option<string> =
+                vm.hasError()
+            ?   some( vm.getError() )
+            :   none();
+
+
+        localTraverseAndBuild( node, el, list(), toHighlight, error, vm, 0 ) ;
     }
 
-    function localTraverseAndBuild(node:PNode, el : svg.Container, currentPath : List<number>, vm : VMS,
-                                     childNumber: number, contextPrec : number) : void
+    function localTraverseAndBuild( node:PNode,
+                                    el : svg.Container,
+                                    currentPath : List<number>,
+                                    pathToHighlight : List<number>,
+                                    optError : Option<string>,
+                                    vm : VMS,
+                                    contextPrec : number) : void
     {
         const children : svg.G = el.group();
-        const highlightMe : boolean = currentPath.equals(vm.getPending() );
-        const optError : Option<string> = vm.hasError() && highlightMe ? some(vm.getError()) : none() ;
+        const highlightMe : boolean = currentPath.equals( pathToHighlight );
         if(vm.isMapped(currentPath) ) 
         {
-            buildSVGForValue(children, vm.getVal( currentPath ), true, highlightMe, optError );
+            buildSVGForValue( children, vm.getVal( currentPath ), true,
+                              highlightMe, optError );
         }
         else {
             const label = node.label() ;
-            for(let i = 0; i < node.count(); i++)
-            {
+            for(let i = 0; i < node.count(); i++) {
                 localTraverseAndBuild( node.child(i), children, currentPath.cat( list(i) ),
-                                       vm, i, label.getChildPrecedence(i) );
-            }
+                                       pathToHighlight, optError,
+                                       vm, label.getChildPrecedence(i) ); }
             const needsBorder = label.getPrecedence() < contextPrec ;
             buildSVG(node, children, el, highlightMe, currentPath, optError, needsBorder);
         }
@@ -121,7 +135,7 @@ module animationView
         let y = 0;
         const padding : number = 15;
         
-        if (stk.notEmpty()){
+        if( stk.notEmpty() ){
             const vars : vms.VarStack = stk.get(stk.getSize()-1).getStack();
             const varstackSize : number = vars.getAllFrames().length;
             const frameArray : ObjectI[] = vars.getAllFrames();
@@ -179,7 +193,7 @@ module animationView
         makeLocationBorderSVG(element, el);
     }
 
-    function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.Rect
+    function drawTuple(tuple : TupleV, element : svg.Container, x : number) : svg.G
     {
         const children = Array<svg.G>() ;
         const itemCount : number = tuple.itemCount();
@@ -189,9 +203,7 @@ module animationView
             buildSVGForValue(el, value, true);
             children.push( el ) ; 
         }
-        const seqBox = layOutTuple( element, children, LIGHT_BLUE ) ;
-        let border = makeObjectBorderSVG(element, seqBox);
-        return border;
+        return layOutTuple( element, children, LIGHT_BLUE ) ;
     }
 
     function layOutTuple(element : svg.Container, children : svg.Element[], colour : string) : svg.G
@@ -331,9 +343,13 @@ module animationView
      * than group. However since brect and hrect are added first, they are
      * positioned as if t and r weren't there, so it works out looking ok.)
      */
-    function buildSVG(node : PNode, element : svg.G, parent : svg.Container,
-                      shouldHighlight : boolean, myPath : List<number>, optError : Option<string>,
-                      needsBorder : boolean ) : void
+    function buildSVG( node : PNode,
+                       element : svg.G,
+                       parent : svg.Container,
+                       shouldHighlight : boolean,
+                       myPath : List<number>,
+                       optError : Option<string>,
+                       needsBorder : boolean ) : void
     {
         let drawHighlightOn : svg.G = element;
         // Switch on the LabelKind
@@ -1043,16 +1059,16 @@ module animationView
         }
         if(shouldHighlight)
         {
-            highlightThis(drawHighlightOn);
+            highlightThis(drawHighlightOn, !optError.isEmpty() );
+            optError.map( (errString) => makeErrorSVG(element, errString) ) ;
         }
-        optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
     /**
      * @param element is an intially empty group that will be contain the SVG rendering of the value.
      */
     function buildSVGForValue(element : svg.G, value : Value, drawNestedObjects : boolean,
-                              highlight : boolean = false, optError : Option<string> = none()) : void
+                              shouldHighlight : boolean = false, optError : Option<string> = none()) : void
     {
         let drawHighlightOn : svg.G = element;
         if(value.isNullV())
@@ -1111,11 +1127,11 @@ module animationView
             }
         } else { assert.unreachable("Found value with unknown type"); }
 
-        if(highlight)
+        if(shouldHighlight)
         {
-            highlightThis(drawHighlightOn);
+            highlightThis(drawHighlightOn, ! optError.isEmpty() );
+            optError.map( (errString) => makeErrorSVG(element, errString) ) ;
         }
-        optError.map( (errString) => makeErrorSVG(element, errString) ) ;
     }
 
     export function buildObjectArea(element : svg.G) : void
@@ -1281,7 +1297,7 @@ module animationView
     function makeExprPlaceholderSVG(base : svg.Container) : void
     {
         const textElement : svg.Text = base.text( "..." );
-        textElement.fill(ORANGE);
+        textElement.fill( MAUVE );
         textElement.style( textStyle );
     }
 
@@ -1289,7 +1305,7 @@ module animationView
     //I assume textElement is already contained within base.
     function makeSimpleValueSVG(base : svg.Container, textElement : svg.Text) : void
     {
-        textElement.fill(WHITE);
+        textElement.fill(LIGHT_BLUE);
         textElement.style( literalStyle );
     }
     
@@ -1333,7 +1349,7 @@ module animationView
     {
         const textElement : svg.Text = base.text( NULLMARK ) ;  // The Ground symbol. I hope.
         textElement.dy(10); //The ground character is very large. This makes it look a bit better.
-        textElement.fill(WHITE);
+        textElement.fill(LIGHT_BLUE);
         textElement.style( literalStyle );
     }
 
@@ -1449,13 +1465,27 @@ module animationView
         return result;
     }
 
-    function highlightThis(el : svg.Container) : void
+    function emphasize(el : svg.Container) : void
     {
         const bounds : svg.BBox = el.bbox();
         const outline : svg.Rect = el.rect(bounds.width, bounds.height);
         outline.center(bounds.cx, bounds.cy);
         outline.radius(5);
-        outline.fill({color: WHITE, opacity: 0.4});
+        outline.fill({color: WHITE, opacity: 0.2});
+    }
+
+    function highlightThis(el : svg.Container, error : boolean ) : void
+    {
+        const bounds : svg.BBox = el.bbox();
+        const outline : svg.Rect = el.rect(bounds.width + 5, bounds.height + 5);
+        outline.center(bounds.cx, bounds.cy);
+        outline.radius(5);
+        outline.fill({opacity: 0});
+        if( error ) 
+            outline.stroke({color: RED, opacity: 1, width: 4});
+        else {
+            outline.stroke({color: GREEN, opacity: 0, width: 4}) ;
+            outline.animate().attr("stroke-opacity", 1) ; }
     }
 }
 

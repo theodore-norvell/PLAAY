@@ -363,7 +363,7 @@ div.codeBox.H {
 }
 
 div.seqBox > div.codeBox {
-  padding: 0px;
+  padding: 0px 5px 0px 0px;
 }
 
 div.ifBox {
@@ -528,7 +528,6 @@ div.dropZone {
 
 div.dropZone:hover {
   border-color: white;
-  min-height: 1.5ex;
 }
 
 .skinny, div.dropZoneSmall {
@@ -625,6 +624,7 @@ div.locdecl.hover, div.condecl.hover {
 
 div.call {
   border: thin solid transparent;
+  padding-left: 5px;
   border-radius: 5px;
   color: #be85c5;
   /* Mauve */
