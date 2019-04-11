@@ -28,7 +28,6 @@ module interpreter {
     import Value = vms.Value ;
     import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
-    import VMStates = vms.VMSStates ;
     import Context = vms.Context ;
     import BuiltInV = values.BuiltInV ;
     import StringV = values.StringV ;
@@ -45,7 +44,7 @@ module interpreter {
     class PlaayInterpreter implements vms.Interpreter {
 
         public step( vm : VMS ) : void {
-            assert.checkPrecondition( vm.getState() === VMStates.EVAL_READY_TO_SELECT ) ;
+            assert.checkPrecondition( vm.canAdvance() && vm.evalIsReadyToStep() ) ;
             const node = vm.getPendingNode() ;
             const label = node.label() ;
             const stepper = theStepperRegistry[ label.kind() ] ;
@@ -54,19 +53,18 @@ module interpreter {
         }
 
         public select( vm : VMS ) : void {
-            assert.checkPrecondition( vm.getState() === VMStates.EVAL_READY_TO_SELECT ) ;
+            assert.checkPrecondition( vm.canAdvance() && ! vm.evalIsReadyToStep() ) ;
             const node = vm.getPendingNode() ;
             const label = node.label() ;
             const selector = theSelectorRegistry[ label.kind() ] ;
             assert.check( selector !== undefined, "No selector for labels of kind " + label.kind() ) ;
             selector( vm ) ;
-            const state = vm.getState() ;
-            assert.check( state === VMStates.ERROR || state === VMStates.EVAL_READY_TO_STEP ) ;
+            assert.check( vm.hasError() || vm.canAdvance() && vm.evalIsReadyToStep() ) ;
         }
 
         public veryInteresting( vm : VMS ) : boolean {
             //console.log(">> veryInteresting") ;
-            if( vm.getState() !== VMStates.EVAL_READY_TO_STEP ) {
+            if( ! vm.evalIsReadyToStep() ) {
                 return false ;
             } else {
                 const lab = vm.getPendingNode().label() ;
@@ -105,8 +103,7 @@ module interpreter {
         }
 
         public veryBoring( vm : VMS ) : boolean {
-            const state = vm.getState() ;
-            if( state !== VMStates.EVAL_READY_TO_STEP ) {
+            if( ! vm.evalIsReadyToStep() ) {
                 return false ;
             } else {
                 const lab = vm.getPendingNode().label() ;

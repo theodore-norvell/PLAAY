@@ -351,7 +351,7 @@ module vms{
         }
 
         public isReadyToFetch() : boolean {
-            return this.fetchNeeded.get() ;
+            return this.ready.get() && this.fetchNeeded.get() ;
         }
 
         public evalIsDone() : boolean {

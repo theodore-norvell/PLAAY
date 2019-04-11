@@ -32,7 +32,6 @@ module animationView
     import ObjectV = values.ObjectV;
     import StringV = values.StringV;
     import VMS = vms.VMS ;
-    import VMStates = vms.VMSStates ;
     import Value = vms.Value;
     import ObjectI = vms.ObjectI;
     import TupleV = values.TupleV;
@@ -96,10 +95,7 @@ module animationView
     export function traverseAndBuild(node:PNode, el : svg.Container, vm : VMS ) : void
     {
         const toHighlight : List<number> = 
-                0 !== (vm.getState()
-                      & (VMStates.EVAL_READY_TO_STEP
-                        | VMStates.EVAL_READY_TO_FETCH
-                        | VMStates.ERROR))
+                vm.evalIsReadyToStep() || vm.evalIsReadyToFetch() || vm.hasError() 
             ?   vm.getPending()
             :   list(-1) ;
         const error : Option<string> =

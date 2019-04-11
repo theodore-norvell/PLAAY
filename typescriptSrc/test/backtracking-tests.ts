@@ -385,17 +385,17 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
 
         //State B
         evaluation.setReady(true);
-        assert.check(evaluation.isReadyToFetch() === true, 'set value incorrectly');
+        assert.check(evaluation.isReadyToStep() === true, 'set value incorrectly');
 
         //Back to State A
         manager.undo();
-        assert.check(evaluation.isReadyToFetch() === false, 'var should be false after undo');
+        assert.check(evaluation.isReadyToStep() === false, 'var should be false after undo');
         assert.check( !manager.canUndo(), 'manager is in the wrong state') ;
         assert.check( manager.canRedo(), 'manager is in the wrong state') ;
 
         //To State B
         manager.redo();
-        assert.check(evaluation.isReadyToFetch() === true, 'var should be true after redo');
+        assert.check(evaluation.isReadyToStep() === true, 'var should be true after redo');
         assert.check( manager.canUndo(), 'manager is in the wrong state') ;
         assert.check( !manager.canRedo(), 'manager is in the wrong state') ;
     })
