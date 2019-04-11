@@ -37,6 +37,16 @@ module vms{
         veryBoring : (vms:VMS) => boolean ;
     }
 
+    export enum VMSStates {
+        FINISHED = 1,
+        ERROR = 2,
+        // The following are substates of running
+        EVAL_DONE,
+        EVAL_READY_TO_STEP = 4,
+        EVAL_READY_TO_FETCH = 8,
+        EVAL_READY_TO_SELECT = 16
+    } ;
+
     /** The execution state of a virtual machine.
      * 
      * The state of the machine includes
@@ -102,11 +112,41 @@ module vms{
             return this.manager ;
         }
 
+        public getState() {
+            if( this.canAdvance() ) {
+                return this.getEval().getState() ;
+            } else {
+                return this.hasError()
+                     ? VMSStates.ERROR 
+                     : VMSStates.FINISHED ;
+            }
+        }
+
+        public isDone() : boolean {
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().evalIsDone( ) ;
+        }
+
         public canAdvance() : boolean {
             return !this.hasError()
-                 && this.evalStack.notEmpty()
+                 //&& this.evalStack.notEmpty()
                  && (this.evalStack.getSize() > 1 ||
-                     ! this.evalStack.top().isDone() ) ;
+                     ! this.evalStack.top().evalIsDone() ) ;
+        }
+        public evalIsReadyToStep() : boolean {
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            // Note this is slightly different from
+            // getState() being EVAL_READY_TO_STEP
+            // In particular if canAdvance is false, 
+            // this routine might return true, but the
+            // state will be FINISHED or ERROR
+            //
+            return this.evalStack.top().isReadyToStep() ;
+        }
+
+        public evalIsReadyToFetch() : boolean {
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            return this.evalStack.top().isReadyToFetch() ;
         }
 
         public getInterpreter() : Interpreter {
@@ -114,18 +154,8 @@ module vms{
         }
 
         public getRoot() : PNode {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getRoot() ;
-        }
-
-        public isReady() : boolean {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            return this.evalStack.top().isReady() ;
-        }
-
-        public needsFetch() : boolean {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            return this.evalStack.top().needsFetch() ;
         }
 
         public setReady( newReady : boolean ) : void {
@@ -134,32 +164,32 @@ module vms{
         }
 
         public getPending() : List<number> {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getPending() ;
         }
 
         public getPendingNode() : PNode {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getPendingNode() ;
         }
 
         public pushPending( childNum : number, context : Context ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().pushPending( childNum, context ) ;
         }
         
         public popPending( ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().popPending( ) ;
         }
 
         public isRContext() : boolean {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().isRContext() ;
         }
 
         public getValMap() : ValueMap {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getValMap() ;
         }
 
@@ -168,57 +198,56 @@ module vms{
         }
         
         public getVal( path : List<number> ) : Value {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getVal( path ) ;
         }
 
         public isChildMapped( childNum : number ) : boolean {
-            return this.evalStack.notEmpty()
-                && this.evalStack.top().isChildMapped( childNum ) ;
+            return /*this.evalStack.notEmpty() && */ this.evalStack.top().isChildMapped( childNum ) ;
         }
 
         public getChildVal( childNum : number ) : Value {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getChildVal( childNum ) ;
         }
 
         public hasExtraInformation(  ) : boolean {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().hasExtraInformation( ) ;
         }
 
         public getExtraInformation( ) : {} {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getExtraInformation( ) ;
         }
 
         public putExtraInformation( v : {} ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().putExtraInformation( v ) ;
         }
 
         public scrub( path : List<number> ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().scrub( path ) ;
         }
 
         public getStack() : VarStack {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            // assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top().getStack() ;
         }
 
         public getEval() : Evaluation {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack.top() ;
         }
 
         public getEvalStack() : EvalStack {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             return this.evalStack;
         }
 
         public finishStep( value : Value, fetch : boolean ) : void {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
+            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().finishStep( value, fetch, this ) ;
         }
 
@@ -227,17 +256,12 @@ module vms{
             return this.getVal( nil() ) ;
         }
 
-        public isDone() : boolean {
-            assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            return this.evalStack.top().isDone( ) ;
-        }
-
         public advance() : void {
             assert.checkPrecondition( this.canAdvance() ) ;
-            assert.check( this.evalStack.notEmpty() ) ;
+            //assert.check( this.evalStack.notEmpty() ) ;
             const ev = this.evalStack.top();
             
-            if( ev.isDone() ) {
+            if( ev.evalIsDone() ) {
                 const value = ev.getVal(nil()) ;
                 this.evalStack.pop() ;
                 this.finishStep( value, true ) ;
@@ -311,12 +335,27 @@ module vms{
             return this.root.get() ;
         }
 
-        public isReady() : boolean {
+        public getState() : VMSStates {
+            if( this.evalIsDone() ) 
+                return VMSStates.EVAL_DONE ;
+            if( this.ready.get()  )
+                return this.fetchNeeded.get()
+                     ? VMSStates.EVAL_READY_TO_FETCH 
+                     : VMSStates.EVAL_READY_TO_STEP ;
+            else
+                return VMSStates.EVAL_READY_TO_SELECT ;
+        }
+
+        public isReadyToStep() : boolean {
             return this.ready.get() && ! this.fetchNeeded.get() ;
         }
 
-        public needsFetch() : boolean {
+        public isReadyToFetch() : boolean {
             return this.fetchNeeded.get() ;
+        }
+
+        public evalIsDone() : boolean {
+            return this.pending.get() === null;
         }
 
         public setReady( newReady : boolean ) : void {
@@ -348,26 +387,26 @@ module vms{
         }
 
         public getPending() : List<number> {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             const p = this.pending.get() as List<number> ;
             return p ;
         }
 
         public getPendingNode() : PNode {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             const p = this.pending.get() as List<number> ;
             return this.root.get().get(p) ;
         }
 
         public pushPending( childNum : number, context:Context ) : void {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             this.setContext( context ) ;
             const p = this.pending.get() as List<number> ;
             this.pending.set( p.cat( list( childNum ) ) ) ;
         }
         
         public popPending( ) : void {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             const p = this.pending.get() as List<number> ;
             if( p.size() === 0 ) {
                 this.pending.set( null ) ;
@@ -403,7 +442,7 @@ module vms{
         }
 
         public isChildMapped( childNum : number ) : boolean {
-            if( this.isDone() ) return false ;
+            if( this.evalIsDone() ) return false ;
             const p = this.pending.get() as List<number> ;
             return this.map.isMapped( collections.snoc(p, childNum ) ) ; 
         }
@@ -414,7 +453,7 @@ module vms{
          * @param childNum 
          */
         public getChildVal( childNum : number ) : Value {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             const p = this.pending.get() as List<number> ;
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
@@ -446,7 +485,7 @@ module vms{
          * @param vm  -- Virtual machine for error reporting.
          */
         public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
             const p = this.pending.get() as List<number> ;
             this.map.put( p, value ) ;
@@ -475,12 +514,8 @@ module vms{
             this.fetchNeeded.set(false) ;
         }
 
-        public isDone() : boolean {
-            return this.pending.get() === null;
-        }
-
         public advance( interpreter : Interpreter, vm : VMS ) : void {
-            assert.checkPrecondition( !this.isDone() ) ;
+            assert.checkPrecondition( !this.evalIsDone() ) ;
 
             if( this.ready.get() && ! this.fetchNeeded.get()  ){
                 interpreter.step( vm ) ;

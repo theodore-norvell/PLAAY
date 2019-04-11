@@ -374,7 +374,7 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
     const evaluation = new Evaluation(root, vm.getStack(), vm);
 
     it('Should be initialized properly', function() : void {
-        assert.check(evaluation.isReady() === false, 'initialized value incorrectly');
+        assert.check(evaluation.isReadyToFetch() === false, 'initialized value incorrectly');
         assert.check( !manager.canUndo(), 'manager is in the wrong state') ;
         assert.check( !manager.canRedo(), 'manager is in the wrong state') ;
     });
@@ -385,17 +385,17 @@ describe('vms.Evaluation isReady undo/redo', function() : void {
 
         //State B
         evaluation.setReady(true);
-        assert.check(evaluation.isReady() === true, 'set value incorrectly');
+        assert.check(evaluation.isReadyToFetch() === true, 'set value incorrectly');
 
         //Back to State A
         manager.undo();
-        assert.check(evaluation.isReady() === false, 'var should be false after undo');
+        assert.check(evaluation.isReadyToFetch() === false, 'var should be false after undo');
         assert.check( !manager.canUndo(), 'manager is in the wrong state') ;
         assert.check( manager.canRedo(), 'manager is in the wrong state') ;
 
         //To State B
         manager.redo();
-        assert.check(evaluation.isReady() === true, 'var should be true after redo');
+        assert.check(evaluation.isReadyToFetch() === true, 'var should be true after redo');
         assert.check( manager.canUndo(), 'manager is in the wrong state') ;
         assert.check( !manager.canRedo(), 'manager is in the wrong state') ;
     })
@@ -419,10 +419,10 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         assert.check( !manager.canUndo(), "Manager shouldn't be able to undo before checkpoint" ) ;
         assert.check(vm.getPending().size() === 0, 'get pending should be nil');
         const evaluation = vm.getEval();
-        assert.check(!evaluation.isDone(), 'pending shouldn\'t be null')
+        assert.check(!evaluation.evalIsDone(), 'pending shouldn\'t be null')
         assert.check(evaluation.getPendingNode() === vm.getRoot(), 'pending node should be root')
         assert.check(vm.canAdvance(), 'should be able to advance') ;
-        assert.check( !vm.isReady() );
+        assert.check( !vm.evalIsReadyToStep() );
     });
     it('Should undo/redo properly', function() : void {
         //State A
@@ -434,7 +434,7 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         //vm.dump( "  " ) ;
         //manager.dump( "  " ) ;
         assert.check(vm.getPendingNode() === vm.getRoot(), "Root should be the pending node");
-        assert.check( ! vm.isReady() ) ;
+        assert.check( ! vm.evalIsReadyToStep() ) ;
         const pending : collections.List<number> = vm.getPending();
         assert.check( pending.equals( nil() )) ;
 
@@ -442,7 +442,7 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         //console.log("After first advance") ;
         //vm.dump( "  " ) ;
         //manager.dump( "  " ) ;
-        assert.check(  vm.isReady() ) ;
+        assert.check(  vm.evalIsReadyToStep() ) ;
         assert.check( vm.getPendingNode() === op1, "Root should not be the pending node");
         assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
         assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
@@ -453,7 +453,7 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         //console.log("After second advance") ;
         //vm.dump( "  " ) ;
         //manager.dump( "  " ) ;
-        assert.check(  ! vm.isReady() ) ;
+        assert.check(  ! vm.evalIsReadyToStep() ) ;
         assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
         assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
         assert.check( ! vm.isMapped(nil()), "The root should not be mapped.");
@@ -468,7 +468,7 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         //vm.dump( "  " ) ;
         //manager.dump("  ") ;
         assert.check( vm.getPending().equals( nil() ), "pending should be nil") ;
-        assert.check(  ! vm.isReady(), "machine should not be ready" ) ;
+        assert.check(  ! vm.evalIsReadyToStep(), "machine should not be ready" ) ;
         assert.check( vm.getPendingNode() === vm.getRoot(), "Root should be the pending node" );
         assert.check( manager.canRedo(), "Manager should be able to redo after undo" ) ;
         assert.check( !manager.canUndo(), "Manager shouldn't be able to undo a second time" ) ;
@@ -479,7 +479,7 @@ describe('vms.Evaluation / EvalStack pending undo/redo', function() : void {
         //console.log("After redo") ;
         //vm.dump( "  " ) ;
         //manager.dump("  ") ;
-        assert.check(  ! vm.isReady() ) ;
+        assert.check(  ! vm.evalIsReadyToStep() ) ;
         assert.check( !manager.canRedo(), "Manager shouldn't be able to redo after checkpoint." ) ;
         assert.check( manager.canUndo(), "Manager should be able to undo after checkpoint" ) ;
         assert.check( ! vm.isMapped(nil()), "The root should not be mapped.");

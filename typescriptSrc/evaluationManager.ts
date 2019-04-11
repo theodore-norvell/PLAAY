@@ -23,6 +23,7 @@ module evaluationManager {
     import PNode = pnode.PNode;
     import Evaluation = vms.Evaluation;
     import VMS = vms.VMS;
+    import VMStates = vms.VMSStates ;
 
     export class EvaluationManager {
 
@@ -105,10 +106,11 @@ module evaluationManager {
         private count : number = 0 ;
 
         public shouldStop( vm : VMS ) : boolean {
+            const state = vm.getState() ;
             return this.count > 0
-                && (vm.isDone()
-                    || vm.needsFetch() 
-                    || vm.isReady()
+                && (state === VMStates.EVAL_DONE
+                    || state == VMStates.EVAL_READY_TO_FETCH
+                    || state == VMStates.EVAL_READY_TO_STEP
                        && ! vm.getInterpreter().veryBoring(vm)) ;
         }
         public step( vm : VMS ) : void {
@@ -128,7 +130,7 @@ module evaluationManager {
 
         public shouldStop( vm : VMS ) : boolean {
             return this.count > 0
-                && (this.currentEval.isDone()) ;
+                && (this.currentEval.evalIsDone()) ;
         }
         public step( vm : VMS ) : void {
             this.count += 1 ;
@@ -176,20 +178,22 @@ module evaluationManager {
         }
 
         public shouldStop( vm : VMS ) : boolean {
+            const state = vm.getState() ;
             return this.count > 0
-                && (   this.currentEval.isDone() 
+                && (   this.currentEval.evalIsDone() 
                    ||  this.stackDepth > vm.getEvalStack().getSize()
-                       && vm.isReady()
+                       && state === VMStates.EVAL_READY_TO_STEP
                        && ! vm.getInterpreter().veryBoring(vm)
                    ||  this.currentEval === vm.getEval()
                        && ! this.savedPath.equals( this.pathToLowestInterestingNode(vm) )
-                       && vm.isReady() && ! vm.getInterpreter().veryBoring(vm)
+                       && state === VMStates.EVAL_READY_TO_STEP
+                       && ! vm.getInterpreter().veryBoring(vm)
                    || this.currentEval === vm.getEval()
-                      && vm.isReady()
+                      && state === VMStates.EVAL_READY_TO_STEP
                       && vm.getInterpreter().veryInteresting(vm) ) 
                    || this.aCallHasBeenMade
                       && this.currentEval === vm.getEval()
-                      && vm.isReady()
+                      && state === VMStates.EVAL_READY_TO_STEP
                       && vm.getEvalStack().getSize() == this.stackDepth ;
         }
 
@@ -208,12 +212,14 @@ module evaluationManager {
     class StepIntoStopper extends StepOverStopper {
 
         public shouldStop( vm : VMS ) : boolean {
+            const state = vm.getState() ;
             return this.count > 0
                 && (  super.shouldStop(vm)
                    || this.stackDepth < vm.getEvalStack().getSize()
-                      && vm.isReady()  && ! vm.getInterpreter().veryBoring(vm) 
+                      && state === VMStates.EVAL_READY_TO_STEP
+                      && ! vm.getInterpreter().veryBoring(vm) 
                    || this.aCallHasBeenMade
-                      &&  vm.isDone()
+                      &&  state === VMStates.EVAL_DONE 
                    ) ;
         }
     }
