@@ -37,14 +37,14 @@ module vms{
         veryBoring : (vms:VMS) => boolean ;
     }
 
-    export enum VMSStates {
+    export enum VMStates {
         FINISHED = 1,
         ERROR = 2,
         // The following are substates of running
-        EVAL_DONE,
-        EVAL_READY_TO_STEP = 4,
-        EVAL_READY_TO_FETCH = 8,
-        EVAL_READY_TO_SELECT = 16
+        EVAL_DONE = 4,
+        EVAL_READY_TO_STEP = 8,
+        EVAL_READY_TO_FETCH = 16,
+        EVAL_READY_TO_SELECT = 32
     } ;
 
     /** The execution state of a virtual machine.
@@ -56,21 +56,6 @@ module vms{
      * 
      * The states of the vms are
      * 
-     * * RUNNING: In the running state,the interpreter can be advanced by by calling the advance method.
-     *   You can tell if the machine is in the running state by calling `vms.canAdvance()`.
-     *   The running state has three substates
-     *
-     *      * DONE.   In the RUNNING and DONE, the top evaluation is done and can not be advanced. Use
-     *         `vms.canAdvance() && vms.isDone()`
-     *         to tell if the top evaluation is done.  When the vms is in the DONE substate, an advance will
-     *         pop the top evaluation off the evaluation stack.
-     *      * READY.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
-     *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.isReady()`
-     *      * READY FOR FETCH. The selected node has been mapped to a location, but it needs a fetch
-     *         The machine is in the READY substate iff `vms.canAdvance() && !vms.isDone() && vms.needsFetch()`
-     *      * NOT READY. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
-     *         The machine is in the NOT READY substate iff `vms.canAdvance() && !vms.isDone() && !vms.isReady() && !needsFetch()`
-     * 
      * * ERROR:  In the error state, the machine has encountered a run time error and can not advance because of that.
      *   Use `vms.hasError()` to check if the machine has encountered an error.  Use `vms.getError()` to
      *   Retrieve a string describing the error
@@ -78,6 +63,24 @@ module vms{
      * * FINISHED: In the finished state. The evaluation has completely finished. If `vms.canAdvance()` an
      *   `vms.hasError()` are both false, then the machine is in the FINISHED state and the value of
      *   the last expression evaluated can be found with a call to getValue().
+     * 
+     * * RUNNING: In the running state,the interpreter can be advanced by by calling the advance method.
+     *   You can tell if the machine is in the running state by
+     *   calling `vms.canAdvance()`.
+     * 
+     *   The running state has three substates
+     *
+     *      * EVAL_DONE.   In the RUNNING and DONE, the top evaluation is done and can not be advanced. Use
+     *         `vms.canAdvance() && vms.getEval().getState() === EVAL_DONE`
+     *         to tell if the top evaluation is done.  When the vms is in the DONE substate, an advance will
+     *         pop the top evaluation off the evaluation stack.
+     *      * EVAL_READY_TO_STEP.  In the RUNNING and READY state, there is a selected node, so the next advance will step that node.
+     *         The machine is in the READY substate iff `vms.canAdvance() && vms.getEval().getState() === EVAL_READY_TO_STEP`
+     *      * EVAL_READY_TO_FETCH. The selected node has been mapped to a location, but it needs a fetch
+     *         The machine is in the READY substate iff `vms.canAdvance() && vms.getEval().getState() === EVAL_READY_TO_FETCH`
+     *      * EVAL_READY_TO_SELECT. In the RUNNING and NOT READY state, there is no selected node, so the next advance will.
+     *         The machine is in the NOT READY substate iff `vms.canAdvance() && vms.getEval().getState() === EVAL_READY_TO_SELECT`
+     * 
      */
     export class VMS {
 
@@ -117,36 +120,19 @@ module vms{
                 return this.getEval().getState() ;
             } else {
                 return this.hasError()
-                     ? VMSStates.ERROR 
-                     : VMSStates.FINISHED ;
+                     ? VMStates.ERROR 
+                     : VMStates.FINISHED ;
             }
         }
 
-        public isDone() : boolean {
-            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            return this.evalStack.top().evalIsDone( ) ;
-        }
-
+        /** The same as checking whether
+         * the states is anything other than ERROR and FINISHED.
+         */
         public canAdvance() : boolean {
             return !this.hasError()
                  //&& this.evalStack.notEmpty()
                  && (this.evalStack.getSize() > 1 ||
                      ! this.evalStack.top().evalIsDone() ) ;
-        }
-        public evalIsReadyToStep() : boolean {
-            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            // Note this is slightly different from
-            // getState() being EVAL_READY_TO_STEP
-            // In particular if canAdvance is false, 
-            // this routine might return true, but the
-            // state will be FINISHED or ERROR
-            //
-            return this.evalStack.top().isReadyToStep() ;
-        }
-
-        public evalIsReadyToFetch() : boolean {
-            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            return this.evalStack.top().isReadyToFetch() ;
         }
 
         public getInterpreter() : Interpreter {
@@ -158,9 +144,10 @@ module vms{
             return this.evalStack.top().getRoot() ;
         }
 
-        public setReady( newReady : boolean ) : void {
-            assert.checkPrecondition( this.canAdvance() ) ;
-            this.evalStack.top().setReady( newReady ) ;
+        public select( ) : void {
+            assert.checkPrecondition( this.getState() === VMStates.EVAL_READY_TO_SELECT ) ;
+            this.evalStack.top().setReady( true ) ;
+            assert.checkPrecondition( this.getState() === VMStates.EVAL_READY_TO_STEP ) ;
         }
 
         public getPending() : List<number> {
@@ -246,13 +233,12 @@ module vms{
             return this.evalStack;
         }
 
-        public finishStep( value : Value, fetch : boolean ) : void {
+        public finishStep( value : Value|null, fetch : boolean ) : void {
             //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().finishStep( value, fetch, this ) ;
         }
 
         public getFinalValue( ) : Value {
-            assert.checkPrecondition( this.isDone() ) ;
             return this.getVal( nil() ) ;
         }
 
@@ -298,22 +284,24 @@ module vms{
      * Typically it will  be the evaluation of one method body.
      * See the run-time model documentation for details.
      * Each evaluator has the following states:
-     *       DONE : The evaluation is completely done and ready to be popped from
+     *       EVAL_DONE : The evaluation is completely done and ready to be popped from
      *              the evaluation stack.
-     *       READY : A node has been selected needs to be stepped.
-     *       READY FOR FETCH
-     *       NOT_READY
+     *       EVAL_READY_FOR_STEP : A node has been selected needs to be stepped.
+     *       EVAL_READY_FOR_FETCH : A node has been selected needs to be stepped.
+     *       EVAL_READY_FOR_SELECT : Selection is needed
      * */
     export class Evaluation {
         private readonly root : TVar<PNode>;
         private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
         private readonly context : TVar<Context> ;
+        // TODO redo the state encoding in a sensible way.
         private readonly ready : TVar<boolean>;
         private readonly fetchNeeded : TVar<boolean>;
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
 
+        // TODO. Make accessible only from this module when langauge supports it.
         constructor (root : PNode, varStack : VarStack, vm : VMS) {
             const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
@@ -335,15 +323,15 @@ module vms{
             return this.root.get() ;
         }
 
-        public getState() : VMSStates {
+        public getState() : VMStates {
             if( this.evalIsDone() ) 
-                return VMSStates.EVAL_DONE ;
+                return VMStates.EVAL_DONE ;
             if( this.ready.get()  )
                 return this.fetchNeeded.get()
-                     ? VMSStates.EVAL_READY_TO_FETCH 
-                     : VMSStates.EVAL_READY_TO_STEP ;
+                     ? VMStates.EVAL_READY_TO_FETCH 
+                     : VMStates.EVAL_READY_TO_STEP ;
             else
-                return VMSStates.EVAL_READY_TO_SELECT ;
+                return VMStates.EVAL_READY_TO_SELECT ;
         }
 
         public isReadyToStep() : boolean {
@@ -358,6 +346,7 @@ module vms{
             return this.pending.get() === null;
         }
 
+        /** TODO make accessible only from this */
         public setReady( newReady : boolean ) : void {
             this.ready.set(newReady) ;
         }
@@ -438,7 +427,7 @@ module vms{
          * @param path 
          */
         public getVal( path : List<number> ) : Value {
-            return this.map.get( path ) ; 
+            return this.map.get( path ) ;
         }
 
         public isChildMapped( childNum : number ) : boolean {
@@ -484,17 +473,28 @@ module vms{
          * location and the current context is R.
          * @param vm  -- Virtual machine for error reporting.
          */
-        public finishStep( value : Value, fetch : boolean, vm : VMS ) : void {
+        public finishStep( value : Value|null, fetch : boolean, vm : VMS ) : void {
+            // Should be in EVAL_READY_TO_STEP
             assert.checkPrecondition( !this.evalIsDone() ) ;
             assert.checkPrecondition( this.ready.get() ) ;
-            const p = this.pending.get() as List<number> ;
-            this.map.put( p, value ) ;
-            if( fetch && value.isLocationV() && this.isRContext() ) {
-                this.fetchNeeded.set(true) ; }
-            else { 
-                this.popPending() ;
+            if( value == null ) {
+                // Here we are moving to EVAL_READY_TO_SELECT
+                // without mapping the node. This should
+                // only be done when there is reason to 
+                // believe that the same node will not 
+                // just be selected again.
                 this.setReady( false ) ;
-            }
+            } else {
+                const p = this.pending.get() as List<number> ;
+                this.map.put( p, value ) ;
+                if( fetch && value.isLocationV() && this.isRContext() ) {
+                    // Move to EVAL_READY_TO_FETCH. This is for implicit fetches.
+                    this.fetchNeeded.set(true) ; }
+                else { 
+                    this.popPending() ;
+                    this.setReady( false ) ;
+                    // Move to EVAL_READY_TO_SELECT or EVAL_DONE
+                } }
         }
 
         private fetch(vm : VMS) {
@@ -582,6 +582,7 @@ module vms{
             return false ;
         }
         
+        /** Precondition: the node should be mapped. */
         public get(p : List<number>) : T {
             for(let i = 0; i < this.entries.size(); i++){
                 const tmp = this.entries.get(i).getPath();

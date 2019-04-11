@@ -23,7 +23,7 @@ module evaluationManager {
     import PNode = pnode.PNode;
     import Evaluation = vms.Evaluation;
     import VMS = vms.VMS;
-    import VMStates = vms.VMSStates ;
+    import VMStates = vms.VMStates ;
 
     export class EvaluationManager {
 
@@ -162,7 +162,9 @@ module evaluationManager {
         }
 
         protected pathToLowestInterestingNode(vm : VMS) : List<number> {
-            if( vm.isDone() ) return collections.nil() ;
+            const evaluationState = vm.getEval().getState() ;
+            if( evaluationState === VMStates.EVAL_DONE )
+                return collections.nil() ;
             // Find the path to the lowest node on the path that is the child of
             // a node with vertical layout.
             let path = vm.getPending();

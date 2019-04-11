@@ -28,6 +28,7 @@ module interpreter {
     import Value = vms.Value ;
     import VarStack = vms.VarStack ;
     import VMS = vms.VMS;
+    import VMStates = vms.VMStates ;
     import Context = vms.Context ;
     import BuiltInV = values.BuiltInV ;
     import StringV = values.StringV ;
@@ -44,27 +45,31 @@ module interpreter {
     class PlaayInterpreter implements vms.Interpreter {
 
         public step( vm : VMS ) : void {
-            assert.checkPrecondition( vm.canAdvance() && vm.evalIsReadyToStep() ) ;
+            assert.checkPrecondition( vm.getState() === VMStates.EVAL_READY_TO_STEP ) ;
             const node = vm.getPendingNode() ;
             const label = node.label() ;
             const stepper = theStepperRegistry[ label.kind() ] ;
             assert.check( stepper !== undefined, "No stepper for labels of kind " + label.kind() ) ; 
             stepper( vm ) ;
+            const finalState = vm.getState() ;
+            assert.check( finalState !== VMStates.EVAL_READY_TO_STEP ) ;
         }
 
         public select( vm : VMS ) : void {
-            assert.checkPrecondition( vm.canAdvance() && ! vm.evalIsReadyToStep() ) ;
+            assert.checkPrecondition( vm.getState() === VMStates.EVAL_READY_TO_SELECT ) ;
             const node = vm.getPendingNode() ;
             const label = node.label() ;
             const selector = theSelectorRegistry[ label.kind() ] ;
             assert.check( selector !== undefined, "No selector for labels of kind " + label.kind() ) ;
             selector( vm ) ;
-            assert.check( vm.hasError() || vm.canAdvance() && vm.evalIsReadyToStep() ) ;
+            const finalState = vm.getState() ;
+            assert.check( finalState == VMStates.ERROR || finalState === VMStates.EVAL_READY_TO_STEP ) ;
         }
 
         public veryInteresting( vm : VMS ) : boolean {
             //console.log(">> veryInteresting") ;
-            if( ! vm.evalIsReadyToStep() ) {
+            const state = vm.getState() ;
+            if( state !== VMStates.EVAL_READY_TO_STEP ) {
                 return false ;
             } else {
                 const lab = vm.getPendingNode().label() ;
@@ -103,8 +108,9 @@ module interpreter {
         }
 
         public veryBoring( vm : VMS ) : boolean {
-            if( ! vm.evalIsReadyToStep() ) {
-                return false ;
+            const state = vm.getState() ;
+            if( state !== VMStates.EVAL_READY_TO_STEP ) {
+                return true ;
             } else {
                 const lab = vm.getPendingNode().label() ;
                 if( lab instanceof labels.BooleanLiteralLabel ) {
@@ -219,7 +225,7 @@ module interpreter {
     // Selectors.  Selectors take the state from not ready to ready.
 
     function alwaysSelector( vm : VMS ) : void {
-        vm.setReady( true ) ;
+        vm.select() ;
     }
 
     function leftToRightSelector( context: Context ) : Selector {
@@ -233,7 +239,7 @@ module interpreter {
                     if( i===sz) {
                         // All children have been evaluated.
                         // So we pick the pending.
-                        vm.setReady( true ) ; }
+                        vm.select() ; }
                     else {
                         // Child i has not been evaluated.
                         // recursively select from that child.
@@ -250,7 +256,7 @@ module interpreter {
         // TODO Optimize the case where there are no variable declarations.
         if( exprSeqNeedsPrevisit(vm) && ! vm.hasExtraInformation() ) {
             // Must previsit.
-            vm.setReady( true ) ; }
+            vm.select() ; }
         else {
             leftToRightSelectorSameContext( vm ) ;
         }
@@ -272,7 +278,7 @@ module interpreter {
             }
             else {
                 // The If node is ripe.
-                vm.setReady(true);
+                vm.select() ;
             }
         }
 
@@ -302,7 +308,7 @@ module interpreter {
             }
             //otherwise, if it is false, set this node to ready
             else {
-                vm.setReady(true);
+                vm.select() ;
             }
         }
         //if it isn't selected, select the guard node
@@ -323,7 +329,7 @@ module interpreter {
             vm.getInterpreter().select(vm);
         }
         else {
-            vm.setReady(true);
+            vm.select() ;
         }
     }
 
@@ -337,7 +343,7 @@ module interpreter {
             vm.getInterpreter().select(vm);
         }
         else {
-            vm.setReady(true);
+            vm.select() ;
         }
     }
 
@@ -588,7 +594,7 @@ module interpreter {
       vm.getEval().pushOntoVarStack( stackFrame ) ;
       // Now map this node to say it's been previsited.
       vm.putExtraInformation( stackFrame ) ;
-      vm.setReady( false ) ;
+      vm.finishStep( null, false ) ;
     }
 
     function accessorStepper(vm: VMS) : void {

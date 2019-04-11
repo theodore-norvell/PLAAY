@@ -94,8 +94,12 @@ module animationView
      */
     export function traverseAndBuild(node:PNode, el : svg.Container, vm : VMS ) : void
     {
+        const state = vm.getState() ;
         const toHighlight : List<number> = 
-                vm.evalIsReadyToStep() || vm.evalIsReadyToFetch() || vm.hasError() 
+                state === vms.VMStates.EVAL_READY_TO_STEP
+                || state === vms.VMStates.EVAL_READY_TO_FETCH
+                || state === vms.VMStates.ERROR
+                   && vm.getEval().getState() !== vms.VMStates.EVAL_DONE
             ?   vm.getPending()
             :   list(-1) ;
         const error : Option<string> =
