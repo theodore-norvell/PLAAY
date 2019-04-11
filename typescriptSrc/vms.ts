@@ -12,6 +12,7 @@ import backtracking = require( './backtracking' ) ;
 import collections = require( './collections' ) ;
 import pnode = require('./pnode');
 import types = require('./types');
+import { selectParentEdit } from './dnodeEdits';
 
 /** The vms module provides the types that represent the state of the
  * virtual machine.
@@ -144,10 +145,10 @@ module vms{
             return this.evalStack.top().getRoot() ;
         }
 
-        public select( ) : void {
+        public selectThePendingNode( ) : void {
             assert.checkPrecondition( this.getState() === VMStates.EVAL_READY_TO_SELECT ) ;
-            this.evalStack.top().setReady( true ) ;
-            assert.checkPrecondition( this.getState() === VMStates.EVAL_READY_TO_STEP ) ;
+            this.evalStack.top().selectThePendingNode()  ;
+            //assert.checkPrecondition( this.getState() === VMStates.EVAL_READY_TO_STEP ) ;
         }
 
         public getPending() : List<number> {
@@ -163,11 +164,6 @@ module vms{
         public pushPending( childNum : number, context : Context ) : void {
             //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
             this.evalStack.top().pushPending( childNum, context ) ;
-        }
-        
-        public popPending( ) : void {
-            //assert.checkPrecondition( this.evalStack.notEmpty() ) ;
-            this.evalStack.top().popPending( ) ;
         }
 
         public isRContext() : boolean {
@@ -295,9 +291,7 @@ module vms{
         private readonly varStack : TVar<VarStack> ;
         private readonly pending : TVar<List<number> | null> ;
         private readonly context : TVar<Context> ;
-        // TODO redo the state encoding in a sensible way.
-        private readonly ready : TVar<boolean>;
-        private readonly fetchNeeded : TVar<boolean>;
+        private readonly state : TVar<VMStates>;
         private readonly map : ValueMap;
         private readonly extraInformationMap : AnyMap;
 
@@ -305,10 +299,10 @@ module vms{
         constructor (root : PNode, varStack : VarStack, vm : VMS) {
             const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
+            this.state = new TVar<VMStates>(VMStates.EVAL_READY_TO_SELECT, manager ) ;
             this.pending = new TVar<List<number> | null>(nil<number>(), manager);
+            // Invariant. this.pending.get() === null iff this.state() === VMState.EVAL_DONE
             this.context = new TVar<Context>( Context.R, manager ) ;
-            this.ready = new TVar<boolean>(false, manager);
-            this.fetchNeeded = new TVar<boolean>(false, manager);
             this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
             this.extraInformationMap = new AnyMap(manager) ;
@@ -324,31 +318,15 @@ module vms{
         }
 
         public getState() : VMStates {
-            if( this.evalIsDone() ) 
-                return VMStates.EVAL_DONE ;
-            if( this.ready.get()  )
-                return this.fetchNeeded.get()
-                     ? VMStates.EVAL_READY_TO_FETCH 
-                     : VMStates.EVAL_READY_TO_STEP ;
-            else
-                return VMStates.EVAL_READY_TO_SELECT ;
-        }
-
-        public isReadyToStep() : boolean {
-            return this.ready.get() && ! this.fetchNeeded.get() ;
-        }
-
-        public isReadyToFetch() : boolean {
-            return this.ready.get() && this.fetchNeeded.get() ;
+            return this.state.get() ;
         }
 
         public evalIsDone() : boolean {
-            return this.pending.get() === null;
+            return this.state.get() === VMStates.EVAL_DONE ;
         }
 
-        /** TODO make accessible only from this */
-        public setReady( newReady : boolean ) : void {
-            this.ready.set(newReady) ;
+        public isReadyToStep() : boolean {
+            return this.state.get() === VMStates.EVAL_READY_TO_STEP ;
         }
 
         public setContext( context : Context ) : void {
@@ -394,14 +372,18 @@ module vms{
             this.pending.set( p.cat( list( childNum ) ) ) ;
         }
         
-        public popPending( ) : void {
+        private popPending( ) : void {
             assert.checkPrecondition( !this.evalIsDone() ) ;
             const p = this.pending.get() as List<number> ;
             if( p.size() === 0 ) {
                 this.pending.set( null ) ;
+                this.state.set( VMStates.EVAL_DONE ) ;
             } else {
-                this.pending.set( collections.nil<number>() ) ; }
-            this.setContext( Context.R ) ;  // Not sure why this works!!
+                // Otherwise we go back to the root and restart
+                // the selection process from root down.
+                this.setContext( Context.R ) ;
+                this.pending.set( collections.nil<number>() ) ;
+                this.state.set( VMStates.EVAL_READY_TO_SELECT ) ; }
         }
 
         public scrub( path : List<number> ) : void {
@@ -475,25 +457,23 @@ module vms{
          */
         public finishStep( value : Value|null, fetch : boolean, vm : VMS ) : void {
             // Should be in EVAL_READY_TO_STEP
-            assert.checkPrecondition( !this.evalIsDone() ) ;
-            assert.checkPrecondition( this.ready.get() ) ;
+            assert.checkPrecondition( this.state.get() === VMStates.EVAL_READY_TO_STEP ) ;
             if( value == null ) {
                 // Here we are moving to EVAL_READY_TO_SELECT
                 // without mapping the node. This should
                 // only be done when there is reason to 
                 // believe that the same node will not 
                 // just be selected again.
-                this.setReady( false ) ;
+                this.state.set( VMStates.EVAL_READY_TO_SELECT ) ;
             } else {
                 const p = this.pending.get() as List<number> ;
                 this.map.put( p, value ) ;
                 if( fetch && value.isLocationV() && this.isRContext() ) {
                     // Move to EVAL_READY_TO_FETCH. This is for implicit fetches.
-                    this.fetchNeeded.set(true) ; }
+                    this.state.set( VMStates.EVAL_READY_TO_FETCH ) ; }
                 else { 
                     this.popPending() ;
-                    this.setReady( false ) ;
-                    // Move to EVAL_READY_TO_SELECT or EVAL_DONE
+                    // Moves to EVAL_READY_TO_SELECT or EVAL_DONE
                 } }
         }
 
@@ -510,20 +490,23 @@ module vms{
             const fetchedValue = opt.first() ;
             this.map.put( p, fetchedValue ) ;
             this.popPending() ;
-            this.setReady( false ) ;
-            this.fetchNeeded.set(false) ;
+        }
+
+        public selectThePendingNode() : void {
+            // Precondition this.isReadyForSelect()
+            this.state.set( VMStates.EVAL_READY_TO_STEP ) ;
         }
 
         public advance( interpreter : Interpreter, vm : VMS ) : void {
             assert.checkPrecondition( !this.evalIsDone() ) ;
-
-            if( this.ready.get() && ! this.fetchNeeded.get()  ){
+            const state = this.state.get() ; 
+            if( state === VMStates.EVAL_READY_TO_STEP   ){
                 interpreter.step( vm ) ;
             }
-            else if( this.fetchNeeded.get() ) {
+            else if( state === VMStates.EVAL_READY_TO_FETCH ) {
                 this.fetch(vm) ;
             }
-            else{
+            else{ // state === VMStates.EVAL_READY_TO_SELECT
                 interpreter.select( vm ) ;
             }
         }

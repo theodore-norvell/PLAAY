@@ -225,7 +225,7 @@ module interpreter {
     // Selectors.  Selectors take the state from not ready to ready.
 
     function alwaysSelector( vm : VMS ) : void {
-        vm.select() ;
+        vm.selectThePendingNode() ;
     }
 
     function leftToRightSelector( context: Context ) : Selector {
@@ -239,7 +239,7 @@ module interpreter {
                     if( i===sz) {
                         // All children have been evaluated.
                         // So we pick the pending.
-                        vm.select() ; }
+                        vm.selectThePendingNode() ; }
                     else {
                         // Child i has not been evaluated.
                         // recursively select from that child.
@@ -256,7 +256,7 @@ module interpreter {
         // TODO Optimize the case where there are no variable declarations.
         if( exprSeqNeedsPrevisit(vm) && ! vm.hasExtraInformation() ) {
             // Must previsit.
-            vm.select() ; }
+            vm.selectThePendingNode() ; }
         else {
             leftToRightSelectorSameContext( vm ) ;
         }
@@ -278,7 +278,7 @@ module interpreter {
             }
             else {
                 // The If node is ripe.
-                vm.select() ;
+                vm.selectThePendingNode() ;
             }
         }
 
@@ -308,7 +308,7 @@ module interpreter {
             }
             //otherwise, if it is false, set this node to ready
             else {
-                vm.select() ;
+                vm.selectThePendingNode() ;
             }
         }
         //if it isn't selected, select the guard node
@@ -329,7 +329,7 @@ module interpreter {
             vm.getInterpreter().select(vm);
         }
         else {
-            vm.select() ;
+            vm.selectThePendingNode() ;
         }
     }
 
@@ -343,7 +343,7 @@ module interpreter {
             vm.getInterpreter().select(vm);
         }
         else {
-            vm.select() ;
+            vm.selectThePendingNode() ;
         }
     }
 
