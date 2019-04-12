@@ -289,7 +289,7 @@ module vms{
     export class Evaluation {
         private readonly root : TVar<PNode>;
         private readonly varStack : TVar<VarStack> ;
-        private readonly pending : TVar<List<number> | null> ;
+        private readonly pending : TVar<List<number>> ;
         private readonly context : TVar<Context> ;
         private readonly state : TVar<VMStates>;
         private readonly map : ValueMap;
@@ -300,8 +300,7 @@ module vms{
             const manager = vm.getTransactionManager();
             this.root = new TVar<PNode>(root, manager) ;
             this.state = new TVar<VMStates>(VMStates.EVAL_READY_TO_SELECT, manager ) ;
-            this.pending = new TVar<List<number> | null>(nil<number>(), manager);
-            // Invariant. this.pending.get() === null iff this.state() === VMState.EVAL_DONE
+            this.pending = new TVar<List<number>>(nil<number>(), manager);
             this.context = new TVar<Context>( Context.R, manager ) ;
             this.varStack = new TVar<VarStack>( varStack, manager ) ;
             this.map = new ValueMap(manager);
@@ -354,36 +353,33 @@ module vms{
         }
 
         public getPending() : List<number> {
-            assert.checkPrecondition( !this.evalIsDone() ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             return p ;
         }
 
         public getPendingNode() : PNode {
             assert.checkPrecondition( !this.evalIsDone() ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             return this.root.get().get(p) ;
         }
 
         public pushPending( childNum : number, context:Context ) : void {
             assert.checkPrecondition( !this.evalIsDone() ) ;
             this.setContext( context ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             this.pending.set( p.cat( list( childNum ) ) ) ;
         }
         
         private popPending( ) : void {
             assert.checkPrecondition( !this.evalIsDone() ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             if( p.size() === 0 ) {
-                this.pending.set( null ) ;
                 this.state.set( VMStates.EVAL_DONE ) ;
             } else {
-                // Otherwise we go back to the root and restart
-                // the selection process from root down.
                 this.setContext( Context.R ) ;
-                this.pending.set( collections.nil<number>() ) ;
                 this.state.set( VMStates.EVAL_READY_TO_SELECT ) ; }
+            // Reset pending to the root.
+            this.pending.set( collections.nil<number>() ) ;
         }
 
         public scrub( path : List<number> ) : void {
@@ -413,8 +409,7 @@ module vms{
         }
 
         public isChildMapped( childNum : number ) : boolean {
-            if( this.evalIsDone() ) return false ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             return this.map.isMapped( collections.snoc(p, childNum ) ) ; 
         }
 
@@ -424,8 +419,7 @@ module vms{
          * @param childNum 
          */
         public getChildVal( childNum : number ) : Value {
-            assert.checkPrecondition( !this.evalIsDone() ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get() ;
             return this.map.get( collections.snoc(p, childNum ) ) ; 
         }
 
@@ -443,8 +437,7 @@ module vms{
         }
 
         public putExtraInformation( v : {} ) : void {
-            assert.checkPrecondition( this.pending.get() !== null ) ;
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get();
             this.extraInformationMap.put( p, v ) ; 
         }
 
@@ -466,7 +459,7 @@ module vms{
                 // just be selected again.
                 this.state.set( VMStates.EVAL_READY_TO_SELECT ) ;
             } else {
-                const p = this.pending.get() as List<number> ;
+                const p = this.pending.get() ;
                 this.map.put( p, value ) ;
                 if( fetch && value.isLocationV() && this.isRContext() ) {
                     // Move to EVAL_READY_TO_FETCH. This is for implicit fetches.
@@ -478,7 +471,7 @@ module vms{
         }
 
         private fetch(vm : VMS) {
-            const p = this.pending.get() as List<number> ;
+            const p = this.pending.get();
             const value = this.map.get( p ) ;
             assert.check( value.isLocationV() ) ;
             const loc = value as Location ;
@@ -737,12 +730,12 @@ module vms{
 
         public pop() : Evaluation {
             assert.checkPrecondition( this.stk.size() > 0 ) ;
-            return this.stk.pop() as Evaluation;
+            return this.stk.pop() ;
         }
 
         public top() : Evaluation{
             assert.checkPrecondition( this.stk.size() > 0 ) ;
-            return this.stk.get(this.stk.size() - 1) as Evaluation;
+            return this.stk.get(this.stk.size() - 1) ;
         }
 
         public notEmpty() : boolean{
