@@ -280,7 +280,7 @@ module createHtmlElements {
 		//          contentArea
 
 		const body = $("body");
-
+		body.children().remove() ;
 		createUpperArea( body )  ;
 
 		create("div", "", "contentArea", body);
