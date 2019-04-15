@@ -6,6 +6,11 @@ html
         script(src="/plaay.js")
         script(src="https://code.jquery.com/jquery-1.10.2.min.js")
         script(src="https://code.jquery.com/ui/1.11.4/jquery-ui.min.js")
+        script.
+            if (typeof jQuery == 'undefined') {
+                document.write(unescape("%3Cscript src='/jquery-1.10.2.min.js' type='text/javascript'%3E%3C/script%3E"));
+                document.write(unescape("%3Cscript src='/jquery-ui.min.js' type='text/javascript'%3E%3C/script%3E"));
+            }
         link(rel="stylesheet" href="/plaay-style.css")
         link(rel="stylesheet" href="https://fonts.googleapis.com/css?family=Noto%20Sans|Noto%20Serif|Noto%20Mono")
         link( <link rel="shortcut icon" href="/favicon.ico" )
