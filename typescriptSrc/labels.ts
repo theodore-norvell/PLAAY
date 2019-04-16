@@ -515,6 +515,9 @@ module labels {
         public hasDropZonesAt(start : number): boolean { return true; }
 
         public hasVerticalLayout() : boolean {return true;}
+    
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
 
         public toJSON() : object {
             return { kind:  ParameterListLabel.kindConst } ; }
@@ -634,6 +637,9 @@ module labels {
         public hasVerticalLayout() : boolean {return true;}
         
         public hasDropZonesAt(start : number): boolean { return true; }
+    
+        public getChildPrecedence(child : number) : number {
+            return 0 ; }
 
         public toJSON() : object {
             return { kind: ObjectLiteralLabel.kindConst, } ;

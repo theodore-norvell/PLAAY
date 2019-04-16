@@ -68,10 +68,10 @@ module treeView
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
         let result : JQuery ;
-        // Dropzones usually contains 1 entry for each child + 1.
+        // dropZones usually contains 1 entry for each child + 1.
         // If it is shorter, nulls can be assumed.
         // Null means there is no drop zone for this place in the tree.
-        const dropzones : Array<JQuery|null> = [] ;
+        const dropZones : Array<JQuery|null> = [] ;
         // Switch on the LabelKind
         const kind = node.label().kind() ;
         switch( kind ) {
@@ -139,28 +139,7 @@ module treeView
                 result = $( document.createElement("div") ) ;
                 result.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
-                if( compactMode ) {
-                    for (let i = 0; true; ++i) {
-                        const hbox = $(document.createElement("div")) ;
-                        hbox.addClass( "H" ) ;
-                        hbox.addClass( "compactLine" ) ;
-                        result.append( hbox ) ;
-                        const dz = makeDropZone(i, true ) ;
-                        dropzones.push( dz ) ;
-                        hbox.append(dz);
-                        if (i === children.length) break;
-                        const child = children[i] ;
-                        hbox.append(child);
-                    } }
-                else {
-                    for (let i = 0; true; ++i) {
-                        const dz = makeDropZone(i, true ) ;
-                        dropzones.push( dz ) ;
-                        result.append(dz);
-                        if (i === children.length) break;
-                        const child = children[i] ;
-                        result.append(child);
-                    } }
+                layOutVerticalSequence( result, children, dropZones ) ;
                 result.data("help", "block") ;
             }
             break ;
@@ -178,21 +157,8 @@ module treeView
             case labels.ParameterListLabel.kindConst :
             {
                 result = $( document.createElement("div") ) ;
-                result.addClass( "seqBox" )
-                      .addClass( "V" );
-                // Add children and dropZones.
-                for (let i = 0; true; ++i) {
-                    const hbox = $(document.createElement("div")) ;
-                    hbox.addClass( "H" ) ;
-                    hbox.addClass( "compactLine" ) ;
-                    result.append( hbox ) ;
-                    const dz = makeDropZone(i, true ) ;
-                    dropzones.push( dz ) ;
-                    hbox.append(dz);
-                    if (i === children.length) break;
-                    const child = children[i] ;
-                    hbox.append(child);
-                }
+                // Add children and drop zones.
+                layOutVerticalSequence( result, children, dropZones ) ;
                 result.data("help", "parameterList") ;
             }
             break ;
@@ -223,7 +189,7 @@ module treeView
                 result.append(opElement);
                 for( let i=0 ; true ; ++i) {
                     const dz : JQuery = makeDropZone(i, false) ;
-                    dropzones.push( dz ) ;
+                    dropZones.push( dz ) ;
                     result.append( dz ) ;
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
@@ -258,10 +224,10 @@ module treeView
                 for( let i=0 ; true ; ++i) {
                     if( node.hasDropZonesAt(i) ) {
                         const dz : JQuery = makeDropZone(i, false) ;
-                        dropzones.push( dz ) ;
+                        dropZones.push( dz ) ;
                         result.append( dz ) ; }
                     else
-                        dropzones.push( null ) ;
+                        dropZones.push( null ) ;
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
@@ -315,17 +281,8 @@ module treeView
                 guardBox.addClass( "workplace") ;
 
                 const seqBox : JQuery = $( document.createElement("div") ) ;
-                seqBox.addClass( "seqBox" ) ;
-                seqBox.addClass( "V" ) ;
-                seqBox.addClass( "workplace") ;
                 // Add children and drop zones.
-                for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, true ) ;
-                    dropzones.push( dz ) ;
-                    seqBox.append(dz);
-                    if (i === children.length) break;
-                    seqBox.append(children[i]);
-                }
+                layOutVerticalSequence( seqBox, children, dropZones ) ;
 
                 result  = $(document.createElement("div")) ;
                 result.addClass( "objectBox" ) ;
@@ -346,17 +303,8 @@ module treeView
                 guardBox.addClass( "workplace") ;
 
                 const seqBox : JQuery = $( document.createElement("div") ) ;
-                seqBox.addClass( "seqBox" ) ;
-                seqBox.addClass( "V" ) ;
-                seqBox.addClass( "workplace") ;
                 // Add children and drop zones.
-                for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, true ) ;
-                    dropzones.push( dz ) ;
-                    seqBox.append(dz);
-                    if (i === children.length) break;
-                    seqBox.append(children[i]);
-                }
+                layOutVerticalSequence( seqBox, children, dropZones ) ;
 
                 result  = $(document.createElement("div")) ;
                 result.addClass( "arrayBox" ) ;
@@ -635,7 +583,7 @@ module treeView
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
                     const dz = makeDropZone(i, false ) ;
-                    dropzones.push( dz ) ;
+                    dropZones.push( dz ) ;
                     result.append(dz);
                     if (i === children.length) break;
                     result.append(children[i]);
@@ -715,7 +663,7 @@ module treeView
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
                     const dz = makeDropZone(i, false ) ;
-                    dropzones.push( dz ) ;
+                    dropZones.push( dz ) ;
                     result.append(dz);
                     if (i === children.length) break;
                     result.append(children[i]);
@@ -789,7 +737,7 @@ module treeView
 
                 for (let i = 0; true; ++i) {
                     const dz = makeDropZone(i, false ) ;
-                    dropzones.push( dz ) ;
+                    dropZones.push( dz ) ;
                     result.append(dz);
                     if (i === children.length) break;
                     result.append(children[i]);
@@ -812,7 +760,7 @@ module treeView
 
                 for (let i = 0; true; ++i) {
                     const dz = makeDropZone(i, false ) ;
-                    dropzones.push( dz ) ;
+                    dropZones.push( dz ) ;
                     result.append(dz);
                     if (i === children.length) break;
                     result.append(children[i]);
@@ -838,12 +786,37 @@ module treeView
         result.data("children", children ) ;
         // Attach the JQueries representing the dropzones to the root element representing this node.
         // Note these may not be present in which case they are nulls in the array or the array is short.
-        result.data("dropzones", dropzones ) ;
+        result.data("dropzones", dropZones ) ;
         // Make it selectable by a click
         if( node.isSelectable() )result.addClass( "selectable" ) ;
         result.addClass( "codeBox" ) ;
         if( needsBorder ) result.addClass("bordered") ;
         return result ;
+    }
+
+    function layOutVerticalSequence( seqBox : JQuery, children : Array<JQuery>, dropZones : Array<JQuery|null> ) : void {
+        if( compactMode ) {
+            for (let i = 0; true; ++i) {
+                const hbox = $(document.createElement("div")) ;
+                hbox.addClass( "H" ) ;
+                hbox.addClass( "compactLine" ) ;
+                seqBox.append( hbox ) ;
+                const dz = makeDropZone(i, true ) ;
+                dropZones.push( dz ) ;
+                hbox.append(dz);
+                if (i === children.length) break;
+                const child = children[i] ;
+                hbox.append(child);
+            } }
+        else {
+            for (let i = 0; true; ++i) {
+                const dz = makeDropZone(i, true ) ;
+                dropZones.push( dz ) ;
+                seqBox.append(dz);
+                if (i === children.length) break;
+                const child = children[i] ;
+                seqBox.append(child);
+            } }
     }
 
     export function  highlightSelection( sel : PSelection, jq : JQuery ) : void {
