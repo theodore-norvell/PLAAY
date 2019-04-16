@@ -157,6 +157,7 @@ module treeView
             case labels.ParameterListLabel.kindConst :
             {
                 result = $( document.createElement("div") ) ;
+                result.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
                 layOutVerticalSequence( result, children, dropZones ) ;
                 result.data("help", "parameterList") ;
@@ -281,6 +282,7 @@ module treeView
                 guardBox.addClass( "workplace") ;
 
                 const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
                 layOutVerticalSequence( seqBox, children, dropZones ) ;
 
@@ -303,6 +305,7 @@ module treeView
                 guardBox.addClass( "workplace") ;
 
                 const seqBox : JQuery = $( document.createElement("div") ) ;
+                seqBox.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
                 layOutVerticalSequence( seqBox, children, dropZones ) ;
 
