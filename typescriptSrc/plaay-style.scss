@@ -534,12 +534,8 @@ div.lambdaResult:before {
     font-size: large ;
 }
 
-div.paramlistOuter {
-    border: none ;
-}
 
-
-div.paramlistOuter:before {
+div.parameterList:before {
     content: $lowerCaseLambda ; /* Lower case Lambda */
     display: inline ;
     vertical-align: top ;

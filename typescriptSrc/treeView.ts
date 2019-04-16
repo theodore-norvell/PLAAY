@@ -137,8 +137,7 @@ module treeView
             case labels.ExprSeqLabel.kindConst :
             {
                 result = $( document.createElement("div") ) ;
-                result.addClass( "seqBox" ) ;
-                result.addClass( "V" ) ;
+                result.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
                 if( compactMode ) {
                     for (let i = 0; true; ++i) {
@@ -179,17 +178,20 @@ module treeView
             case labels.ParameterListLabel.kindConst :
             {
                 result = $( document.createElement("div") ) ;
-                result.addClass( "paramlistOuter" ) ;
-                result.addClass( "H" ) ;
-                result.addClass( "droppable" ) ;
-                
+                result.addClass( "seqBox" )
+                      .addClass( "V" );
                 // Add children and dropZones.
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, false) ;
+                    const hbox = $(document.createElement("div")) ;
+                    hbox.addClass( "H" ) ;
+                    hbox.addClass( "compactLine" ) ;
+                    result.append( hbox ) ;
+                    const dz = makeDropZone(i, true ) ;
                     dropzones.push( dz ) ;
-                    result.append(dz);
+                    hbox.append(dz);
                     if (i === children.length) break;
-                    result.append(children[i]);
+                    const child = children[i] ;
+                    hbox.append(child);
                 }
                 result.data("help", "parameterList") ;
             }
@@ -423,19 +425,28 @@ module treeView
             {
                 //  div.{lambdaBox V candrag droppable workplace}
                 //      div.{lambdaHeader, V}
-                //          child 0 (see ParamList)
+                //          div.{parameterList H}
+                //              child 0 (see ParamList)
                 //          div.{lambdaResult H}
                 //              child 1
+                //      div.{doBox, H}
+                //          child 2
+
+                const parameterList = $( document.createElement("div") ) ;
+                parameterList.addClass( "parameterList" ) ;
+                parameterList.addClass( "H" ) ;
+                parameterList.append( children[0] ) ;
 
                 const lambdaResult = $( document.createElement("div") ) ;
                 lambdaResult.addClass( "lambdaResult" ) ;
                 lambdaResult.addClass( "H" ) ;
                 lambdaResult.append( children[1] ) ;
-                const lambdahead : JQuery = $( document.createElement("div") ) ;
-                lambdahead.addClass( "lambdaHeader") ;
-                lambdahead.addClass( "V") ;
-                lambdahead.append( children[0] ) ;
-                lambdahead.append( lambdaResult ) ;
+
+                const lambdaHeader : JQuery = $( document.createElement("div") ) ;
+                lambdaHeader.addClass( "lambdaHeader") ;
+                lambdaHeader.addClass( "V") ;
+                lambdaHeader.append( parameterList ) ;
+                lambdaHeader.append( lambdaResult ) ;
 
                 const doBox : JQuery = $( document.createElement("div") ) ;
                 doBox.addClass( "doBox") ;
@@ -448,7 +459,7 @@ module treeView
                 result.addClass( "workplace" ) ;
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
-                result.append( lambdahead ) ;
+                result.append( lambdaHeader ) ;
                 result.append( doBox ) ;
                 result.data("help", "lambdaExpression") ;
             }
@@ -532,7 +543,10 @@ module treeView
                 }
                 else
                 {
-                    result = $( makeTextInputElement( node, ["numberLiteral", "H", "input", "canDrag", "droppable"], collections.some(childNumber) ) ) ;
+                    result = $( makeTextInputElement(
+                                   node,
+                                   ["numberLiteral", "H", "input", "canDrag", "droppable"],
+                                   collections.some(childNumber) ) ) ;
                 }
                 result.data("help", "numberLiteral") ;
             }

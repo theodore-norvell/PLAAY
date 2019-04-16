@@ -480,11 +480,7 @@ div.lambdaResult:before {
   font-size: large;
 }
 
-div.paramlistOuter {
-  border: none;
-}
-
-div.paramlistOuter:before {
+div.parameterList:before {
   content: "λ";
   /* Lower case Lambda */
   display: inline;
