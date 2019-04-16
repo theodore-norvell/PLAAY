@@ -112,7 +112,8 @@ module interpreter {
             if( state !== VMStates.EVAL_READY_TO_STEP ) {
                 return true ;
             } else {
-                const lab = vm.getPendingNode().label() ;
+                const node = vm.getPendingNode()
+                const lab = node.label() ;
                 if( lab instanceof labels.BooleanLiteralLabel ) {
                     return true ; }
                 else if( lab instanceof labels.NullLiteralLabel ) {
@@ -121,10 +122,10 @@ module interpreter {
                     return true ; }
                 else if( lab instanceof labels.StringLiteralLabel ) {
                     return true ; }
-                    else if( lab instanceof labels.TupleLabel ) {
-                        return true ; }
+                else if( lab instanceof labels.TupleLabel ) {
+                    return true ; }
                 else if( lab instanceof labels.ExprSeqLabel ) {
-                    return ! exprSeqNeedsPrevisit(vm) ; }
+                    return node.count() === 1 ; }
                 else {
                     return false ; }
             }

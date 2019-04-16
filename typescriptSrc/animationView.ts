@@ -461,32 +461,7 @@ module animationView
             break ;
             case labels.ExprSeqLabel.kindConst :
             {
-                const childArray = element.children();
-                // result.addClass( "seqBox" ) ;
-                // result.addClass( "V" ) ;
-                const padding : number = 15;
-                let y : number = 0;
-                for (let i = 0; true; ++i) {
-                    if (i === childArray.length) break;
-                    childArray[i].dmove(0, y);
-                    const bbox = childArray[i].bbox();
-                    if(bbox.x < 0)
-                    {
-                        childArray[i].dx(-bbox.x);
-                    }
-                    if(bbox.y < y)
-                    {
-                        childArray[i].dy(-bbox.y);
-                    }
-                    if(childArray[i].bbox().height > 0) //i.e. the child has an SVG presence (should only be false for nodes mapped to DoneV currently.)
-                    {
-                        y += childArray[i].bbox().height + padding;
-                    }
-                }
-                if(y === 0) //i.e. there are no elements in this node
-                {
-                    element.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq nodes.
-                }
+                layOutVertical(element) ;
             }
             break ;
             case labels.ExprPHLabel.kindConst :
@@ -498,24 +473,7 @@ module animationView
             break ;
             case labels.ParameterListLabel.kindConst :
             {
-                const childArray = element.children();
-                // result.addClass( "paramlistOuter" ) ;
-                // result.addClass( "H" ) ;
-                
-                const padding : number = 15;
-                let x : number = 0;
-                // Add children and dropZones.
-                for (let i = 0; true; ++i) {
-                    if (i === childArray.length) break;
-                    childArray[i].dmove(x, 0);
-                    const childBBox : svg.BBox = childArray[i].bbox();
-                    if(childBBox.y < 0)
-                    {
-                        const childY : number = childBBox.y;
-                        childArray[i].dy(-childY);
-                    }
-                    x += childArray[i].bbox().width + padding;
-                }
+                layOutVertical( element ) ;
             }
             break ;
             case labels.CallVarLabel.kindConst :
@@ -632,7 +590,7 @@ module animationView
                 const childArray = element.children();
 
                 element.dmove(10, 10) ;
-                const padding : number = 15;
+                const padding : number = 5;
                 let y = 0;
 
                 const guardBox : svg.G = element.group() ;
@@ -640,7 +598,7 @@ module animationView
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
                 const textElement = guardBox.text("$").dmove(0, -5);
-                y += textElement.bbox().height + padding;
+                y += textElement.bbox().height + 15;
                 let len = findWidthOfLargestChild(childArray)+padding;
                 if(textElement.bbox().width + padding > len)
                 {
@@ -676,7 +634,7 @@ module animationView
                 const childArray = element.children();
 
                 element.dmove(10, 10) ;
-                const padding : number = 15;
+                const padding : number = 5;
                 let y = 0;
 
                 const guardBox : svg.G = element.group() ;
@@ -684,7 +642,7 @@ module animationView
                 // guardBox.addClass( "H") ;
                 // guardBox.addClass( "workplace") ;
                 const textElement = guardBox.text("array").dmove(0, -5);
-                y += textElement.bbox().height + padding;
+                y += textElement.bbox().height + 15;
                 let len = findWidthOfLargestChild(childArray)+padding;
                 if(textElement.bbox().width + padding > len)
                 {
@@ -709,7 +667,7 @@ module animationView
                     seqBox.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq-like nodes.
                 }
 
-                makeFancyBorderSVG(parent, element, LIGHT_BLUE);
+                drawHighlightOn = makeFancyBorderSVG(parent, element, LIGHT_BLUE);
             }
             break ;
             case labels.AccessorLabel.kindConst :
@@ -1070,6 +1028,33 @@ module animationView
         {
             highlightThis(drawHighlightOn, !optError.isEmpty() );
             optError.map( (errString) => makeErrorSVG(element, errString) ) ;
+        }
+    }
+
+    function layOutVertical( element : svg.G ) : void {
+        const childArray = element.children();
+        const padding : number = 5 ;
+        let y : number = 0;
+        for (let i = 0; true; ++i) {
+            if (i === childArray.length) break;
+            childArray[i].dmove(0, y);
+            const bbox = childArray[i].bbox();
+            if(bbox.x < 0)
+            {
+                childArray[i].dx(-bbox.x);
+            }
+            if(bbox.y < y)
+            {
+                childArray[i].dy(-bbox.y);
+            }
+            if(childArray[i].bbox().height > 0) //i.e. the child has an SVG presence (should only be false for nodes mapped to DoneV currently.)
+            {
+                y += childArray[i].bbox().height + padding;
+            }
+        }
+        if(y === 0) //i.e. there are no elements in this node
+        {
+            element.rect(10,10).opacity(0); //enforce a minimum size for ExprSeq nodes.
         }
     }
 
