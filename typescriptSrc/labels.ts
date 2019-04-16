@@ -73,6 +73,9 @@ module labels {
         /** Return true if the node is a placeholder. Override this method in subclasses that are placeholders. */
         public isPlaceHolder() : boolean { return false ; }
 
+        /** Return true if can be in a selection. */
+        public isSelectable(): boolean { return true; }
+
         /** Return true if node has a dropzone at number. */
         public hasDropZonesAt(start : number): boolean { return false; }
         
@@ -160,6 +163,8 @@ module labels {
 
         public isExprSeqNode() : boolean { return true ; }
 
+        public isSelectable(): boolean { return false; }
+        
         public hasDropZonesAt(start : number): boolean { return true; }
 
         public hasVerticalLayout() : boolean {return true;}
@@ -502,6 +507,8 @@ module labels {
 
         // Singleton
         public static theParameterListLabel = new ParameterListLabel();
+
+        public isSelectable(): boolean { return false; }
 
         public hasDropZonesAt(start : number): boolean { return true; }
 

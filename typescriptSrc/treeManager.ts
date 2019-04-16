@@ -652,7 +652,9 @@ module treeManager {
         }
 
         public moveOut( sel:PSelection ) : Option<PSelection> {
-            const edit : Edit<PSelection> = dnodeEdits.moveOutNormal() ;
+            const expand : Edit<PSelection> = dnodeEdits.expandEdit() ;
+            const out : Edit<PSelection> = dnodeEdits.moveOutNormal() ;
+            const edit = alt( [expand, out] ) ;
             return edit.applyEdit(sel) ;
         }
 

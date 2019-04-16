@@ -99,13 +99,13 @@ module dnodeEdits {
         if (start === end)
         {
             // If there is a node to the right.
-            if(root.get(path).count() > start)
+            if( root.get(path).count() > start )
             {
                 // Select that node
                 return some( new Selection<L,T>(root, path, start, start+1));
             }
             //If there is no node to the right and the parent is the root"
-            else if (path.isEmpty())
+            else if( path.isEmpty() )
             {
                 // This is the end of the line. Fail.
                 return none<Selection<L,T>>();
@@ -622,7 +622,9 @@ module dnodeEdits {
         const end = sel.end() ;
         if( end - start >= 1 ) {
             // Any selection containing 1 or more nodes is
-            return true ; }
+            // suitable if all those nodes are selectable.
+            return sel.parent().children(start,end).every(
+                (child : DNode<L,T>) => child.isSelectable() ) ; }
         else if( end === start ) {
             // Dropzones are suitable
             return sel.parent().hasDropZonesAt( start ) ;
@@ -702,19 +704,53 @@ module dnodeEdits {
         constructor(normal : boolean ) { super() ; this.normal = normal ; }
         
         public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
-            return moveOut( selection, this.normal ) ;
+            let opt = moveOut( selection, this.normal )
+            while( ! leftRightSuitable(opt) ) opt = moveOut( opt.first(), this.normal ) ;
+            return opt ;
         }
     }
 
+    /** Change the selection to the current selection's parent.
+     * Or if that is not suitable, to its grandparent and so on.
+     * Fail if there is no suitable strict ancestor. 
+     * The moveOutNormal edit puts the anchor before the focus
+     */
     export function moveOutNormal<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return new OutEdit( true ) ; }
 
+
+    /** Change the selection to the current selection's parent.
+     * Or if that is not suitable, to its grandparent and so on.
+     * Fail if there is no suitable strict ancestor. 
+     * The moveOutReversed edit puts the focus before the anchor.
+     */
     export function moveOutReversed<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return new OutEdit( false ) ; }
 
+
     /** 
-     * Left edit
+     * Expand to include all siblings.
      */
+    class ExpandEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+
+        constructor() { super() ; }
+        
+        public applyEdit( selection : Selection<L,T> ) : Option<Selection<L,T>> {
+            const parent = selection.parent() ;
+            if( parent.isSelectable() ) return none() ;
+            const count = parent.count() ;
+            if( selection.start() === 0 && selection.end() === count) return none() ;
+            return some( new Selection( selection.root(), selection.path(), 0, count ) ) ;
+        }
+    }
+
+    /** Expand to include all siblings if the parent is 
+     * not selectable.
+     */
+    export function expandEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
+        return new ExpandEdit() ;
+    }
+
     class LeftEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
@@ -726,12 +762,13 @@ module dnodeEdits {
         }
     }
 
+    /** 
+     * Left edit. Move left in preorder order until a suitable place to stop is found.
+     * If there is no suitable place to the left, the edit fails.
+     */
     export function leftEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return new LeftEdit() ; }
 
-    /** 
-     * Right edit
-     */
     class RightEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
@@ -743,12 +780,13 @@ module dnodeEdits {
         }
     }
 
+    /** 
+     * Right edit. Move right in preorder order until a suitable place to stop is found.
+     * If there is no suitable place to the right, the edit fails.
+     */
     export function rightEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return  new RightEdit() ; }
 
-    /** 
-     * Up edit
-     */
     class UpEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
@@ -760,13 +798,17 @@ module dnodeEdits {
         }
     }
 
+    /** Move right in preorder order until a suitable place to stop is found.
+     * In the can of upEdit, a suitable place is typically a drop zone
+     * or child node or a vertically laid-out node.
+     */
     export function upEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return  new UpEdit() ; }
 
     /** 
      * Down edit
      */
-    export class DownEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
+    class DownEdit<L extends DLabel<L,T>, T extends DNode<L,T>> extends AbstractEdit<Selection<L,T>> {
 
         constructor() { super() ; }
         
@@ -777,6 +819,10 @@ module dnodeEdits {
         }
     }
 
+    /** Move left in preorder order until a suitable place to stop is found.
+     * In the can of downEdit, a suitable place is typically a drop zone
+     * or child node or a vertically laid-out node.
+     */
     export function downEdit<L extends DLabel<L,T>, T extends DNode<L,T>>() : Edit<Selection<L,T>> {
         return  new DownEdit() ; }
 

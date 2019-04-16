@@ -826,7 +826,7 @@ module treeView
         // Note these may not be present in which case they are nulls in the array or the array is short.
         result.data("dropzones", dropzones ) ;
         // Make it selectable by a click
-        result.addClass( "selectable" ) ;
+        if( node.isSelectable() )result.addClass( "selectable" ) ;
         result.addClass( "codeBox" ) ;
         if( needsBorder ) result.addClass("bordered") ;
         return result ;

@@ -72,6 +72,8 @@ module dnode {
 
         isPlaceHolder : () => boolean ;
 
+        isSelectable : () => boolean ;
+
         hasDropZonesAt : (start : number) => boolean ;
 
         hasVerticalLayout : () => boolean ;
@@ -222,6 +224,8 @@ module dnode {
         public hasVerticalLayout():boolean { return this._label.hasVerticalLayout() ; }
 
         public hasDropZonesAt(start : number):boolean { return this._label.hasDropZonesAt(start) ;}
+
+        public isSelectable():boolean { return this._label.isSelectable() ;}
 
         /** Convert to a string for debugging purposes. */
         public toString ():string {
