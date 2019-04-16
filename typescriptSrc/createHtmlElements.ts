@@ -278,6 +278,7 @@ module createHtmlElements {
 		//          upperArea
 		//              bannerArea
 		//          contentArea
+		//          outputArea
 
 		const body = $("body");
 		body.children().remove() ;

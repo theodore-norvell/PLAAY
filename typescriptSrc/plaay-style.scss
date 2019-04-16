@@ -582,6 +582,15 @@ div.dropZone:hover {
     border-color: white;
 }
 
+div.compactLine > div.dropZone:not(:last-child) {
+    min-width: $veryNarrow ;
+}
+
+div.compactLine > div.dropZone:hover:not(:last-child),
+div.compactLine > div.dropZone.hover:not(:last-child) {
+    min-width: $dropWidth ;
+}
+
 .skinny {
     font-family: serifCodeFont ;
     border: 1px solid transparent;
@@ -821,6 +830,9 @@ div.nullLiteral {
     font-weight:bold;
     text-align:center;
     vertical-align:middle;
+}
+span.quote {
+    font-size: x-large ;
 }
 
 div.typesBorder {

@@ -63,6 +63,8 @@ module treeView
         return buildHTML(node, children, childNumber, needsBorder);
     }
 
+    let compactMode : boolean = true ;
+
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
         let result : JQuery ;
@@ -138,13 +140,28 @@ module treeView
                 result.addClass( "seqBox" ) ;
                 result.addClass( "V" ) ;
                 // Add children and drop zones.
-                for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, true ) ;
-                    dropzones.push( dz ) ;
-                    result.append(dz);
-                    if (i === children.length) break;
-                    result.append(children[i]);
-                }
+                if( compactMode ) {
+                    for (let i = 0; true; ++i) {
+                        const hbox = $(document.createElement("div")) ;
+                        hbox.addClass( "H" ) ;
+                        hbox.addClass( "compactLine" ) ;
+                        result.append( hbox ) ;
+                        const dz = makeDropZone(i, true ) ;
+                        dropzones.push( dz ) ;
+                        hbox.append(dz);
+                        if (i === children.length) break;
+                        const child = children[i] ;
+                        hbox.append(child);
+                    } }
+                else {
+                    for (let i = 0; true; ++i) {
+                        const dz = makeDropZone(i, true ) ;
+                        dropzones.push( dz ) ;
+                        result.append(dz);
+                        if (i === children.length) break;
+                        const child = children[i] ;
+                        result.append(child);
+                    } }
                 result.data("help", "block") ;
             }
             break ;
@@ -476,7 +493,9 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.addClass( "click" ) ;
                 result.addClass( "canDrag" ) ;
-                const openQuote : JQuery = $( document.createElement("span") ).text(LEFTDOUBLEQUOTATIONMARK) ;
+                const openQuote : JQuery = $( document.createElement("span") )
+                                           .addClass( "quote" ) 
+                                           .text(LEFTDOUBLEQUOTATIONMARK) ;
                 result.append(openQuote) ;
                 if ( node.label().isOpen() )
                 {
@@ -490,7 +509,9 @@ module treeView
                     result.append(textEl) ;
                 }
                 
-                const closeQuote : JQuery = $( document.createElement("span") ).text(RIGHTDOUBLEQUOTATIONMARK) ;
+                const closeQuote : JQuery = $( document.createElement("span") )
+                                            .addClass( "quote" ) 
+                                            .text(RIGHTDOUBLEQUOTATIONMARK) ;
                 result.append(closeQuote) ;
                 result.data("help", "stringLiteral") ;
             }
