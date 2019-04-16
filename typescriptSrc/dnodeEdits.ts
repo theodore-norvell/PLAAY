@@ -633,23 +633,30 @@ module dnodeEdits {
         }
     }
 
-    /** Is this a suitable selection to stop at for the up and down arrow keys.
-     * 
+    /** Is this a suitable selection to stop at for the up and down
+     * arrow keys.
     */
     function upDownSuitable<L extends DLabel<L,T>, T extends DNode<L,T>>( opt : Option<Selection<L,T>> ) : boolean {
-        // Need to stop when we can go no further to the up or down.
+        // Need to stop when we can go no further up or down.
         if( opt.isEmpty() ) return true ;
-        // Otherwise stop only on point selections whose
+        // Otherwise stop only on selections whose
         // parents have vertical layout.
         const sel = opt.first() ;
+        const parent = sel.parent() ;
+        if( ! parent.hasVerticalLayout() ) return false ;
+
         const start = sel.start() ;
         const end = sel.end() ;
         if(end - start === 1)
         {
-            return false ;
+            // Stop on single nodes if they are selectable
+            // and the parent has vertical layout.
+            const node = sel.selectedNodes()[0] ;
+            return node.isSelectable() ;
         }
         else if( end === start ) {
-            return sel.parent().hasVerticalLayout() ;
+            // Stop on dropzones if the parent has vertical layout.
+            return parent.hasDropZonesAt( start ) ;
         }
         else
         {
@@ -685,11 +692,12 @@ module dnodeEdits {
         else if( end === start ) {
             // Dropzones are suitable unless there is a place holder
             // (or similar) immediately to the right or left
-            return sel.parent().hasDropZonesAt( start )
-                && ! (   sel.parent().count() > start
-                      && sel.parent().child( start ).isPlaceHolder() ) 
+            const parent = sel.parent() ;
+            return parent.hasDropZonesAt( start )
+                && ! (   parent.count() > start
+                      && parent.child( start ).isPlaceHolder() ) 
                 && ! (   start > 0
-                      && sel.parent().child( start-1 ).isPlaceHolder() ) ;
+                      && parent.child( start-1 ).isPlaceHolder() ) ;
         } else {
             return false ;
         }

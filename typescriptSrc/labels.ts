@@ -482,7 +482,9 @@ module labels {
 
         public getChildPrecedence(child : number) : number {
             return 0 ; }
-            
+
+        public hasVerticalLayout() : boolean {return true;}
+
         public kind() : string { return LambdaLabel.kindConst ; }
     }
     pnode.registry[ LambdaLabel.kindConst ] = LambdaLabel ;
@@ -559,6 +561,8 @@ module labels {
 
         public getChildPrecedence(child : number) : number {
             return 0 ; }
+        
+        public hasVerticalLayout() : boolean {return true;}
             
         public kind() : string { return IfLabel.kindConst ; }
     }
@@ -598,6 +602,8 @@ module labels {
 
         public getChildPrecedence(child : number) : number {
             return 0 ; }
+
+        public hasVerticalLayout() : boolean {return true;}
             
         public kind() : string { return WhileLabel.kindConst ; }
     }
@@ -921,8 +927,6 @@ module labels {
         public toString():string {
             return "tuple" ;
         }
-
-        public hasVerticalLayout() : boolean {return false;}
     
         public hasDropZonesAt(start : number): boolean { return true; }
 
