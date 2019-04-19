@@ -189,9 +189,9 @@ module treeView
                 }
                 result.append(opElement);
                 for( let i=0 ; true ; ++i) {
-                    const dz : JQuery = makeDropZone(i, false) ;
+                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false) ;
                     dropZones.push( dz ) ;
-                    result.append( dz ) ;
+                    result.append( dzContainer ) ;
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
@@ -224,9 +224,9 @@ module treeView
 
                 for( let i=0 ; true ; ++i) {
                     if( node.hasDropZonesAt(i) ) {
-                        const dz : JQuery = makeDropZone(i, false) ;
+                        const {dz: dz, cont: dzContainer} = makeDropZone(i, false) ;
                         dropZones.push( dz ) ;
-                        result.append( dz ) ; }
+                        result.append( dzContainer ) ; }
                     else
                         dropZones.push( null ) ;
                     if( i === children.length ) break ;
@@ -585,9 +585,9 @@ module treeView
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
                     dropZones.push( dz ) ;
-                    result.append(dz);
+                    result.append( dzContainer );
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
@@ -665,9 +665,9 @@ module treeView
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
                     dropZones.push( dz ) ;
-                    result.append(dz);
+                    result.append( dzContainer );
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
@@ -739,9 +739,9 @@ module treeView
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
                     dropZones.push( dz ) ;
-                    result.append(dz);
+                    result.append( dzContainer );
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
@@ -762,9 +762,9 @@ module treeView
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {
-                    const dz = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
                     dropZones.push( dz ) ;
-                    result.append(dz);
+                    result.append( dzContainer );
                     if (i === children.length) break;
                     result.append(children[i]);
                     if( i < children.length -1 ) {
@@ -804,18 +804,18 @@ module treeView
                 hbox.addClass( "H" ) ;
                 hbox.addClass( "compactLine" ) ;
                 seqBox.append( hbox ) ;
-                const dz = makeDropZone(i, true ) ;
+                const {dz: dz, cont: dzContainer} = makeDropZone(i, i === children.length ) ;
                 dropZones.push( dz ) ;
-                hbox.append(dz);
+                hbox.append( dzContainer );
                 if (i === children.length) break;
                 const child = children[i] ;
                 hbox.append(child);
             } }
         else {
             for (let i = 0; true; ++i) {
-                const dz = makeDropZone(i, true ) ;
+                const {dz: dz, cont: dzContainer} = makeDropZone(i, true ) ;
                 dropZones.push( dz ) ;
-                seqBox.append(dz);
+                seqBox.append( dzContainer );
                 if (i === children.length) break;
                 const child = children[i] ;
                 seqBox.append(child);
@@ -885,16 +885,23 @@ module treeView
             jq = jq.parent() ; }
     }
 
-    function makeDropZone( childNumber : number, large : boolean ) : JQuery {
+    function makeDropZone( childNumber : number, large : boolean ) : {dz:JQuery, cont:JQuery} {
         const dropZone : JQuery = $( document.createElement("div") ) ;
-        dropZone.addClass( large ? "dropZone" : "dropZoneSmall" ) ;
-        dropZone.addClass( "H" ) ;
+        dropZone.addClass( "dropZone" ) ;
+        if( large ) dropZone.addClass( "dropZoneLarge" ) ;
+        else dropZone.addClass( "dropZoneSmall" ) ;
         dropZone.addClass( "droppable" ) ;
         // Make it selectable by a click
         dropZone.addClass( "selectable" ) ;
         dropZone.attr("data-isDropZone", "yes");
         dropZone.attr("data-childNumber", childNumber.toString());
-        return dropZone ;
+
+        const container : JQuery = $( document.createElement("div") ) ;
+        container.addClass( "dzContainer" ) ;
+        if( large ) container.addClass( "dropZoneLarge" ) ;
+        else container.addClass( "dropZoneSmall" ) ;
+        container.append( dropZone ) ;
+        return {dz: dropZone, cont: container} ;
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {

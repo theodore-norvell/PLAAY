@@ -12,10 +12,13 @@ $lowerCaseLambda: "\03bb" ;
 $serif: "Noto Serif", "Times New Roman", Times, serif ;
 $sansSerif: "Noto Sans", Verdana, Arial, sans-serif ;
 
-$standardMinHeight: 2ex ;
+$standardMinHeight: 1ex ;
 
 $veryNarrow: 0.2em ;
 $dropWidth: 0.75em ;
+
+$veryShort: 0.5ex;
+$dropHeight: 1.0ex;
 
 $codeFontSize: large ;
 
@@ -258,9 +261,10 @@ html, body
     align-items: stretch ;
 }
 
-#container
+.container
 {
     flex: 5 1 auto ;
+    display: block ;
     top: 0px ;
     bottom: 0px ;
     margin: 1%;
@@ -562,29 +566,65 @@ div.seqBox {
     -webkit-align-self: stretch ; align-self: stretch ;
 }
 
-/* This sort of dropzone is usually used in vertical boxes like seqBoxes. */
+/* Basic drop zone. */
 div.dropZone {
     font-family: serifCodeFont ;
     border: 1px solid transparent;
-    margin: 0px 0px 0px 0px ;
-    min-height: 1ex ;
-    min-width: 10em ;
+    margin: 0px ;
     border-radius: 5px ;
+    /* When not hovered, it sits directly over its container */
+    position: relative ;
+    left: 0px ;
+    top: 0px ;
+}
+/* Basic drop zone container. */
+div.dzContainer {
+    position: static ;
+    font-family: serifCodeFont ;
+    margin: 0px 0px 0px 0px ;
     -webkit-align-self: stretch ;
     align-self: stretch ;
+    border: 1px dotted red;
 }
 
-div.dropZone:hover {
+/* This sort of dropzone container is wide and short */
+div.dzContainer.dropZoneLarge {
+    height: $veryShort ;
+    min-width: 10em ;
+}
+
+/* This sort of dropzone is wide and short */
+div.dropZone.dropZoneLarge {
+    height: $veryShort ;
+    min-width: 10em ;
+    width: 100% ;
+}
+
+
+div.dropZone.dropZoneLarge:hover, div.dropZone.dropZoneLarge.hover {
     border-color: white;
+    height: $dropHeight ;
+    top: ($veryShort - $dropHeight) / 2.0 ;
 }
 
-div.compactLine > div.dropZone:not(:last-child) {
-    min-width: $veryNarrow ;
+
+/* This sort of dropzone container is used in horizontal boxes like calls. */
+div.dzContainer.dropZoneSmall {
+    min-height: $standardMinHeight ;
+    height: auto ;
+    width: $veryNarrow ;
+}
+/* This sort of dropzone is used in horizontal boxes like calls. */
+div.dropZone.dropZoneSmall {
+    min-height: $standardMinHeight ;
+    height: 100%;
+    width: $veryNarrow ;
 }
 
-div.compactLine > div.dropZone:hover:not(:last-child),
-div.compactLine > div.dropZone.hover:not(:last-child) {
-    min-width: $dropWidth ;
+div.dropZone.dropZoneSmall:hover, div.dropZone.dropZoneSmall.hover {
+    border: 1px solid white;
+    width: $dropWidth ;
+    left: ($veryNarrow - $dropWidth)/2.0;
 }
 
 .skinny {
@@ -594,17 +634,7 @@ div.compactLine > div.dropZone.hover:not(:last-child) {
     min-height: $standardMinHeight ;
     border-radius: 5px ;
     align-self: stretch ;
-    min-width: $veryNarrow ;
-}
-
-/* This sort of dropzone is used in horizontal boxes like calls. */
-div.dropZoneSmall {
-    @extend .skinny ;
-}
-
-div.dropZoneSmall:hover, div.dropZoneSmall.hover {
-    border: 1px solid white;
-    min-width: $dropWidth ;
+    width: $veryNarrow ;
 }
 
 div.placeHolder {
