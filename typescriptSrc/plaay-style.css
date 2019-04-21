@@ -1,12 +1,5 @@
 @charset "UTF-8";
 /* SCSS Document */
-.canv {
-  background-color: white;
-  position: absolute;
-  top: 30px;
-  right: 20px;
-}
-
 input.selected {
   color: white;
 }
@@ -60,39 +53,67 @@ div.clipboardItem {
   position: relative;
 }
 
-html, body {
+html {
   background-color: #696969;
+  width: 100vw;
+  height: 100vh;
+}
+
+/* This is the body element of the web app */
+.plaay {
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: column;
+  flex-direction: column;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  -webkit-align-items: stretch;
+  align-items: stretch;
 }
 
 #upperArea {
-  position: absolute;
-  top: 0;
-  left: 0;
-  height: 5%;
-  width: 95%;
+  flex: 0 0 42px;
   margin: 0.3em 2% 0.3em 2%;
   color: #2a0f44;
   font-weight: bold;
   line-height: 1.7em;
   font-size: 1.2em;
   background-color: #696969;
+  display: -webkit-box;
+  display: -moz-box;
+  display: -ms-flexbox;
+  display: -webkit-flex;
+  display: flex;
+  -webkit-flex-direction: row;
+  flex-direction: row;
+  -webkit-flex-wrap: nowrap;
+  flex-wrap: nowrap;
+  -webkit-justify-content: flex-start;
+  justify-content: flex-start;
+  -webkit-align-items: flex-start;
+  align-items: flex-start;
 }
 
 #bannerArea {
-  position: absolute;
-  left: 0;
-  width: 37em;
+  flex: 4 1 auto;
   background-color: #cccccc;
+  padding: 4px 2px;
 }
 
 #userBar {
-  position: absolute;
+  flex: 1 1 auto;
   right: 0;
   width: auto;
   padding: 0 0.5em 0 0.5em;
   text-align: right;
-  float: right;
-  display: block;
 }
 
 .barButtons {
@@ -117,6 +138,13 @@ html, body {
   z-index: 1;
 }
 
+.canv {
+  background-color: white;
+  position: absolute;
+  top: 30px;
+  right: 20px;
+}
+
 #outputAreaCanvas {
   position: static;
   height: 500px;
@@ -126,27 +154,25 @@ html, body {
 }
 
 #contentArea {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  height: 89%;
-  width: 95%;
+  flex: 20 1 70px;
   margin: 0 2% 1% 2%;
   background-color: #cccccc;
+  display: block;
+  position: relative;
 }
 
 .helpFrame {
-  width: 90%;
-  height: 90%;
+  width: 100%;
+  height: 100%;
 }
 
 .tab {
   position: absolute;
-  /* Absolute within its container */
-  top: 0;
+  /* Absolute relative to parent. */
   left: 0;
-  height: 100%;
+  top: 0;
   width: 100%;
+  height: 100%;
   display: -webkit-box;
   display: -moz-box;
   display: -ms-flexbox;
@@ -186,10 +212,8 @@ html, body {
 
 .paletteArea {
   flex: 1 1 auto;
-  top: 0px;
-  bottom: 0px;
+  height: 20px;
   width: auto;
-  height: 70%;
   margin: auto;
   background-color: #262626;
   display: -webkit-box;
@@ -220,11 +244,7 @@ html, body {
 
 .helpPanel {
   flex: 2 1 auto;
-  top: 0px;
-  bottom: 0px;
   margin: 1%;
-  overflow: auto;
-  width: 25%;
 }
 
 /* expression palette */
