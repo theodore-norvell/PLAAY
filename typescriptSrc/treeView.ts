@@ -63,7 +63,7 @@ module treeView
         return buildHTML(node, children, childNumber, needsBorder);
     }
 
-    let compactMode : boolean = true ;
+    let compactMode : boolean = false ;
 
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
@@ -526,6 +526,14 @@ module treeView
             break ;
             case labels.NoTypeLabel.kindConst :
             {
+                // TODO. It would be nice if the
+                // noType and noExp nodes where more 
+                // like dropzones in the HTML.
+                // I.e. the div.noType should be relative
+                // and sit over a div.dzContainer.
+                // To do so, this subroutine should return
+                // a pair of elements. One that goes in the flow
+                // and one that represents the pnode.
                 result  = $(document.createElement("div")) ;
                 result.addClass( "noType" ) ; 
                 result.addClass( "V" ) ;

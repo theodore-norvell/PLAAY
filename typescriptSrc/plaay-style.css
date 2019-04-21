@@ -346,7 +346,7 @@ div.codeBox {
   margin: 1px;
   border-radius: 5px;
   min-height: 1ex;
-  min-width: 0.2em;
+  min-width: 0.3em;
   font-family: "Noto Serif", "Times New Roman", Times, serif;
   font-weight: normal;
   font-size: large;
@@ -355,7 +355,7 @@ div.codeBox {
 }
 
 div.codeBox:hover, div.codeBox.hover {
-  min-width: 0.75em;
+  min-width: 0.8em;
 }
 
 div.codeBox.H {
@@ -498,6 +498,7 @@ div.noType {
   border-radius: 5px;
   -webkit-align-self: stretch;
   align-self: stretch;
+  transition: all 0.5s ease-in-out;
 }
 
 div.noType:hover {
@@ -521,6 +522,7 @@ div.dropZone {
   position: relative;
   left: 0px;
   top: 0px;
+  transition: all 0.5s ease-in-out;
 }
 
 /* Basic drop zone container. */
@@ -530,46 +532,48 @@ div.dzContainer {
   margin: 0px 0px 0px 0px;
   -webkit-align-self: stretch;
   align-self: stretch;
-  border: 1px dotted red;
+  /* border: 1px dotted red; */
 }
 
 /* This sort of dropzone container is wide and short */
 div.dzContainer.dropZoneLarge {
-  height: 0.5ex;
+  height: 0.75ex;
   min-width: 10em;
 }
 
 /* This sort of dropzone is wide and short */
 div.dropZone.dropZoneLarge {
-  height: 0.5ex;
+  height: 0.75ex;
   min-width: 10em;
   width: 100%;
 }
 
 div.dropZone.dropZoneLarge:hover, div.dropZone.dropZoneLarge.hover {
   border-color: white;
-  height: 1ex;
-  top: -0.25ex;
+  height: 2ex;
+  max-height: 2ex;
+  top: -0.625ex;
 }
 
 /* This sort of dropzone container is used in horizontal boxes like calls. */
 div.dzContainer.dropZoneSmall {
   min-height: 1ex;
   height: auto;
-  width: 0.2em;
+  width: 0.3em;
+  max-width: 0.3em;
 }
 
 /* This sort of dropzone is used in horizontal boxes like calls. */
 div.dropZone.dropZoneSmall {
   min-height: 1ex;
   height: 100%;
-  width: 0.2em;
+  width: 0.3em;
 }
 
 div.dropZone.dropZoneSmall:hover, div.dropZone.dropZoneSmall.hover {
   border: 1px solid white;
-  width: 0.75em;
-  left: -0.275em;
+  width: 0.8em;
+  left: -0.25em;
 }
 
 .skinny {
@@ -579,7 +583,7 @@ div.dropZone.dropZoneSmall:hover, div.dropZone.dropZoneSmall.hover {
   min-height: 1ex;
   border-radius: 5px;
   align-self: stretch;
-  width: 0.2em;
+  width: 0.3em;
 }
 
 div.placeHolder {
@@ -605,6 +609,7 @@ div.noExp {
   border-radius: 5px;
   -webkit-align-self: stretch;
   align-self: stretch;
+  transition: all 0.5s ease-in-out;
 }
 
 div.noExp:hover, div.noExp.hover {

@@ -14,11 +14,13 @@ $sansSerif: "Noto Sans", Verdana, Arial, sans-serif ;
 
 $standardMinHeight: 1ex ;
 
-$veryNarrow: 0.2em ;
-$dropWidth: 0.75em ;
+$veryNarrow: 0.3em ;
+$dropWidth: 0.8em ;
 
-$veryShort: 0.5ex;
-$dropHeight: 1.0ex;
+$veryShort: 0.75ex;
+$dropHeight: 2.0ex;
+
+$standardTransition: all 0.5s ease-in-out ;
 
 $codeFontSize: large ;
 
@@ -554,6 +556,7 @@ div.noType {
     min-height: 2ex ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
+    transition: $standardTransition ;
 }
 
 div.noType:hover {
@@ -576,6 +579,7 @@ div.dropZone {
     position: relative ;
     left: 0px ;
     top: 0px ;
+    transition: $standardTransition;
 }
 /* Basic drop zone container. */
 div.dzContainer {
@@ -584,7 +588,7 @@ div.dzContainer {
     margin: 0px 0px 0px 0px ;
     -webkit-align-self: stretch ;
     align-self: stretch ;
-    border: 1px dotted red;
+    /* border: 1px dotted red; */
 }
 
 /* This sort of dropzone container is wide and short */
@@ -604,6 +608,7 @@ div.dropZone.dropZoneLarge {
 div.dropZone.dropZoneLarge:hover, div.dropZone.dropZoneLarge.hover {
     border-color: white;
     height: $dropHeight ;
+    max-height: $dropHeight ;
     top: ($veryShort - $dropHeight) / 2.0 ;
 }
 
@@ -613,6 +618,7 @@ div.dzContainer.dropZoneSmall {
     min-height: $standardMinHeight ;
     height: auto ;
     width: $veryNarrow ;
+    max-width: $veryNarrow ;
 }
 /* This sort of dropzone is used in horizontal boxes like calls. */
 div.dropZone.dropZoneSmall {
@@ -658,6 +664,7 @@ div.noExp {
     min-height: $standardMinHeight ;
     border-radius: 5px ;
     -webkit-align-self: stretch ; align-self: stretch ;
+    transition: $standardTransition ;
 }
 
 div.noExp:hover, div.noExp.hover {
