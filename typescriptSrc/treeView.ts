@@ -63,7 +63,7 @@ module treeView
         return buildHTML(node, children, childNumber, needsBorder);
     }
 
-    let compactMode : boolean = false ;
+    let compactMode : boolean = true ;
 
     function buildHTML(node:PNode, children : Array<JQuery>, childNumber : number, needsBorder : boolean ) : JQuery
     {
@@ -807,19 +807,20 @@ module treeView
 
     function layOutVerticalSequence( seqBox : JQuery, children : Array<JQuery>, dropZones : Array<JQuery|null> ) : void {
         if( compactMode ) {
-            for (let i = 0; true; ++i) {
-                const hbox = $(document.createElement("div")) ;
-                hbox.addClass( "H" ) ;
-                hbox.addClass( "compactLine" ) ;
-                seqBox.append( hbox ) ;
-                const {dz: dz, cont: dzContainer} = makeDropZone(i, i === children.length ) ;
+            for (let i = 0; i < children.length ; ++i) {
+                const hBox = $(document.createElement("div")) ;
+                hBox.addClass( "H" ) ;
+                hBox.addClass( "compactLine" ) ;
+                seqBox.append( hBox ) ;
+                const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
                 dropZones.push( dz ) ;
-                hbox.append( dzContainer );
-                if (i === children.length) break;
+                hBox.append( dzContainer );
                 const child = children[i] ;
-                hbox.append(child);
-            } }
-        else {
+                hBox.append(child); }
+            const {dz: dz, cont: dzContainer} = makeDropZone(children.length, true ) ;
+            dropZones.push( dz ) ;
+            seqBox.append( dzContainer ) ;
+        } else {
             for (let i = 0; true; ++i) {
                 const {dz: dz, cont: dzContainer} = makeDropZone(i, true ) ;
                 dropZones.push( dz ) ;
@@ -896,8 +897,6 @@ module treeView
     function makeDropZone( childNumber : number, large : boolean ) : {dz:JQuery, cont:JQuery} {
         const dropZone : JQuery = $( document.createElement("div") ) ;
         dropZone.addClass( "dropZone" ) ;
-        if( large ) dropZone.addClass( "dropZoneLarge" ) ;
-        else dropZone.addClass( "dropZoneSmall" ) ;
         dropZone.addClass( "droppable" ) ;
         // Make it selectable by a click
         dropZone.addClass( "selectable" ) ;
@@ -906,8 +905,6 @@ module treeView
 
         const container : JQuery = $( document.createElement("div") ) ;
         container.addClass( "dzContainer" ) ;
-        if( large ) container.addClass( "dropZoneLarge" ) ;
-        else container.addClass( "dropZoneSmall" ) ;
         container.append( dropZone ) ;
         return {dz: dropZone, cont: container} ;
     }

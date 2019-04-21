@@ -514,66 +514,78 @@ div.seqBox {
 
 /* Basic drop zone. */
 div.dropZone {
-  font-family: serifCodeFont;
-  border: 1px solid transparent;
-  margin: 0px;
-  border-radius: 5px;
-  /* When not hovered, it sits directly over its container */
   position: relative;
+  font-family: serifCodeFont;
+  margin: 0px;
+  border: 1px solid transparent;
+  border-radius: 5px;
   left: 0px;
   top: 0px;
+  flex-shrink: 0;
   transition: all 0.5s ease-in-out;
+}
+
+/* Drop zone in a horizontal context */
+div.H > div.dzContainer > div.dropZone {
+  width: 0.3em;
+  min-height: 1ex;
+}
+
+/* Drop zone in a vertical context. */
+div.V > div.dzContainer > div.dropZone {
+  height: 0.75ex;
+  min-width: 10em;
+}
+
+div.dropZone:hover,
+div.dropZone.hover {
+  border-color: white;
+}
+
+/* Hovered drop zone in a horizontal context */
+div.H > div.dzContainer > div.dropZone:hover,
+div.H > div.dzContainer > div.dropZone.hover {
+  width: 0.8em;
+  left: -0.25em;
+}
+
+/* Hovered drop zone in a vertical context */
+div.V > div.dzContainer > div.dropZone:hover,
+div.V > div.dzContainer > div.dropZone.hover {
+  height: 2ex;
+  top: -0.625ex;
 }
 
 /* Basic drop zone container. */
 div.dzContainer {
+  display: flex;
   position: static;
+  flex: 1;
+  /* ???? */
   font-family: serifCodeFont;
-  margin: 0px 0px 0px 0px;
+  margin: 0px;
   -webkit-align-self: stretch;
   align-self: stretch;
   /* border: 1px dotted red; */
 }
 
-/* This sort of dropzone container is wide and short */
-div.dzContainer.dropZoneLarge {
-  height: 0.75ex;
-  min-width: 10em;
-}
-
-/* This sort of dropzone is wide and short */
-div.dropZone.dropZoneLarge {
-  height: 0.75ex;
-  min-width: 10em;
-  width: 100%;
-}
-
-div.dropZone.dropZoneLarge:hover, div.dropZone.dropZoneLarge.hover {
-  border-color: white;
-  height: 2ex;
-  max-height: 2ex;
-  top: -0.625ex;
-}
-
-/* This sort of dropzone container is used in horizontal boxes like calls. */
-div.dzContainer.dropZoneSmall {
-  min-height: 1ex;
-  height: auto;
+/* Drop zone container in a horizontal context. */
+div.H > div.dzContainer {
+  -webkit-align-self: stretch;
+  align-self: stretch;
   width: 0.3em;
   max-width: 0.3em;
-}
-
-/* This sort of dropzone is used in horizontal boxes like calls. */
-div.dropZone.dropZoneSmall {
+  height: auto;
   min-height: 1ex;
-  height: 100%;
-  width: 0.3em;
 }
 
-div.dropZone.dropZoneSmall:hover, div.dropZone.dropZoneSmall.hover {
-  border: 1px solid white;
-  width: 0.8em;
-  left: -0.25em;
+/* Drop zone container in a vertical context. */
+div.V > div.dzContainer {
+  flex-direction: column;
+  height: 0.75ex;
+  max-height: 0.75ex;
+  width: auto;
+  min-width: 10em;
 }
 
 .skinny {
