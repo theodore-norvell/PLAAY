@@ -105,6 +105,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardbox, thenbox, elsebox ) ;
                 result.data("help", "if") ;
+                result.attr( "data-tooltip", "If expression") ;
             }
             break ;
             case labels.WhileLabel.kindConst :
@@ -132,6 +133,7 @@ module treeView
                 result.append( guardBox );
                 result.append( doBox );
                 result.data("help", "while") ;
+                result.attr( "data-tooltip", "While expression") ;
             }
             break ;
             case labels.ExprSeqLabel.kindConst :
@@ -139,7 +141,8 @@ module treeView
                 result = $( document.createElement("div") ) ;
                 result.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
-                layOutVerticalSequence( result, children, dropZones ) ;
+                layOutVerticalSequence( result, children, dropZones,
+                                        "Drop zone for expression or declaration" ) ;
                 result.data("help", "block") ;
             }
             break ;
@@ -152,6 +155,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.text("...") ;
                 result.data("help", "expPlaceHolder") ;
+                result.attr( "data-tooltip", "Expression place holder") ;
             }
             break ;
             case labels.ParameterListLabel.kindConst :
@@ -159,7 +163,8 @@ module treeView
                 result = $( document.createElement("div") ) ;
                 result.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
-                layOutVerticalSequence( result, children, dropZones ) ;
+                layOutVerticalSequence( result, children, dropZones,
+                    "Drop zone for parameter declaration" ) ;
                 result.data("help", "parameterList") ;
             }
             break ;
@@ -174,6 +179,7 @@ module treeView
                 result.attr("type", "text");
                 result.attr("list", "oplist");
                 
+                const name = parsers.unparseString(node.label().getVal(), true) ;
                 let opElement : JQuery ;
                 if(! node.label().isOpen() )
                 {
@@ -181,7 +187,6 @@ module treeView
                     opElement.addClass( "op" ) ;
                     opElement.addClass( "H" ) ;
                     opElement.addClass( "click" ) ;
-                    const name = parsers.unparseString(node.label().getVal(), true) ;
                     opElement.text( name ) ;
                 }
                 else {
@@ -189,7 +194,8 @@ module treeView
                 }
                 result.append(opElement);
                 for( let i=0 ; true ; ++i) {
-                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false) ;
+                    const {dz: dz, cont: dzContainer}
+                    = makeDropZone(i, false,  "Drop zone for argument") ;
                     dropZones.push( dz ) ;
                     result.append( dzContainer ) ;
                     if( i === children.length ) break ;
@@ -209,6 +215,7 @@ module treeView
                         $("<div><div/>").addClass("skinny").insertBefore(opElement) ;
                     }
                 }
+                result.attr( "data-tooltip", "Call '"+name+"' expression") ;
                 result.data("help", "callVar") ;
             }
             break ;
@@ -224,7 +231,8 @@ module treeView
 
                 for( let i=0 ; true ; ++i) {
                     if( node.hasDropZonesAt(i) ) {
-                        const {dz: dz, cont: dzContainer} = makeDropZone(i, false) ;
+                        const {dz: dz, cont: dzContainer}
+                         = makeDropZone(i, false, "Drop zone for argument" ) ;
                         dropZones.push( dz ) ;
                         result.append( dzContainer ) ; }
                     else
@@ -232,6 +240,7 @@ module treeView
                     if( i === children.length ) break ;
                     result.append( children[i] ) ;
                 }
+                result.attr( "data-tooltip", "Call expression") ;
                 result.data("help", "call") ;
                 if( children.length === 1 ) needsBorder = true ;
             }
@@ -251,6 +260,7 @@ module treeView
 
                 result.append(opDiv);
                 result.append(children[0]) ;
+                result.attr( "data-tooltip", "Location expression") ;
                 result.data("help", "locExp") ;
             }
             break ;
@@ -271,6 +281,7 @@ module treeView
                 result.append(opDiv);
                 result.append(children[1]);
                 result.data("help", "assign") ;
+                result.attr( "data-tooltip", "Assignment expression") ;
 
             }
             break ;
@@ -284,7 +295,8 @@ module treeView
                 const seqBox : JQuery = $( document.createElement("div") ) ;
                 seqBox.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
-                layOutVerticalSequence( seqBox, children, dropZones ) ;
+                layOutVerticalSequence( seqBox, children, dropZones,
+                    "Drop zone for expression or declaration" ) ;
 
                 result  = $(document.createElement("div")) ;
                 result.addClass( "objectBox" ) ;
@@ -294,6 +306,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardBox );
                 result.append( seqBox );
+                result.attr( "data-tooltip", "Object expression") ;
                 result.data("help", "objectLiteral") ;
             }
             break ;
@@ -307,7 +320,8 @@ module treeView
                 const seqBox : JQuery = $( document.createElement("div") ) ;
                 seqBox.addClass( "seqBox" ).addClass( "V" ) ;
                 // Add children and drop zones.
-                layOutVerticalSequence( seqBox, children, dropZones ) ;
+                layOutVerticalSequence( seqBox, children, dropZones,
+                    "Drop zone for expression" ) ;
 
                 result  = $(document.createElement("div")) ;
                 result.addClass( "arrayBox" ) ;
@@ -317,6 +331,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( guardBox );
                 result.append( seqBox );
+                result.attr( "data-tooltip", "Array expression") ;
                 result.data("help", "arrayLiteral") ;
             }
             break ;
@@ -368,6 +383,7 @@ module treeView
                     suffix.text( "." + node.label().getVal() ) ;
                     result.append(suffix);
                 }
+                result.attr( "data-tooltip", "Field selection expression") ;
                 result.data("help", "dotExpression") ;
 
             }
@@ -412,6 +428,7 @@ module treeView
                 result.addClass( "droppable" ) ;
                 result.append( lambdaHeader ) ;
                 result.append( doBox ) ;
+                result.attr( "data-tooltip", "Function expression") ;
                 result.data("help", "lambdaExpression") ;
             }
             break ;
@@ -423,6 +440,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.html( "&#x23da;" ) ;  // The Ground symbol. I hope.
+                result.attr( "data-tooltip", "Null value") ;
                 result.data("help", "nullExpression") ;
             }
             break ;
@@ -443,6 +461,7 @@ module treeView
                 {
                     result = makeTextInputElement( node, ["var", "H", "input"], collections.some(childNumber) ) ;
                 }
+                result.attr( "data-tooltip", "Variable") ;
                 result.data("help", "variable") ;
             }
             break ;
@@ -475,6 +494,7 @@ module treeView
                                             .addClass( "quote" ) 
                                             .text(RIGHTDOUBLEQUOTATIONMARK) ;
                 result.append(closeQuote) ;
+                result.attr( "data-tooltip", "String value") ;
                 result.data("help", "stringLiteral") ;
             }
             break ;
@@ -499,6 +519,7 @@ module treeView
                                    ["numberLiteral", "H", "input", "canDrag", "droppable"],
                                    collections.some(childNumber) ) ) ;
                 }
+                result.attr( "data-tooltip", "Numeric value") ;
                 result.data("help", "numberLiteral") ;
             }
             break ;
@@ -521,6 +542,7 @@ module treeView
                     colorClass = "redText" ; }
                 result.text( mark ) ;
                 result.addClass( colorClass ) ;
+                result.attr( "data-tooltip", "Boolean value") ;
                 result.data("help", "booleanLiteral") ;
             }
             break ;
@@ -539,6 +561,7 @@ module treeView
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
+                result.attr( "data-tooltip", "Absent type") ;
                 result.data("help", "noType") ;
             }
             break ;
@@ -549,6 +572,7 @@ module treeView
                 result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
+                result.attr( "data-tooltip", "Absent expression") ;
                 result.data("help", "noExpr") ;
             }
             break ;
@@ -576,6 +600,7 @@ module treeView
                     result.append(becomes);
                 }
                 result.append(children[2]);
+                result.attr( "data-tooltip", "Declaration") ;
                 result.data("help", "varDecl") ;
             }
             break ;
@@ -593,7 +618,8 @@ module treeView
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer}
+                    = makeDropZone(i, false, "Drop zone for tuple item" ) ;
                     dropZones.push( dz ) ;
                     result.append( dzContainer );
                     if (i === children.length) break;
@@ -609,6 +635,8 @@ module treeView
                                           .addClass("op") ; ;
                 openPar.addClass("op") ;
                 result.append( closePar ) ; 
+                result.attr( "data-tooltip",
+                             children.length===1 ? "Parenthesized expression":"Tuple expression") ;
                 result.data("help", "tupleExpression") ;
             }
             break ;
@@ -621,42 +649,59 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 
                 const label = node.label() as labels.PrimitiveTypesLabel;
+                let text : string ;
+                let toolTip : string ;
+                let helpString : string 
                 switch(label.type) {
                     case "stringType" :
-                        result.html(STRINGTYPE);
-                        result.data("help", "stringType") ;
+                        text = STRINGTYPE ;
+                        toolTip = "String type" ;
+                        helpString = "stringType" ;
                         break;
                     case "numberType" :
-                        result.html(NUMBERTYPE);
-                        result.data("help", "numberType") ;
+                        text = NUMBERTYPE ;
+                        toolTip = "Number type" ;
+                        helpString = "numberType" ;
                         break;
                     case "booleanType" :
-                        result.html(BOOLEANTYPE);
-                        result.data("help", "booleanType") ;
+                        text = BOOLEANTYPE ;
+                        toolTip = "Boolean type" ;
+                        helpString = "booleanType" ;
                         break;
                     case "nullType" :
-                        result.html(NULLMARK);
-                        result.data("help", "nullType") ;
+                        text = NULLMARK ;
+                        toolTip = "Null type" ;
+                        helpString = "nullType" ;
                         break;
                     case "integerType" :
-                        result.html(INTEGERTYPE);
-                        result.data("help", "integerType") ;
+                        text = INTEGERTYPE ;
+                        toolTip = "Integer type" ;
+                        helpString = "integerType" ;
                         break;
                     case "natType" :
-                        result.html(NATTYPE);
-                        result.data("help", "natType") ;
+                        text = NATTYPE ;
+                        toolTip = "Natural number type" ;
+                        helpString = "natType" ;
                         break ;
                     case "topType" :
-                        result.html(TOPTYPE);
-                        result.data("help", "topType") ;
+                        text = TOPTYPE ;
+                        toolTip = "Top type" ;
+                        helpString = "topType" ;
                         break;
                     case "bottomType" :
-                        result.html(BOTTOMTYPE);
-                        result.data("help", "bottomType") ;
+                        text = BOTTOMTYPE ;
+                        toolTip = "Bottom type" ;
+                        helpString = "bottomType" ;
                         break;
                     default :
-                        result = assert.unreachable("Unknown primitive type in buildHTML.");
+                        assert.unreachable("Unknown primitive type in buildHTML.");
+                        text = "" ;
+                        toolTip = "" ;
+                        helpString = "" ;
                 }
+                result.html( text );
+                result.attr( "data-tooltip", toolTip) ;
+                result.data("help", helpString) ;
             }
             break;
             case labels.TupleTypeLabel.kindConst :
@@ -673,7 +718,8 @@ module treeView
                 result.append( openPar ) ;
                 // Add children and drop zones.
                 for (let i = 0; true; ++i) {
-                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer}
+                    = makeDropZone(i, false, "Drop zone for type" ) ;
                     dropZones.push( dz ) ;
                     result.append( dzContainer );
                     if (i === children.length) break;
@@ -705,6 +751,7 @@ module treeView
                 result.append(children[0]);
                 result.append(arrow);
                 result.append(children[1]);
+                result.attr( "data-tooltip", "Function type") ;
                 result.data("help", "functionType") ;
                 
             }
@@ -717,6 +764,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
                 result.append(children[0]);
+                result.attr( "data-tooltip", "Location type") ;
                 result.data("help", "locationType") ;
             }
             break;
@@ -735,6 +783,7 @@ module treeView
                 result.append(children[0]);
                 result.append(colon);
                 result.append(children[1]);
+                result.attr( "data-tooltip", "Field type") ;
                 result.data("help", "fieldType") ;
             }
             break;
@@ -747,7 +796,8 @@ module treeView
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {
-                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer}
+                    = makeDropZone(i, false, "Drop zone for type" ) ;
                     dropZones.push( dz ) ;
                     result.append( dzContainer );
                     if (i === children.length) break;
@@ -758,6 +808,7 @@ module treeView
                                               .addClass("op") ;
                         result.append( pipe ) ; }
                 }
+                result.attr( "data-tooltip", "Union type") ;
                 result.data("help", "joinType") ;
             }
             break;
@@ -770,7 +821,8 @@ module treeView
                 result.addClass( "droppable" ) ;
 
                 for (let i = 0; true; ++i) {
-                    const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
+                    const {dz: dz, cont: dzContainer}
+                    = makeDropZone(i, false, "Drop zone for type" ) ;
                     dropZones.push( dz ) ;
                     result.append( dzContainer );
                     if (i === children.length) break;
@@ -781,6 +833,7 @@ module treeView
                                              .addClass("op") ;
                         result.append( amp ) ; }
                 }
+                result.attr( "data-tooltip", "Intersection type") ;
                 result.data("help", "meetType") ;
             }
             break;
@@ -805,24 +858,27 @@ module treeView
         return result ;
     }
 
-    function layOutVerticalSequence( seqBox : JQuery, children : Array<JQuery>, dropZones : Array<JQuery|null> ) : void {
+    function layOutVerticalSequence( seqBox : JQuery, children : Array<JQuery>, dropZones : Array<JQuery|null>, dropZoneToolTip : string ) : void {
         if( compactMode ) {
             for (let i = 0; i < children.length ; ++i) {
                 const hBox = $(document.createElement("div")) ;
                 hBox.addClass( "H" ) ;
                 hBox.addClass( "compactLine" ) ;
                 seqBox.append( hBox ) ;
-                const {dz: dz, cont: dzContainer} = makeDropZone(i, false ) ;
+                const {dz: dz, cont: dzContainer}
+                = makeDropZone(i, false, dropZoneToolTip) ;
                 dropZones.push( dz ) ;
                 hBox.append( dzContainer );
                 const child = children[i] ;
                 hBox.append(child); }
-            const {dz: dz, cont: dzContainer} = makeDropZone(children.length, true ) ;
+            const {dz: dz, cont: dzContainer}
+            = makeDropZone(children.length, true, dropZoneToolTip ) ;
             dropZones.push( dz ) ;
             seqBox.append( dzContainer ) ;
         } else {
             for (let i = 0; true; ++i) {
-                const {dz: dz, cont: dzContainer} = makeDropZone(i, true ) ;
+                const {dz: dz, cont: dzContainer}
+                = makeDropZone(i, true, "Drop zone for sequence member" ) ;
                 dropZones.push( dz ) ;
                 seqBox.append( dzContainer );
                 if (i === children.length) break;
@@ -894,13 +950,14 @@ module treeView
             jq = jq.parent() ; }
     }
 
-    function makeDropZone( childNumber : number, large : boolean ) : {dz:JQuery, cont:JQuery} {
+    function makeDropZone( childNumber : number, large : boolean, toolTip : string ) : {dz:JQuery, cont:JQuery} {
         const dropZone : JQuery = $( document.createElement("div") ) ;
         dropZone.addClass( "dropZone" ) ;
         dropZone.addClass( "droppable" ) ;
         // Make it selectable by a click
         dropZone.addClass( "selectable" ) ;
         dropZone.attr("data-isDropZone", "yes");
+        dropZone.attr("data-tooltip", toolTip);
         dropZone.attr("data-childNumber", childNumber.toString());
 
         const container : JQuery = $( document.createElement("div") ) ;

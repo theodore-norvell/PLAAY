@@ -88,7 +88,7 @@ module createHtmlElements {
 			createButton("leftSideButton", "undo", leftButtonsPalette, "undo-48x24.png", "Undo", null);
 			createButton("leftSideButton", "redo", leftButtonsPalette, "redo-48x24.png", "Redo", null);
 			createButton("leftSideButton", "clipboard", leftButtonsPalette, "clipboard-48x24.png", "Clipboard", null);
-			createTexted("div", "leftSideButton", "toggleOutput", leftButtonsPalette, "Output", null);
+			createTexted("div", "leftSideButton", "toggleOutput", leftButtonsPalette, "Output", "Toggle output view", null);
 			
 			createButton("leftSideButton", "cut", rightButtonsPalette, "cut-48x24.png", "Cut", null);
 			createButton("leftSideButton", "copy", rightButtonsPalette, "copy-48x24.png", "Copy", null);
@@ -98,41 +98,41 @@ module createHtmlElements {
 			
 			//createTexted("div", "quitworld", "quitworld", leftSideArea, "Quit World");
 
-			createTexted("div", "leftSideButton paletteItem", "callvar", palette, "+ - ...", Actions.CALL_VAR);
-			createTexted("div", "leftSideButton paletteItem", "call", palette, "call", Actions.CALL);
-			createTexted("div", "leftSideButton paletteItem dataItem", "stringliteral", palette, '""', Actions.STRING);
-			createTexted("div", "leftSideButton paletteItem dataItem", "numberliteral", palette, '123', Actions.NUMBER);
-			createTexted("div", "leftSideButton paletteItem dataItem", "nullliteral", palette, NULLMARK, Actions.NULL );
-			createTexted("div", "leftSideButton paletteItem dataItem", "lambda", palette, LAMBDAMARK, Actions.LAMBDA);
-			createTexted("div", "leftSideButton paletteItem dataItem", "objectliteral", palette, "$", Actions.OBJECT);
-			createTexted("div", "leftSideButton paletteItem dataItem", "arrayliteral", palette, "array", Actions.ARRAY);
-			createTexted("div", "leftSideButton paletteItem dataItem", "tuple", palette, "( )", Actions.TUPLE);
-			createTexted("div", "leftSideButton paletteItem greenText", "trueliteral", palette, TRUEMARK, Actions.TRUE);
-			createTexted("div", "leftSideButton paletteItem redText", "falseliteral", palette, FALSEMARK, Actions.FALSE);
-			createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": :=", Actions.VAR_DECL );
-			createTexted("div", "leftSideButton paletteItem varItem", "var", palette, "x", Actions.VAR);
-			createTexted("div", "leftSideButton paletteItem varItem", "loc", palette, "loc", Actions.LOC);
-			createTexted("div", "leftSideButton paletteItem varItem", "assign", palette, ":=", Actions.ASSIGN);
-			createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", Actions.INDEX);
-			createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", Actions.DOT);
-			createTexted("div", "leftSideButton paletteItem", "if", palette, "?", Actions.IF );
-			createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK, Actions.WHILE );
+			createTexted("div", "leftSideButton paletteItem", "callvar", palette, "+ - ...", "call var", Actions.CALL_VAR);
+			createTexted("div", "leftSideButton paletteItem", "call", palette, "call", "call", Actions.CALL);
+			createTexted("div", "leftSideButton paletteItem dataItem", "stringliteral", palette, '""', "string value",  Actions.STRING);
+			createTexted("div", "leftSideButton paletteItem dataItem", "numberliteral", palette, '123', "numeric value", Actions.NUMBER);
+			createTexted("div", "leftSideButton paletteItem dataItem", "nullliteral", palette, NULLMARK, "null", Actions.NULL );
+			createTexted("div", "leftSideButton paletteItem dataItem", "lambda", palette, LAMBDAMARK, "function", Actions.LAMBDA);
+			createTexted("div", "leftSideButton paletteItem dataItem", "objectliteral", palette, "$", "object", Actions.OBJECT);
+			createTexted("div", "leftSideButton paletteItem dataItem", "arrayliteral", palette, "array", "array ", Actions.ARRAY);
+			createTexted("div", "leftSideButton paletteItem dataItem", "tuple", palette, "( )", "tuple", Actions.TUPLE);
+			createTexted("div", "leftSideButton paletteItem greenText", "trueliteral", palette, TRUEMARK, "True value", Actions.TRUE);
+			createTexted("div", "leftSideButton paletteItem redText", "falseliteral", palette, FALSEMARK, "False value", Actions.FALSE);
+			createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": :=", "Declaration", Actions.VAR_DECL );
+			createTexted("div", "leftSideButton paletteItem varItem", "var", palette, "x", "Variable", Actions.VAR);
+			createTexted("div", "leftSideButton paletteItem varItem", "loc", palette, "loc", "Location", Actions.LOC);
+			createTexted("div", "leftSideButton paletteItem varItem", "assign", palette, ":=", "Assignment", Actions.ASSIGN);
+			createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", "Index", Actions.INDEX);
+			createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", "Select field", Actions.DOT);
+			createTexted("div", "leftSideButton paletteItem", "if", palette, "?", "If expression", Actions.IF );
+			createTexted("div", "leftSideButton paletteItem", "while", palette, WHILEMARK, "While expression", Actions.WHILE );
 					
 			// type palette items
-			createTexted("div","leftSideButton paletteItem typeItem","booleanType",typePalette,BOOLEANTYPE, Actions.BOOLEAN_TYPE );
-			createTexted("div","leftSideButton paletteItem typeItem","stringType",typePalette,STRINGTYPE, Actions.STRING_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","numberType",typePalette,NUMBERTYPE, Actions.NUMBER_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","integerType",typePalette,INTEGERTYPE, Actions.INTEGER_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","natType",typePalette,NATTYPE, Actions.NAT_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","nullType",typePalette,NULLMARK, Actions.NULL_TYPE) ;
-			createTexted("div","leftSideButton paletteItem typeItem","topType",typePalette,TOPTYPE, Actions.TOP_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","bottomType",typePalette,BOTTOMTYPE, Actions.BOTTOM_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","tupleType",typePalette,"( )", Actions.TUPLE_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","locationType",typePalette,"loc", Actions.LOCATION_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","fieldType",typePalette,":", Actions.FIELD_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","functionType",typePalette,FUNCTIONTYPE, Actions.FUNCTION_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","joinType",typePalette,JOINTYPE, Actions.JOIN_TYPE);
-			createTexted("div","leftSideButton paletteItem typeItem","meetType",typePalette,MEETTYPE, Actions.MEET_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","booleanType",typePalette,BOOLEANTYPE, "Boolean type", Actions.BOOLEAN_TYPE );
+			createTexted("div","leftSideButton paletteItem typeItem","stringType",typePalette,STRINGTYPE, "String type", Actions.STRING_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","numberType",typePalette,NUMBERTYPE, "Number type", Actions.NUMBER_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","integerType",typePalette,INTEGERTYPE, "Integer type", Actions.INTEGER_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","natType",typePalette,NATTYPE, "Natural number type", Actions.NAT_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","nullType",typePalette,NULLMARK, "Null type", Actions.NULL_TYPE) ;
+			createTexted("div","leftSideButton paletteItem typeItem","topType",typePalette,TOPTYPE, "Top type", Actions.TOP_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","bottomType",typePalette,BOTTOMTYPE, "Bottom type", Actions.BOTTOM_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","tupleType",typePalette,"( )", "Tuple type", Actions.TUPLE_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","locationType",typePalette,"loc", "Location type", Actions.LOCATION_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","fieldType",typePalette,":", "Field type", Actions.FIELD_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","functionType",typePalette, FUNCTIONTYPE, "Function type", Actions.FUNCTION_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","joinType",typePalette,JOINTYPE, "Union type", Actions.JOIN_TYPE);
+			createTexted("div","leftSideButton paletteItem typeItem","meetType",typePalette,MEETTYPE, "Intersection type", Actions.MEET_TYPE);
 
 
 			// The container for the tree.
@@ -174,7 +174,7 @@ module createHtmlElements {
 			createButton("leftSideButton", "evalStepToReturn", evalButtonsPalette, "out-48x24.png", "Step Out", null );
 			createButton("leftSideButton", "evalUndo", evalButtonsPalette, "undo-48x24.png", "Undo", null );
 			createButton("leftSideButton", "evalRedo", evalButtonsPalette, "redo-48x24.png", "Redo", null );
-			createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonsPalette, "Output", null );
+			createTexted("div", "leftSideButton", "evalToggleOutput", evalButtonsPalette, "Output", "Toggle output view", null );
 			createButton( "leftSideButton", "restart", evalButtonsPalette, "play-48x24.png", "Restart Animator", null);
 			createButton( "leftSideButton", "edit", evalButtonsPalette, "edit-48x24.png", "Edit", null);
 
@@ -273,28 +273,123 @@ module createHtmlElements {
 
 	export function createHtmls() : void {
 
-		//  Overall structure
-		//      body
-		//          upperArea
-		//              bannerArea
-		//          contentArea
-		//          outputArea
+			//  Overall structure
+			//      body
+			//          upperArea
+			//              bannerArea
+			//          contentArea
+			//          outputArea
 
-		const body = $("body");
-		body.children().remove() ;
-		createUpperArea( body )  ;
+			const body = $("body");
+			body.children().remove() ;
+			createUpperArea( body )  ;
 
-		create("div", "", "contentArea", body);
-		const contentArea = $("#contentArea");
+			create("div", "", "contentArea", body);
+			const contentArea = $("#contentArea");
 
-		editorScreen.createScreen( contentArea ) ;
-		animatorScreen.createScreen( contentArea ) ;
-		animatorScreen.hideScreen() ;
-		loginScreen.createScreen( contentArea ) ;
-		loginScreen.hideScreen() ;
-		showEditor() ;
+			editorScreen.createScreen( contentArea ) ;
+			animatorScreen.createScreen( contentArea ) ;
+			animatorScreen.hideScreen() ;
+			loginScreen.createScreen( contentArea ) ;
+			loginScreen.hideScreen() ;
+			showEditor() ;
 
-		createOutputArea( body ) ;
+			createOutputArea( body ) ;
+
+			// TOOLTIPs  (Thanks to: https://stackoverflow.com/a/16462668/667690)
+			let ID = "tooltip" ; /* Must match the .css */
+			let toolTipJQ : null|JQuery = null ;
+			let event : null | JQueryEventObject = null ;
+			let currentCandidate : Element | null = null ;
+			let state : number = 0 ;
+
+			let clearToolTip = () => {
+					if( toolTipJQ !== null ) {
+						  // console.log( "Clearing tool tip") ;
+							toolTipJQ.remove() ;
+							toolTipJQ = null ; }
+			} ;
+			let putToolTipOn = ( that : Element, e:JQueryEventObject ) => {
+						let text = $(that).attr("data-tooltip") ;
+						// console.log( "Adding tool tip ", text ) ;
+						toolTipJQ = $("<div id='" + ID + "' />") ;
+						toolTipJQ.appendTo("body");
+						let OFFSET_X = 30;
+						let OFFSET_Y = -10;
+						let ntop = e.pageY + OFFSET_Y;
+						let nleft = e.pageX + OFFSET_X;
+						toolTipJQ.text( text ).css({
+								position: "absolute", top: ntop, left: nleft }).show();
+			} ;
+
+			$(document).mousemove(
+					function ( this: HTMLElement, e:JQueryEventObject ) {
+							event = e ;
+					} ) ;
+													
+			setInterval(
+					() => {
+							// console.log( ">>tooltip callback" ) ;
+							if( event === null ) {
+								// console.log( ">>tooltip callback (event is null)" ) ;
+								return ;
+							}
+							let candidate : null|Node = event.target ;
+							let tipText : string | null = null ; 
+							while( true ) {
+									if( candidate === null ) break ;
+									if( candidate.nodeType !== 1 ) break ;
+									// console.log( "candidate is ", candidate ) ;
+									tipText = (candidate as Element).getAttribute( "data-tooltip") ;
+									// console.log( "tipText is ", tipText ) ;
+									if( tipText !== null && tipText !== "" ) break ;
+									candidate = candidate.parentNode ;
+							}
+							if( tipText === null || tipText === "" ) {
+									clearToolTip() ;
+									state = 0 ;
+									// console.log( "no candidate" ) ;
+							} else {
+
+									// console.log( "state is ", state ) ;
+									let tipText1 = tipText as string ;
+
+									// console.log( "tipText1 is ", tipText1 ) ;
+									if( state === 0 ) {
+											currentCandidate = candidate as Element;
+											state = 1 ;
+									} else if( state < 3 ) {
+												if( candidate === currentCandidate ) {
+														state += 1 ;
+												} else {
+														clearToolTip() ;
+														state = 0 ;
+												}
+									} else if( state === 3 ) {
+												putToolTipOn( candidate as Element, event as JQueryEventObject ) ;
+												state += 1
+									} else if( state < 14 ) {
+											if( candidate === currentCandidate ) {
+													state += 1 ;
+											} else {
+													clearToolTip() ;
+													state = 0 ;
+											}
+									} else if( state === 14 ) {
+												clearToolTip() ;
+												state = 10 ;
+									} else { /* State is 15 */
+											if( candidate !== currentCandidate ) {
+													clearToolTip() ;
+													state = 0 ;
+											}
+									}
+							}
+							// console.log( "state is ", state ) ;
+							// console.log( "<<tooltip callback" ) ;
+					},
+					200
+			) ;
 	}
 
 	function createUpperArea( body : JQuery ) : void {
@@ -378,14 +473,14 @@ module createHtmlElements {
                            idName: string|null,
                            parentElement: JQuery|null,
                            source : string,
-                           altText: string,
-                           action : Actions|null): JQuery {
+                           altText: string|null,
+                           action : Actions|null): void {
 		const obj = create("img", className, idName, parentElement);
 		obj.attr( "src", source ) ;
-		obj.attr( "alt", altText);
-		obj.attr( "title", altText ) ;
+		if( altText) {
+			obj.attr( "alt", altText);
+		  obj.attr( "data-tooltip", altText ) ;}
 		if ( action !== null) { obj.data("action", action) ; }
-		return obj;
 	}
 
 	function createTexted( elementType: string,
@@ -393,10 +488,13 @@ module createHtmlElements {
 	                       idName: string|null,
 	                       parentElement: JQuery|null,
 	                       textContent: string|null,
+												 altText: string,
 	                       action : Actions|null): JQuery {
 		const obj = create(elementType, className, idName, parentElement);
 		if (textContent!==null) { obj.text(textContent); }
 		if ( action !== null) { obj.data("action", action) ; }
+		if( altText) {
+		  obj.attr( "data-tooltip", altText ) ;}
 		return obj;
 	}
 

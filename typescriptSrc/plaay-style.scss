@@ -232,23 +232,10 @@ html
     margin: 1%;
     background-color: #262626;
 
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: column ;
-    flex-direction: column ;
-    
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    
-    -webkit-justify-content: stretch;
-    justify-content: stretch ;
-    
-    -webkit-align-items: flex-start;
-    align-items: flex-start ;
+    @include verticalFlex();
+    @include wrap(nowrap);
+    @include justifyContent(flex-start);
+    @include alignItems(flex-start);
 }
 
 .paletteArea
@@ -259,23 +246,10 @@ html
     margin: auto;
     background-color: #262626;
 
-    display: -webkit-box;
-    display: -moz-box;
-    display: -ms-flexbox;
-    display: -webkit-flex;
-    display: flex;
-
-    -webkit-flex-direction: row ;
-    flex-direction: row ;
-    
-    -webkit-flex-wrap: nowrap ;
-    flex-wrap: nowrap ;
-    
-    -webkit-justify-content: stretch;
-    justify-content: stretch ;
-    
-    -webkit-align-items:stretch;
-    align-items: stretch ;
+    @include horizontalFlex();
+    @include wrap(nowrap);
+    @include justifyContent(stretch);
+    @include alignItems(stretch);
 }
 
 .container
@@ -350,7 +324,7 @@ html
 
 .dataItem
 {
-    color: ghostwhite ;
+    color: $dataColour ;
 }
 
 .varItem
@@ -926,6 +900,15 @@ that is potentially being dropped on. */
     background-color: ghostwhite !important;
 }
 
+#tooltip {
+    background-color: black ;
+    opacity: 0.6 ;
+    color: ghostwhite ;
+    font-family: $sansSerif ;
+    padding: 5px ;
+    pointer-events: none ;
+}
+
 .ui-widget.success-dialog {
     font-family: $sansSerif;
     font-size: .8em;
@@ -968,6 +951,7 @@ that is potentially being dropped on. */
     position: relative;
     font-size: 1em;
 }
+
 
 div.dialog
 {
