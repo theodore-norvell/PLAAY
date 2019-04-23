@@ -7,7 +7,6 @@
 
 import assert = require( './assert' ) ;
 import collections = require('./collections') ;
-import pnode = require( './pnode' ) ;
 import types = require( './types' ) ;
 
 module subtype {
