@@ -466,7 +466,14 @@ module animationView
             break ;
             case labels.ExprPHLabel.kindConst :
             {
-                makeExprPlaceholderSVG(element);
+                makePlaceholderSVG(element, MAUVE);
+                // result.addClass( "placeHolder" ) ;
+                // result.addClass( "V" ) ;
+            }
+            break ;
+            case labels.TypePHLabel.kindConst :
+            {
+                makePlaceholderSVG(element, YELLOW);
                 // result.addClass( "placeHolder" ) ;
                 // result.addClass( "V" ) ;
             }
@@ -1288,10 +1295,10 @@ module animationView
         textElement.style( varStyle );
     }
 
-    function makeExprPlaceholderSVG(base : svg.Container) : void
+    function makePlaceholderSVG(base : svg.Container, color : string) : void
     {
         const textElement : svg.Text = base.text( "..." );
-        textElement.fill( MAUVE );
+        textElement.fill( color );
         textElement.style( textStyle );
     }
 

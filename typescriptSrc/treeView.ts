@@ -150,12 +150,24 @@ module treeView
             {
                 result = $( document.createElement("div") ) ;
                 result.addClass( "placeHolder" ) ;
-                result.addClass( "V" ) ;
                 result.addClass( "droppable" ) ;
                 result.addClass( "canDrag" ) ;
                 result.text("...") ;
                 result.data("help", "expPlaceHolder") ;
                 result.attr( "data-tooltip", "Expression place holder") ;
+            }
+            break ;
+            case labels.TypePHLabel.kindConst :
+            {
+                result = $( document.createElement("div") ) ;
+                result.addClass( "placeHolder" ) ;
+                result.addClass( "typeItem" ) ;
+                result.addClass( "typesBorder" ) ;
+                result.addClass( "droppable" ) ;
+                result.addClass( "canDrag" ) ;
+                result.text("...") ;
+                result.data("help", "typePlaceHolder") ;
+                result.attr( "data-tooltip", "Type place holder") ;
             }
             break ;
             case labels.ParameterListLabel.kindConst :

@@ -622,16 +622,7 @@ div.placeHolder {
   border: thin solid transparent;
   min-height: 1ex;
   color: #be85c5;
-  /* Orange */
   border-radius: 5px;
-}
-
-div.hCont.placeHolder {
-  border-color: #be85c5;
-}
-
-div.hCont.placeHolder {
-  border-color: #be85c5;
 }
 
 div.noExp {
@@ -648,18 +639,18 @@ div.noExp:hover, div.noExp.hover {
   border-color: white;
 }
 
-div.hCont, div.var, div.assign, div.loc {
+div.var, div.assign, div.loc {
   border: thin solid transparent;
   border-radius: 5px;
   color: #f48c00;
 }
 
-div.hCont.bordered, div.var.bordered, div.assign.bordered, div.loc.bordered {
+div.var.bordered, div.assign.bordered, div.loc.bordered {
   border-color: #f48c00;
 }
 
-div.hCont:hover, div.var:hover, div.assign:hover, div.loc:hover,
-div.hCont.hover, div.var.hover, div.assign.hover, div.loc.hover {
+div.var:hover, div.assign:hover, div.loc:hover,
+div.var.hover, div.assign.hover, div.loc.hover {
   border-color: #f48c00;
 }
 
@@ -800,12 +791,12 @@ div.dot {
   /* Mauve */
 }
 
-div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
+div.placeHolder.bordered, div.call.bordered, div.callVar.bordered, div.accessor.bordered, div.dot.bordered {
   border-color: #be85c5;
 }
 
-div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover,
-div.call.hover, div.callVar.hover, div.accessor.hover, div.dot.hover {
+div.placeHolder:hover, div.call:hover, div.callVar:hover, div.accessor:hover, div.dot:hover,
+div.placeHolder.hover, div.call.hover, div.callVar.hover, div.accessor.hover, div.dot.hover {
   border-color: #be85c5;
 }
 

@@ -374,8 +374,7 @@ module labels {
         public static readonly kindConst : string = "ExprPHLabel" ;
 
         public isValid( children : Array<PNode> ) : boolean {
-            if( children.length !== 0) return false ;
-            return true;
+            return children.length === 0 ;
         }
 
         public toString():string {
@@ -403,6 +402,41 @@ module labels {
 
     }
     pnode.registry[ ExprPHLabel.kindConst ] = ExprPHLabel ;
+
+    /** Place holder nodes for expression. */
+    export class TypePHLabel extends TypeLabel {
+
+        public static readonly kindConst : string = "TypePHLabel" ;
+
+        public isValid( children : Array<PNode> ) : boolean {
+            return children.length === 0 ;
+        }
+
+        public toString():string {
+            return "typePH";
+        }
+
+        private constructor() {
+            super();
+        }
+
+        // Singleton
+        public static theTypePHLabel : TypePHLabel = new TypePHLabel();
+
+        public toJSON() : object {
+            return { kind: TypePHLabel.kindConst, } ;
+        }
+
+        public static fromJSON( json : object ) : TypePHLabel {
+            return TypePHLabel.theTypePHLabel ;
+        }
+
+        public isPlaceHolder() : boolean { return true; }
+            
+        public kind() : string { return TypePHLabel.kindConst ; }
+
+    }
+    pnode.registry[ TypePHLabel.kindConst ] = TypePHLabel ;
 
     /** This class is for optional expressions where there is no expression.
      * Not to be confused with the expression place holder ExpPHLabel which is used when an expression is manditory.
@@ -1096,7 +1130,7 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             return children.every( (c:PNode) =>
-                c.label() instanceof ExprPHLabel || c.isTypeNode() );
+                c.isTypeNode() );
         }
 
         private constructor(val: string, open : boolean) {
@@ -1126,8 +1160,7 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             return children.length === 1
-                && ( children[0].isTypeNode() 
-                     || children[0].label() instanceof ExprPHLabel ) ;
+                && children[0].isTypeNode() ;
         }
 
         private constructor() {
@@ -1155,8 +1188,7 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             return children.length === 2
-                && ( children.every( (c:PNode) =>
-                        c.label() instanceof ExprPHLabel || c.isTypeNode()) ) ;
+                && ( children.every( (c:PNode) => c.isTypeNode()) ) ;
         }
 
         private constructor() {
@@ -1189,8 +1221,7 @@ module labels {
             if( children.length !== 2) return false ;
             if( ! ( children[0].label() instanceof ExprPHLabel
                     || children[0].label() instanceof VariableLabel )) return false ;
-            if( ! ( children[1].label() instanceof ExprPHLabel
-                    || children[1].isTypeNode() ) ) return false ;
+            if( ! ( children[1].isTypeNode() ) ) return false ;
             return true;
         }
 
@@ -1220,8 +1251,7 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             return children.length >= 2
-                && children.every( (c:PNode) =>
-                        c.label() instanceof ExprPHLabel || c.isTypeNode() );
+                && children.every( (c:PNode) => c.isTypeNode() );
         }
 
         private constructor() {
@@ -1254,8 +1284,7 @@ module labels {
 
         public isValid(children:Array<PNode>) : boolean {
             return children.length >= 2
-                && children.every( (c:PNode) =>
-                    c.label() instanceof ExprPHLabel || c.isTypeNode() );
+                && children.every( (c:PNode) => c.isTypeNode() );
         }
 
         private constructor() {
@@ -1285,6 +1314,9 @@ module labels {
 
     export function mkExprPH():PNode {
         return  make(ExprPHLabel.theExprPHLabel, []); }
+
+    export function mkTypePH():PNode {
+        return  make(TypePHLabel.theTypePHLabel, []); }
 
     export function mkNoExpNd():PNode {
         return  make(NoExprLabel.theNoExprLabel, []); }
