@@ -94,7 +94,7 @@ module dnode {
         protected _children:Array<T>;
 
         /** Construct a DNode.
-         *  recondition: label.isValid( children )
+         *  Precondition: label.isValid( children )
          * @param label A DLabel for the node.
          * @param children: A list (Array) of children
          */
@@ -106,8 +106,19 @@ module dnode {
             this._children = children.slice();  // Must make copy to ensure immutability.
         }
 
+        /** Make another node of the same type.
+         * @param label A DLabel for the node.
+         * @param children: A list (Array) of children
+         * Precondition: label.isValid( children )
+         * */
         public abstract make(label:L, children:Array<T>) : T ;
 
+        /** Try to make another node of the same type.
+         *  @param label A DLabel for the node.
+         *  @param children: A list (Array) of children
+         *  @returns If label.isValid( children ) is true, this method returns some(...).
+         *           Otherwise, it returns none().
+         * */
         public abstract tryMake(label:L, children:Array<T>) : Option<T> ;
 
         public abstract thisObject() : T ;
@@ -141,7 +152,12 @@ module dnode {
             return this._label;
         }
 
-        /* Return the node at the path */
+        /** Return the node at the path.
+         *  Precondition: The path must be empty or start with
+         * the number i, such that 0 <= i && i < this.count()
+         * and so on down the tree.
+         * @param path 
+         * */
         public get(path : collections.List<number> ) : T {
              if(path.isEmpty() ) return this.thisObject() ;
              else return this.child( path.first() ).get( path.rest() ) ;
@@ -160,8 +176,8 @@ module dnode {
          * Negative numbers `k` are treated as `length + k`, where `length`
          * is the number of children.
          * @param newChildren An array of children to be added
-         * @param start The first child to omit. Default 0.
-         * @param end The first child after start to not omit. Default this.children().length.
+         * @param start The first child to omit. Default is 0.
+         * @param end The first child after start to not omit. Default is this.count().
          */
         public tryModify(newChildren:Array<T>, start?:number, end?:number):Option<DNode<L,T>> {
             if (start === undefined) start = 0;

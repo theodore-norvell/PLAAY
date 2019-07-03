@@ -305,7 +305,7 @@ module createHtmlElements {
 
 			let clearToolTip = () => {
 					if( toolTipJQ !== null ) {
-						  // console.log( "Clearing tool tip") ;
+							// console.log( "Clearing tool tip") ;
 							toolTipJQ.remove() ;
 							toolTipJQ = null ; }
 			} ;

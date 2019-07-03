@@ -282,7 +282,7 @@ example
     function redo() { ... } // BAD
 ~~~~
 
-Typescript will infer the return type based on the return statements.  So for very short functions, where the type is obvious it is ok to omit the result type.  The following is acceptable
+Typescript will infer the return type based on the return statements.  So for very short functions, where the type is obvious, it is ok to omit the result type.  The following is acceptable
 
 ~~~~typescript
         applyEdit( a : A ) : Option<A> {
@@ -293,7 +293,7 @@ Typescript will infer the return type based on the return statements.  So for ve
         }
 ~~~~
 
-For the first lambda expression, there is no need to declare the type of the result since it is clearly the same as the type of the variable `result` and its type can be seen 2 lines earlier.  For the second lambda expression, the reader may have to think a little more, but if they know about `choose`, they know that both argument should have the same result type.
+For the first lambda expression, there is no need to declare the type of the result since it is clearly the same as the type of the variable `result` and its type can be seen 2 lines earlier.  For the second lambda expression, the reader may have to think a little more, but if they know about `choose`, they know that both arguments should have the same result type.
 
 #### Declare parameter types
 
