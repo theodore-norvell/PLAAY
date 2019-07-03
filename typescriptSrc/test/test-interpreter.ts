@@ -98,7 +98,7 @@ describe( 'StringLiteralLabel', function() : void {
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
         assert.check( val instanceof StringV ) ;
-        assert.check( (val as StringV).getVal() === label.getVal() ) ;
+        assert.check( (val as StringV).getVal() === label.getString() ) ;
     } );
 } ) ;
 
@@ -116,7 +116,7 @@ describe( 'NumberLiteralLabel', function() : void {
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
         assert.check( val instanceof NumberV ) ;
-        assert.check( (val as NumberV).getVal() === Number(label.getVal()) ) ;
+        assert.check( (val as NumberV).getVal() === Number(label.getString()) ) ;
     } );
 
     it('should error out on a bad numebr', function() : void {

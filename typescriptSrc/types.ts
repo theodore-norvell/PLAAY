@@ -560,7 +560,7 @@ module types {
             }
 
             case labels.FieldTypeLabel.kindConst : {
-                const identifier = node.child(0).label().getVal(); 
+                const identifier = node.child(0).label().getString(); 
                 const typeNode = node.child(1);
                 const type = createType(typeNode);
                 return FieldType.createFieldType(identifier, type);

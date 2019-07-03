@@ -191,7 +191,7 @@ module treeView
                 result.attr("type", "text");
                 result.attr("list", "oplist");
                 
-                const name = parsers.unparseString(node.label().getVal(), true) ;
+                const name = parsers.unparseString(node.label().getString(), true) ;
                 let opElement : JQuery ;
                 if(! node.label().isOpen() )
                 {
@@ -216,7 +216,7 @@ module treeView
                 // Binary infix operators
                 if( ! node.label().isOpen() && children.length === 2 )
                 {
-                    const labelString = node.label().getVal() ;
+                    const labelString = node.label().getString() ;
                     if( stringIsInfixOperator( labelString ) ) {
                         // 2 children means the result has [ opElement dz[0] children[0] dz[1] children[1] dz[2] ]
                         assert.check( result.children().length === 6 ) ;
@@ -392,7 +392,7 @@ module treeView
                     const textElem : JQuery = makeTextInputElement( node, ["input"], collections.none<number>() ) ;
                     result.append( textElem ) ;
                 } else {
-                    suffix.text( "." + node.label().getVal() ) ;
+                    suffix.text( "." + node.label().getString() ) ;
                     result.append(suffix);
                 }
                 result.attr( "data-tooltip", "Field selection expression") ;
@@ -466,7 +466,7 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const name = parsers.unparseString(node.label().getVal(), true) ;
+                    const name = parsers.unparseString(node.label().getString(), true) ;
                     result.text( name ) ;
                 }
                 else
@@ -497,7 +497,7 @@ module treeView
                 }
                 else
                 {
-                    const str = parsers.unparseString( node.label().getVal(), true ) ;
+                    const str = parsers.unparseString( node.label().getString(), true ) ;
                     const textEl = $( document.createElement("span") ).text( str ) ;
                     result.append(textEl) ;
                 }
@@ -521,7 +521,7 @@ module treeView
                     result.addClass( "droppable" ) ;
                     result.addClass( "click" ) ;
                     result.addClass( "canDrag" ) ;
-                    const text = parsers.unparseString( node.label().getVal(), false ) ;
+                    const text = parsers.unparseString( node.label().getString(), false ) ;
                     result.text( text ) ;
                 }
                 else
@@ -546,7 +546,7 @@ module treeView
                 result.addClass( "canDrag" ) ;
                 let mark : string ;
                 let colorClass : string ;
-                if( node.label().getVal() === "true" ) {
+                if( node.label().getString() === "true" ) {
                     mark = TRUEMARK ;
                     colorClass = "greenText" ; }
                 else {
@@ -979,7 +979,7 @@ module treeView
     }
 
     function makeTextInputElement( node : PNode, classes : Array<string>, childNumber : collections.Option<number> ) : JQuery {
-        const str = parsers.unparseString(node.label().getVal(), false ) ;
+        const str = parsers.unparseString(node.label().getString(), false ) ;
         const element : JQuery = $(document.createElement("input"));
         for( let i=0 ; i < classes.length ; ++i ) {
             element.addClass( classes[i] ) ; }

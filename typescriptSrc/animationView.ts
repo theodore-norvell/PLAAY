@@ -488,8 +488,8 @@ module animationView
                 const childArray = element.children();
                 // result.addClass( "callVar" ) ;
                 // result.addClass( "H" ) ;
-                const opText = element.text(node.label().getVal());
-                const labelString = node.label().getVal() ;
+                const opText = element.text(node.label().getString());
+                const labelString = node.label().getString() ;
 
                 const padding : number = 10;
                 let x : number = 0;
@@ -712,7 +712,7 @@ module animationView
                 const padding: number = 0;
                 let x : number = padding;
                 x += childArray[0].bbox().width + padding;
-                const dotText : svg.Text= element.text( "." + node.label().getVal() );
+                const dotText : svg.Text= element.text( "." + node.label().getString() );
                 dotText.style( varStyle );
                 dotText.fill(MAUVE);
                 dotText.dmove(x,-5);
@@ -773,7 +773,7 @@ module animationView
             break ;
             case labels.VariableLabel.kindConst :
             {
-                const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
+                const str = node.label().getString().replace(/ /g, OPENBOX ) ;
                 const text : svg.Text = element.text( str );
                 makeVariableLabelSVG(element, text);
                 // result.addClass( "var" ) ;
@@ -782,7 +782,7 @@ module animationView
             break ;
             case labels.StringLiteralLabel.kindConst :
             {
-                makeStringLiteralSVG(element, node.label().getVal());
+                makeStringLiteralSVG(element, node.label().getString());
                 // result.addClass( "stringLiteral" ) ;
                 // result.addClass( "H" ) ;
             }
@@ -790,7 +790,7 @@ module animationView
             case labels.NumberLiteralLabel.kindConst :
             {
 
-                const str = node.label().getVal().replace(/ /g, OPENBOX ) ;
+                const str = node.label().getString().replace(/ /g, OPENBOX ) ;
                 const text : svg.Text = element.text( str );
                 makeSimpleValueSVG(element, text);
                 // result.addClass( "numberLiteral" ) ;
@@ -806,7 +806,7 @@ module animationView
             break ;
             case labels.BooleanLiteralLabel.kindConst :
             {
-                if(node.label().getVal() === "true") {
+                if(node.label().getString() === "true") {
                     const text : svg.Text = element.text( TRUEMARK );
                     makeBooleanLiteralSVG(element,text,true);
                 }

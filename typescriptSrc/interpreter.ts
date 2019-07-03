@@ -78,7 +78,7 @@ module interpreter {
                     const func = vm.getChildVal(0) ;
                     return func instanceof values.ClosureV ;
                 } else if( lab instanceof labels.CallVarLabel ) {
-                    const name = lab.getString().first() ;
+                    const name = lab.getString() ;
                     //console.log("   name is ", name ) ;
                     const feild = vm.getStack().getField(name ) ;
                     if( vm.getStack().hasField( name ) ) {
@@ -359,14 +359,14 @@ module interpreter {
     function booleanLiteralStepper( vm: VMS ) : void {
         const label = vm.getPendingNode().label() ;
         assert.check( label.kind() === labels.BooleanLiteralLabel.kindConst ) ;
-        const str = label.getVal();
+        const str = label.getString();
         const result = str==="true" ? BoolV.trueValue : BoolV.falseValue ;
         vm.finishStep( result, false ) ;
     }
     
     function stringLiteralStepper( vm : VMS ) : void {
         const label = vm.getPendingNode().label() ;
-        const str = label.getVal() ;
+        const str = label.getString() ;
         let result = theStringCache[ str ] ;
         if( result === undefined ) {
             // Normally steppers and selectors should make no changes to anything
@@ -379,7 +379,7 @@ module interpreter {
 
     function numberLiteralStepper( vm : VMS ) : void {
         const label  = vm.getPendingNode().label() ;
-        const str = label.getVal() ;
+        const str = label.getString() ;
         const optNumber = parsers.stringToNumber( str ) ;
         optNumber.choose( (num:number) => {
                 let result = theNumberCache[ num ] ; 
@@ -403,7 +403,7 @@ module interpreter {
         //Check for duplicate parameter names
         const paramNames: String[] = [];
         for (let i = 0; i < paramlist.count(); i++) {
-          const name = paramlist.child(i).child(0).label().getVal();
+          const name = paramlist.child(i).child(0).label().getString();
           if (paramNames.includes(name)) {
             vm.reportError("Lambda contains duplicate parameter names.");
             return;
@@ -418,7 +418,7 @@ module interpreter {
 
     function callVarStepper( vm : VMS ) : void {
         const node = vm.getPendingNode();
-        const variableName = node.label().getVal();
+        const variableName = node.label().getString();
         if (vm.getStack().hasField(variableName)) {
             const opt : Option<Value>
                 = vm.getStack().getField(variableName).getValue();
@@ -492,7 +492,7 @@ module interpreter {
         for (let i = 0; i < args.length; i++) {
             const varDeclNode = paramlist.child(i) ;
             const isCon = (varDeclNode.label() as labels.VarDeclLabel).declaresConstant() ;
-            const varName = varDeclNode.child(0).label().getVal();
+            const varName = varDeclNode.child(0).label().getString();
             //TODO: Correctly set the type of the field.
             const ty = Type.TOP ;
             let val = args[i];
@@ -581,7 +581,7 @@ module interpreter {
               const firstChild = childNode.child(0) ;
               assert.check( firstChild.label() instanceof labels.VariableLabel ) ;
               const varLabel = firstChild.label() as labels.VariableLabel ;
-              const name : string = varLabel.getVal() ;
+              const name : string = varLabel.getString() ;
               const type : Type = Type.TOP ; // TODO compute the type from the 2nd child of the childNode
               const field = new Field( name, type, manager ) ;
               if( names.some( (v : string) => v===name ) ) {
@@ -654,7 +654,7 @@ module interpreter {
         const node : PNode  = vm.getPendingNode();
         assert.check( node.label().kind() === labels.DotLabel.kindConst ) ;
         const object : Value = vm.getChildVal(0); 
-        const name : string = node.label().getVal() ;
+        const name : string = node.label().getString() ;
         if(object instanceof ObjectV) {
             if(object.hasField(name)) {
                 const opt = object.getField(name).getValue();
@@ -731,7 +731,7 @@ module interpreter {
 
     function variableStepper(vm : VMS) : void {
         const variableNode : PNode = vm.getPendingNode();
-        const variableName : string = variableNode.label().getVal();
+        const variableName : string = variableNode.label().getString();
         const variableStack : VarStack = vm.getStack();
         if( ! variableStack.hasField(variableName) ) {
             vm.reportError( "No variable named '" + variableName + "' is in scope." ) ;
@@ -753,7 +753,7 @@ module interpreter {
 
         const variableNode : PNode = vm.getPendingNode().child(0);
         assert.checkPrecondition(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
-        const variableName : string = variableNode.label().getVal();
+        const variableName : string = variableNode.label().getString();
         
         const variableStack : VarStack = vm.getStack();
         assert.check( variableStack.hasField(variableName) ) ;

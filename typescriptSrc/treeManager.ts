@@ -584,7 +584,7 @@ module treeManager {
         public changeNodeString(sel: PSelection, newString: string, tabDirection: number ) : Option<PSelection> {
             // First change the label
             const oldLabelEmpty = sel.size() === 1
-                               && sel.selectedNodes()[0].label().getVal() === "" ;
+                               && sel.selectedNodes()[0].label().getString() === "" ;
             const changeLabel : Edit<PSelection> = new dnodeEdits.ChangeStringEdit(newString);
             // Next, if the newString is an infix operator, the node is a callVar
             // with no children, and the old string was empty ...

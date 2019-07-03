@@ -29,16 +29,15 @@ module labels {
         constructor() {
         }
 
-        public getVal() : string {
-            return "" ; // This is rather unsatisfactory. ...
-            // Should there be a precondition on this method?
+        public getString() : string {
+            return assert.failedPrecondition("Label has no string.") ;
         }
 
         public isOpen() : boolean { return false ; }
 
         public open() : Option<PLabel>  { return none<PLabel>() ; }
 
-        public getString() : Option<string> {
+        public getOptString() : Option<string> {
             return none<string>() ;
         }
 
@@ -129,11 +128,11 @@ module labels {
             this._open = open ;
         }
 
-        public getVal() : string {
+        public getString() : string {
             return this._val;
         }
 
-        public getString() : Option<string> {
+        public getOptString() : Option<string> {
             return some<string>( this._val ) ;
         }
 

@@ -17,14 +17,11 @@ module dnode {
     export interface DLabel< L extends DLabel<L,T>, T extends DNode<L,T>> {
         isValid : (children:Array<T>) => boolean ;
 
-        /** Get the string value associated with the node, if there is one.
-         * For example for variables, this would be the name of the variable.
-         * DLabels that don't have a string associated with them must return null.
-         * DLabels that do must not return null .
-         * TODO:  Better to return an option.
-         * TODO: Change name to getString.
+        /** Get the string value associated with the label, if there is one.
+         * Precondition. The label must have a string value associated with it.
+         * x.getString() is effectively a shortcut for x.getOptString().first().
          */
-        getVal : () => string ; 
+        getString : () => string ; 
 
         /** DLabels with string values can be open or closed.
          * When open they display in a way that permits the string value to be edited.
@@ -41,10 +38,11 @@ module dnode {
         open : () => Option<L> ; 
 
         /* Get the string value associated with the label if there is one */
-        getString : () => Option<string> ;
+        getOptString : () => Option<string> ;
 
         /** Possibly change the string value associated with this label. 
-         * The argument must not be null!
+         * Typically this is used to produce a closed node from an open one,
+         * but it could be used in other ways.
          * DLabels that don't have a string associated with them should return None.
          * DLabels that do have a string associated with them should return Some unless
          * there is a validity problem.
