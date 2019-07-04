@@ -572,7 +572,9 @@ module editor {
             }
             let key = e.key ; 
             if( typeof(key) == 'undefined') key = "" ;
-            console.log( "  e.key is " +e.key+ "  e.originalEvent.code is " +orig.code+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
+            console.log( "  e.key is " +e.key+ ", e.originalEvent.code is " +orig.code+
+                         ", e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+
+                         ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
 
             // (0) Make a string out of the event
 
@@ -629,7 +631,7 @@ module editor {
     }
 
     
-    const old_keyDownHandler
+    const old_keyDownHandler // TODO Delete this definition.
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
             console.log( ">>keydown handler." ) ;
             console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
@@ -1128,17 +1130,15 @@ module editor {
     let pendingAction : number|null = null ;
 
     function generateHTMLSoon( ) : void {
-        console.log( ">>generateHTMLSoon") ;
+        //console.log( ">>generateHTMLSoon") ;
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
             function() : void {
-                console.log( ">>callback") ;
                 generateHTML() ; scrollIntoView();
-                console.log( "<<callback") ;
             },
             20) ;
-        console.log( "<<generateHTMLSoon") ;
+        //console.log( "<<generateHTMLSoon") ;
     }
 
     let saving : boolean = false;
