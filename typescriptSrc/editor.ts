@@ -248,7 +248,9 @@ module editor {
     function generateHTML() : void
     {
         // Refresh the view of the current selection
+        console.log( "Building HTML") ;
         const newHTML : JQuery = treeView.traverseAndBuild(currentSelection.root() ) ;
+        console.log( "Done building HTML") ;
         $("#container").empty().append(newHTML);
         treeView.highlightSelection( currentSelection, newHTML ) ;
         var helpStr = treeView.findHelpString( currentSelection, newHTML ) ;
@@ -1124,11 +1126,19 @@ module editor {
     }
 
     let pendingAction : number|null = null ;
+
     function generateHTMLSoon( ) : void {
+        console.log( ">>generateHTMLSoon") ;
         if( pendingAction !== null ) {
             window.clearTimeout( pendingAction as number ) ; }
         pendingAction = window.setTimeout(
-            function() : void { generateHTML() ; scrollIntoView(); }, 20) ;
+            function() : void {
+                console.log( ">>callback") ;
+                generateHTML() ; scrollIntoView();
+                console.log( "<<callback") ;
+            },
+            20) ;
+        console.log( "<<generateHTMLSoon") ;
     }
 
     let saving : boolean = false;

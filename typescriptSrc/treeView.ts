@@ -51,7 +51,7 @@ module treeView
         return traverseAndBuildLocal( node, -1, 0 ) ;
     }
 
-    export function traverseAndBuildLocal(node:PNode, childNumber: number, contextPrec : number) : JQuery
+    function traverseAndBuildLocal(node:PNode, childNumber: number, contextPrec : number) : JQuery
     {
         const label = node.label() ;
         const children = new Array<JQuery>() ;

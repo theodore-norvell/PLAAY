@@ -17,6 +17,7 @@ import userRelated = require('./userRelated');
 module main {
     
     export function onLoad(programId : string | undefined = undefined) : void {
+        console.log(">> onLoad") ;
         createHtmlElements.createHtmls();
         animator.executingActions();
         userRelated.userRelatedActions();
@@ -24,6 +25,7 @@ module main {
         if (programId) {
             userRelated.loadProgram(programId);
         }
+        console.log("<< onLoad") ;
     }
 }
 

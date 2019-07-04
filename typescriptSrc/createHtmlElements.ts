@@ -324,14 +324,15 @@ module createHtmlElements {
 
 			$(document).mousemove(
 					function ( this: HTMLElement, e:JQueryEventObject ) {
+						    console.log( "mouse moved" ) ;
 							event = e ;
 					} ) ;
 													
 			setInterval(
 					() => {
-							// console.log( ">>tooltip callback" ) ;
+							console.log( ">>tooltip callback" ) ;
 							if( event === null ) {
-								// console.log( ">>tooltip callback (event is null)" ) ;
+								console.log( ">>tooltip callback (event is null)" ) ;
 								return ;
 							}
 							let candidate : null|Node = event.target ;
@@ -385,8 +386,8 @@ module createHtmlElements {
 											}
 									}
 							}
-							// console.log( "state is ", state ) ;
-							// console.log( "<<tooltip callback" ) ;
+							console.log( "state is ", state ) ;
+							console.log( "<<tooltip callback" ) ;
 					},
 					200
 			) ;
