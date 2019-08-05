@@ -336,7 +336,8 @@ module interpreter {
 
     function varDeclSelector(vm : VMS) : void {
         const variableNode : PNode = vm.getPendingNode().child(0);
-        assert.check(variableNode.label().kind() === labels.VariableLabel.kindConst, "Attempting to declare something that isn't a variable name.");
+        assert.check( variableNode.label().kind() === labels.VariableLabel.kindConst,
+                      "Attempting to declare something that isn't a variable name.");
         const initializerNode : PNode = vm.getPendingNode().child(2) ;
         if ( ! (initializerNode.label() instanceof labels.NoExprLabel )
          &&  !vm.isChildMapped(2) ) {

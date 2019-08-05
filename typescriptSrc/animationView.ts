@@ -1068,8 +1068,12 @@ module animationView
     /**
      * @param element is an intially empty group that will be contain the SVG rendering of the value.
      */
-    function buildSVGForValue(element : svg.G, value : Value, drawNestedObjects : boolean,
-                              shouldHighlight : boolean = false, optError : Option<string> = none()) : void
+    function buildSVGForValue(
+        element : svg.G, value : Value,
+        drawNestedObjects : boolean,
+        shouldHighlight : boolean = false,
+        optError : Option<string> = none()
+    ) : void
     {
         let drawHighlightOn : svg.G = element;
         if(value.isNullV())

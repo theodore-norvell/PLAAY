@@ -65,7 +65,7 @@ module treeManager {
     export class TreeManager {
 
         public createNode( action: Actions, sel:PSelection) : Option<PSelection> {
-            console.log( "treeManager.createNode action is " + action.toString() ) ;
+            console.log( "treeManager.createNode action is " + Actions[action].toString() ) ;
             let edit : Edit<PSelection> ;
             switch ( action) {
                 //loops & if
@@ -223,7 +223,7 @@ module treeManager {
 
         //Only for nodes that can contain text, such as variables and strings.
         public createNodeWithText( action: Actions, sel: PSelection, text: string ) : Option<PSelection> {
-            console.log( "treeManager.createNodeWithText action is " + action.toString() + " text is " + text ) ;
+            console.log( "treeManager.createNodeWithText action is " + Actions[action].toString() + " text is " + text ) ;
             let edit : Edit<PSelection> ;
             switch (action) {
                 case Actions.STRING:
