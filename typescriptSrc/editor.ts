@@ -43,8 +43,8 @@ module editor {
 
     enum DragEnum { CURRENT_TREE, CLIPBOARD, PALLETTE, NONE }
 
-    const redostack : Array<PSelection> = [];
-    const undostack  : Array<PSelection> = [];
+    const redoStack : Array<PSelection> = [];
+    const undoStack  : Array<PSelection> = [];
     const clipboardArray : Array<PSelection> = [];
 
     // Invariant: draggedObject===undefined if and only if dragKind===DragEnum.NONE 
@@ -151,8 +151,8 @@ module editor {
             for(let i = 0; i < clipboardArray.length; i++)
             {
                 const clipboardItemDiv = create("div", "clipboardItem", null, dialogDiv).attr("data-clipboardItem", i.toString()) ;
-                const clipboardedSelection = clipboardArray[i] ;
-                const a : Array<pnode.PNode> =  clipboardedSelection.selectedNodes()  ;
+                const clipboardSelection = clipboardArray[i] ;
+                const a : Array<pnode.PNode> =  clipboardSelection.selectedNodes()  ;
                 for( let j=0 ; j < a.length; ++j ) {
                     clipboardItemDiv.append($(treeView.traverseAndBuild(a[j]))); }
             }
@@ -192,22 +192,15 @@ module editor {
                 const optSelectionToDelete : Option<PSelection>
                     = treeView.getPathToNode(currentSelection.root(), ui.draggable);
                 console.log("   Dropping selection. " + optSelectionToDelete.toString() );
-                const opt = optSelectionToDelete.bind(
-                    selectionToDelete => treeMgr.delete( selectionToDelete ) ) ;
-                opt.map(
-                    sel => {
-                        console.log("   Dropping into clipboard a" );
-                        console.log("   New selection is. " + sel.toString() );
-                        
-                        // Note that:
-                        //   optSelectionToDelete.isEmpty() ===>  opt.isEmpty()
-                        // Therefore the use of optSelectionToDelete.first() below
-                        // can not fail.
-                        addToClipboard( optSelectionToDelete.first() ) ;
+                optSelectionToDelete.bind( selectionToDelete =>
+                    treeMgr.delete( selectionToDelete ).map( sel => {
+                        //console.log("   Dropping into clipboard a" );
+                        //console.log("   New selection is. " + sel.toString() );
+                        addToClipboard( selectionToDelete ) ;
                         update( sel ) ;
-                        console.log("   Dropping into clipboard b" );
-                        console.log("   Dropping into clipboard c" );
-                    } );
+                        //console.log("   Dropping into clipboard b" );
+                        //console.log("   Dropping into clipboard c" );
+                    } ) ) ;
                 console.log("<< Dropping into clipboard" );
             }
         });
@@ -218,10 +211,11 @@ module editor {
         if( selectionArray.length < 1 ) return ;
 
         // Make an object representing all the buttons we need.
-        const buttonsObj = {} ;
+        // One button for each alternative except the first. The first
+        // is the action already made.
+        const buttonsObj : { [key:string] : () => void ; } = {} ;
         for( let i = 1 ; i < selectionArray.length ; ++i ) {
-            buttonsObj[ selectionArray[i][1] ]
-                = function () : void { update( selectionArray[i][2] ) ; } ;
+            buttonsObj[ selectionArray[i][1] ] = () => update( selectionArray[i][2] );
         }
 
         const dialogDiv : JQuery = $("<div></div>") ;
@@ -281,9 +275,8 @@ module editor {
                         // Pick the first action that succeeded, if any
                         if(  selectionArray.length > 0 ) {
                                 // Do the first action.
-                                console.log("  Doing a " + selectionArray[0][0] ) ;
                                 update( selectionArray[0][2] ) ;
-                                console.log("  HTML generated" ) ;
+                                // Show the user what was done and also the alternatives.
                                 showAlternativesDialog(selectionArray);
                         }
                     }
@@ -294,12 +287,7 @@ module editor {
                         const opt = treeMgr.paste( draggedSelection, dropTarget ) ;
                         console.log("  opt is " + opt ) ;
                         assert.check( opt !== undefined ) ;
-                        opt.map(
-                            sel => {
-                                console.log("  Insertion is possible." ) ;
-                                update( sel ) ;
-                                console.log("  HTML generated" ) ;
-                            } );
+                        opt.map( update ) ;
                     }
                     else if( dragKind === DragEnum.PALLETTE ) 
                     {
@@ -355,7 +343,7 @@ module editor {
                     console.log( ">> Click Handler") ;
                     const optClickTarget :  Option<PSelection>
                     = treeView.getPathToNode(currentSelection.root(), $(this)) ;
-                    optClickTarget.map( clickTarget => update( clickTarget ) ) ;
+                    optClickTarget.map( update )  ;
                     evt.stopPropagation(); 
                     console.log( "<< Click Handler") ;
                 } );
@@ -369,7 +357,7 @@ module editor {
                     = treeView.getPathToNode(currentSelection.root(), $(this)) ;
                     optClickTarget.map( clickTarget => {
                         const opt = treeMgr.openLabel(clickTarget) ;
-                        opt.map( (sel : PSelection) => update( sel ) ) ; } ) ;
+                        opt.map( update ) ; } ) ;
                     evt.stopPropagation(); 
                     console.log( "<< Double Click Handler") ;
                 });
@@ -383,17 +371,18 @@ module editor {
             = treeView.getPathToNode(currentSelection.root(), $(element) )  ;
         //console.log( "  locationOfTarget is " + optLocationOfTarget ) ;
         
-        optLocationOfTarget.bind(
-            locationOfTarget => treeMgr.changeNodeString( locationOfTarget, text, tabDirection ) )
-        .map( (result : PSelection) => update( result ) ) ;
+        optLocationOfTarget.bind( locationOfTarget =>
+            treeMgr.changeNodeString( locationOfTarget, text, tabDirection ) )
+        .map( update ) ;
         //console.log( "<< updateLabelHelper " + result.toString() ) ;
     }
 
     
     const updateLabelHandler = function (this : HTMLElement, e : Event ) : void {
-            console.log( ">>updateLabelHandler") ;
+            //console.log( ">>updateLabelHandler") ;
             updateLabelHelper( this, 1 ) ;
-            console.log( "<< updateLabelHandler") ; } ;
+            //console.log( "<< updateLabelHandler") ;
+        } ;
 
     const keyDownHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
@@ -427,9 +416,9 @@ module editor {
 
     const deep_paste_keh = function ( depth : number ) {
         return function( e : JQueryKeyEventObject ) : boolean {
-            getFromDeepClipboard(depth).map( (src : PSelection) =>
-                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ) ;
+            getFromDeepClipboard(depth)
+            .map( (src : PSelection) => treeMgr.paste( src, currentSelection )
+            .map( update ) ) ;
             return true ;
         }
     } 
@@ -440,8 +429,7 @@ module editor {
     } 
 
     const selectAll_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.selectAll( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.selectAll( currentSelection ).map( update ) ;
         return true ;
     } 
 
@@ -456,74 +444,62 @@ module editor {
     }
     
     const moveOut_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveOut( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveOut( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveUp_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveUp( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveUp( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveDown_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveDown( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveDown( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveLeft_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveLeft( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveLeft( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveRight_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveRight( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveRight( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveFocusUp_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveFocusUp( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveFocusUp( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveFocusDown_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveFocusDown( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveFocusDown( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveFocusLeft_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveFocusLeft( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveFocusLeft( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveFocusRight_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveFocusRight( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveFocusRight( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveTabForward_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveTabForward( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveTabForward( currentSelection ).map( update ) ;
         return true ;
     }
     
     const moveTabBack_keh = function( e : JQueryKeyEventObject ) : boolean {
-        treeMgr.moveTabBack( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
+        treeMgr.moveTabBack( currentSelection ).map( update ) ;
         return true ;
     }
     
     const openLabel_keh = function( e : JQueryKeyEventObject ) : boolean {
-        const opt = treeMgr.openLabel( currentSelection ) ;
-                opt.map( (sel : PSelection) => update( sel ) ) ;
+        treeMgr.openLabel( currentSelection ).map( update ) ;
         return true ;
     }
 
@@ -550,20 +526,20 @@ module editor {
             // See https://www.w3.org/TR/uievents/
             // and https://www.w3.org/TR/uievents-code/
             // and https://www.w3.org/TR/uievents-key/
-            // Note that W3C uses the words "key" and "code" counterintuitively.
+            // Note that W3C uses the words "key" and "code" counter-intuitively.
             // *  The "key" is the character that is being entered. E.g. if you
-            //    hit the Z key on a querty keyboard it will be "z" (or "Z" if shifted)
+            //    hit the Z key on a QUERTY keyboard it will be "z" (or "Z" if shifted)
             //    hitting the same key on a AZERTY keyboard generates a "a" or "A".
             // *  Code represents the position of the key on the board.
-            //    E.g. hitty Q on a querty keyboard gives KeyQ.
-            //    But on an AZERTY keyboard hitting the A key gived KeyQ.
+            //    E.g. hitting Q on a QUERTY keyboard gives KeyQ.
+            //    But on an AZERTY keyboard hitting the A key gives KeyQ.
             console.log( ">>keydown handler." ) ;
             // Older JQuery does not copy the code field.
             // So we get it from the original event
             const orig = e.originalEvent as KeyboardEvent
             let code = orig.code ; 
             if( typeof(code) == 'undefined') code = "" ;
-            // Older browswers might follow an older standard.
+            // Older browsers might follow an older standard.
             switch( code ) {
                 case "Up" : code = "ArrowUp" ; break ;
                 case "Down" : code = "ArrowDown" ; break ;
@@ -595,15 +571,16 @@ module editor {
             {
                 // In these cases we pay attention to the physical keyboard key rather than
                 // the character it happens to represent.
-                // E.g. "KeyC", even if it represents a greek Psi on a greek keyboard.
+                // E.g. Hitting Psi on a greek keyboard when the 
+                // control key is down produces "Control_KeyC".
                 if( e.altKey ) str += "Alt_" ;
                 if( e.ctrlKey ) str += "Control_" ;
                 if( e.metaKey ) str += "Meta_" ;
                 if( e.shiftKey ) str += "Shift_" ;
                 str += code ;
             } else {
-                // No control or meta modifier. We can just use the
-                // value of the key attribute, 
+                // No control or meta modifier. We just use the
+                // value of the key attribute.
                 // In this case the alt, shift, control, and meta
                 // keys are ignored.
                 str += key ;
@@ -630,350 +607,10 @@ module editor {
             }
     }
 
-    
-    const old_keyDownHandler // TODO Delete this definition.
-        =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
-            console.log( ">>keydown handler." ) ;
-            console.log( "  e.which is " +e.which+ "e.ctrlKey is " +e.ctrlKey+ ", e.metaKey is " +e.metaKey+ ", e.shiftKey is " +e.shiftKey + ", e.altKey is" +e.altKey ) ;
-            // Cut: Control X, command X, delete, backspace, etc.
-            if ((e.ctrlKey || e.metaKey) && e.which === 88 || e.which === 8 || e.which === 46 ) 
-            {
-                cut();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Copy: Cntl-C or Cmd-C
-            else if ((e.ctrlKey || e.metaKey) && e.which === 67 ) 
-            {
-                copy();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Paste: Cntl-V or Cmd-V
-            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey && e.which === 86) 
-            {
-                paste();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Paste from deep clipboard: Cntl-number key or Cmd-number key
-            else if ((e.ctrlKey || e.metaKey) && ((e.which >= 49 && e.which <= 57) || e.which >= 97 && e.which <= 105)) 
-            {
-                let num : number = e.which;
-                if(num >= 96)
-                {
-                    num -= 48; //Convert numpad key to number key
-                }
-                num -= 48; //convert from ASCII code to the number
-                getFromDeepClipboard(num).map( (src : PSelection) =>
-                     treeMgr.paste( src, currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-
-            // Swap: Cntl-B or Cmd-B
-            else if ((e.ctrlKey || e.metaKey) && e.which === 66) 
-            {
-            
-                swap();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Select all: Cntl-A or Cmd-A
-            else if ((e.ctrlKey || e.metaKey) && e.which === 65) 
-            {
-                treeMgr.selectAll( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Undo: Cntl-Z or Cmd-Z
-            else if ((e.ctrlKey || e.metaKey) && !e.shiftKey &&  e.which === 90) 
-            {
-                keyboardUndo();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Redo: Cntl-Y or Cmd-Y (or Ctrl-Shift-Z or Cmd-Shift-Z)
-            else if ((e.ctrlKey || e.metaKey) && (e.which === 89 || (e.shiftKey && e.which === 90))) 
-            {
-                keyboardRedo();
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 32) // space bar
-            {
-                treeMgr.moveOut( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 38 && ! e.shiftKey ) // up arrow
-            {
-                treeMgr.moveUp( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 40 && ! e.shiftKey) // down arrow
-            {
-                treeMgr.moveDown( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 37 && ! e.shiftKey) // left arrow
-            {
-                treeMgr.moveLeft( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }            
-            else if (e.which === 39 && ! e.shiftKey) // right arrow
-            {
-                treeMgr.moveRight( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }else if (e.which === 38 && e.shiftKey ) // shifted up arrow
-            {
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 40 && e.shiftKey) // shifted down arrow
-            {
-                treeMgr.moveFocusDown( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.which === 37 && e.shiftKey) // shifted left arrow
-            {
-                treeMgr.moveFocusLeft( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }            
-            else if (e.which === 39 && e.shiftKey) // shifted right arrow
-            {
-                treeMgr.moveFocusRight( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (!e.shiftKey && e.which === 9) // tab
-            {
-                treeMgr.moveTabForward( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (e.shiftKey && e.which === 9) // shift+tab
-            {
-                treeMgr.moveTabBack( currentSelection ).map( (sel : PSelection) =>
-                         update( sel ) ) ;
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            else if (! e.shiftKey && e.which === 13) // enter
-            {
-                const opt = treeMgr.openLabel( currentSelection ) ;
-                opt.map( (sel : PSelection) => update( sel ) ) ;
-                e.stopPropagation() ;
-                e.preventDefault() ;
-            }
-            else 
-            {
-                tryKeyboardNodeCreation(e);
-            }
-            console.log( "<<keydown handler") ;
-    };
-
-    function tryKeyboardNodeCreation(e : JQueryKeyEventObject ) : void
-    {
-            console.log( "Shift is " + e.shiftKey + " which is " + e.which) ;
-            // Create location decl node: ;  
-            if ( (!e.shiftKey && e.which===59) ) 
-            {
-                createNode( Actions.LOC_OR_LOCATION_TYPE, currentSelection );
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            // Create constant decl node: , or Cntl-Shift-C or Cmd-Shift-C 
-            else if ( (!e.shiftKey && e.which===188)
-              || (e.ctrlKey || e.metaKey) && e.shiftKey && e.which === 67) 
-            {
-                createNode( Actions.VAR_DECL, currentSelection );
-                e.stopPropagation(); 
-                e.preventDefault(); 
-            }
-            //Create assignment node: shift+; (aka :)
-            else if (e.shiftKey && (e.which === 59 || e.which === 186))
-            {
-                createNode(Actions.ASSIGN_OR_ASSIGN_TYPE, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create numeric literal node: any digit key (including numpad keys)
-            else if (!(e.ctrlKey || e.metaKey || e.shiftKey) && ((e.which >= 48 && e.which <= 57)
-                   || e.which >= 96 && e.which <= 105))
-            {
-                let charCode : number = e.which;
-                if(charCode >= 96)
-                {
-                    charCode -= 48; //Convert numpad key to number key
-                }
-                createNode(Actions.NUMBER_OR_NUMBER_TYPE, currentSelection, String.fromCharCode(charCode) );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create if node: shift+/ (aka ?)
-            else if (e.shiftKey && e.which === 191)
-            {
-                createNode(Actions.IF_OR_BOOL_TYPE, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create while node: shift+2 (aka @)
-            else if (e.shiftKey && e.which === 50)
-            {
-                createNode(Actions.WHILE, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create lambda node: with the \ key
-            else if (!e.shiftKey && e.which === 220)
-            {
-                createNode(Actions.LAMBDA_OR_FUNCTION_TYPE, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create call node: with the shift - key (aka _)
-            else if (e.shiftKey && (e.which === 189 || e.which === 173) )
-            {
-                createNode(Actions.CALL, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create string literal node: shift+' (aka ")
-            else if (e.shiftKey && e.which === 222)
-            {
-                createNode(Actions.STRING_OR_STRING_TYPE, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create variable node: any letter
-            else if (!(e.ctrlKey || e.metaKey) && e.which >= 65 && e.which <= 90)
-            {
-                let charCode : number = e.which;
-                if(!e.shiftKey) //Handle capital vs lowercase letters.
-                {
-                    charCode += 32;
-                }
-                createNode(Actions.VAR, currentSelection, String.fromCharCode(charCode) );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            else if( !e.shiftKey && e.which === 192 ) {  // Backquote
-                createNode(Actions.CALL_VAR, currentSelection );
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create call world node: shift+= (aka +), shift+8 (aka *), /, -, or numpad equivalents.
-            // TODO:  What for shifts (and lack of shifts) here.
-            else if (
-                   (e.shiftKey && (e.which === 61         // Shift 61  +
-                                   || e.which === 187     // Shift 187 +
-                                   || e.which === 56      // Shift 56  *
-                                   || e.which === 188     // Shift 188 <
-                                   || e.which ===190      // Shift 190 >
-                                   || e.which === 53      // Shift 53  %
-                                   || e.which === 55      // Shift 55 &
-                                   || e.which === 220 ))  // Shift 220 |
-                   || (!e.shiftKey && (e.which === 191    // No shift 191 /
-                                      || e.which === 173  // No shift 173  -
-                                      || e.which === 189  // No shift 189  -
-                                      || e.which === 107  // No shift 107  +
-                                      || e.which === 106  // No shift 106 *
-                                      || e.which === 111  // No shift 111 /
-                                      || e.which === 61 // No shift 61 =
-                                      || e.which === 109 ) ) ) // No shift 109 -
-            {
-                const charCode : number = e.which;
-                if(e.shiftKey && charCode === 61 || charCode === 107 || charCode === 187)
-                {
-                    createNode(Actions.CALL_VAR, currentSelection, "+");
-                }
-                else if(charCode === 61)
-                {
-                    createNode(Actions.CALL_VAR, currentSelection, "=");
-                }
-                else if(charCode === 109 || charCode === 173 || charCode === 189)
-                {
-                    createNode(Actions.CALL_VAR, currentSelection, "-");
-                }
-                else if(charCode === 56 || charCode === 106)
-                {
-                    createNode(Actions.CALL_VAR, currentSelection, "*");
-                }
-                else if( charCode === 188 ) {
-                    createNode(Actions.CALL_VAR, currentSelection, "<");
-                }
-                else if( charCode === 190 ) {
-                    createNode(Actions.CALL_VAR, currentSelection, ">");
-                }
-                else if( charCode === 53 ) {
-                    createNode(Actions.CALL_VAR, currentSelection, "%");
-                }
-                else if( charCode === 55 ) {
-                    createNode(Actions.AND_OR_MEET_TYPE, currentSelection );
-                }
-                else if( charCode === 220 ) {
-                    createNode(Actions.OR_OR_JOIN_TYPE, currentSelection );
-                }
-                else //only the codes for /  can possibly remain.
-                {
-                    createNode(Actions.CALL_VAR, currentSelection, "/");
-                }
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            // Create Object Literal node: $
-            else if (e.shiftKey && e.which === 52)
-            {
-                createNode(Actions.OBJECT, currentSelection);
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create accessor node: [
-            else if(!e.shiftKey && e.which === 219)
-            {
-                createNode(Actions.INDEX, currentSelection);
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create dot node: .
-            else if(!e.shiftKey && (e.which === 190 || e.which === 110) )
-            {
-                createNode(Actions.DOT, currentSelection);
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            //Create tuple node: (
-            else if(e.shiftKey && (e.which === 57 )) 
-            {
-                createNode(Actions.TUPLE_OR_TUPLE_TYPE, currentSelection);
-                e.stopPropagation();
-                e.preventDefault();
-            }
-            return;
-    }
-
     export function update( sel : PSelection ) : void {
-            undostack.push(currentSelection);
+            undoStack.push(currentSelection);
             currentSelection = sel ;
-            redostack.length = 0 ;
+            redoStack.length = 0 ;
             generateHTMLSoon();
             if (sessionStorage.length > 0) {
                 save();
@@ -995,27 +632,21 @@ module editor {
             (nodeText !== undefined) 
             ? treeMgr.createNodeWithText(action, sel, nodeText)
             : treeMgr.createNode(action, sel );
-        //console.log("  opt is " + opt );
-        opt.map(
-            sel0 => {
-                // console.log("  createNode is possible." ) ;
-                update( sel0 ) ;
-                // console.log("  HTML generated" ) ;
-            } );
+        opt.map( update );
     }
 
     function undo() : void {
-        if (undostack.length !== 0)  {
-            redostack.push(currentSelection);
-            currentSelection = undostack.pop() as PSelection ;
+        if (undoStack.length !== 0)  {
+            redoStack.push(currentSelection);
+            currentSelection = undoStack.pop() as PSelection ;
             generateHTMLSoon();
         }
     }
 
     function redo() : void {
-        if (redostack.length !== 0) {
-            undostack.push(currentSelection);
-            currentSelection = redostack.pop() as PSelection ;
+        if (redoStack.length !== 0) {
+            undoStack.push(currentSelection);
+            currentSelection = redoStack.pop() as PSelection ;
             generateHTMLSoon();
         }
     }
@@ -1223,6 +854,12 @@ module editor {
     keyEventMap["'"] = emptyVar_keh ; 
     keyEventMap["letter"] = var_keh ;
 
+    // The table below indicates whether a character is
+    // a letter or not. The first 65 characters are not,
+    // the next 26 are, then 6 are not, then 26 are, then 47 are
+    // not and so on.  This table covers the first 65,536 unicode
+    // characters.  It was generated using Java's Character.isLetter
+    // method.
     var runLength = [65,26,6,26,47,1,10,1,4,1,
         5,23,1,31,1,458,4,12,14,5,
         7,1,1,1,129,5,1,2,2,4,
@@ -1295,17 +932,27 @@ module editor {
         1,1,1,2,1,2,1,108,33,363,
         18,64,2,54,40,12,116,5,1,135,
         36,26,6,26,11,89,3,6,2,6,
-        2,6,2,3,34] ;
+        2,6,2,3,35] ;
         
+        /** Is the first code point of this string a letter in the basic multilingual plane?
+         * Note:  Whether a code point is a letter or not is based on 
+         * Java's Character.isLetter function.
+         * Precondition: The string should represent (using UTF-16) a sequence
+         *               of at least one unicode code points.
+         */
         function isLetter( str : string ) : boolean {
             const codePoint = str.codePointAt(0) ;
             if( typeof codePoint !== 'number' ) return false ;
+            // codePoint is a number between 0 and 0x10FFFF (1,114,111) inclusive.
             let sum = 0 ;
             let isLetter = false ;
             for( let i=0 ; i < runLength.length ; ++i ) {
                 sum += runLength[i] ;
                 if( sum > codePoint ) return isLetter ;
                 isLetter = !isLetter ; }
+            // If control escapes the above loop, then codePoint is greater than
+            // 0xFFFF (65,535) and is not in the basic multilingual plane.
+            // Thus we return false, even if the codePoint really is a letter.
             return false ;
         }
 }
