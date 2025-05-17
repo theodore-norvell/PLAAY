@@ -16,6 +16,7 @@ module types {
     import Option = collections.Option ;
     import some = collections.some ;
     import none = collections.none ;
+    import collapseArray = collections.collapseArray ;
 
     export enum TypeKind {
         BOTTOM,
@@ -524,81 +525,84 @@ module types {
         }
     }
 
-    export function createType(node:PNode) : Type {
-        assert.todo( "Deal with Type Place Holders") ;
-        const kind : string = node.label().kind();
+    export function createType(node:PNode) : Option<Type> {
+        const label = node.label() ;
+        const kind : string = label.kind();
         switch(kind) {
-
+            // Place Holder
+            case labels.TypePHLabel.kindConst :
+                return none() ; // REVIEW: Should this give a message.
             //Primitive types
             case labels.PrimitiveTypesLabel.kindConst :
-                const primitiveKind : string = (node.label() as labels.PrimitiveTypesLabel).type;
+                const primitiveKind : string = (label as labels.PrimitiveTypesLabel).type;
                 switch(primitiveKind) {
-
                     case "stringType" :
-                        return PrimitiveType.stringType;
+                        return some(PrimitiveType.stringType);
                     case "numberType" :
-                        return PrimitiveType.numberType;                        
+                        return some(PrimitiveType.numberType);                        
                     case "booleanType" :
-                        return PrimitiveType.boolType;                        
+                        return some(PrimitiveType.boolType);                        
                     case "nullType" :
-                        return PrimitiveType.nullType;                        
+                        return some(PrimitiveType.nullType) ;                        
                     case "integerType" :
-                        return PrimitiveType.intType;                        
+                        return some(PrimitiveType.intType) ;                        
                     case "natType" :
-                        return PrimitiveType.natType;                        
+                        return some(PrimitiveType.natType) ;                        
                     case "topType" :
-                        return TopType.theTopType;                        
+                        return some(TopType.theTopType) ;                        
                     case "bottomType" :
-                        return BottomType.theBottomType;                        
+                        return some(BottomType.theBottomType) ;                        
                     default :
                         return assert.failedPrecondition( "Unknown primitive type in createType ");
                 }
             case labels.LocationTypeLabel.kindConst  : {
                 const child = node.child(0);
-                const type = createType(child);
-                return LocationType.createLocationType(type);
+                return createType(child).map( 
+                          chTy => LocationType.createLocationType(chTy));
             }
 
             case labels.FieldTypeLabel.kindConst : {
                 const identifier = node.child(0).label().getString(); 
                 const typeNode = node.child(1);
-                const type = createType(typeNode);
-                return FieldType.createFieldType(identifier, type);
+                return createType(typeNode).map(
+                        chTy => FieldType.createFieldType(identifier, chTy) ) ;
             }
 
             case labels.FunctionTypeLabel.kindConst : {
-                const valueType = createType(node.child(0));
-                const returnType =  createType(node.child(1));
-                return FunctionType.createFunctionType(valueType,returnType);
+                return createType(node.child(0)).bind(
+                    valueType => createType(node.child(1)).map( 
+                        returnType => FunctionType.createFunctionType(valueType,returnType) ) ) ;
             }
 
             case  labels.TupleTypeLabel.kindConst : {
                 const children = node.children();
-                const tys : Type[] = [] ;
-                for(let i=0; i<children.length; i++ ) {
-                    tys.push(createType(children[i]));
-                }
-                return TupleType.createTupleType(tys);
+                const tysOpts : Array<Option<Type>> = children.map(
+                    child => createType(child) ) ;
+                const optTys : Option<Array<Type>> = collapseArray( tysOpts ) ;
+                return optTys.map( tys => TupleType.createTupleType(tys) );
             }
 
             case labels.JoinTypeLabel.kindConst : {
-                const childTypes = node.children().map(createType);
-                return childTypes.reduce(JoinType.createJoinType);
+                const tysOpts = node.children().map(createType);
+                const optTys : Option<Array<Type>> = collapseArray( tysOpts ) ;
+                return optTys.map( (childTypes:Array<Type>) =>
+                                   childTypes.reduce(JoinType.createJoinType) );
             }
 
             case labels.MeetTypeLabel.kindConst : {
-                const childTypes = node.children().map(createType);
-                return childTypes.reduce(makeMeet);
+                const tysOpts = node.children().map(createType);
+                const optTys : Option<Array<Type>> = collapseArray( tysOpts ) ;
+                return optTys.map( (childTypes:Array<Type>) =>
+                                   childTypes.reduce(makeMeet) );
             }
 
             case labels.NoTypeLabel.kindConst : {
-                return TopType.theTopType;
+                return some( TopType.theTopType );
             }
 
             default :
-                assert.failedPrecondition("Unknown type node in createType");
+                return assert.failedPrecondition("Unknown type node in createType");
         }
-        return PrimitiveType.nullType; // Review: Should return something else
     }
 
     function makeMeet(left:Type, right:Type) : Type {

@@ -2,11 +2,10 @@
 
 ## TypeScript
 
-### Source file basics
 
 #### Program structure
 
-The module dependency must be acyclic. If module A depends, directly or indirectly, on module B, then module B must not depend, whether director or indirectly, on module A.
+The module dependency must be acyclic. If module A depends, directly or indirectly, on module B, then module B must not depend, whether directly or indirectly, on module A.
 
 Module dependency should be documented in file "dependence.gv".
 
@@ -58,7 +57,7 @@ export = editor;
 
 ### Use of reference directives and imports.
 
-Although the references directives and imports seem redundant, as I understand it, we need them both. So when a new import is added (or removed) the corresponding reference directive should be added (or removed).  Also the dependence should be documented in "dependence.gv" and possibly "dependence-js.gv" as mentioned above.
+Although the reference directives and imports seem redundant, as I understand it, we need them both. So when a new import is added (or removed) the corresponding reference directive should be added (or removed).  Also the dependence should be documented in "dependence.gv" and possibly "dependence-js.gv" as mentioned above.
 
 To give simple names for entities within imported modules, use import declarations within the module declaration like this.
 
@@ -88,7 +87,7 @@ Semicolons should be used even when they are optional.
 
 #### Braces
 
-Braces should be used even when they are optional.  An exception is  for short lambda expressions like `(x : int) => x+1`.
+Braces should be used even when they are optional.  An exception is for short lambda expressions like `(x : int) => x+1`.
 
 Where braces are placed is up to you. My preferred brace style is this
 
@@ -205,9 +204,16 @@ Methods should be `private` unless there is a reason for them to not be `private
 
 Whether `private`, `protected`, or `public`, the accessibility level should be explicitly declared.
 
-Object invariants should be carefully documented.
 
-Consider checking object invariants after construction and after each mutator.
+### Object invariants
+
+Object invariants should be documented.
+
+Consider checking object invariants at construction and after each mutator.
+
+Example.  In this class the object invariant is checked a precondition to the
+constructor.  Since the class has no mutators, there is no need to check the
+invariant in any other place.
 
 ~~~~typescript
     /** A Selection indicates ...
@@ -273,8 +279,8 @@ This sometimes means that a cast must be used where it wouldn't otherwise, in or
 
 #### Declare return types
 
-All functions and methods should have a declared return type.  This includes functions with a return type of void.  For
-example
+All functions and methods should have a declared return type.
+This includes functions with a return type of void.  For example:
 
 ~~~~typescript
     function redo() : void { ... } // GOOD
@@ -301,7 +307,11 @@ Parameters should always have declared types.
 
 #### Declare module-level variable types
 
+Variables declared at module level should be explicitly typed.
+
 #### Declare field types in classes
+
+Class fields should be explicitly typed.
 
 #### Optionally declare local variable types
 
@@ -393,23 +403,22 @@ When the code is executed, the two uses of "this" are not bound to the same obje
 
 Since we compile with the "noImplicitThis" option turned on, this sort of mistake should almost always be caught by the compiler.
 
-#### Use `function keyword`-style for JQuery and Mocha
+#### Use `function`-keyword style for JQuery and Mocha
 
-For HTML or jQuery event handlers, the "this" object will be the HTML element.  So here it is more appropriate to use the `function` keyword style.
-
-When the code of the lambda expression mentions `this`, you should declare the type of `this` for the duration of the function, as illustrated here:
+For HTML or jQuery event handlers, the "this" object will be the HTML element.  So here it is more appropriate to use the `function` keyword style.  But you should declare the type of the "this" object that you expect
+the function will be used with, as illustrated here:
 
 ~~~~typescript
     const keyUpHandlerForInputs 
         = function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
+            //     ^^^^^^^^^^^^^^^^^^^ Declare the expected type of "this".
             if (e.keyCode === 13) {
-                console.log( ">>keyup handler") ;
                 updateLabelHandler.call( this, e ) ;
-                console.log( "<< keyup handler") ;
+                //                       ^^^^ Type is HTML Element.
             } } ;
 ~~~~
 
-(Note: be careful what type you declare `this` to have. The typescript compiler will typically not check whether you've declared the appropriate type for this. For example in the above code, you can change `HTMLElement` to `number` and the compiler will still compile it. And it will also then compile `inputs.keyup(keyUpHandlerForInputs);` where `input` is a `JQuery` object. Even though, this is complete hogwash. So be careful.)
+(Note: be careful what type you declare `this` to have. The typescript compiler will typically not check whether you've declared the appropriate type for this. For example in the above code, you can change `HTMLElement` to `number` and the compiler will still compile it. And it will also then compile `inputs.keyup(keyUpHandlerForInputs);` where `input` is a `JQuery` object, even though, this is complete hogwash. So be careful.)
 
 A similar case is in mocha tests.  In Mocha, `this` is bound to the test context and so the `function`-keyword style is preferred.
 
@@ -417,7 +426,7 @@ If `this` is used within functions passed to Mocha, its type should be declared.
 
 ~~~~typescript
 describe( 'pnodeEdits.CopyEdit',
-    function( this : Mocha.IContextDefinition) : void {
+    function( this : Mocha.IContextDefinition ) : void {
 		 this.timeout( 500 ) ;
 		 
 	    it( 'should copy a single node',
@@ -435,11 +444,11 @@ describe( 'pnodeEdits.CopyEdit',
 
 The check functions from the `assert.ts` module should be used as much as reasonable.
 
-In particular, preconditions to functions should be checked using`assert.checkPrecondition( condition, message)`.  If the precondition is known to have failed use `assert.failedPrecondition( message )`.
+In particular, preconditions to functions should be checked using `assert.checkPrecondition(condition, message)`.  If the precondition is known to have failed, use `assert.failedPrecondition( message )`.
 
 Class invariants should be checked at the end of each constructor and mutator using `assert.checkInvariant( condition, message)`.
 
-Unreachable code should be marked by `assert.unreachable( message)`.
+Unreachable code should be marked by `assert.unreachable( message )`.
 
 Places where code remains to be written can be marked by `assert.todo( message )`.
 
@@ -508,7 +517,7 @@ Comments should be used to document modules, classes, and nonprivate methods.  W
 
 Use `===` rather than `==` and `!==` rather than `!=`.
 
-Use `as` for casting. I.e. `f as number` rather than `<number> f`.
+Use `as` for casting. E.g., `f as number` rather than `<number> f`.
 
 Remember that casting is not checked at runtime. Thus it is important to be sure that any necessary checks are explicitly coded.  For example
 
@@ -524,7 +533,7 @@ Consider this method
 
 Here the type of `this.pending` is `null | List<number>`.  However, if `!this.isDone()` is true, then `this.pending` can not be null. Therefore the case expression is safe.
 
-The `any` type should be avoided.
+The `any` type must be avoided.
 
 Assignments and other side effects, should never occur with the guards of `if`, `while`, `for` commands.  For example
 
@@ -537,7 +546,7 @@ Assignments and other side effects, should never occur with the guards of `if`, 
         if( a ) ...
 ~~~~
 
-Likewise avoid assignments and other side effects in arguments.
+Likewise, avoid assignments and other side effects in arguments.
 
 Avoid `throw` and `catch`.
 

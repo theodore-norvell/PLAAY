@@ -38,6 +38,9 @@ module animationView
     import LocationV = values.LocationV;
 
     import stringIsInfixOperator = treeView.stringIsInfixOperator;
+
+    import MAPSTOMARK  = treeView.MAPSTOMARK ;
+    import STOREMARK  = treeView.STOREMARK ;
     import TRUEMARK  = treeView.TRUEMARK ;
     import FALSEMARK = treeView.FALSEMARK ;
     import WHILEMARK = treeView.WHILEMARK ;
@@ -568,17 +571,17 @@ module animationView
                 {
                     child.dx(-childBBox.x);
                 }
-                makeAssignLabelBorder(element, needsBorder);
+                makeStoreLabelBorder(element, needsBorder);
             }
             break ;
-            case labels.AssignLabel.kindConst :
+            case labels.StoreLabel.kindConst :
             {
                 const childArray = element.children();
                 const padding : number = 10;
                 let x : number = 0;
 
                 x += childArray[0].bbox().width + padding;
-                const opText : svg.Text = element.text(":=");
+                const opText : svg.Text = element.text(STOREMARK);
                 opText.fill(ORANGE);
                 opText.dmove(x, -5);
                 x += opText.bbox().width + padding;
@@ -589,7 +592,7 @@ module animationView
                 {
                     childArray[1].dx(-childBBox.x);
                 }
-                makeAssignLabelBorder(element, needsBorder);
+                makeStoreLabelBorder(element, needsBorder);
             }
             break ;
             case labels.ObjectLiteralLabel.kindConst :
@@ -859,7 +862,8 @@ module animationView
                 x += typeSVG.bbox().width + padding;
 
                 if( node.child(2).isExprNode() ) {
-                    const becomes : svg.Text = element.text(":=");
+                    const mark = isConst ? MAPSTOMARK : STOREMARK ;
+                    const becomes : svg.Text = element.text( mark );
                     becomes.fill(ORANGE).dmove(x, -10);
                     x += becomes.bbox().width + padding;
                 }
@@ -1255,7 +1259,7 @@ module animationView
         return borderGroup;
     }
 
-    function makeAssignLabelBorder(el : svg.Container, needsBorder : boolean ) : void
+    function makeStoreLabelBorder(el : svg.Container, needsBorder : boolean ) : void
     {
         if( ! needsBorder ) return ;
         const bounds : svg.BBox = el.bbox();

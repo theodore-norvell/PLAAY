@@ -194,8 +194,8 @@ module interpreter {
     theSelectorRegistry[labels.WhileLabel.kindConst] = whileSelector;
 
     // Variable Labels and related
-    theStepperRegistry[labels.AssignLabel.kindConst] = assignStepper;
-    theSelectorRegistry[labels.AssignLabel.kindConst] = assignSelector;
+    theStepperRegistry[labels.StoreLabel.kindConst] = storeStepper;
+    theSelectorRegistry[labels.StoreLabel.kindConst] = storeSelector;
 
     theSelectorRegistry[labels.VariableLabel.kindConst] = alwaysSelector;
     theStepperRegistry[labels.VariableLabel.kindConst] = variableStepper;
@@ -319,7 +319,7 @@ module interpreter {
         }
     }
 
-    function assignSelector(vm : VMS) : void {
+    function storeSelector(vm : VMS) : void {
 
         if (!vm.isChildMapped(0)) {
             vm.pushPending(0, Context.L);
@@ -708,18 +708,18 @@ module interpreter {
         }
     }
 
-    function assignStepper(vm : VMS) : void {
-        const assignNode : PNode = vm.getPendingNode();
+    function storeStepper(vm : VMS) : void {
+        const storeNode : PNode = vm.getPendingNode();
         const lhs : Value = vm.getChildVal(0) ;
         const rhs : Value = vm.getChildVal(1) ;
-        // TODO Assignments to tuples.
+        // TODO Storements to tuples.
         if( lhs.isLocationV() ) {
             const loc = lhs as LocationV ;
             // TODO. Check that loc.getType().contains( rhs ) l
             loc.setValue( rhs ) ;
         }
         else {
-            vm.reportError( "The left operand of an assignment should be a location." ) ;
+            vm.reportError( "The left operand of a store should be a location." ) ;
             return ; 
         }
         vm.finishStep( TupleV.theDoneValue, false ) ;
@@ -769,7 +769,7 @@ module interpreter {
                 // TODO Check that the value is assignable to the field.
                 field.setValue( value ) ;
             } else {
-                vm.reportError( "Variable must be iniitalized.") ;
+                vm.reportError( "Variable must be initialized.") ;
             }
         } else {
             // Location fields

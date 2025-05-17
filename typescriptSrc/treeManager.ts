@@ -40,7 +40,7 @@ module treeManager {
     type PEdit = Edit<PSelection> ;
 
     export enum Actions { IF, WHILE, STRING, NUMBER, TRUE, FALSE, NULL,
-                          OBJECT, ARRAY, VAR, VAR_DECL, ASSIGN, CALL, LOC,
+                          OBJECT, ARRAY, VAR, VAR_DECL, STORE, CALL, LOC,
                           CALL_VAR, INDEX, DOT, LAMBDA, NO_TYPE, TUPLE,
                           STRING_TYPE, NUMBER_TYPE, NULL_TYPE, BOOLEAN_TYPE,
                           INTEGER_TYPE, NAT_TYPE, LOCATION_TYPE,
@@ -52,7 +52,7 @@ module treeManager {
                           IF_OR_BOOL_TYPE,
                           LAMBDA_OR_FUNCTION_TYPE,
                           LOC_OR_LOCATION_TYPE,
-                          ASSIGN_OR_ASSIGN_TYPE,
+                          STORE_OR_FIELD_TYPE,
                           TUPLE_OR_TUPLE_TYPE,
                           CLOSE,
                           AND_OR_MEET_TYPE,
@@ -105,8 +105,8 @@ module treeManager {
                 case Actions.VAR_DECL:
                     edit = this.makeVarDeclNode();
                     break ;
-                case Actions.ASSIGN:
-                    edit = this.makeAssignNode()  ;
+                case Actions.STORE:
+                    edit = this.makeStoreNode()  ;
                     break ;
                 case Actions.CALL:
                     edit = this.makeCallNode();
@@ -197,8 +197,8 @@ module treeManager {
                     edit = alt( [ this.makeLocType(),
                                   this.makeLocNode() ] ) ;
                     break ;
-                case Actions.ASSIGN_OR_ASSIGN_TYPE :
-                    edit = alt( [ this.makeAssignNode(),
+                case Actions.STORE_OR_FIELD_TYPE :
+                    edit = alt( [ this.makeStoreNode(),
                                   this.makeFieldTypeNode() ] ) ;
                     break ;
                 case Actions.TUPLE_OR_TUPLE_TYPE :
@@ -354,12 +354,12 @@ module treeManager {
             return replaceOrEngulfTemplateEdit( template  ) ;
         }
 
-        private makeAssignNode() : Edit<PSelection> {
+        private makeStoreNode() : Edit<PSelection> {
 
-            const assignnode = labels.mkAssign( exprPlaceHolder, exprPlaceHolder ) ;
+            const storeNode = labels.mkStore( exprPlaceHolder, exprPlaceHolder ) ;
 
-            const template0 = makeSelection( assignnode, list<number>(), 0, 1 ) ;
-            const template1 = makeSelection( assignnode, list<number>(), 0, 2 ) ;
+            const template0 = makeSelection( storeNode, list<number>(), 0, 1 ) ;
+            const template1 = makeSelection( storeNode, list<number>(), 0, 2 ) ;
             return replaceOrEngulfTemplatesEdit( [template0, template1] ) ;
         }
 

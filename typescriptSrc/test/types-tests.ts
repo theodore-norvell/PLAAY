@@ -1,21 +1,135 @@
 /// <reference path="../typings/main/ambient/mocha/index.d.ts" />
 /// <reference path="../assert.ts" />
 /// <reference path="../collections.ts" />
+/// <reference path="../labels.ts" />
+/// <reference path="../pnode.ts" />
 /// <reference path="../types.ts" />
 
 import assert = require( '../assert' ) ;
 import collections = require( '../collections' ) ;
+import labels = require('../labels');
+import pnode = require('../pnode');
 import types = require('../types') ;
 
 import some = collections.some ;
 import none = collections.none ;
 import match = collections.match ;
+import mkPrimitiveTypeLabel = labels.mkPrimitiveTypeLabel ;
+import mkVar = labels.mkVar ;
 import caseAlways = collections.caseAlways ;
 import Type = types.Type ;
+import PNode = pnode.PNode ;
 
 const bottom = types.BottomType.theBottomType ;
 const top = types.TopType.theTopType ;
 
+function checkOnType(node : PNode, kind : types.TypeKind, klass : Function) : types.Type {
+        const optType = types.createType(node);
+        assert.check( ! optType.isEmpty() ) ;
+        const type = optType.first() ;
+        assert.check( type.getKind() === kind);
+        assert.check( type instanceof klass);
+        return type;
+}
+
+describe('createType', function(): void {
+    it('should evaluate to none for place holders',function() : void {
+        const node = labels.mkTypePH();
+        assert.check(node.count() === 0 );
+        const optType = types.createType(node);
+        assert.check( optType.isEmpty() ) ;
+    }) ;
+    it('should evaluate to STRING TypeKind', function() : void {
+        const stringTypeNode = mkPrimitiveTypeLabel("stringType");
+        checkOnType( stringTypeNode, types.TypeKind.STRING, types.PrimitiveType ) ;
+    }) ;
+    it('should evaluate to BOOL TypeKind',function() : void {
+        const booleanTypeNode = mkPrimitiveTypeLabel("booleanType");
+        checkOnType( booleanTypeNode, types.TypeKind.BOOL, types.PrimitiveType ) ;
+        assert.check(booleanTypeNode.count() === 0 ); 
+    }) ;
+    it('should evaluate to NUMBER TypeKind',function() : void {
+        const numberTypeNode = mkPrimitiveTypeLabel("numberType");
+        checkOnType( numberTypeNode, types.TypeKind.NUMBER, types.PrimitiveType ) ;
+    }) ;
+    it('should evaluate to NULL TypeKind',function() : void {
+        const pNode = mkPrimitiveTypeLabel("nullType");
+        checkOnType( pNode, types.TypeKind.NULL, types.PrimitiveType ) ;
+    }) ;
+    it('should evaluate to INTEGER TypeKind',function() : void {
+        const pNode = mkPrimitiveTypeLabel("integerType");
+        checkOnType( pNode, types.TypeKind.INT, types.PrimitiveType ) ;
+    }) ;
+    it('should evaluate to INTEGER TypeKind',function() : void {
+        const pNode = mkPrimitiveTypeLabel("natType");
+        checkOnType( pNode, types.TypeKind.NAT, types.PrimitiveType ) ;
+    }) ;
+    it('should evaluate to TOP TypeKind',function() : void {
+        const topTypeNode = mkPrimitiveTypeLabel("topType");
+        checkOnType( topTypeNode, types.TypeKind.TOP, types.TopType ) ;
+    }) ;
+    it('should evaluate to BOTTOM TypeKind',function() : void {
+        const bottomTypeNode = mkPrimitiveTypeLabel("bottomType");
+        checkOnType( bottomTypeNode, types.TypeKind.BOTTOM, types.BottomType ) ;
+    }) ;
+    it('should evaluate to Tuple TypeKind',function() : void {
+        const numberNode : PNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode : PNode = mkPrimitiveTypeLabel("stringType");
+        const tupleTypeNode = labels.mkTupleType([numberNode,stringNode]);
+        const type = checkOnType( tupleTypeNode, types.TypeKind.TUPLE, types.TupleType
+                                ) as types.TupleType;
+        assert.check( type.length().first() === 2 );
+        assert.check( type.getTypeByIndex(0).getKind() === types.TypeKind.NUMBER);
+        assert.check( type.getTypeByIndex(1).getKind() === types.TypeKind.STRING);
+    }) ;
+    it('should evaluate to LOCATION TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const locationTypeNode = labels.mkLocationType(numberNode);
+        const type = checkOnType( locationTypeNode, types.TypeKind.LOCATION, types.LocationType
+                                ) as types.LocationType ;
+        const optType = types.createType(locationTypeNode);
+        assert.check( type.length().first() === 1 );
+    }) ;
+    it('should evaluate to FUNCTION TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const functionTypeNode = labels.mkFunctionType(numberNode,stringNode);
+        const type = checkOnType( functionTypeNode, types.TypeKind.FUNCTION, types.FunctionType
+                                ) as types.FunctionType ;
+        assert.check( type.getSource().getKind() === types.TypeKind.NUMBER ) ;
+        assert.check( type.getTarget().getKind() === types.TypeKind.STRING );
+        assert.check( type instanceof types.FunctionType);
+    }) ;
+    it('should evaluate to FIELD TypeKind',function() : void {
+        const varNode = mkVar("x") ;
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const fieldTypeNode = labels.mkFieldType([varNode,stringNode]);
+        const type = checkOnType( fieldTypeNode, types.TypeKind.FIELD, types.FieldType
+                   ) as types.FieldType ;
+        assert.check( type.getId() === "x" ) ;
+        assert.check( type.getType().getKind() === types.TypeKind.STRING ) ;
+    }) ;
+    it('should evaluate to MEET TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const booleanNode = mkPrimitiveTypeLabel("booleanType");
+        const meetTypeNode = labels.mkMeetType([numberNode,stringNode,booleanNode]);
+        const type = checkOnType( meetTypeNode, types.TypeKind.MEET, types.MeetType
+                                ) as types.MeetType ;
+        assert.check( type.getChild(0).getKind() === types.TypeKind.MEET);
+        assert.check( type.getChild(1).getKind() === types.TypeKind.BOOL);
+    }) ;
+    it('should evaluate to Join TypeKind',function() : void {
+        const numberNode = mkPrimitiveTypeLabel("numberType");
+        const stringNode = mkPrimitiveTypeLabel("stringType");
+        const booleanNode = mkPrimitiveTypeLabel("booleanType");
+        const joinTypeNode = labels.mkJoinType([numberNode,stringNode,booleanNode]);
+        const type = checkOnType( joinTypeNode, types.TypeKind.JOIN, types.JoinType
+                                ) as types.JoinType ;
+        assert.check( type.getChild(0).getKind() === types.TypeKind.JOIN);
+        assert.check( type.getChild(1).getKind() === types.TypeKind.BOOL);
+    }) ;
+});
 describe( "Type.equals()", function() : void {
     it( "should be equal for Bottom", function() : void {
         const ty = bottom ;

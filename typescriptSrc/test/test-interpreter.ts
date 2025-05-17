@@ -37,7 +37,7 @@ import BoolV = values.BoolV;
 import TupleV = values.TupleV;
 import NullV = values.NullV;
 import PNode = pnode.PNode ;
-import { mkAccessor, mkAssign, mkCall, mkConstDecl, mkDot, mkExprSeq,
+import { mkAccessor, mkStore, mkCall, mkConstDecl, mkDot, mkExprSeq,
          mkLambda, mkLoc, mkNoExpNd, mkNoTypeNd, mkNumberLiteral, mkObject, mkOpenCallVar,
          mkParameterList, mkPrimitiveTypeLabel, mkTuple, mkVar, mkLocVarDecl, mkVarOrLocDecl }
        from '../labels';
@@ -65,6 +65,16 @@ function makeStdVMS( root : PNode ) : VMS {
   return new VMS( root, wlds, interp, manager ) ;
 }
 
+function selectAndStep( vm : VMS, times : number = 1 ) : void {
+    for( let i = 0 ; i < times ; ++i ) {
+        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
+        // Select
+        vm.advance();
+        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
+        // Step
+        vm.advance(); }
+}
+
 function getResult( root : PNode ) : Value {
     const vm = makeStdVMS(root);
     while( vm.canAdvance() ) { vm.advance(); }
@@ -90,10 +100,7 @@ describe( 'StringLiteralLabel', function() : void {
     const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a StringV', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
+        selectAndStep( vm ) ;
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -108,10 +115,7 @@ describe( 'NumberLiteralLabel', function() : void {
     const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a NumberV', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
+        selectAndStep( vm ) ;
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -123,10 +127,7 @@ describe( 'NumberLiteralLabel', function() : void {
         const label = new labels.NumberLiteralLabel( "123abc", false ) ;
         const root = new PNode( label, [] ) ;
         const vm = makeStdVMS( root )  ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
+        selectAndStep( vm ) ;
         assert.check( vm.hasError() ) ;
         assert.checkEqual( "Not a valid number.", vm.getError() ) ;
     } );
@@ -138,10 +139,7 @@ describe( 'BooleanLiteralLabel', function() : void {
     const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a BoolV', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
+        selectAndStep( vm ) ;
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -156,10 +154,7 @@ describe( 'NullLiteralLabel', function() : void {
     const vm = makeStdVMS( root )  ;
 
     it('should evaluate to a NullV', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
+        selectAndStep( vm ) ;
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -173,10 +168,7 @@ describe ('LambdaLabel', function() : void {
     const vm = makeStdVMS(root);
 
     it('should evaluate to a ClosureV', function(): void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance();
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance();
+        selectAndStep( vm ) ;
         expectState( vm, VMStates.FINISHED ) ;
         assert.check(vm.isMapped(emptyList));
         const val = vm.getVal(emptyList);
@@ -221,7 +213,7 @@ describe ('Call - method', function(): void {
                                                         mkLambda( mkParameterList([mkConstDecl(mkVar("y"), mkNoTypeNd(), mkNoExpNd())]),
                                                                   mkNoTypeNd(),
                                                                   mkExprSeq([
-                                                                mkAssign( mkVar("x"),
+                                                                mkStore( mkVar("x"),
                                                                           mkOpenCallVar("+", [mkVar("x"), mkVar("y")]))
                                                                 ]) ))
                                     ]));
@@ -330,19 +322,7 @@ describe( 'CallWorldLabel - addition', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a NumberV equaling 5', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -494,18 +474,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -522,18 +491,7 @@ describe( 'CallWorldLabel - greater than', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -550,18 +508,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -578,18 +525,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -606,18 +542,7 @@ describe( 'CallWorldLabel - greater than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -634,18 +559,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -662,18 +576,7 @@ describe( 'CallWorldLabel - less than', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -690,18 +593,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -718,18 +610,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -746,18 +627,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -766,7 +636,7 @@ describe( 'CallWorldLabel - less than or equal', function() : void {
   } );
 } ) ;
 
-/* Test for (true = true) = (false = false) = true */
+/* Test for (true = true) --> true and (false = false) --> true */
 describe( 'CallWorldLabel - equal', function() : void {
     const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkTrueBooleanLiteral();
@@ -813,11 +683,14 @@ describe( 'CallWorldLabel - equal', function() : void {
       const val2 = vm2.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
       assert.check( val2 instanceof BoolV ) ;
-      assert.check( (val1 as BoolV).getVal()  === (val2 as BoolV).getVal() === true);
+      assert.check( (val1 as BoolV).getVal() === true ) ;
+      assert.check( (val2 as BoolV).getVal() === true ) ;
+
+
     }) ;
 });
 
-/* Test for (true = x) = (x = true) = false for any x not true */
+/* Test for callVar[=](true, x, x, true) --> false for x = 123 */
 describe( 'CallWorldLabel - equal', function() : void {
     const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkTrueBooleanLiteral();
@@ -826,36 +699,16 @@ describe( 'CallWorldLabel - equal', function() : void {
     const vm = makeStdVMS( root );
     
     it( 'should evaluate to a BoolV equalling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-
+      selectAndStep( vm, 5 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val1 = vm.getVal( emptyList ) ;
       assert.check( val1 instanceof BoolV ) ;
-      assert.check( (val1 as BoolV).getVal()  === false);
+      assert.check( (val1 as BoolV).getVal() === false);
     }) ;
 });
 
-/* Test for (false = x) = (x = false) = false for any x not false */
+/* Test for callVar[=](false, x, x, false) --> false for x = 123 */
 describe( 'CallWorldLabel - equal', function() : void {
     const rootLabel = new labels.CallVarLabel("=",false);
     const op1 = labels.mkFalseBooleanLiteral();
@@ -864,27 +717,7 @@ describe( 'CallWorldLabel - equal', function() : void {
     const vm = makeStdVMS( root );
     
     it( 'should evaluate to a BoolV equalling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-
+      selectAndStep( vm, 5 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val1 = vm.getVal( emptyList ) ;
@@ -893,7 +726,7 @@ describe( 'CallWorldLabel - equal', function() : void {
     }) ;
 });
 
-describe( 'CallWorldLabel - equal', function() : void {
+describe( 'callVar[=](10, 10) --> true', function() : void {
   const rootlabel = new labels.CallVarLabel("=", false);
   const op1 = labels.mkNumberLiteral("10");
   const op2 = labels.mkNumberLiteral("10");
@@ -901,18 +734,7 @@ describe( 'CallWorldLabel - equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -921,7 +743,7 @@ describe( 'CallWorldLabel - equal', function() : void {
   } );
 } ) ;
 
-describe( 'CallWorldLabel - equal', function() : void {
+describe( 'callVar[=]( string1, string2) --> false', function() : void {
   const rootlabel = new labels.CallVarLabel("=", false);
   const op1 = labels.mkStringLiteral("This is a string");
   const op2 = labels.mkStringLiteral("This is not the same string");
@@ -929,18 +751,7 @@ describe( 'CallWorldLabel - equal', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -957,18 +768,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -985,18 +785,7 @@ describe( 'CallWorldLabel - logical and', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -1013,18 +802,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -1041,18 +819,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling true', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -1069,18 +836,7 @@ describe( 'CallWorldLabel - logical or', function() : void {
   const vm = makeStdVMS( root )  ;
 
   it('should evaluate to a BoolV equaling false', function() : void {
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-      vm.advance() ;
-      expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-      vm.advance() ;
+      selectAndStep( vm, 3 ) ;
       expectState( vm, VMStates.FINISHED ) ;
       assert.check( vm.isMapped( emptyList ) ) ;
       const val = vm.getVal( emptyList ) ;
@@ -1099,26 +855,7 @@ describe( 'CallWorldLabel - implies', function() : void {
     const vm = makeStdVMS( root )  ;
   
     it('should evaluate to a BoolV equaling true', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;    
+        selectAndStep( vm, 5 ) ; 
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -1137,26 +874,7 @@ describe( 'CallWorldLabel - implies', function() : void {
     const vm = makeStdVMS( root )  ;
   
     it('should evaluate to a BoolV equaling false', function() : void {
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-        vm.advance() ;
-        expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-        vm.advance() ;    
+        selectAndStep( vm, 5 ) ; 
         expectState( vm, VMStates.FINISHED ) ;
         assert.check( vm.isMapped( emptyList ) ) ;
         const val = vm.getVal( emptyList ) ;
@@ -2164,23 +1882,6 @@ describe('VarDeclLabel', function () : void {
         assert.check( vm.getVal( emptyList ) instanceof values.TupleV ) ;
     });
 
-    it('should fail when not using a variable node as the first node', function () : void {
-        //setup
-        const varDeclLabel : VarDeclLabel = new labels.VarDeclLabel(false);
-        const variableNode : PNode = labels.mkStringLiteral("a");
-        const typeNode : PNode = labels.mkNoTypeNd();
-        const valueNode : PNode = labels.mkNumberLiteral("5");
-        try {
-            const root: PNode = new PNode(varDeclLabel, [variableNode, typeNode, valueNode]);
-            assert.failedPrecondition("It made a node when it should not have.");
-        }
-        catch (e) {
-            if (e.message !== "Assertion failed: Attempted to make an invalid program node") {
-                throw new Error(e.message);
-            }
-        }
-    });
-
     it('should not be able to declare the same variable twice', function () : void {
         //setup
         const variableNode : PNode = labels.mkVar("a");
@@ -2235,7 +1936,7 @@ describe('VarDeclLabel', function () : void {
 });
 
 describe('VariableLabel', function () : void {
-    it('should return the proper value after being assigned', function () : void {
+    it('should return the proper value after being storeed', function () : void {
         //setup
         const varNode : PNode = labels.mkVar("a");
         const typeNode : PNode = labels.mkNoTypeNd();
@@ -2292,12 +1993,12 @@ describe('VariableLabel', function () : void {
     });
 });
 
-describe('AssignLabel', function () : void {
-    it('should fail when assigning a non-declared variable', function () : void {
+describe('StoreLabel', function () : void {
+    it('should fail when storing a non-declared variable', function () : void {
         //setup
         const variableNode : PNode = labels.mkVar("a");
         const valueNode : PNode = labels.mkNumberLiteral("5");
-        const root : PNode = mkAssign( variableNode, valueNode );
+        const root : PNode = mkStore( variableNode, valueNode );
         //   a := 5
         const vm = makeStdVMS( root )  ;
 
@@ -2315,7 +2016,7 @@ describe('AssignLabel', function () : void {
 
     });
 
-    it('should assign a new value to a previously declared variable', function () : void {
+    it('should store a new value to a previously declared variable', function () : void {
         //setup
         // exprSeq( loc a::= 1, a := 2, a )
         const variableNode : PNode = labels.mkVar("a");
@@ -2323,8 +2024,8 @@ describe('AssignLabel', function () : void {
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode1);
-        const assignNode : PNode = mkAssign( variableNode, valueNode2 ); 
-        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
+        const storeNode : PNode = mkStore( variableNode, valueNode2 ); 
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, storeNode, variableNode]);
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
@@ -2339,7 +2040,7 @@ describe('AssignLabel', function () : void {
         assert.check(result === 2, "It did not return 2 as expected. It returned " + result);
     });
 
-    it('should fail if assigning to a nonlocation', function () : void {
+    it('should fail if storing to a nonlocation', function () : void {
         //setup
         // exprSeq( decl a:= 1, a := 2, a )
         const variableNode : PNode = labels.mkVar("a");
@@ -2348,8 +2049,8 @@ describe('AssignLabel', function () : void {
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkConstDecl(variableNode, typeNode, valueNode1);
 
-        const assignNode : PNode = mkAssign( variableNode, valueNode2 );
-        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, assignNode, variableNode]);
+        const storeNode : PNode = mkStore( variableNode, valueNode2 );
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [varDeclNode, storeNode, variableNode]);
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
@@ -2357,10 +2058,10 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError() ) ;
+        assert.checkEqual( "The left operand of a store should be a location.", vm.getError() ) ;
     });
 
-    it('should fail when trying to assign to a variable not yet declared', function () : void {
+    it('should fail when trying to store to a variable not yet declared', function () : void {
         //setup
         // exprSeq( a := 2, decl a: := 1 )
         const variableNode : PNode = labels.mkVar("a");
@@ -2368,8 +2069,8 @@ describe('AssignLabel', function () : void {
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
         const varDeclNode : PNode = labels.mkLocVarDecl(variableNode, typeNode, valueNode1);
-        const assignNode : PNode = mkAssign( variableNode, valueNode2 );
-        const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode, varDeclNode]);
+        const storeNode : PNode = mkStore( variableNode, valueNode2 );
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [storeNode, varDeclNode]);
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
@@ -2380,14 +2081,14 @@ describe('AssignLabel', function () : void {
         assert.checkEqual( "The variable named 'a' has not been declared yet.", vm.getError() ) ;
     });
 
-    it('should fail when trying to assign to something that is not a variable', function () : void {
+    it('should fail when trying to store to something that is not a variable', function () : void {
         //setup
         // exprSeq( a := 2, decl a: := 1 )
         const typeNode : PNode = labels.mkNoTypeNd();
         const valueNode1 : PNode = labels.mkNumberLiteral("1");
         const valueNode2 : PNode = labels.mkNumberLiteral("2");
-        const assignNode : PNode = mkAssign( valueNode1, valueNode2 );
-        const root : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
+        const storeNode : PNode = mkStore( valueNode1, valueNode2 );
+        const root : PNode = new PNode(new labels.ExprSeqLabel(), [storeNode]);
         const vm = makeStdVMS( root )  ;
 
         //run the test until the top evaluation is done or there is an error
@@ -2395,21 +2096,21 @@ describe('AssignLabel', function () : void {
             vm.advance() ; }
         
         assert.check( vm.hasError() ) ;
-        assert.checkEqual( "The left operand of an assignment should be a location.", vm.getError()) ;
+        assert.checkEqual( "The left operand of a store should be a location.", vm.getError()) ;
     });
 
-    it('should assign to the field of an object', function(): void {
+    it('should store to the field of an object', function(): void {
       // ExprSeq( varDelc[loc]( var(obj) noType objectLiteral(varDelc[loc](var(x) noType numberLiteral(5)))
-      //          assign( accessor( var[obj], stringLiteral[x]), 10)
+      //          store( accessor( var[obj], stringLiteral[x]), 10)
       //          accessor( var[obj], stringLiteral[x] ) )
       const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") );
       const val = mkNumberLiteral("10");
-      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
+      const store = new PNode(labels.StoreLabel.theStoreLabel, [accesor1, val]);
       const accessor2 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") );
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, store, accessor2]) ;
       const vm = makeStdVMS(root);
 
 
@@ -2424,15 +2125,15 @@ describe('AssignLabel', function () : void {
       assert.check(result === 10, "It did not return 10 as expected. It returned " + result); 
     });
 
-    it('should fail to assign to field if object does contain that field', function(): void {
+    it('should fail to store to field if object does contain that field', function(): void {
       const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("y") );
       const val = mkNumberLiteral("10");
-      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
+      const store = new PNode(labels.StoreLabel.theStoreLabel, [accesor1, val]);
       const accessor2 = mkAccessor( mkVar("obj"), labels.mkStringLiteral("x") ) ;
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign, accessor2]) ;
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, store, accessor2]) ;
       const vm = makeStdVMS(root);
 
       //run the test until the top evaluation is done or there is an error
@@ -2443,19 +2144,19 @@ describe('AssignLabel', function () : void {
       assert.checkEqual( "Object has no field named 'y'.", vm.getError() ) ;
     });
 
-    it('should fail to assign if object is not in scope', function(): void {
+    it('should fail to store if object is not in scope', function(): void {
       const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("5"));
       const object = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const objDecl = mkLocVarDecl(mkVar("obj"), mkNoTypeNd(), object);
       const accesor1 = mkAccessor( mkVar("NoObj"), labels.mkStringLiteral("x") ) ;
       const val = mkNumberLiteral("10");
-      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accesor1, val]);
-      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, assign]) ;
+      const store = new PNode(labels.StoreLabel.theStoreLabel, [accesor1, val]);
+      const root = new PNode(new labels.ExprSeqLabel(), [objDecl, store]) ;
       //  We have expSeq( varDecl[false]( Variable["obj"],
       //                                  NoType,
       //                                  objectLiteral(
       //                                         varDecl( Variable("x", NoType, NumberLiteral["5"] ) ) ),
-      //                  Assign( Accessor( Variable["NoObj"], StringLiteral["x"] ),
+      //                  Store( Accessor( Variable["NoObj"], StringLiteral["x"] ),
       //                          NumberLiteral["10"] ) )
       //
       const vm = makeStdVMS(root);
@@ -2468,16 +2169,16 @@ describe('AssignLabel', function () : void {
       assert.checkEqual( "No variable named 'NoObj' is in scope.", vm.getError() ) ;
     });
 
-    it('should assign to a field of an object within another object', function(): void {
+    it('should store to a field of an object within another object', function(): void {
       const field = mkLocVarDecl(mkVar("x"), mkNoTypeNd(), mkNumberLiteral("123"));
       const innerObj = new PNode(new labels.ObjectLiteralLabel(), [field]);
       const outerObj = new PNode(new labels.ObjectLiteralLabel(), [mkLocVarDecl(mkVar("io"), mkNoTypeNd(), innerObj)]);
       const objDecl = mkLocVarDecl(mkVar("o"), mkNoTypeNd(), outerObj);
       const accessor1 = mkAccessor( mkVar("o"), labels.mkStringLiteral("io") );
       const accessor2 = mkAccessor( accessor1, labels.mkStringLiteral("x") );
-      const assign = new PNode(labels.AssignLabel.theAssignLabel, [accessor2, mkNumberLiteral("666")]);
+      const store = new PNode(labels.StoreLabel.theStoreLabel, [accessor2, mkNumberLiteral("666")]);
       const accessor3 = mkAccessor( accessor1, labels.mkStringLiteral("x") );
-      const root = mkExprSeq([objDecl, assign, accessor3]);
+      const root = mkExprSeq([objDecl, store, accessor3]);
       const vm = makeStdVMS(root);
       //run the test until the top evaluation is done or there is an error
       while( vm.canAdvance() && vm.getEval().getState() !== VMStates.EVAL_DONE ) {
@@ -2575,8 +2276,8 @@ describe('WhileLabel', function () : void {
         const trueNode : PNode = labels.mkTrueBooleanLiteral();
         const varDeclNode : PNode = labels.mkLocVarDecl(guardNode, labels.mkNoTypeNd(), trueNode);
         const falseNode : PNode = labels.mkFalseBooleanLiteral();
-        const assignNode : PNode = new PNode(labels.AssignLabel.theAssignLabel, [guardNode, falseNode]);
-        const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [assignNode]);
+        const storeNode : PNode = new PNode(labels.StoreLabel.theStoreLabel, [guardNode, falseNode]);
+        const bodyNode : PNode = new PNode(new labels.ExprSeqLabel(), [storeNode]);
         const whileNode : PNode = labels.mkWhile(guardNode, bodyNode);
         const root : PNode = new PNode(new ExprSeqLabel(), [varDeclNode, whileNode, guardNode]);
         const vm = makeStdVMS( root )  ;
@@ -2586,7 +2287,7 @@ describe('WhileLabel', function () : void {
                        /* make stack frame*/ root,
                        /* declare guard */ trueNode, varDeclNode,
                        /* find location and fetch */guardNode,
-                       /* find location */ guardNode, falseNode, assignNode,
+                       /* find location */ guardNode, falseNode, storeNode,
                        /* finish the body sequence */ bodyNode,
                        /* find location  and fetch */ guardNode,
                        /* finish the while loop */whileNode,
@@ -2621,7 +2322,7 @@ describe('WhileLabel', function () : void {
 
 });
 
-describe('ExprPHLable', function () : void {
+describe('ExprPHLabel', function () : void {
     it('should cause an error', function () : void {
         const phNode : PNode = labels.mkExprPH( ) ;
         const vm = makeStdVMS( phNode )  ;
@@ -2634,7 +2335,7 @@ describe('ExprPHLable', function () : void {
     });
 });
 
-describe('TupleLable', function () : void {
+describe('TupleLabel', function () : void {
     it('should return done value for empty tuple', function () : void {
             const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
             const root = new PNode( tupleLable, [] ) ;
@@ -2651,13 +2352,10 @@ describe('TupleLable', function () : void {
             assert.check( val === TupleV.theDoneValue);
 
     });
-});
-
-describe('TupleLable', function () : void {
     it('should return NumberV value for one value tuple containing a number', function () : void {
-            const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
+            const tupleLabel : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
             const numberNode : PNode = labels.mkNumberLiteral("10");
-            const root = new PNode( tupleLable, [numberNode] ) ;
+            const root = new PNode( tupleLabel, [numberNode] ) ;
             const vm = makeStdVMS( root )  ;
             
             expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
@@ -2675,9 +2373,6 @@ describe('TupleLable', function () : void {
             assert.check( (val as NumberV).getVal() === 10);
 
     });
-});
-
-describe('TupleLable', function () : void {
     it('should return StringV value for one value tuple containing a string.', function () : void {
             const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
             const stringNode : PNode = labels.mkStringLiteral("test123");
@@ -2699,9 +2394,7 @@ describe('TupleLable', function () : void {
             assert.check( (val as StringV).getVal() === "test123");
 
     });
-});
-
-describe('TupleLabel', function () : void {
+    
     it('should return TupleV value for more than one value tuple.', function () : void {
             const tupleLable : labels.TupleLabel = labels.TupleLabel.theTupleLabel;
             const numberNode : PNode = labels.mkNumberLiteral("10");
@@ -2735,111 +2428,6 @@ describe('TupleLabel', function () : void {
             assert.check( val2Result === "test123");
 
     });
-});
-
-describe('PrimitiveTypesLabel', function(): void {
-    it('should evaluate to STRING TypeKind',function() : void {
-        const stringTypeNode = mkPrimitiveTypeLabel("stringType");
-        assert.check(stringTypeNode.count() === 0 );
-        const type = types.createType(stringTypeNode);
-        assert.check( type.getKind() === types.TypeKind.STRING);
-    }) ;
-});
-
-describe('PrimitiveTypesLabel', function(): void {
-    it('should evaluate to BOOL TypeKind',function() : void {
-        const booleanTypeNode = mkPrimitiveTypeLabel("booleanType");
-        assert.check(booleanTypeNode.count() === 0 );
-        const type = types.createType(booleanTypeNode);
-        assert.check( type.getKind() === types.TypeKind.BOOL);
-    }) ;
-});
-
-describe('PrimitiveTypesLabel', function(): void {
-    it('should evaluate to NUMBER TypeKind',function() : void {
-        const numberTypeNode = mkPrimitiveTypeLabel("numberType");
-        assert.check(numberTypeNode.count() === 0 );
-        const type = types.createType(numberTypeNode);
-        assert.check( type.getKind() === types.TypeKind.NUMBER);
-    }) ;
-});
-
-describe('PrimitiveTypesLabel', function(): void {
-    it('should evaluate to TOP TypeKind',function() : void {
-        const topTypeNode = mkPrimitiveTypeLabel("topType");
-        const type = types.createType(topTypeNode);
-        assert.check( type.getKind() === types.TypeKind.TOP);
-        assert.check( type instanceof types.TopType);
-    }) ;
-});
-
-describe('PrimitiveTypesLabel', function(): void {
-    it('should evaluate to BOTTOM TypeKind',function() : void {
-        const bottomTypeNode = mkPrimitiveTypeLabel("bottomType");
-        const type = types.createType(bottomTypeNode);
-        assert.check( type.getKind() === types.TypeKind.BOTTOM);
-        assert.check( type instanceof types.BottomType);
-    }) ;
-});
-
-describe('TupleTypeLabel', function(): void {
-    it('should evaluate to Tuple TypeKind',function() : void {
-        const numberNode : PNode = mkPrimitiveTypeLabel("numberType");
-        const stringNode : PNode = mkPrimitiveTypeLabel("stringType");
-        const tupleTypeNode = labels.mkTupleType([numberNode,stringNode]);
-        const type = types.createType(tupleTypeNode);
-        assert.check( type.getKind() === types.TypeKind.TUPLE);
-        assert.check( (type as types.TupleType).length().first() === 2 );
-        assert.check( (type as types.TupleType).getTypeByIndex(0).getKind() === types.TypeKind.NUMBER);
-        assert.check( (type as types.TupleType).getTypeByIndex(1).getKind() === types.TypeKind.STRING);
-    }) ;
-});
-
-describe('LocationTypeLabel', function(): void {
-    it('should evaluate to LOCATION TypeKind',function() : void {
-        const numberNode = mkPrimitiveTypeLabel("numberType");
-        const locationTypeNode = labels.mkLocationType(numberNode);
-        const type = types.createType(locationTypeNode);
-        assert.check( type.getKind() === types.TypeKind.LOCATION);
-        assert.check( type instanceof types.LocationType);
-        assert.check( (type as types.LocationType).length().first() === 1 );
-    }) ;
-});
-
-describe('FunctionTypeLabel', function(): void {
-    it('should evaluate to FUNCTION TypeKind',function() : void {
-        const numberNode = mkPrimitiveTypeLabel("numberType");
-        const stringNode = mkPrimitiveTypeLabel("stringType");
-        const functionTypeNode = labels.mkFunctionType(numberNode,stringNode);
-        const type = types.createType(functionTypeNode);
-        assert.check( type.getKind() === types.TypeKind.FUNCTION);
-        assert.check( type instanceof types.FunctionType);
-    }) ;
-});
-
-describe('FieldTypeLabel', function(): void {
-    it('should evaluate to FIELD TypeKind',function() : void {
-        const varNode = mkVar("x");
-        const stringNode = mkPrimitiveTypeLabel("stringType");
-        const fieldTypeNode = labels.mkFieldType([varNode,stringNode]);
-        const type = types.createType(fieldTypeNode);
-        assert.check( type.getKind() === types.TypeKind.FIELD);
-        assert.check( type instanceof types.FieldType);
-    }) ;
-});
-
-describe('MeetTypeLabel', function(): void {
-    it('should evaluate to MEET TypeKind',function() : void {
-        const numberNode = mkPrimitiveTypeLabel("numberType");
-        const stringNode = mkPrimitiveTypeLabel("stringType");
-        const booleanNode = mkPrimitiveTypeLabel("booleanType");
-        const meetTypeNode = labels.mkMeetType([numberNode,stringNode,booleanNode]);
-        const type = types.createType(meetTypeNode);
-        assert.check( type.getKind() === types.TypeKind.MEET);
-        assert.check( type instanceof types.MeetType);
-        //assert.check( (type as types.MeetType).getChild(0) instanceof types.);
-        //  assert.check( (type as types.MeetType).getChild(1).getKind() === types.TypeKind.STRING);
-    }) ;
 });
 
 describe('Loc operator', function () : void {
@@ -2920,12 +2508,3 @@ describe('Loc operator', function () : void {
             assert.check( result.isLocationV() ) ;
     });
 });
-
-function selectAndStep( vm : VMS ) : void {
-    expectState( vm, VMStates.EVAL_READY_TO_SELECT ) ;
-    // Select
-    vm.advance();
-    expectState( vm, VMStates.EVAL_READY_TO_STEP ) ;
-    // Step
-    vm.advance();
-}

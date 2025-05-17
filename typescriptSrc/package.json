@@ -7,7 +7,7 @@
     "pretest": "tsc",
     "test": "mocha",
     "build": "npm run sass && npm run compile && npm run browserify",
-    "doc": "typedoc --mode file --excludePrivate --out ../doc/ .",
+    "doc": "typedoc --mode modules --excludePrivate --out ../doc/ *.ts",
     "lint": "tslint --project tsconfig.json",
     "sass": "./node_modules/sass/sass.js plaay-style.scss > plaay-style.css",
     "compile": "tsc",

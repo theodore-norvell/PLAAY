@@ -136,19 +136,29 @@ module collections {
             
     export function none<A>() : Option<A> {
         return new None<A>() ; }
+    
+    export function collapseArray<A>( a : Array<Option<A>>) : Option<Array<A>> {
+        const result : Array<A> = [] ;
+        for( let i = 0 ; i < a.length ; ++i ) {
+            if( a[i].isEmpty() ) return none() ;
+            result.push( a[i].first( ) ) ; }
+        return some(result) ;
+    }
     /** Lisp-like lists. Immutable lists of 0 or more things.*/
     export abstract class List<A> implements Collection<A> {
         /** Fold right.
-         * <p> <code>list(a,b,c,d).fold( f, g)</code> is the same
-         * as <code>f( a, f( b, f( c, g() ) ) )</code>.*/
+         * 
+         * `list(a,b,c,d).fold( f, g)` is the same
+         * as `f( a, f( b, f( c, g() ) ) )`.*/
         public fold<B>( f: (a:A, b:B) => B, g : () => B ) : B  {
             if( this.isEmpty() ) { return g() ; }
             else { return f( this.first(), this.rest().fold( f, g ) ) ; } }
         
         /** Choose an action based on whether the list is empty.
-         * <p> <code> l.choose(f, g) </code> is the same as <code>g()</code>
-         *  if the list is empty.  Othewise, it is the same as <code>f(h, r)</code>
-         * where <code>h</code> is the first item and <code>r</code> is the rest of
+         * 
+         * `l.choose(f, g)` is the same as `g()`
+         *  if the list is empty.  Otherwise, it is the same as `f(h, r)`
+         * where `h` is the first item and `r` is the rest of
          * the list.
          */
         public choose<B>( f: (h:A, r:List<A>) => B, g : () => B ) : B {
@@ -156,13 +166,14 @@ module collections {
             else { return f( this.first(), this.rest() ) ; } }
 
         /** Map across the list.
-         * <p> <code> list(a,b,c).map(f)</code> means <code>list( f(a), f(b, f(c) )</code>.
+         * `list(a,b,c).map(f)` means `list( f(a), f(b, f(c) )`.
          */
         public abstract map<B>(f : (a:A) => B ) : List<B> ;
 
         /** Map across the list.
-         * <p> <code> l.lazyMap(f)</code> constucts a list equivalent to
-         *  <code>l.map(f)</code>, but does so in a lazy fashion.
+         * 
+         * `l.lazyMap(f)` constructs a list equivalent to
+         * `l.map(f)`, but does so in a lazy fashion.
          */
         public abstract lazyMap<B>(f : (a:A) => B ) : List<B> ;
         
@@ -173,21 +184,25 @@ module collections {
         public abstract size() : number ;
         
         /** What is the first item of the list.
-         * <p> Precondition: <code> ! isEmpty() </code>
+         * 
+         * Precondition: ` ! isEmpty() `
          */
         public abstract first() : A ;
         
         /** What is rest of the list.
-         * <p> Precondition: <code> ! isEmpty() </code>
+         * 
+         * Precondition: ` ! isEmpty() `
          */
         public abstract rest() : List<A> ;
                                 
         /** The monadic bind or flat map.
-         * <p> This function applies maps the given function, which must map
+         * 
+         * This function applies maps the given function, which must map
          * each element to a list and then flattens the result.
-         * <p> For example if <code>list(a,b,c).map(f)</code> gives
-         * <code>list([a0,a1],[], [c0,c1,c3])</code>, then
-         * <code>list(a,b,c).bind(f)</code> gives <code>list(a0,a1,c0,c1,c3)</code>.
+         * 
+         * For example if `list(a,b,c).map(f)` gives
+         * `list([a0,a1],[], [c0,c1,c3])`, then
+         * `list(a,b,c).bind(f)` gives `list(a0,a1,c0,c1,c3)`.
          */
         public bind<B>(f : (a:A) => List<B> ) : List<B> {
             return this.map(f).fold( (a:List<B>, b:List<B>) => a.cat(b),
@@ -199,7 +214,7 @@ module collections {
                               () => other  ) ; }
 
         public lazyBind<B>(f : (a:A) => List<B> ) : List<B> {
-            return this.map(f).fold( (a:List<B>, b:List<B>) => a.lazyCat(b),
+            return this.lazyMap(f).fold( (a:List<B>, b:List<B>) => a.lazyCat(b),
                                      () => nil<B>() ); }
 
         /** Concatenate one list with another. */
@@ -415,7 +430,7 @@ module collections {
             return none() ; }
     }
 
-    /** Make a list out of any numner of arguments. */
+    /** Make a list out of any number of arguments. */
     export function list<A>( ...args : Array<A> ) : List<A> {
         let acc : List<A> = new Nil<A>() ;
         let i = args.length ;
@@ -457,36 +472,111 @@ module collections {
         return xs.fold( (y, ys) => cons(y,ys), () => cons(x, nil<A>() ) ) ; } 
 
     /** A list of all but the first item of a list
-     * <p>Precondition. <code> ! xs.isEmpty() </code> 
+     * 
+     * Precondition. `! xs.isEmpty()`
      */
     export function rest<A>( xs : List<A> ) : List<A> {
         return xs.rest() ; }
     
     /** The first item of a nonempty collection. 
-     * <p>Precondition. <code> ! xs.isEmpty() </code> 
+     * 
+     * Precondition. `! xs.isEmpty()`
      */
     export function first<A>( xs : Collection<A> ) : A {
         return xs.first() ;  }
         
     /** A list of all but the last item
-     * <p>Precondition. <code> ! xs.isEmpty() </code> 
+     * 
+     * Precondition. `! xs.isEmpty()`
      */
     export function butLast<A>( xs : List<A> ) : List<A>{
         if( xs.rest().isEmpty() ) return nil<A>() ;
         else return cons( xs.first(), butLast( xs.rest() ) ) ; }
     
     /** The last item of a nonempty list. 
-     * <p>Precondition. <code> ! xs.isEmpty() </code> 
+     * 
+     * Precondition. `! xs.isEmpty()`
      */
     export function last<A>( xs : List<A> ) : A {
         if( xs.rest().isEmpty() ) return xs.first() ;
         else return last( xs.rest() ) ; }
 
+    /** `match( a, case0, case1, case2, ... )` matches a against each case
+     * function until one succeeds. This function should be used
+     * when it is known that at least one case will succeed.
+     * 
+     * Each of case0, case1,  case2, ... should be a function that will
+     * map `a` to an option.
+     * 
+     * These case functions are applied to `a` one at a time from left to right.
+     *
+     * If a case function returns Some(x), then x is returned.
+     * 
+     * If none of the case functions is successful, an exception is thrown.
+     * 
+     * Example: In this example, foo is a `List<E>` object (for some `E`) and bar
+     * and baz should be functions that return objects of type `Option<B>` for some `B`.
+     * 
+     *
+     *         match( foo, caseCons( (h,t) => bar(h,t) ), caseNil( () => baz() ) ;
+     *
+     * The result is an object of type `B` determined as follows.
+     * 
+     * * If foo is a nonempty list, bar is applied to its head and tail.
+     *    * If, for some x, the result of `bar(h,t)` is some(x), then x will be the result.
+     *    * Otherwise, the result of bar must be none(). In this case, the second
+     *      caseNil( ... ) function will be applied. It will result in none() and so
+     *      the match call will throw an exception.
+     * * If foo is an empty list, then the application of caseCons( ... )
+     *   will result in none() and so caseNil(...) will be applied to foo.
+     *    * If, for some x, the result is some(x), then x will be the result.
+     *    * Otherwise, having run out of cases, the match call will throw an exception.
+     * 
+     * @typeParam A  The type of the thing to match against.
+     * @typeParam B  The type of the result.
+     * @param a A thing of type `A` to match against
+     * @param cases An array of "case functions" that can each map `a` to results of type `Option<B>`
+     */
     export function match<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : B {
         const opt = optMatch( a, ...cases ) ;
         if( opt.isEmpty() ) throw new Error( "No case succeeded in match." ) ;
         return opt.first() ; }
 
+    /** `optMatch( a, case0, case1, case2, ... )` matches a against each case
+     *  function until one succeeds. This function should be used when it
+     *  is not known whether any of the cases will succeed.
+     * 
+     *  Each of case0, case1,  case2, ... should be a function that will
+     *  map a to an option.
+     * 
+     *  These case functions are applied to `a` one at a time from left to right.
+     * 
+     *  If a case function is successful, its result is returned.
+     *  
+     *  If none of the case functions is successful. none() is returned.
+     *  
+     *  Example: In this example, foo is a `List<E>` object (for some `E`) and bar
+     *  and baz should be functions that return objects of type `Option<B>` for some `B`.
+     * 
+     *      optMatch( foo, caseCons( (h,t) => bar(h,t) ), caseNil( () => baz() ) ;
+     * 
+     *  The result is an object of type `Option<B>` determined as follows.
+     * 
+     *  * If foo is a nonempty list, bar is applied to its head and tail.
+     *    * If, for some x, the result is some(x), then some(x) will be the result.
+     *    * Otherwise, the result of bar must be none(). In this case, the second
+     *      caseNil( ... ) function will be applied. It will result in none() and so
+     *      the result of the optMatch call will be none.
+     *  * If foo is an empty list, then the application of caseCons( ... )
+     *    will result in none() and so caseNil(...) will be applied to foo.
+     *    The result of that will be the result of baz() and will then be the
+     *    result of the call to optMatch( ... ).
+     * 
+     * @typeParam A  The type of the thing to match against.
+     * @typeParam B  The type of the contents of the result.
+     * @param a A thing of type `A` to match against
+     * @param cases An array of "case functions" that can each map `a` to results of type `Option<B>`
+     */
     export function optMatch<A,B>( a : A, ...cases : Array<(a:A)=>Option<B>> ) : Option<B> {
         for( let i = 0 ; i<cases.length ; ++i ) {
             const f = cases[i] ;
@@ -502,7 +592,7 @@ module collections {
     }
 
     export function caseAlways<A,B>( f : () => Option<B> ) : (a:A)=>Option<B> {
-        return (a:A) => f() ;    }
+        return (a:A) => f() ; }
 
     export function caseCons<A,B>( f : (h:A,r:List<A>) => Option<B> ) : (l:List<A>) => Option<B> {
         return (l:List<A>) => l.exCons( f ) ;

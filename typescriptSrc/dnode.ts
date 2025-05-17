@@ -25,8 +25,9 @@ module dnode {
 
         /** DLabels with string values can be open or closed.
          * When open they display in a way that permits the string value to be edited.
-         * DLabels that don't have a string associated with them should return None.
-         * DLabels that do have a string associated with them should return Some.
+         * DLabels that don't have a string associated with them should return false.
+         * DLabels that do have a string associated with them should return
+         * true or false according to whether the label is open.
          */
         isOpen : () => boolean ;
 
@@ -292,8 +293,9 @@ module dnode {
         return JSON.stringify( json ) ; }
 
     export function fromJSONToDNode<L extends DLabel<L,T>, T extends DNode<L,T>>(
-            s : string, registry : Registry<L,T>,
-            ctor : (lab:L, children: Array<T>) => T )
+                s : string,
+                registry : Registry<L,T>,
+                ctor : (lab:L, children: Array<T>) => T )
     : T {
         const json : object = JSON.parse( s ) ;
         // TODO Cope with any parsing errors.
@@ -311,7 +313,9 @@ module dnode {
          return ctor( label, children ) ;
     }
 
-    function fromJSONToLabel<L extends DLabel<L,T>, T extends DNode<L,T>>( json : object, registry : Registry<L,T> ) : L {
+    function fromJSONToLabel<L extends DLabel<L,T>, T extends DNode<L,T>>(
+                json : object,
+                registry : Registry<L,T> ) : L {
         assert.check( json["kind"] !== undefined );
         assert.check( typeof( json["kind"] ) === "string" );
         const labelClass : LabelMaker<L,T>|undefined = registry[json["kind"]] ; // This line relies on

@@ -639,18 +639,17 @@ div.noExp:hover, div.noExp.hover {
   border-color: white;
 }
 
-div.var, div.assign, div.loc {
+div.var, div.store, div.loc {
   border: thin solid transparent;
   border-radius: 5px;
   color: #f48c00;
 }
 
-div.var.bordered, div.assign.bordered, div.loc.bordered {
+div.var.bordered, div.store.bordered, div.loc.bordered {
   border-color: #f48c00;
 }
 
-div.var:hover, div.assign:hover, div.loc:hover,
-div.var.hover, div.assign.hover, div.loc.hover {
+div.var.hover, div.store.hover, div.loc.hover {
   border-color: #f48c00;
 }
 

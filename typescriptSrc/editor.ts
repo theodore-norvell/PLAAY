@@ -109,8 +109,10 @@ module editor {
 		return obj;
 	}
 
-    function addToClipboard( sel : PSelection ) : void {                
-        clipboardArray.unshift( sel ) ;
+    function addToClipboard( sel : PSelection, position? = 0 ) : void {
+        // Insert sel into the clipboardArray at the given position.
+        clipboardArray.splice( position, 0, sel ) ;
+        // The number of items in the clipboard is limited to 10.
         if( clipboardArray.length > 10 ) clipboardArray.length = 10 ;
         refreshTheClipboard() ;
     }
@@ -214,6 +216,7 @@ module editor {
         // One button for each alternative except the first. The first
         // is the action already made.
         const buttonsObj : { [key:string] : () => void ; } = {} ;
+
         for( let i = 1 ; i < selectionArray.length ; ++i ) {
             buttonsObj[ selectionArray[i][1] ] = () => update( selectionArray[i][2] );
         }
@@ -247,7 +250,7 @@ module editor {
         console.log( "Done building HTML") ;
         $("#container").empty().append(newHTML);
         treeView.highlightSelection( currentSelection, newHTML ) ;
-        var helpStr = treeView.findHelpString( currentSelection, newHTML ) ;
+        const helpStr = treeView.findHelpString( currentSelection, newHTML ) ;
         const location = helpFileName + "#" + helpStr ;
         console.log( "Setting help to " + location ) ;
         $("#editorHelpFrame").attr("src", location) ;
@@ -414,11 +417,9 @@ module editor {
         return true ;
     }
 
-    const deep_paste_keh = function ( depth : number ) {
+   const deep_paste_keh = function ( depth : number ) : KeyEventHandler {
         return function( e : JQueryKeyEventObject ) : boolean {
-            getFromDeepClipboard(depth)
-            .map( (src : PSelection) => treeMgr.paste( src, currentSelection )
-            .map( update ) ) ;
+            deep_paste(depth) ;
             return true ;
         }
     } 
@@ -515,11 +516,23 @@ module editor {
         return true ;
     }
 
-    const createNode_keh = function( act : Actions, str? : string ) {
+    const createNode_keh = function( act : Actions, str? : string ) : KeyEventHandler {
         return function( e : JQueryKeyEventObject ) : boolean {
             createNode( act, currentSelection, str );
             return true ; }
     }
+
+    // This (incomplete) set of codes indicates keys that
+    // are not generally used to produce characters.
+    // I include space so that Shift_Space etc are included.
+    const specialCodes = {
+        ArrowUp:0, ArrowDown:0, ArrowLeft:0, ArrowRight:0,
+        Tab:0, Enter:0, NumpadEnter:0, Space:0, Escape:0,
+        Insert:0, Delete:0, BackSpace:0, End:0, Home:0,
+        PageDown:0, PageUp:0, Help:0,
+        F1:0, F2:0, F3:0, F4:0, F5:0, F6:0, F7:0,
+        F8:0, F9:0, F10:0, F11:0, F12:0,
+    } ;
     
     const keyDownHandler
         =  function(this : HTMLElement, e : JQueryKeyEventObject ) : void { 
@@ -528,7 +541,7 @@ module editor {
             // and https://www.w3.org/TR/uievents-key/
             // Note that W3C uses the words "key" and "code" counter-intuitively.
             // *  The "key" is the character that is being entered. E.g. if you
-            //    hit the Z key on a QUERTY keyboard it will be "z" (or "Z" if shifted)
+            //    hit the Q key on a QUERTY keyboard it will be "q" (or "Q" if shifted)
             //    hitting the same key on a AZERTY keyboard generates a "a" or "A".
             // *  Code represents the position of the key on the board.
             //    E.g. hitting Q on a QUERTY keyboard gives KeyQ.
@@ -554,19 +567,8 @@ module editor {
 
             // (0) Make a string out of the event
 
-            // This (incomplete) set of codes indicates keys that
-            // are not generally used to produce characters.
-            // I include space so that Shift_Space etc are included.
-            const specialCodes = {
-                ArrowUp:0, ArrowDown:0, ArrowLeft:0, ArrowRight:0,
-                Tab:0, Enter:0, NumpadEnter:0, Space:0, Escape:0,
-                Insert:0, Delete:0, BackSpace:0, End:0, Home:0,
-                PageDown:0, PageUp:0, Help:0,
-                F1:0, F2:0, F3:0, F4:0, F5:0, F6:0, F7:0,
-                F8:0, F9:0, F10:0, F11:0, F12:0,
-            } ;
             const isSpecialCode = typeof( specialCodes[code] ) !== 'undefined' ;
-            var str = "" ;
+            let str = "" ;
             if( e.ctrlKey || e.metaKey || isSpecialCode )
             {
                 // In these cases we pay attention to the physical keyboard key rather than
@@ -586,10 +588,11 @@ module editor {
                 str += key ;
             }
             console.log( "The keydown event maps to string '" + str +"'" ) ;
-            // Look up the KeyEventHandler for this string
+            
+            // (1) Look up and execute the KeyEventHandler for this string
             let ok : boolean ;
-            if( typeof(keyEventMap[str]) !== 'undefined' ) {
-                const keh : KeyEventHandler = keyEventMap[str] ;
+            const keh : KeyEventHandler | undefined = keyEventMap[str] ;
+            if( typeof(keh) !== 'undefined' ) {
                 ok = keh(e, key) ;
             } else if( str.length === 1 && isLetter(str) ) {
                 // Since there are too many letters to map
@@ -609,16 +612,20 @@ module editor {
 
     export function update( sel : PSelection ) : void {
             undoStack.push(currentSelection);
-            currentSelection = sel ;
             redoStack.length = 0 ;
-            generateHTMLSoon();
-            if (sessionStorage.length > 0) {
-                save();
-            }
+            setCurrentSelection( sel ) ;
     }
 
     export function getCurrentSelection() : PSelection {
         return currentSelection ;
+    }
+
+    function setCurrentSelection( sel : PSelection ) : void {
+        currentSelection = sel ;
+        generateHTMLSoon();
+        if (sessionStorage.length > 0) {
+            save();
+        }
     }
 
     function createNodeOnCurrentSelection(action: Actions, nodeText?: string) : void
@@ -636,37 +643,53 @@ module editor {
     }
 
     function undo() : void {
-        if (undoStack.length !== 0)  {
-            redoStack.push(currentSelection);
-            currentSelection = undoStack.pop() as PSelection ;
-            generateHTMLSoon();
-        }
+        undoRedo( undoStack, redoStack, false )
     }
 
     function redo() : void {
-        if (redoStack.length !== 0) {
-            undoStack.push(currentSelection);
-            currentSelection = redoStack.pop() as PSelection ;
-            generateHTMLSoon();
-        }
+        undoRedo( redoStack, undoStack, false ) ;
     }
+
+    // TODO: Make cut, copy, paste, and move use system clipboard
+    // as well as the local clipboard
 
     function cut() : void {
         const opt = treeMgr.delete(currentSelection);
         opt.map((sel: PSelection) => {
             addToClipboard(currentSelection);
+            // TODO. The value currentSelection should be added to the
+            // system clipboard
             update(sel);
         });
     }
 
     function copy() : void {
         addToClipboard(currentSelection);
+        // The current selection should be added to the system clipboard
     }
 
     function paste() : void {
-        getFromClipboard().map((src: PSelection) =>
-            treeMgr.paste(src, currentSelection)
-                   .map( update ));
+        // TODO At this point if item 0 of the clipboard does not
+        // match the system clipboard, then the contents of the system
+        // clipboard should be converted to a PSelection and added to the
+        // editor's clipboard.
+        deep_paste(0) ;
+    }
+
+    function deep_paste( depth : number ) : void {
+        // Deep-paste does not affect or use the system
+        // clipboard.  In this way Cntl-0 and Cntl-V (will) differ.
+
+        getFromDeepClipboard(depth).map( (src : PSelection) => {
+            treeMgr.paste( src, currentSelection ).map( (newSelection : PSelection ) => {
+                // Push the current selection as the second item of the clipboard.
+                // This allows you rotate 3 or more things. E.g. Select the first. Copy
+                // Select the second, paste, select the third deep-paste 1, select the fourth
+                // deep-paste 1 ... select the first and deep-paste 1.
+                addToClipboard( currentSelection, 1 ) ;
+                update(newSelection) ;
+            })
+        }) ;
     }
 
     function move() : void {
@@ -710,39 +733,86 @@ module editor {
         }
     }
                                                            
-    // This version of undo is meant to be called by the keyboard shortcut.
-    // It skips trees with open nodes; this is because the text boxes associated
-    // with open nodes hijack the focus and subsequent uses of the keyboard
-    // shortcut are directed to the
-    // open text box.
+    
+    //This version of redo is meant to be called by the keyboard shortcut.
     function keyboardUndo() : void {
-        let finished : boolean = false;
-        let sel : PSelection = currentSelection;
-        while (undoStack.length !== 0 && !finished)  {
-            redoStack.push(sel);
-            sel = undoStack.pop() as PSelection ;
-            finished = ! hasOpenNodes(sel.root()) ;
-        }
-        currentSelection = sel;
-        generateHTMLSoon();
+        undoRedo( undoStack, redoStack, true ) ;
     }
 
-    //This version of redo is meant to be called by the keyboard shortcut.
     function keyboardRedo() : void {
-        let finished : boolean = false;
+        undoRedo( redoStack, undoStack, true ) ;
+    }
+
+    // Undo or redo one or more changes.
+    // When skipOpenNodes is true, it skips trees with open nodes;
+    // this is because the text boxes associated
+    // with open nodes hijack the keyboard focus and subsequent uses of the keyboard
+    // shortcut are directed to the open text box.
+    //
+    // It groups, when possible,
+    // changes that don't change the root, i.e. selection changes.
+    //
+    // Example: (Assuming skipOpenNodes is false)
+    // Selections that are the result of a move are shown as M. Selections
+    // with open nodes are shown with an O. The current selection is shown with a ^.
+    // Initially
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                                      ^
+    // undo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                               ^ 
+    // undo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                           ^
+    // undo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                       ^
+    // undo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                   ^
+    // undo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //      ^
+    // redo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                   ^
+    // redo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                       ^
+    // redo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                           ^
+    // redo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                               ^
+    // redo
+    //      0   1M   2M  3M  4O  5   6  7M  8M
+    //                                      ^
+    function undoRedo( fromStack : Array<PSelection>, toStack : Array<PSelection>, skipOpenNodes : boolean ) : void {
+        function nextRoot() { return fromStack[ fromStack.length - 1].root() } 
+        if( fromStack.length === 0 ) return ;
         let sel : PSelection = currentSelection;
-        while (redoStack.length !== 0 && !finished)  {
-            undoStack.push(sel);
-            sel = redoStack.pop() as PSelection;
-            finished = ! hasOpenNodes(sel.root() ) ;
+        let firstChangeIsAMove = sel.root() == nextRoot() ;
+        let finished : boolean = false;
+        while ( true ) { // Invariant fromStack.length > 0
+            toStack.push(sel);
+            sel = fromStack.pop() as PSelection;
+
+            if( fromStack.length === 0 ) break ;
+            let nextChangeIsAMove = sel.root() === nextRoot()
+            if( (skipOpenNodes && hasOpenNodes( sel.root() ) )
+                || firstChangeIsAMove && nextChangeIsAMove ) {
+                    // no break
+            } else {
+                break ; }
         }
-        currentSelection = sel;
-        generateHTMLSoon();
+        setCurrentSelection( sel ) ;
     }
 
     function hasOpenNodes( node : pnode.PNode) : boolean
     {
-            return node.label().isOpen() || node.children().some( p => hasOpenNodes(p) ) ;
+            return node.label().isOpen()
+                || node.children().some( hasOpenNodes ) ;
     }
 
     let pendingAction : number|null = null ;
@@ -818,7 +888,7 @@ module editor {
     keyEventMap.Enter = openLabel_keh ; // Enter
     keyEventMap[";"] = createNode_keh( Actions.LOC_OR_LOCATION_TYPE ) ; 
     keyEventMap[","] = createNode_keh( Actions.VAR_DECL ) ;
-    keyEventMap[":"] = createNode_keh( Actions.ASSIGN_OR_ASSIGN_TYPE ) ;
+    keyEventMap[":"] = createNode_keh( Actions.STORE_OR_FIELD_TYPE ) ;
     for( let i=0 ; i<10 ; i++) {
         const digit = String.fromCharCode(i+48) ;
         keyEventMap[digit] = createNode_keh( Actions.NUMBER_OR_NUMBER_TYPE, digit ) ; // i
@@ -833,7 +903,7 @@ module editor {
     keyEventMap["."] = createNode_keh( Actions.DOT ) ;
     keyEventMap["("] = createNode_keh( Actions.TUPLE_OR_TUPLE_TYPE ) ;
     keyEventMap[")"] = createNode_keh( Actions.CLOSE ) ;
-    keyEventMap["`"] = createNode_keh( Actions.CALL_VAR ) ; ; // Back quote
+    keyEventMap["`"] = createNode_keh( Actions.CALL_VAR ) ; // Back quote
     // TODO Check that these work with numberpad
     ["+", "-", "*", "<", ">", "=", "%", "&", "|", "/"].forEach( (s) =>
         keyEventMap[s] = createNode_keh( Actions.CALL_VAR, s ) 
@@ -845,9 +915,9 @@ module editor {
     // a letter or not. The first 65 characters are not,
     // the next 26 are, then 6 are not, then 26 are, then 47 are
     // not and so on.  This table covers the first 65,536 unicode
-    // characters.  It was generated using Java's Character.isLetter
+    // characters. It was generated using Java's Character.isLetter
     // method.
-    var runLength = [65,26,6,26,47,1,10,1,4,1,
+    const runLength = [65,26,6,26,47,1,10,1,4,1,
         5,23,1,31,1,458,4,12,14,5,
         7,1,1,1,129,5,1,2,2,4,
         8,1,1,3,1,1,1,20,1,83,
@@ -920,28 +990,46 @@ module editor {
         18,64,2,54,40,12,116,5,1,135,
         36,26,6,26,11,89,3,6,2,6,
         2,6,2,3,35] ;
-        
-        /** Is the first code point of this string a letter in the basic multilingual plane?
-         * Note:  Whether a code point is a letter or not is based on 
-         * Java's Character.isLetter function.
-         * Precondition: The string should represent (using UTF-16) a sequence
-         *               of at least one unicode code points.
-         */
-        function isLetter( str : string ) : boolean {
-            const codePoint = str.codePointAt(0) ;
-            if( typeof codePoint !== 'number' ) return false ;
-            // codePoint is a number between 0 and 0x10FFFF (1,114,111) inclusive.
-            let sum = 0 ;
-            let isLetter = false ;
-            for( let i=0 ; i < runLength.length ; ++i ) {
-                sum += runLength[i] ;
-                if( sum > codePoint ) return isLetter ;
-                isLetter = !isLetter ; }
-            // If control escapes the above loop, then codePoint is greater than
-            // 0xFFFF (65,535) and is not in the basic multilingual plane.
-            // Thus we return false, even if the codePoint really is a letter.
-            return false ;
-        }
+    
+    const letterCache : { [key:string] : boolean ; } = {} ;
+
+    /** Is the first code point of this string a letter in the basic multilingual plane?
+     * Note:  Whether a code point is a letter or not is based on 
+     * Java's Character.isLetter function.
+     * Precondition: The string should represent (using UTF-16) a sequence
+     *               of at least one unicode code points.
+     */
+    function isLetter( str : string ) : boolean {
+        if( typeof(letterCache[str]) !== 'undefined' ) letterCache[str] ;
+        // 
+        // I think the rest of this function could be simplified to 
+        //   
+        //     var result = str.match( /\p{L}/u ) != null ;
+        //     letterCache[str] = isLetter ;
+        //     return isLetter ;
+        //
+        // with the added benefit that it would work also for characters outside the
+        // basic multilingual plane. The question is: how well how do various browsers implement
+        // character classes for unicode?
+        //
+        const codePoint = str.codePointAt(0) ;
+        if( typeof codePoint !== 'number' ) return false ;
+
+        // codePoint is a number between 0 and 0x10FFFF (1,114,111) inclusive.
+        let sum = 0 ;
+        let isLetter = false ;
+        for( let i=0 ; i < runLength.length ; ++i ) {
+            sum += runLength[i] ;
+            if( sum > codePoint ) {
+                letterCache[str] = isLetter ;
+                return isLetter ; }
+            isLetter = !isLetter ; }
+        // If control escapes the above loop, then codePoint is greater than
+        // 0xFFFF (65,535) and is not in the basic multilingual plane.
+        // Thus we return false, even if the codePoint really is a letter.
+        letterCache[str] = false ;
+        return false ;
+    }
 }
 
 export = editor;

@@ -28,6 +28,8 @@ module treeView
 
     type PSelection = Selection<pnode.PLabel, pnode.PNode> ;
 
+    export const MAPSTOMARK = "\u21a6" ; // Rightwards arrow from bar: ↦
+    export const STOREMARK = "\u21a2" ; // Leftwards arrow with tail: ↢
     export const TRUEMARK  = "\u2714" ; // HEAVY CHECK MARK
     export const FALSEMARK = "\u2718" ; // HEAVY BALLOT X
     export const WHILEMARK = "\u27F3" ; // CLOCKWISE GAPPED CIRCLE ARROW
@@ -276,10 +278,10 @@ module treeView
                 result.data("help", "locExp") ;
             }
             break ;
-            case labels.AssignLabel.kindConst :
+            case labels.StoreLabel.kindConst :
             {
                 result = $(document.createElement("div")) ;
-                result.addClass( "assign" ) ;
+                result.addClass( "store" ) ;
                 result.addClass( "H" ) ;
                 result.addClass( "canDrag" ) ;
                 result.addClass( "droppable" ) ;
@@ -287,13 +289,13 @@ module treeView
                 const opDiv : JQuery = $( document.createElement("div") ) ;
                 opDiv.addClass( "upright" );
                 opDiv.addClass( "op" );
-                opDiv.text( ":=" ) ;
+                opDiv.text( STOREMARK ) ;
 
                 result.append(children[0]);
                 result.append(opDiv);
                 result.append(children[1]);
-                result.data("help", "assign") ;
-                result.attr( "data-tooltip", "Assignment expression") ;
+                result.data("help", "store") ;
+                result.attr( "data-tooltip", "Store expression") ;
 
             }
             break ;
@@ -607,7 +609,8 @@ module treeView
                 result.append(children[1]);
                 if( node.child(2).isExprNode() ) {
                     const becomes : JQuery = $( document.createElement("div") );
-                    becomes.text(":=") ;
+                    const mark = isConst ? MAPSTOMARK : STOREMARK ;
+                    becomes.text( mark ) ;
                     becomes.addClass("op") ;
                     result.append(becomes);
                 }

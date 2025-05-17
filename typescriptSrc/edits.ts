@@ -67,7 +67,7 @@ module edits {
     }
     
     /** The composition of two edits. Does one edit and then the other.
-    * Given `var z = compose(x,y) ;`, `z.applyEdit(a)`  applies `x` to `a` and then
+    * Given `const z = compose(x,y) ;`, `z.applyEdit(a)`  applies `x` to `a` and then
     * applies `y` to the result of that; but `z.applyEdit(a)` fails if
     * either either application fails.
     */
@@ -98,11 +98,11 @@ module edits {
     }
     
     /** A biased choice between or one, two, or more edits.
-    *  Given  `var z = alt(x,y) ;`
+    *  Given  `const z = alt(x,y) ;`
     *
     *  *    `z.applyEdit(a)`  is the same as `x.applyEdit(a)` if that is successful.
     *  *    `z.applyEdit(a)`  is the same as `y.applyEdit(a)` if `x.applyEdit(a)` is not successful.
-    *  Given `var z = alt( v, w, x, y)` z tries each edit in order until one is successfull
+    *  Given `const z = alt( v, w, x, y)` z tries each edit in order until one is successfull
     *  or all have failed.
     */
     export function alt<A>( edits : Edit<A>[] ) : Edit<A> {
@@ -123,7 +123,7 @@ module edits {
     
     /** An edit that does nothing.
     * This is useful in combination with `alt`. For example given
-    *  `var z = alt( x, id() );`, `z.applyEdit( a )` is the same as `x.applyEdit(a)` if that succeeds.
+    *  `const z = alt( x, id() );`, `z.applyEdit( a )` is the same as `x.applyEdit(a)` if that succeeds.
     *  It is `Some( a )` if `x.applyEdit(a)` fails.
     */
     export function id<A>() : Edit<A> {

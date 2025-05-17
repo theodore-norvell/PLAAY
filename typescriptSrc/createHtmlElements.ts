@@ -6,15 +6,17 @@
 /// <reference path="treeView.ts" />
 
 
+import assert = require('./assert');
 import htmlMaker = require('./htmlMaker');
 import treeManager = require('./treeManager');
 import treeView = require('./treeView');
-import assert = require('./assert');
 
 /** Create the top level HTML and buttons.
  */
 module createHtmlElements {
 
+	import MAPSTOMARK  = treeView.MAPSTOMARK ;
+	import STOREMARK  = treeView.STOREMARK ;
 	import TRUEMARK  = treeView.TRUEMARK ;
 	import FALSEMARK = treeView.FALSEMARK ;
 	import WHILEMARK = treeView.WHILEMARK ;
@@ -35,6 +37,7 @@ module createHtmlElements {
 	import Actions = treeManager.Actions ;
 
 	import makeHTML = htmlMaker.makeHTML ;
+	import ElementDesc  = htmlMaker.ElementDesc ;
 
 	export const helpFileName = "help-en.html" ;
 
@@ -42,24 +45,24 @@ module createHtmlElements {
 		/** Called once to create the content of the screen.
 		 * Initially the screen should be hidden.
 		*/
-		abstract createScreen(contentArea : JQuery) : void ;
+		public abstract createScreen(contentArea : JQuery) : void ;
 
 		/** Hide the screen.
 		 * Typically this just sets the visibility of the html
 		 * to invisible.
 		*/
-		abstract hideScreen() : void ;
+		public abstract hideScreen() : void ;
 		
 		/** Show the screen.
 		* Typically this just sets the visibility of the html
 		* to visible and changes the keyboard map to 
 		* that of the screen.
 	 */
-		abstract showScreen() : void ;
+		public abstract showScreen() : void ;
 	}
 
 	class EditorScreen extends Screen {
-		createScreen(contentArea : JQuery) : void {
+		public createScreen(contentArea : JQuery) : void {
 			// Editor structure
 			//    contentArea
 			//        editor
@@ -109,10 +112,10 @@ module createHtmlElements {
 			createTexted("div", "leftSideButton paletteItem dataItem", "tuple", palette, "( )", "tuple", Actions.TUPLE);
 			createTexted("div", "leftSideButton paletteItem greenText", "trueliteral", palette, TRUEMARK, "True value", Actions.TRUE);
 			createTexted("div", "leftSideButton paletteItem redText", "falseliteral", palette, FALSEMARK, "False value", Actions.FALSE);
-			createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": :=", "Declaration", Actions.VAR_DECL );
+			createTexted("div", "leftSideButton paletteItem varItem", "condecl", palette, ": "+MAPSTOMARK, "Declaration", Actions.VAR_DECL );
 			createTexted("div", "leftSideButton paletteItem varItem", "var", palette, "x", "Variable", Actions.VAR);
 			createTexted("div", "leftSideButton paletteItem varItem", "loc", palette, "loc", "Location", Actions.LOC);
-			createTexted("div", "leftSideButton paletteItem varItem", "assign", palette, ":=", "Assignment", Actions.ASSIGN);
+			createTexted("div", "leftSideButton paletteItem varItem", "store", palette, STOREMARK, "Store", Actions.STORE);
 			createTexted("div", "leftSideButton paletteItem", "accessor", palette, "[ ]", "Index", Actions.INDEX);
 			createTexted("div", "leftSideButton paletteItem", "dot", palette, ".", "Select field", Actions.DOT);
 			createTexted("div", "leftSideButton paletteItem", "if", palette, "?", "If expression", Actions.IF );
@@ -142,17 +145,17 @@ module createHtmlElements {
 			helpFrame.attr( "src", helpFileName ) ;
 		}
 
-		hideScreen() : void {
+		public hideScreen() : void {
 			hide( $("#editor") ) ;
 		}
 
-		showScreen() : void {
+		public showScreen() : void {
 			show( $("#editor") ) ;
 		}
 	}
 	
 	class AnimatorScreen extends Screen {
-		createScreen(contentArea : JQuery) : void {
+		public createScreen(contentArea : JQuery) : void {
 			//Executing-related elements. All added functionalities are in executing module.
 			//  contentArea
 			//     animator
@@ -181,84 +184,110 @@ module createHtmlElements {
 			create("div", "vms", "vms", animatorDiv) ;
 
 		}
-		hideScreen() : void {
+		public hideScreen() : void {
 			hide( $("#animator") ) ;
 		}
-		showScreen() : void {	
+		public showScreen() : void {	
 			show( $("#animator") ) ;
 		}
 	}
 	
 	class LoginScreen extends Screen {
-		createScreen(contentArea : JQuery) : void {
-			makeHTML(
-				{ tag: "div", id: "loginScreen", class: "tab",
-				  children: [
-					{ tag: "div", id: "registrationBox",
-					  children : [
-						{ tag: "div", id: "loginSection",
-						  children: [
-							  "Login ",
-							  { tag: "br" },
-							  { tag: "form", id: "loginUser",
-								attr: {name: "loginUser", method:"post" , action: "/login" },
-								children : [
-								  "Email: ",
-								  { tag: "input", id: "loginUsername", class: "login-textbox",
-									attr: {type: "text", name: "email", required: "true" } },
-								  { tag: "br" },
-								  "Password: ",
-								  { tag: "input", class: "login-textbox",
-									attr: {type: "password", name: "password", required: "true" } },
-								  { tag: "br" },
-								  { tag: "input",
-								    attr: {type: "submit", value: "Login"} }
-								]
-							  }
-						  ]
-						},
-						{ tag: "div", id: "registrationSection",
+		public createScreen(contentArea : JQuery) : void {
+			const loginForm : ElementDesc = 
+			{
+				tag: "form", id: "loginUser",
+				attr: { name: "loginUser", method:"post" , action: "/login" },
+				children : [
+					"Email: ",
+					{
+						tag: "input", id: "loginUsername", class: "login-textbox",
+						attr: {type: "text", name: "email", required: "true" } },
+					{ tag: "br" },
+					"Password: ",
+					{
+						tag: "input", class: "login-textbox",
+						attr: {type: "password", name: "password", required: "true" } },
+					{ tag: "br" },
+					{
+						tag: "input",
+						attr: {type: "submit", value: "Login"} }
+				]
+			} ;
+
+			const newUserForm : ElementDesc  =
+			{ 
+				tag: "form", id: "registerNewUser",
+				attr: { name: "registerNewUser", method:"post" , action: "/signup/" },
+				children : [
+					"Email: ",
+					{
+						tag: "input", class: "login-textbox",
+						attr: {type: "text", name: "email", required: "true" } },
+					{ tag: "br" },
+					"Password: ",
+					{
+						tag: "input", class: "login-textbox",
+						attr: {type: "password", name: "password", required: "true" } },
+					{ tag: "br" },
+					"Confirm Password: ",
+					{
+						tag: "input", class: "login-textbox",
+						attr: {type: "password", name: "confirmPassword", required: "true" } },
+					{ tag: "br" },
+					{
+						tag: "input", class: "login-textbox",
+						attr: {type: "submit", value: "Register"} }
+				]
+			} ;
+			const registrationBox : ElementDesc  = {
+				tag: "div", id: "registrationBox",
+				children : [
+					{
+						tag: "div", id: "loginSection",
 						children: [
-						  "Register ",
-						  { tag: "br" },
-						  { tag: "form", id: "registerNewUser",
-							attr: {name: "registerNewUser", method:"post" , action: "/signup/" },
-							children : [
-							  "Email: ",
-							  { tag: "input", class: "login-textbox",
-								attr: {type: "text", name: "email", required: "true" } },
-							  { tag: "br" },
-							  "Password: ",
-							  { tag: "input", class: "login-textbox",
-								attr: {type: "password", name: "password", required: "true" } },
-							  { tag: "br" },
-							  "Confirm Password: ",
-							  { tag: "input", class: "login-textbox",
-								attr: {type: "password", name: "confirmPassword", required: "true" } },
-							  { tag: "br" },
-							  { tag: "input", class: "login-textbox",
-								attr: {type: "submit", value: "Register"} }
-							]
-						  }
+							"Login ",
+							{ tag: "br" },
+							loginForm
 						]
-						},
-						{ tag: "div", class: "closewindow",
-						  children: [
+					},
+					{
+						tag: "div",
+						id: "registrationSection",
+						children: [
+							"Register ",
+							{ tag: "br" },
+							newUserForm
+						]
+					},
+					{
+						tag: "div",
+						class: "closewindow",
+						children: [
 							"Close Window"
-						  ]
-						}
-					  ]
-				    } 
-				  ]
+						]
+					}
+				]
+			} ;
+
+			makeHTML(
+				{
+					tag: "div",
+					id: "loginScreen",
+					class: "tab",
+					children:
+						[
+							registrationBox 
+						]
 				},
 				contentArea
 			) ;
 		}
 
-		hideScreen() : void {
+		public hideScreen() : void {
 			hide( $("#loginScreen") ) ;
 		}
-		showScreen() : void {	
+		public showScreen() : void {	
 			show( $("#loginScreen") ) ;
 		}
 	}
@@ -297,37 +326,103 @@ module createHtmlElements {
 			createOutputArea( body ) ;
 
 			// TOOLTIPs  (Thanks to: https://stackoverflow.com/a/16462668/667690)
-			let ID = "tooltip" ; /* Must match the .css */
+			const ID = "tooltip" ; /* Must match the .css */
 			let toolTipJQ : null|JQuery = null ;
 			let event : null | JQueryEventObject = null ;
 			let currentCandidate : Element | null = null ;
 			let state : number = 0 ;
 
-			let clearToolTip = () => {
+			const clearToolTip = () => {
 					if( toolTipJQ !== null ) {
 							// console.log( "Clearing tool tip") ;
 							toolTipJQ.remove() ;
 							toolTipJQ = null ; }
 			} ;
-			let putToolTipOn = ( that : Element, e:JQueryEventObject ) => {
-						let text = $(that).attr("data-tooltip") ;
-						// console.log( "Adding tool tip ", text ) ;
-						toolTipJQ = $("<div id='" + ID + "' />") ;
-						toolTipJQ.appendTo("body");
-						let OFFSET_X = 30;
-						let OFFSET_Y = -10;
-						let ntop = e.pageY + OFFSET_Y;
-						let nleft = e.pageX + OFFSET_X;
-						toolTipJQ.text( text ).css({
-								position: "absolute", top: ntop, left: nleft }).show();
+			const putToolTipOn = ( that : Element, e:JQueryEventObject ) => {
+				const text = $(that).attr("data-tooltip") ;
+				// console.log( "Adding tool tip ", text ) ;
+				toolTipJQ = $("<div id='" + ID + "' />") ;
+				toolTipJQ.appendTo("body");
+				const OFFSET_X = 30;
+				const OFFSET_Y = -10;
+				const ntop = e.pageY + OFFSET_Y;
+				const nleft = e.pageX + OFFSET_X;
+				toolTipJQ.text( text ).css({
+						position: "absolute", top: ntop, left: nleft }).show();
 			} ;
 
 			$(document).mousemove(
-					function ( this: HTMLElement, e:JQueryEventObject ) {
+					function ( this: HTMLElement, e:JQueryEventObject ) : void {
 						    //console.log( "mouse moved" ) ;
 							event = e ;
 					} ) ;
-													
+
+			/* To handle tool tips we execute this state machine.
+			*    Every 200 ms we look to see if there is an element with a
+			*    tool tip above the last known mouse position. If not,
+			*    the machine resets to state (0).  Otherwise, call that
+			*    element "the candidate" and proceed as follows.
+			*
+			*	start --> (0)
+			*              | 
+			*              | after 200 ms
+			*              |
+			*              | currentCandidate := the candidate found
+			*              V
+			*             (1)
+			*              |   after 200 ms
+			*              |
+			*              |   [currentCandidate != the candidate found] / clearToolTip
+			*              <> ----------------------------------------------------------> (0)
+			*              |
+			*              | [currentCandidate == the candidate found]
+			*              V
+			*             (2)
+			*              |   after 200 ms
+			*              |
+			*              |   [currentCandidate != the candidate found] / clearToolTip
+			*              <> ----------------------------------------------------------> (0)
+			*              |
+			*              |  [currentCandidate == the candidate found]
+			*              V
+			*             (3)
+			*              |   after 200 ms
+			*              |  /put Tool tip on currentCandidate
+			*              V
+			*              (4)
+			*              |   after 200 ms
+			*              |
+			*              | [currentCandidate != the candidate found] / clearToolTip
+			*              <> ----------------------------------------------------------> (0)
+			*              |
+			*              | [currentCandidate == the candidate found]
+			*              V
+			*              (5)
+			*              |   after 200 ms
+			*              |
+			*              |   [currentCandidate != the candidate found] / clearToolTip
+			*              <> ----------------------------------------------------------> (0)
+			*              |
+			*              | [currentCandidate == the candidate found]
+			*              V
+			*              .
+			*              .
+			*              .
+			*              (14) 
+			*               |  after 200 ms / clearToolTip
+			*               V
+			*          +-->(15) 
+			*          |   |  after 200 ms
+			*          |   |
+			*          |   |   [currentCandidate != the candidate found] / clearToolTip
+			*          |  <> ----------------------------------------------------------> (0)
+			*          |   |
+			*          |   | [currentCandidate == the candidate found]
+			*          +---+
+			* 
+			*
+			*
+			*/
 			setInterval(
 					() => {
 							//console.log( ">>tooltip callback" ) ;
@@ -338,53 +433,52 @@ module createHtmlElements {
 							let candidate : null|Node = event.target ;
 							let tipText : string | null = null ; 
 							while( true ) {
-									if( candidate === null ) break ;
-									if( candidate.nodeType !== 1 ) break ;
-									// console.log( "candidate is ", candidate ) ;
-									tipText = (candidate as Element).getAttribute( "data-tooltip") ;
-									// console.log( "tipText is ", tipText ) ;
-									if( tipText !== null && tipText !== "" ) break ;
-									candidate = candidate.parentNode ;
+								if( candidate === null ) break ;
+								if( candidate.nodeType !== 1 ) break ;
+								// console.log( "candidate is ", candidate ) ;
+								tipText = (candidate as Element).getAttribute( "data-tooltip") ;
+								// console.log( "tipText is ", tipText ) ;
+								if( tipText !== null && tipText !== "" ) break ;
+								candidate = candidate.parentNode ;
 							}
 							if( tipText === null || tipText === "" ) {
-									clearToolTip() ;
-									state = 0 ;
-									// console.log( "no candidate" ) ;
+								clearToolTip() ;
+								state = 0 ;
+								// console.log( "no candidate" ) ;
 							} else {
 
-									// console.log( "state is ", state ) ;
-									let tipText1 = tipText as string ;
+								// console.log( "state is ", state ) ;
 
-									// console.log( "tipText1 is ", tipText1 ) ;
-									if( state === 0 ) {
-											currentCandidate = candidate as Element;
-											state = 1 ;
-									} else if( state < 3 ) {
-												if( candidate === currentCandidate ) {
-														state += 1 ;
-												} else {
-														clearToolTip() ;
-														state = 0 ;
-												}
-									} else if( state === 3 ) {
-												putToolTipOn( candidate as Element, event as JQueryEventObject ) ;
-												state += 1
-									} else if( state < 14 ) {
-											if( candidate === currentCandidate ) {
-													state += 1 ;
-											} else {
-													clearToolTip() ;
-													state = 0 ;
-											}
-									} else if( state === 14 ) {
-												clearToolTip() ;
-												state = 15 ;
-									} else { /* State is 15 */
-											if( candidate !== currentCandidate ) {
-													clearToolTip() ;
-													state = 0 ;
-											}
+								// console.log( "tipText is ", tipText ) ;
+								if( state === 0 ) {
+									currentCandidate = candidate as Element;
+									state = 1 ;
+								} else if( state < 3 ) {
+									if( candidate === currentCandidate ) {
+										state += 1 ;
+									} else {
+										clearToolTip() ;
+										state = 0 ;
 									}
+								} else if( state === 3 ) {
+									putToolTipOn( candidate as Element, event ) ;
+									state += 1 ;
+								} else if( state < 14 ) {
+									if( candidate === currentCandidate ) {
+										state += 1 ;
+									} else {
+										clearToolTip() ;
+										state = 0 ;
+									}
+								} else if( state === 14 ) {
+									clearToolTip() ;
+									state = 15 ;
+								} else { /* State is 15 */
+									if( candidate !== currentCandidate ) {
+										clearToolTip() ;
+										state = 0 ;
+									}
+								}
 							}
 							//console.log( "next state is ", state ) ;
 							//console.log( "<<tooltip callback" ) ;
@@ -459,10 +553,11 @@ module createHtmlElements {
 		toggle( $("#outputArea") ) ;
 	}
 
-	function create( elementType: string,
-	                 className: string | null,
-	                 idName: string | null,
-	                 parentElement: JQuery | null ) : JQuery {
+	function create(
+					 elementType: string,
+					 className: string | null,
+					 idName: string | null,
+					 parentElement: JQuery | null ) : JQuery {
 		const obj = $("<" + elementType + "></" + elementType + ">");
 		if (className !== null) { obj.addClass(className); }
 		if (idName !== null) { obj.attr("id", idName); }
@@ -471,16 +566,16 @@ module createHtmlElements {
 	}
 
 	function createButton( className: string|null,
-                           idName: string|null,
-                           parentElement: JQuery|null,
-                           source : string,
-                           altText: string|null,
-                           action : Actions|null): void {
+	                       idName: string|null,
+	                       parentElement: JQuery|null,
+	                       source : string,
+	                       altText: string|null,
+	                       action : Actions|null): void {
 		const obj = create("img", className, idName, parentElement);
 		obj.attr( "src", source ) ;
-		if( altText) {
+		if( altText !== null ) {
 			obj.attr( "alt", altText);
-		  obj.attr( "data-tooltip", altText ) ;}
+		 obj.attr( "data-tooltip", altText ) ;}
 		if ( action !== null) { obj.data("action", action) ; }
 	}
 
@@ -489,20 +584,20 @@ module createHtmlElements {
 	                       idName: string|null,
 	                       parentElement: JQuery|null,
 	                       textContent: string|null,
-												 altText: string,
+	                       altText: string|null,
 	                       action : Actions|null): JQuery {
 		const obj = create(elementType, className, idName, parentElement);
 		if (textContent!==null) { obj.text(textContent); }
 		if ( action !== null) { obj.data("action", action) ; }
-		if( altText) {
+		if( altText !== null ) {
 		  obj.attr( "data-tooltip", altText ) ;}
 		return obj;
 	}
 
 	function createValued(elementType: string, parentElement: JQuery, value: string): JQuery {
 		const obj = $("<" + elementType + "></" + elementType + ">");
-		if (parentElement) { obj.appendTo(parentElement); }
-		if (value) { obj.val(value); }
+		obj.appendTo(parentElement);
+		obj.val(value);
 		return obj;
 	}
 

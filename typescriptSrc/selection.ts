@@ -19,7 +19,7 @@ module selection {
     * The path must identify some node under the root in the following way.
     * If the path is empty, the root is identified. Otherwise the first
     * item of the path must identify a child of the root and the rest of
-    * the path indicates a node equal to or under than child in the same way.
+    * the path indicates a node equal to or under that child in the same way.
     * Let `p` be the node identified by the path.  The selected nodes are the
     * children of `p` numbered between the `focus` and the `anchor`.
     * We require `0 <= focus <= p.count()` and `0 <= anchor <= p.count()`.

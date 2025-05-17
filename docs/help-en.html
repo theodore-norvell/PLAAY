@@ -48,7 +48,7 @@
           <p>Blocks consist of sequences of <a href="#varDecl">declarations</a>
              and <a href="#expressions">expression</a></p>
 
-          <p>The value of a block is the value of its final declaration.</p>
+          <p>The value of a block is the value of its final expression or declaration.</p>
 
     <h2 id="expressions">Expressions</h2>
 
@@ -78,6 +78,7 @@
             <p>Alternation expressions are used to make decisions.</p>
             <p>If the guard expression evaluates to true, the first block is evaluated.</p>
             <p>If the guard expression evaluates to false, the second block is evaluated.</p>
+            <p>The value of an alternation expression is the value of the evaluated block</p>
             <p>Note that the guard expression must be a boolean expression.</p>
 
         <h3 id="while">Iteration expressions (also known as while expressions)</h3>
@@ -106,7 +107,7 @@
 
             <p>TODO</p>
 
-        <h3 id="assign">Assignment expression</h3> 
+        <h3 id="store">Store expression</h3> 
             <p><a href="#keyboard">Shortcut key</a>: <kbd>:</kbd>.</p>
 
             <p>TODO</p>
@@ -123,7 +124,7 @@
 
         <h3 id="accessor">Accessor expression</h3> Slated for deletion?
 
-        <h3 id="dotExpression">Feild selection expression</h3> 
+        <h3 id="dotExpression">Field selection expression</h3> 
             <p><a href="#keyboard">Shortcut key</a>: <kbd>.</kbd>.</p>
 
             <p>TODO</p>
@@ -291,7 +292,7 @@
         </li>
         <li><kbd>$</kbd> will create an object literal expression.</li>
         <li><kbd>[</kbd> will create an index expression.</li>
-        <li><kbd>:</kbd> will create an assignment expression.</li>
+        <li><kbd>:</kbd> will create a store expression.</li>
         <li><kbd>;</kbd> will create a loc expression.</li>
     </ul>
 

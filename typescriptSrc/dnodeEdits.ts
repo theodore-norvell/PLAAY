@@ -49,7 +49,6 @@ module dnodeEdits {
                                         normal ? l : l+1,
                                         normal ? l+1 : l ) ) ;
         }
-
     }
 
     /** Move left. */
@@ -207,11 +206,18 @@ module dnodeEdits {
         }
     }
 
-    /** Replace all selected nodes with another set of nodes. */
-    function doubleReplace<L extends DLabel<L,T>, T extends DNode<L,T>>( srcSelection : Selection<L,T>, newNodes4Src : Array<T>,
-                            trgSelection : Selection<L,T>, newNodes4Trg : Array<T>,
-                            allowSrcAncestorOverwrite : boolean = true, 
-                            allowTrgAncestorOverwrite : boolean = true ) : Option<Selection<L,T>> {
+    /** Replace all selected nodes with two other sequences
+     * of nodes in two selections that have the same
+     * root.
+    */
+    function doubleReplace<L extends DLabel<L,T>, T extends DNode<L,T>>(
+        srcSelection : Selection<L,T>,
+        newNodes4Src : Array<T>,
+        trgSelection : Selection<L,T>,
+        newNodes4Trg : Array<T>,
+        allowSrcAncestorOverwrite : boolean = true, 
+        allowTrgAncestorOverwrite : boolean = true )
+    : Option<Selection<L,T>> {
         const srcStart = srcSelection.start() ;
         const srcEnd = srcSelection.end() ;
 
@@ -1036,9 +1042,9 @@ module dnodeEdits {
         return alt( editList )  ;
     }
 
-    /** Either replace the current seletion with a given template or
+    /** Either replace the current selection with a given template or
      * engulf the current selection with the template.
-     * If the target selection is empty, replace is prefered. Otherwise engulf is
+     * If the target selection is empty, replace is preferred. Otherwise engulf is
      * preferred.
      * 
      * @param template 

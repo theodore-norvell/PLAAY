@@ -276,10 +276,10 @@ module labels {
     }
     pnode.registry[VarDeclLabel.kindConst] = VarDeclLabel ;
 
-    /** Assignments.  */
-    export class AssignLabel extends ExprLabel {
+    /** Stores.  */
+    export class StoreLabel extends ExprLabel {
 
-        public static readonly kindConst : string = "AssignLabel" ;
+        public static readonly kindConst : string = "StoreLabel" ;
         
         public isValid( children : Array<PNode> ) : boolean {
             if( children.length !== 2) return false ;
@@ -289,7 +289,7 @@ module labels {
         }
 
         public toString():string {
-            return "assign";
+            return "store";
         }
 
         private constructor() {
@@ -298,14 +298,14 @@ module labels {
 
 
         // Singleton
-        public static theAssignLabel = new AssignLabel();
+        public static theStoreLabel = new StoreLabel();
 
         public toJSON() : object {
-            return { kind: AssignLabel.kindConst, } ;
+            return { kind: StoreLabel.kindConst, } ;
         }
 
-        public static fromJSON( json : object ) : AssignLabel {
-            return AssignLabel.theAssignLabel ;
+        public static fromJSON( json : object ) : StoreLabel {
+            return StoreLabel.theStoreLabel ;
         }
 
         public getPrecedence() : number {
@@ -314,9 +314,9 @@ module labels {
         public getChildPrecedence(child : number) : number {
             return 11 ; }
             
-        public kind() : string { return AssignLabel.kindConst ; }
+        public kind() : string { return StoreLabel.kindConst ; }
     }
-    pnode.registry[ AssignLabel.kindConst ] = AssignLabel ;
+    pnode.registry[ StoreLabel.kindConst ] = StoreLabel ;
 
 
     /** Calls to explicitly named functions. */
@@ -1326,8 +1326,8 @@ module labels {
     export function mkWhile(cond:PNode, seq:PNode):PNode {
         return make(WhileLabel.theWhileLabel, [cond, seq]); }
 
-    export function mkAssign( lhs:PNode, rhs:PNode ) : PNode {
-        return make( AssignLabel.theAssignLabel, [lhs, rhs] ) ;
+    export function mkStore( lhs:PNode, rhs:PNode ) : PNode {
+        return make( StoreLabel.theStoreLabel, [lhs, rhs] ) ;
     }
 
     export function mkExprSeq( exprs : Array<PNode> ) : PNode {
